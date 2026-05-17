@@ -1,0 +1,20 @@
+# ── Laravel (laravel-api) ──────────────────────────────
+laravel-api/vendor/
+laravel-api/.env
+laravel-api/.env.backup
+laravel-api/storage/logs/
+laravel-api/storage/framework/cache/
+laravel-api/storage/framework/sessions/
+laravel-api/storage/framework/views/
+laravel-api/bootstrap/cache/
+laravel-api/public/hot
+
+# ── Vue (vue-app) ──────────────────────────────────────
+vue-app/node_modules/
+vue-app/dist/
+vue-app/.env.local
+vue-app/.env.production
+
+# ── General ────────────────────────────────────────────
+.DS_Store
+Thumbs.db
