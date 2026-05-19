@@ -331,7 +331,7 @@ onMounted(() => {
                 <small v-else-if="singleData.npsn && singleData.npsn.trim().length > 7" class="text-green-500">NPSN is available! </small>
 
                 <label for="education_level" class="block font-bold mb-3 mt-3">Education Level</label>
-                <AutoComplete id="education_level" v-model="singleData.education_level" required="true" optionLabel="name" forceSelection :suggestions="filtered_Cat1" @complete="search_Cat1" fluid />
+                <AutoComplete id="education_level" v-model="singleData.education_level" :suggestions="filtered_Cat1" required="true" optionLabel="name" forceSelection placeholder="Search for Education Level" dropdown display="chip" @complete="search_Cat1" fluid />
                 <small v-if="submitted && !singleData.education_level" class="text-red-500">Education Level is required.</small>
 
                 <label for="status_education" class="block font-bold mb-3">Status Education</label>
@@ -342,7 +342,7 @@ onMounted(() => {
                 <Textarea id="address" v-model="singleData.address" required="true" autofocus fluid />
 
                 <label for="district" class="block font-bold mb-3 mt-3">District</label>
-                <AutoComplete id="district" v-model="singleData.district" required="true" optionLabel="name" forceSelection :suggestions="filtered_Cat2" @complete="search_Cat2" fluid />
+                <AutoComplete id="district" v-model="singleData.district" :suggestions="filtered_Cat2" required="true" optionLabel="name" forceSelection placeholder="Search for District" @complete="search_Cat2" fluid />
                 <small v-if="submitted && !singleData.district" class="text-red-500">District is required.</small>
 
             </div>
