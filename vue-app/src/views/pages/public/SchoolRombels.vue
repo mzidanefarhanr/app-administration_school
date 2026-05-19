@@ -31,6 +31,11 @@ const {
     ErrorDialog,
     titleError,
     fieldError,
+    filtered_Cat1,
+    filtered_Cat2,
+    filtered_Cat3,
+    filtered_Cat4,
+    filtered_Cat5,
     isCat1Used,
     isCat2Used,
     isCat3Used,
@@ -87,7 +92,7 @@ const initFilters = () => {
         'name':              { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
         'school_year.name':              { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
         'school_level.name': { value: null, matchMode: FilterMatchMode.IN },
-        'student_major.name':              { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+        'student_major.name': { value: null, matchMode: FilterMatchMode.IN },
         'class_teach.name':              { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
     };
 };
@@ -219,7 +224,7 @@ onMounted(() => {
                             <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Search by Name" />
                         </template>
                     </Column>
-                    <Column field="school_year.name" header="School Year" exportHeader="School Year" sortable filterField="school_year.name" :filterMenuStyle="{ width: '14rem' }" style="min-width: 12rem">
+                    <Column field="school_year.name" header="School Year" exportHeader="School Year" sortable filterField="school_year.name" :filterMenuStyle="{ width: '14rem' }" style="min-width: 14rem">
                         <template #body="{ data }">
                             {{ data.school_year.name }}
                         </template>
@@ -227,7 +232,7 @@ onMounted(() => {
                             <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Search by School Year" />
                         </template>
                     </Column>
-                    <Column field="school_level.name" header="School Level" filterField="school_level.name" exportHeader="School Level" :showFilterMatchModes="false" :filterMenuStyle="{ width: '14rem' }" style="min-width: 12rem">
+                    <Column field="school_level.name" header="School Level" exportHeader="School Level" sortable filterField="school_level.name" :showFilterMatchModes="false" :filterMenuStyle="{ width: '14rem' }" style="min-width: 14rem">
                         <template #body="{ data }">
                             <Tag :value="data.school_level.name" :severity="getSeverity(data.school_level.name)" />
                         </template>
@@ -241,15 +246,21 @@ onMounted(() => {
                             </MultiSelect>
                         </template>
                     </Column>
-                    <Column field="student_major.name" header="Student Major" exportHeader="Student Major" filterField="student_major.name" :filterMenuStyle="{ width: '14rem' }" style="min-width: 12rem">
+                    <Column field="student_major.name" header="Student Major" exportHeader="Student Major" sortable filterField="student_major.name" :showFilterMatchModes="false" :filterMenuStyle="{ width: '14rem' }" style="min-width: 12rem">
                         <template #body="{ data }">
                             {{ data.student_major.name }}
                         </template>
                         <template #filter="{ filterModel, filterCallback }">
-                            <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Search by Student Major" />
+                            <MultiSelect v-model="filterModel.value" @change="filterCallback()" :options="manyDatas_cat4" placeholder="Select One" :showClear="true">
+                                <template #option="slotProps">
+                                    <div class="flex items-center gap-2">
+                                        <Tag :value="slotProps.option" :severity="getSeverity(slotProps.option)" />
+                                    </div>
+                                </template>
+                            </MultiSelect>
                         </template>
                     </Column>
-                    <Column field="class_teach.name" header="Class Teach" exportHeader="Class Teach" sortable filterField="class_teach.name" :filterMenuStyle="{ width: '16rem' }" style="min-width: 12rem">
+                    <Column field="class_teach.name" header="Class Teach" exportHeader="Class Teach" sortable filterField="class_teach.name" :filterMenuStyle="{ width: '14rem' }" style="min-width: 14rem">
                         <template #body="{ data }">
                             {{ data.class_teach.name }}
                         </template>
@@ -311,13 +322,28 @@ onMounted(() => {
                 <small v-else-if="isCat1Used" class="text-red-500">This name is already taken.</small>
                 <small v-else-if="singleData.name && singleData.name.trim().length > 3" class="text-green-500">Name is available!</small>
 
+                <label for="school_year" class="block font-bold mb-3 mt-3">School Year</label>
+                <AutoComplete id="school_year" v-model="singleData.school_year" :suggestions="filtered_Cat1" required="true" optionLabel="name" forceSelection placeholder="Search for School Year" dropdown display="chip" @complete="search_Cat1" fluid />
+                <small v-if="submitted && !singleData.school_year" class="text-red-500">School Year is required.</small>
+
+                <label for="school_level" class="block font-bold mb-3 mt-3">School Level</label>
+                <AutoComplete id="school_level" v-model="singleData.school_level" :suggestions="filtered_Cat2" required="true" optionLabel="name" forceSelection placeholder="Search for School Level" dropdown display="chip" @complete="search_Cat2" fluid />
+                <small v-if="submitted && !singleData.school_level" class="text-red-500">School Level is required.</small>
+
+                <label for="student_major" class="block font-bold mb-3 mt-3">Student Major</label>
+                <AutoComplete id="student_major" v-model="singleData.student_major" :suggestions="filtered_Cat3" required="true" optionLabel="name" forceSelection placeholder="Search for Student Major" dropdown display="chip" @complete="search_Cat3" fluid />
+                <small v-if="submitted && !singleData.student_major" class="text-red-500">Student Major is required.</small>
+
+                <label for="class_teach" class="block font-bold mb-3 mt-3">Class Teach</label>
+                <AutoComplete id="class_teach" v-model="singleData.class_teach" :suggestions="filtered_Cat4" required="true" optionLabel="name" forceSelection placeholder="Search for Class Teach" dropdown display="chip" @complete="search_Cat4" fluid />
+                <small v-if="submitted && !singleData.class_teach" class="text-red-500">Class Teach is required.</small>
+
             </div>
         </div>
 
         <template #footer>
             <Button label="Cancel" icon="pi pi-times" text @click="hideDialog" />
             <Button v-if="!isCat1Used && validFieldCount > 0" label="Save" icon="pi pi-check" @click="saveSingleData" />
-            <!-- <Button label="Save" icon="pi pi-check" @click="saveSingleData" /> -->
         </template>
     </Dialog>
     <!-- Loading Dialog -->
