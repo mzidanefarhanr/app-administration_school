@@ -15,6 +15,33 @@ class SchoolLevelSeeder extends Seeder
     {
         //
         SchoolLevel::create([
+            'name' => 'I'
+        ]);
+        SchoolLevel::create([
+            'name' => 'II'
+        ]);
+        SchoolLevel::create([
+            'name' => 'III'
+        ]);
+        SchoolLevel::create([
+            'name' => 'IV'
+        ]);
+        SchoolLevel::create([
+            'name' => 'V'
+        ]);
+        SchoolLevel::create([
+            'name' => 'VI'
+        ]);
+        SchoolLevel::create([
+            'name' => 'VII'
+        ]);
+        SchoolLevel::create([
+            'name' => 'VIII'
+        ]);
+        SchoolLevel::create([
+            'name' => 'IX'
+        ]);
+        SchoolLevel::create([
             'name' => 'X'
         ]);
         SchoolLevel::create([
