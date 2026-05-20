@@ -23,6 +23,7 @@ const model = ref([
             { label: 'Professions', icon: 'pi pi-fw pi-briefcase', to: '/public/professions', class: 'rotated-icon' },
             { label: 'School Rombels', icon: 'pi pi-fw pi-book', to: '/public/schoolrombels', class: 'rotated-icon' },
             { label: 'School Years', icon: 'pi pi-fw pi-calendar', to: '/public/schoolyears', class: 'rotated-icon' },
+            { label: 'Student Majors', icon: 'pi pi-fw pi-calendar', to: '/public/studentmajors', class: 'rotated-icon' },
         ]
     },
     {

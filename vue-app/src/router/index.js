@@ -74,6 +74,11 @@ const router = createRouter({
                     component: () => import('@/views/pages/public/SchoolRombels.vue')
                 },
                 {
+                    path: '/public/studentmajors',
+                    name: 'studentmajors',
+                    component: () => import('@/views/pages/public/StudentMajors.vue')
+                },
+                {
                     path: '/public/students',
                     name: 'students',
                     component: () => import('@/views/pages/public/Student.vue')

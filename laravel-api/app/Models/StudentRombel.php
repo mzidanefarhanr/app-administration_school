@@ -42,28 +42,28 @@ class StudentRombel extends Model
         //
     ];
 
-    public function student_nik(): BelongsTo
+    public function studentNik(): BelongsTo
     {
         return $this->belongsTo(Student::class, 'student_nik', 'nik');
     }
-    public function school_rombel(): BelongsTo
+    public function schoolRombel(): BelongsTo
     {
         return $this->belongsTo(SchoolRombel::class, 'school_rombel', 'id');
     }
 
-    public function student_status(): BelongsTo
+    public function studentStatus(): BelongsTo
     {
         return $this->belongsTo(StudentStatus::class, 'student_status_id', 'id');
     }
-    public function student_entry(): BelongsTo
+    public function studentEntry(): BelongsTo
     {
         return $this->belongsTo(StudentEntry::class, 'student_entry_id', 'id');
     }
-    public function mutation_education_school(): BelongsTo
+    public function mutationEducationSchool(): BelongsTo
     {
         return $this->belongsTo(EducationSchool::class, 'mutation_education_school_id', 'npsn');
     }
-    public function latest_student_exit_school(): BelongsTo
+    public function latestStudentExitSchool(): BelongsTo
     {
         return $this->belongsTo(EducationSchool::class, 'latest_student_exit_school_id', 'npsn');
     }
