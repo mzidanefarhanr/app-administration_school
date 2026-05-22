@@ -702,7 +702,7 @@ onMounted(() => {
         </div>
 
         <div class="grid grid-cols-12 mt-8 gap-8">
-            <div class="col-span-12 xl:col-span-6">
+            <div class="col-span-12">
                 <div v-if="loading == true" class="card">
                     <div class="font-semibold text-xl mb-4">Class Breakdown</div>
                     <Skeleton width="100%" height="150px"></Skeleton>
