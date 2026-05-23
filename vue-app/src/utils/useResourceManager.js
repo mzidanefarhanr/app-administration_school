@@ -170,7 +170,18 @@ export function useResourceManager(config) {
         } catch (error) {
             // console.error('fetchDataAll error:', error);
             titleError.value = 'Failed!!';
-            fieldError.value = error.response?.data?.message || 'An error occurred';
+
+            // Check if Laravel returned validation field errors
+            if (error.response?.data?.errors) {
+                const validationErrors = error.response.data.errors;
+                // Combine all errors into a bulleted list string
+                fieldError.value = Object.values(validationErrors)
+                    .map(errArray => `• ${errArray.join(', ')}`)
+                    .join('\n');
+            } else {
+                // Fallback for general server errors (e.g., 500, 404)
+                fieldError.value = error.response?.data?.message || 'An error occurred';
+            }
             errorDialogRender();
         } finally {
             loading.value = false;

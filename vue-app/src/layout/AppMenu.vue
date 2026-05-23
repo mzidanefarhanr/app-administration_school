@@ -11,7 +11,10 @@ const model = ref([
     {
         label: 'Home',
         access: 2,
-        items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' }]
+        items: [
+            { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' },
+            { label: 'Profile School', icon: 'pi pi-fw pi-building-columns', to: '#' },
+        ]
     },
     {
         label: 'Masters',
@@ -31,6 +34,8 @@ const model = ref([
         access: 2,
         items: [
             { label: 'Students', icon: 'pi pi-fw pi-graduation-cap', to: '/public/students' },
+            { label: 'Teachers', icon: 'pi pi-fw pi-slack', to: '#' },
+            { label: 'Letters Form', icon: 'pi pi-fw pi-book', to: '#' },
         ]
     },
     {
