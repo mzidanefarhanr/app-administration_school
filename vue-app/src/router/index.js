@@ -46,56 +46,67 @@ const router = createRouter({
                 {
                     path: '/public/educationlevels',
                     name: 'educationLevels',
+                    meta: { breadcrumb: 'Education Levels' },
                     component: () => import('@/views/pages/public/EducationLevels.vue')
                 },
                 {
                     path: '/public/educationschools',
                     name: 'educationSchools',
+                    meta: { breadcrumb: 'Education Schools' },
                     component: () => import('@/views/pages/public/EducationSchools.vue')
                 },
                 {
                     path: '/public/phasestatuses',
                     name: 'phasestatuses',
+                    meta: { breadcrumb: 'Phase Status' },
                     component: () => import('@/views/pages/public/PhaseStatus.vue')
                 },
                 {
                     path: '/public/professions',
                     name: 'professions',
+                    meta: { breadcrumb: 'Profession' },
                     component: () => import('@/views/pages/public/Profession.vue')
                 },
                 {
                     path: '/public/schoolyears',
                     name: 'schoolyears',
+                    meta: { breadcrumb: 'School Years' },
                     component: () => import('@/views/pages/public/SchoolYears.vue')
                 },
                 {
                     path: '/public/schoolrombels',
                     name: 'schoolrombels',
+                    meta: { breadcrumb: 'School Rombels' },
                     component: () => import('@/views/pages/public/SchoolRombels.vue')
                 },
                 {
                     path: '/public/studentmajors',
                     name: 'studentmajors',
+                    meta: { breadcrumb: 'Student Majors' },
                     component: () => import('@/views/pages/public/StudentMajors.vue')
                 },
                 {
                     path: '/public/students',
                     name: 'students',
+                    meta: { breadcrumb: 'Students' },
                     component: () => import('@/views/pages/public/Student.vue')
                 },
                 {
                     path: '/profile/user',
                     name: 'profileUser',
+                    meta: { breadcrumb: 'Profile' },
                     component: () => import('@/views/pages/auth/Profile.vue')
                 },
                 {
                     path: '/master/accounts',
                     name: 'masteraccounts',
+                    meta: { breadcrumb: 'Accounts' },
                     component: () => import('@/views/pages/master/Accounts.vue')
                 },
                 {
                     path: '/master/typeusers',
                     name: 'mastertypeusers',
+                    meta: { breadcrumb: 'Type Users' },
                     component: () => import('@/views/pages/master/TypeUsers.vue')
                 },
                 {

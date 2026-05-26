@@ -136,17 +136,6 @@ onMounted(() => {
 <template>
     <Fluid>
         <div class="bg-surface-0 dark:bg-surface-950 px-6 py-8 md:px-12 lg:px-20">
-            <ul class="list-none p-0 m-0 flex items-center font-medium mb-5">
-                <li>
-                    <a class="text-surface-500 dark:text-surface-300 no-underline leading-normal cursor-pointer">Dashboard</a>
-                </li>
-                <li class="px-2">
-                    <i class="pi pi-angle-right text-surface-500 dark:text-surface-300 !text-sm !leading-normal" />
-                </li>
-                <li>
-                    <span class="text-surface-900 dark:text-surface-0 leading-normal">{{ entityLabelPlural }}</span>
-                </li>
-            </ul>
 
             <div class="flex items-start flex-col md:justify-between md:flex-row">
                 <div>
