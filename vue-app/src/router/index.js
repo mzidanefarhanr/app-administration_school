@@ -44,6 +44,12 @@ const router = createRouter({
                     component: () => import('@/views/Dashboard.vue')
                 },
                 {
+                    path: '/public/schoolprofile',
+                    name: 'schoolprofile',
+                    meta: { breadcrumb: 'School Profile' },
+                    component: () => import('@/views/pages/public/SchoolProfile.vue')
+                },
+                {
                     path: '/public/educationlevels',
                     name: 'educationLevels',
                     meta: { breadcrumb: 'Education Levels' },

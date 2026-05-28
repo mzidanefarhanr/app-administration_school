@@ -13,7 +13,7 @@ const model = ref([
         access: 2,
         items: [
             { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' },
-            { label: 'Profile School', icon: 'pi pi-fw pi-building-columns', to: '#' },
+            { label: 'Profile School', icon: 'pi pi-fw pi-building-columns', to: '/public/schoolprofile' },
         ]
     },
     {
