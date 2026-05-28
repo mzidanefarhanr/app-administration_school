@@ -35,6 +35,7 @@ const model = ref([
         items: [
             { label: 'Students', icon: 'pi pi-fw pi-graduation-cap', to: '/public/students' },
             { label: 'Teachers', icon: 'pi pi-fw pi-slack', to: '#' },
+            { label: 'Employees', icon: 'pi pi-fw pi-address-book', to: '#' },
             { label: 'Letters Form', icon: 'pi pi-fw pi-book', to: '#' },
         ]
     },
