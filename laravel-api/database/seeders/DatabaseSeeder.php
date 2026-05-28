@@ -30,34 +30,37 @@ class DatabaseSeeder extends Seeder
             'email' => 'mzidanefarhanr@gmail.com',
             'username' => 'mzidanefarhanr',
             'nik' => '3175032408000015',
+            'type_user_id' => 1
         ]);
         User::factory()->create([
             'name' => 'Tardiyanto, S.Pd.',
             'email' => 'tardiyanto@gmail.com',
             'username' => 'tardiyanto',
             'nik' => '3172030705670010',
-            'type_user_id' => 2
         ]);
         User::factory()->create([
             'name' => 'Sungadi',
             'email' => 'sungadi@gmail.com',
             'username' => 'sungadi',
             'nik' => '3175091208690012',
-            'type_user_id' => 2
         ]);
         User::factory()->create([
             'name' => 'Dadang Darsono',
             'email' => 'dadangdarsono@gmail.com',
             'username' => 'dadangdarsono',
             'nik' => '3172020712690004',
-            'type_user_id' => 2
         ]);
         User::factory()->create([
             'name' => 'Asroh, S.M.',
             'email' => 'asroh@gmail.com',
             'username' => 'asroh',
             'nik' => '3175092805810014',
-            'type_user_id' => 2
+        ]);
+        User::factory()->create([
+            'name' => 'Wahyu Dawam Budi Utomo, S.Pd.',
+            'email' => 'wahyudawambudiutomo@gmail.com',
+            'username' => 'wahyudbu',
+            'nik' => '3172020712770007',
         ]);
 
         $this->call([
@@ -81,7 +84,13 @@ class DatabaseSeeder extends Seeder
             SchoolLevelSeeder::class,
             SchoolRombelSeeder::class,
             StudentSeeder::class,
-            StudentRombelSeeder::class,
+            MaritalStatusSeeder::class,
+            EmployeeStatusSeeder::class,
+            EmployeeTypeSeeder::class,
+            EmploymentSeeder::class,
+            SubjectSeeder::class,
+            SchoolProfileSeeder::class,
+            EmployeeSeeder::class,
         ]);
     }
 }

@@ -37,7 +37,7 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'username'          => fake()->name(),
             'password'          => static::$password ??= Hash::make('password'),
-            'type_user_id'      => static::$type_user_id ??= 1,
+            'type_user_id'      => static::$type_user_id ??= 2,
             'status_user_id'    => static::$status_user_id ??= 1,
             'first_login_at'    => false,
             'status_active'     => false,
