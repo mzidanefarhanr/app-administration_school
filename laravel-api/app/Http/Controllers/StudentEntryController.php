@@ -15,7 +15,7 @@ class StudentEntryController extends Controller
     public function index()
     {
         //get all StudentEntry
-        $StudentEntry = StudentEntry::latest()->get();
+        $StudentEntry = StudentEntry::select('name', 'id')->latest()->get();
 
         //return collection of StudentEntry as a resource
         return new StatusResource(true, 'List Data StudentEntry', $StudentEntry);

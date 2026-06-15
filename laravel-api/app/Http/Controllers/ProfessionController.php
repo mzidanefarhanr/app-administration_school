@@ -18,7 +18,7 @@ class ProfessionController extends Controller
     public function index()
     {
         //get all Professions
-        $professions = Profession::latest()->get();
+        $professions = Profession::select('name', 'id')->latest()->get();
 
         //return collection of Professions as a resource
         return new StatusResource(true, 'List Professions', $professions);

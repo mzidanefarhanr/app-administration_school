@@ -15,7 +15,7 @@ class StudentMajorController extends Controller
     public function index()
     {
         //get all StudentMajor
-        $StudentMajor = StudentMajor::latest()->get();
+        $StudentMajor = StudentMajor::select('name', 'id')->latest()->get();
 
         //return collection of StudentMajor as a resource
         return new StatusResource(true, 'List Data StudentMajor', $StudentMajor);

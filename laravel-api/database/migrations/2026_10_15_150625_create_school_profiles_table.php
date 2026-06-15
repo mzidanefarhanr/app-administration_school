@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string('education_school_npsn');
             $table->foreign('education_school_npsn')->references('npsn')->on('education_schools');
-            // $table->string('education_school_npsn');
             $table->unsignedBigInteger('principal_id');
             $table->foreign('principal_id')->references('id')->on('users');
             $table->unsignedBigInteger('school_year_id');

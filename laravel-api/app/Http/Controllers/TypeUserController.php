@@ -18,7 +18,7 @@ class TypeUserController extends Controller
     public function index()
     {
         //get all Type Users
-        $typeUsers = TypeUser::latest()->get();
+        $typeUsers = TypeUser::select('name', 'id')->latest()->get();
 
         //return collection of Type Users as a resource
         return new StatusResource(true, 'Type Users list', $typeUsers);

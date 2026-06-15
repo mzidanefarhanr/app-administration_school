@@ -18,7 +18,7 @@ class PhaseStatusController extends Controller
     public function index()
     {
         //get all Phase Status
-        $PhaseStatus = PhaseStatus::latest()->get();
+        $PhaseStatus = PhaseStatus::select('name', 'id')->latest()->get();
 
         //return collection of Phase Status as a resource
         return new StatusResource(true, 'Phase Statuses List', $PhaseStatus);

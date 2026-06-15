@@ -15,7 +15,7 @@ class ReligionController extends Controller
     public function index()
     {
         //get all Religion
-        $Religion = Religion::latest()->get();
+        $Religion = Religion::select('name', 'id')->latest()->get();
 
         //return collection of Religion as a resource
         return new StatusResource(true, 'List Data Religion', $Religion);

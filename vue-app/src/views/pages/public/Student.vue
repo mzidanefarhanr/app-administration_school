@@ -618,7 +618,7 @@ onMounted(() => {
 </script>
 <template>
     <Fluid>
-        <div class="bg-surface-0 dark:bg-surface-950 px-6 py-8 md:px-12 lg:px-20">
+        <div class="bg-surface-0 dark:bg-surface-900 px-6 py-8 md:px-12 lg:px-20">
             <div class="flex items-start flex-col md:justify-between md:flex-row">
                 <div>
                     <div class="font-bold text-3xl text-surface-900 dark:text-surface-0 mb-4">Students - {{ school_years_now ? school_years_now.name : "" }}</div>

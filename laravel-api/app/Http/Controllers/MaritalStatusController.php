@@ -15,7 +15,7 @@ class MaritalStatusController extends Controller
     public function index()
     {
         //get all Marital Status
-        $MaritalStatus = MaritalStatus::latest()->get();
+        $MaritalStatus = MaritalStatus::select('name', 'id')->latest()->get();
 
         //return collection of Marital Status as a resource
         return new StatusResource(true, 'Marital Statuses List', $MaritalStatus);

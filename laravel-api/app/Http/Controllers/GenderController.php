@@ -15,7 +15,7 @@ class GenderController extends Controller
     public function index()
     {
         //get all Gender
-        $Gender = Gender::latest()->get();
+        $Gender = Gender::select('name', 'id')->latest()->get();
 
         //return collection of Gender as a resource
         return new StatusResource(true, 'List Data Gender', $Gender);

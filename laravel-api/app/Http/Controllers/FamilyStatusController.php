@@ -15,7 +15,7 @@ class FamilyStatusController extends Controller
     public function index()
     {
         //get all FamilyStatus
-        $FamilyStatus = FamilyStatus::latest()->get();
+        $FamilyStatus = FamilyStatus::select('name', 'id')->latest()->get();
 
         //return collection of FamilyStatus as a resource
         return new StatusResource(true, 'List Data FamilyStatus', $FamilyStatus);

@@ -15,7 +15,7 @@ class BloodTypeController extends Controller
     public function index()
     {
         //get all BloodType
-        $BloodType = BloodType::latest()->get();
+        $BloodType = BloodType::select('name', 'id')->latest()->get();
 
         //return collection of BloodType as a resource
         return new StatusResource(true, 'List Data BloodType', $BloodType);

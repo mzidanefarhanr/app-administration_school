@@ -18,7 +18,7 @@ class EducationLevelController extends Controller
     public function index()
     {
         //get all Education Levels
-        $educationLevels = EducationLevel::latest()->get();
+        $educationLevels = EducationLevel::select('name', 'id')->latest()->get();
 
         //return collection of Education Levels as a resource
         return new StatusResource(true, 'Education Levels List', $educationLevels);

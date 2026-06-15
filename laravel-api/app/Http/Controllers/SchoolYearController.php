@@ -18,7 +18,7 @@ class SchoolYearController extends Controller
     public function index()
     {
         //get all School Years
-        $schoolYears = SchoolYear::latest()->get();
+        $schoolYears = SchoolYear::select('name', 'id')->latest()->get();
 
         //return collection of School Years as a resource
         return new StatusResource(true, 'School Years List', $schoolYears);

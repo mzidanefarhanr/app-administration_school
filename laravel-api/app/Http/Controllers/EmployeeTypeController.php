@@ -15,7 +15,7 @@ class EmployeeTypeController extends Controller
     public function index()
     {
         //get all Employee Types
-        $EmployeeTypes = EmployeeType::latest()->get();
+        $EmployeeTypes = EmployeeType::select('name', 'id')->latest()->get();
 
         //return collection of Employee Types as a resource
         return new StatusResource(true, 'Employee Types List', $EmployeeTypes);

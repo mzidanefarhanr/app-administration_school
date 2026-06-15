@@ -15,7 +15,7 @@ class StudentStatusController extends Controller
     public function index()
     {
         //get all StudentStatus
-        $StudentStatus = StudentStatus::latest()->get();
+        $StudentStatus = StudentStatus::select('name', 'id')->latest()->get();
 
         //return collection of StudentStatus as a resource
         return new StatusResource(true, 'List Data StudentStatus', $StudentStatus);

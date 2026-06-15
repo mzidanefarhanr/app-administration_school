@@ -15,7 +15,7 @@ class StatusUserController extends Controller
     public function index()
     {
         //get all StatusUser
-        $StatusUser = StatusUser::latest()->get();
+        $StatusUser = StatusUser::select('name', 'id')->latest()->get();
 
         //return collection of StatusUser as a resource
         return new StatusResource(true, 'List Data StatusUser', $StatusUser);

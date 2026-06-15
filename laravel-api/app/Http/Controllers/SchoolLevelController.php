@@ -15,7 +15,7 @@ class SchoolLevelController extends Controller
     public function index()
     {
         //get all SchoolLevel
-        $SchoolLevel = SchoolLevel::latest()->get();
+        $SchoolLevel = SchoolLevel::select('name', 'id')->latest()->get();
 
         //return collection of SchoolLevel as a resource
         return new StatusResource(true, 'List Data SchoolLevel', $SchoolLevel);
