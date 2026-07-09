@@ -91,6 +91,7 @@ class DatabaseSeeder extends Seeder
             SubjectSeeder::class,
             SchoolProfileSeeder::class,
             EmployeeSeeder::class,
+            StudentRombelSeeder::class,
         ]);
     }
 }

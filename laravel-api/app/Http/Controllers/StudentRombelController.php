@@ -67,9 +67,41 @@ class StudentRombelController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(StudentRombel $studentRombel)
+    public function show($id)
     {
         //
+        $studentRombels = StudentRombel::with([
+            'studentNik.gender',
+            'studentNik.religion',
+            'studentNik.education_level',
+            'studentNik.blood_type',
+            'studentNik.profession',
+            'studentNik.village.district.regency.province',
+            'studentNik.family_status',
+            'studentNik.last_education_school',
+            'studentNik.latest_education_school',
+            'studentNik.father_education_level',
+            'studentNik.father_profession',
+            'studentNik.mother_education_level',
+            'studentNik.mother_profession',
+            'studentNik.guardian_education_level',
+            'studentNik.guardian_profession',
+            'schoolRombel.schoolLevel',
+            'schoolRombel.schoolYear',
+            'schoolRombel.studentMajor',
+            'schoolRombel.classTeach',
+            'studentStatus',
+            'studentEntry',
+            'mutationEducationSchool.educationLevel',
+            'mutationEducationSchool.district.regency.province',
+            'latestStudentExitSchool.educationLevel',
+            'latestStudentExitSchool.district.regency.province',
+        ])
+        ->whereHas('schoolRombel', function ($query) use ($id) {
+            $query->where('school_year_id', $id);
+        })
+        ->get();
+        return new StatusResource(true, 'Student Rombels detail found!', $studentRombels);
     }
 
     /**

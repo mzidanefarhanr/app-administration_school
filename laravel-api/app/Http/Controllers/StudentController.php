@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Student;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Http\Resources\StatusResource;
+use App\Models\Student;
+use Illuminate\Support\Facades\DB;
 
 class StudentController extends Controller
 {
@@ -56,6 +57,21 @@ class StudentController extends Controller
     public function store(StoreStudentRequest $request)
     {
         //
+        DB::beginTransaction();
+        try {
+            // 1. Create the user account
+            // $user = User::create([...]);
+
+            // 2. Create the employee profile linked to the user
+            // $employee = Employee::create([...]);
+
+            DB::commit(); // If both succeed, save permanently!
+            // return new StatusResource(true, 'Saved successfully!', $employee);
+
+        } catch (\Exception $e) {
+            DB::rollBack(); // If anything fails, undo the User creation instantly
+            return new StatusResource(false, 'Save failed: ' . $e->getMessage(), null);
+        }
     }
 
     /**

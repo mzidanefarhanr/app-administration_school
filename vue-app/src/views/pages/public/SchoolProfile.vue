@@ -154,7 +154,7 @@ const fieldConfig = computed(() => ({
         type:        'autocomplete',
         options:     allEducationSchools.value,
         optionLabel: 'name',
-        addNewLink:  '/masters/education-schools',   // ← route to Education Schools page
+        addNewLink:  '/public/educationschools',   // ← route to Education Schools page
         addNewLabel: 'Add new Education School',
         endpoint:    `/api/school-profile/${school_profile.value.id}`,
         payloadKey:  'education_school_npsn',
@@ -166,7 +166,7 @@ const fieldConfig = computed(() => ({
         type:        'autocomplete',
         options:     allUsers.value,
         optionLabel: 'name',
-        addNewLink:  '/admin/accounts',              // ← route to Accounts page
+        addNewLink:  '/master/accounts',              // ← route to Accounts page
         addNewLabel: 'Add new User',
         endpoint:    `/api/school-profile/${school_profile.value.id}`,
         payloadKey:  'principal_id',

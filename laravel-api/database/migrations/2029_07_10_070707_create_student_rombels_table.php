@@ -28,6 +28,10 @@ return new class extends Migration
             $table->date('latest_student_exit_date')->nullable(); // Tanggal Keluar Siswa
             $table->string('latest_student_exit_school_id')->nullable();
             $table->foreign('latest_student_exit_school_id')->references('npsn')->on('education_schools'); // Sekolah Keluar Siswa
+            $table->date('latest_student_graduation_date')->nullable(); // Tanggal Lulus Siswa
+            $table->string('latest_information')->nullable(); // Informasi Terbaru
+            $table->boolean('check_dapodik')->nullable(); // Dapodik Cek
+            $table->string('informations_dapodik')->nullable(); // Informasi Dapodik Terbaru
             // $table->unsignedBigInteger('student_major_id')->nullable();
             // $table->foreign('student_major_id')->references('id')->on('student_majors'); // Jurusan
 

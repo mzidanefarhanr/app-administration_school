@@ -205,15 +205,12 @@ class UserController extends Controller
 
                 if ($request->password_new) {
                     //update users with new password # user
-                    //Hash the password_new
-                    //$password_new = bcrypt($request->password_new);
-                    $password_new = Hash::make($request->password_new);
                     $users->update([
                         'name'              => $request->name,
                         'email'             => $request->email,
                         'email_verified_at' => now(),
                         'username'          => $request->username,
-                        'password'          => $password_new,
+                        'password'          => bcrypt($request->password_new),
                         'nik'               => $request->nik,
                         'type_user_id'      => $request->type_user_id,
                         'status_user_id'    => $request->status_user_id,
@@ -241,7 +238,8 @@ class UserController extends Controller
             } else {
                 //define validation rules
                 $validator = Validator::make($request->all(), [
-                    'name'              => ['required', 'min:3', 'max:100'],
+                    'name' => ['required', 'min:3', 'max:100',
+                        Rule::unique('users')->ignore($id)->whereNull('deleted_at')],
                     'email'             => ['required', 'email:rfc,dns', 'max:60'],
                     'username'          => ['required', 'min:3', 'max:100'],
                     'nik'               => ['required', 'min:16'],
@@ -258,7 +256,6 @@ class UserController extends Controller
 
                 if ($request->password_new) {
                     //update users with new password # user
-                    $password_new = Hash::make($request->password_new);
                     $users->update([
                         'name'              => $request->name,
                         'email'             => $request->email,
