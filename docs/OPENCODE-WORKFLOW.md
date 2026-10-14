@@ -34,6 +34,14 @@ Jangan commit/push/merge/deploy pada sesi ini. Berhenti setelah hasil siap revie
 ```
 Ganti placeholder dengan satu subfase konkret. Bila ingin commit/push, instruksikan terpisah atau tambahkan scope tersebut secara eksplisit; jangan menganggap izin review adalah izin deploy.
 
+## Aturan commit per fase
+- Setiap fase/subfase memiliki commit implementasi/dokumentasi **setelah** verifikasi sesuai scope (jangan commit sebelum laporan/verifikasi siap).
+- Persetujuan manual pemilik yang datang kemudian dicatat dalam **commit dokumentasi tersendiri**, bukan digabung ke commit implementasi.
+- Instruksi commit **bukan** persetujuan manual implementasi; cantumkan perbedaan ini di laporan/CHANGELOG.
+- **Push/merge/deploy memerlukan instruksi terpisah**; commit lokal tidak otomatis berlanjut ke push.
+- Staging selektif (tanpa `git add .`/`-A` tanpa pemeriksaan); jangan memasukkan `.env` lokal, kredensial, database, log, atau data pribadi. Jika perubahan pemilik sulit dipisah dalam satu file, biarkan belum ter-stage dan laporkan.
+- Laporkan SHA, branch, hasil `git diff --cached --check`, dan file yang masih belum ter-commit beserta alasannya. Jangan mengarang commit per fase atau rewrite history.
+
 ## Prompt mencatat hasil manual
 ```text
 Catat hasil pemeriksaan manual saya untuk subfase <ID> pada kandidat <SHA/working tree>.

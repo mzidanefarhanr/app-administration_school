@@ -1,7 +1,24 @@
 # Strategi pengujian dan bukti
 
 ## Baseline
-Tes yang ditemukan terutama auth Breeze dan ExampleTest. Belum dijalankan. `laravel-api/phpunit.xml` mengomentari DB_CONNECTION sqlite dan DB_DATABASE :memory:. Jangan menyalin klaim App Gudang bahwa tes sudah aman memakai SQLite.
+Tes yang ditemukan terutama auth Breeze dan ExampleTest. `laravel-api/phpunit.xml` semula mengomentari DB_CONNECTION sqlite dan DB_DATABASE :memory:. Jangan menyalin klaim App Gudang bahwa tes sudah aman memakai SQLite.
+
+## Isolasi aktual (Fase 01a) — SUDAH diterapkan
+- `laravel-api/.env.testing`: `DB_CONNECTION=sqlite`, `DB_DATABASE=:memory:`, `CACHE_DRIVER=array`, `SESSION_DRIVER=array`. Tidak memuat kredensial operasional.
+- `phpunit.xml`: `DB_CONNECTION=sqlite` / `DB_DATABASE=:memory:` dengan `force="true"`.
+- Fail-safe: `tests/CreatesApplication.php::guardAgainstUnsafeTestDatabase()` membatalkan suite bila APP_ENV ≠ testing atau koneksi bukan sqlite in-memory. Diverifikasi: guard memblokir konfigurasi mysql `backdata_administrations`.
+- Tidak ada `bootstrap/cache/config.php`/route cache (tidak ada koneksi operasional dari cache).
+- Fixture referensi (type_users/status_users) + peran/kemampuan dibuat sintetis via `tests/Pest.php` dan `tests/Support/CreatesAccessFixtures.php`. `DatabaseSeeder` (identitas asli) TIDAK dijalankan pada tes.
+- SQLite in-memory kompatibel dengan seluruh 35 migration (enum → varchar+check, FK diaktifkan).
+
+## Lingkungan UAT terisolasi (Fase 01a, 2026-10-15)
+- Database UAT MySQL disposable `school_access_uat` (terpisah dari operasional `backdata_administrations` dan dari DB tes sqlite in-memory).
+- Konfigurasi: `laravel-api/.env.uat` (lokal, di-ignore) dari contoh `laravel-api/.env.uat.example`. Koneksi efektif diverifikasi (`--env=uat` → mysql/school_access_uat) sebelum migrasi.
+- Fixture sintetis `UatSeeder`: `uat.admin`, `uat.operator`, `uat.kepsek`, `uat.waka`, `uat.inactive`. Kata sandi dari env `UAT_SEED_PASSWORD` (tidak di dokumen). `DatabaseSeeder` identitas asli TIDAK dijalankan.
+- Frontend UAT: `VITE_API_BASE_URL` (mis. `http://127.0.0.1:8001`) via `vue-app/.env.uat` (lokal, di-ignore). Tidak memakai URL hardcode.
+- Cara jalan: API `php artisan serve --host=127.0.0.1 --port=8001 --env=uat`; SPA `npx vite --mode uat --host 127.0.0.1 --port 4001`.
+- **Guard DB tes otomatis tidak dikendurkan**: `phpunit.xml` + fail-safe `tests/CreatesApplication.php` tetap memaksa sqlite in-memory.
+- **Penyelesaian 01a**: `UatSeeder` juga membuat data siswa sintetis (termasuk nilai awal nol dan nama berformula) untuk UAT ekspor. Tes otomatis ekspor: `tests/Feature/Access/StudentExportTest.php` (guest/nonaktif/tanpa view/tanpa export/dua izin/leading zero/CSV escaping/neutralisasi formula/lingkup tahun ajaran/validasi input/pencabutan izin pada sesi aktif). Total suite 47 tes.
 
 ## Isolasi sebelum tes
 Tetapkan `.env.testing`/konfigurasi test yang tidak berisi koneksi sekolah aktif. Pastikan config cache tidak mengarahkan test ke DB development/produksi. Gunakan database disposable dengan nama khusus; tambahkan guard yang menggagalkan tes jika nama/driver tidak sesuai. SQLite boleh untuk tes cepat bila migration kompatibel; FK, enum, unique dan concurrency yang kritis harus diuji MySQL terisolasi. Verifikasi database runtime tanpa mencetak password.

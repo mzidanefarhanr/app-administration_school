@@ -50,6 +50,7 @@ const model = ref([
         items: [
             { label: 'Accounts', icon: 'pi pi-fw pi-users', to: '/master/accounts' },
             { label: 'User Type', icon: 'pi pi-fw pi-user-edit', to: '/master/typeusers' },
+            { label: 'Roles & Abilities', icon: 'pi pi-fw pi-shield', to: '/master/roles' },
         ]
     },
     {

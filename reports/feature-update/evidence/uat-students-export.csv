@@ -1,0 +1,4 @@
+﻿Name,Gender,Birthplace,Birthdate,NIK,NIS,NISN,"School Rombel","Student Entry","Student Status"
+"Synthetic Student One",Laki-Laki,"Synthetic City",2010-01-01,0000000000000001,001,0001,"UAT Rombel 1","Siswa Baru",Aktif
+"Synthetic Student Two",Laki-Laki,"Synthetic City",2010-01-01,0000000000000002,002,0002,"UAT Rombel 1","Siswa Baru",Aktif
+"'=FORMULA TEST, ""quoted""",Laki-Laki,"Synthetic City",2010-01-01,0000000000000003,003,0003,"UAT Rombel 1","Siswa Baru",Aktif

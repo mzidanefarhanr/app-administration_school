@@ -116,6 +116,12 @@ const router = createRouter({
                     component: () => import('@/views/pages/master/TypeUsers.vue')
                 },
                 {
+                    path: '/master/roles',
+                    name: 'masterroles',
+                    meta: { breadcrumb: 'Roles & Abilities' },
+                    component: () => import('@/views/pages/master/Roles.vue')
+                },
+                {
                     path: '/uikit/formlayout',
                     name: 'formlayout',
                     component: () => import('@/views/uikit/FormLayout.vue')

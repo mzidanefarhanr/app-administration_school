@@ -39,3 +39,12 @@ Perbarui CHANGELOG, laporan fase, INDEX, HANDOFF, dan status ROADMAP sesuai hasi
 Catat perintah, hasil, jumlah test bila diketahui, SHA yang diuji, NOT RUN, blocker, risiko dan langkah berikutnya. Persetujuan manual terpisah dari hasil otomatis.
 Commit/push/PR mengikuti instruksi pemilik; merge/deploy/restore aktif bukan konsekuensi otomatis dari fase selesai. Jika commit belum diotorisasi, biarkan hasil reviewable dan laporkan working tree.
 Jangan menulis SHA masa depan untuk commit yang belum ada. Gunakan SHA parent dan daftar perubahan belum commit, lalu catat SHA aktual pada checkpoint berikutnya.
+
+## Aturan commit per fase
+- Setiap fase (atau subfase) memiliki commit implementasi/dokumentasi tersendiri **setelah** verifikasi sesuai scope-nya.
+- Persetujuan manual dari pemilik yang datang **kemudian** dicatat dalam commit dokumentasi tersendiri; jangan menggabungkannya ke commit implementasi sebelumnya.
+- Instruksi untuk commit **bukan** persetujuan manual atas implementasi. Perbedaan ini dicatat eksplisit di laporan/CHANGELOG.
+- Wajib laporkan: SHA commit, branch aktif, hasil pemeriksaan (mis. `git diff --cached --check`), dan file yang masih belum ter-commit beserta alasannya.
+- **Push/merge/deploy memerlukan instruksi pemilik terpisah** dan tidak otomatis menyertai commit lokal.
+- Staging selektif: jangan pakai `git add .`/`git add -A` tanpa pemeriksaan; jangan pernah memasukkan `.env` lokal, kredensial, database, log sensitif, atau data pribadi. Bila perubahan pemilik dalam satu file tidak dapat dipisahkan dengan pasti, biarkan file tersebut belum ter-stage dan laporkan.
+- Jangan merekonstruksi snapshot historis, mengarang commit per fase, atau melakukan rewrite history.

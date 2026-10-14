@@ -1,15 +1,16 @@
 # Roadmap update fitur aplikasi sekolah
 
-Versi dokumen: 1.0, 14 Oktober 2026 (WIB). Baseline `main` @ `b02a87f0d57adffec297ed465a8afcd8e8d7ec59`.
-Status: DRAFT terstruktur. Penyusunan dokumen selesai; seluruh implementasi fase belum dimulai. Tujuan utama berasal instruksi pemilik; detail target/role/kebijakan masih usulan sampai dipilih.
+Versi dokumen: 1.0, 14 Oktober 2026 (WIB); audit HEAD 15 Oktober 2026.
+Baseline kode: `b02a87f0d57adffec297ed465a8afcd8e8d7ec59`; HEAD audit `b699feccd65357a10f7430c165400906e6394d49` (delta = paket docs saja, kode tidak berubah).
+Status: DRAFT terstruktur. Fase 00 audit source + inventaris lingkungan selesai PARTIAL (test/build/browser NOT RUN). Seluruh implementasi fase lain belum dimulai. Tujuan utama berasal instruksi pemilik; detail target/role/kebijakan masih usulan sampai dipilih.
 
 ## Urutan dan prioritas
 Fondasi keamanan + backup dahulu; penyelesaian pendataan; pengolahan massal dan tahun ajaran; surat/izin/arsip; pembelajaran; analisis; optimasi dan QA. Backup didahulukan pada Fase02 dan diuji ulang setelah seluruh modul lampiran berkembang. Data operasional tidak digunakan sebelum fondasi dan restore drill siap.
 
 | Fase | Scope | Dependensi | Status teknis | Review |
 |---|---|---|---|---|
-| 00 | [Audit baseline dan kesiapan lingkungan](phases/PHASE-00-BASELINE.md) | Tidak ada | NOT STARTED | PENDING |
-| 01 | [Hak akses, autentikasi dan lingkungan aman](phases/PHASE-01-ACCESS.md) | 00; DEC-03 untuk 01a | NOT STARTED | PENDING |
+| 00 | [Audit baseline dan kesiapan lingkungan](phases/PHASE-00-BASELINE.md) | Tidak ada | PARTIAL (source+env audit; test/build/browser NOT RUN) | PENDING |
+| 01 | [Hak akses, autentikasi dan lingkungan aman](phases/PHASE-01-ACCESS.md) | 00; DEC-03 untuk 01a | 01a IMPLEMENTED + penyelesaian DEC-14 + koreksi akhir (test 49 PASS; build PASS; UI English; ekspor siswa endpoint CSV + batas baris tolak 422; UAT browser/HTTP PASS pada data sintetis); penerimaan manual PENDING; 01b/01c NOT STARTED | PENDING |
 | 02 | [Audit terpercaya dan backup yang dapat dipulihkan](phases/PHASE-02-BACKUP-AUDIT.md) | 01; DEC-02 dan DEC-09 untuk backup | NOT STARTED | PENDING |
 | 03 | [Pendataan siswa lengkap dan aman](phases/PHASE-03-STUDENTS.md) | 01; 02 sebelum data operasional; DEC-05 | NOT STARTED | PENDING |
 | 04 | [Guru dan pegawai](phases/PHASE-04-EMPLOYEES.md) | 01; 02; DEC-04 | NOT STARTED | PENDING |
@@ -49,6 +50,11 @@ Baca [prompt OpenCode](../docs/OPENCODE-WORKFLOW.md), jalankan 00a–00b audit s
 - [x] Source repo sekolah dibaca.
 - [x] Pola dokumentasi App Gudang ditinjau dan diadaptasi.
 - [x] Paket Markdown disiapkan; link/struktur diperiksa pada penyusunan.
-- [ ] Paket dipasang/direview dalam repo pemilik.
-- [ ] Fase00 runtime inventory oleh OpenCode.
+- [x] Paket dipasang dalam repo pemilik (commit 05eb83f, b699fec).
+- [x] Fase00 runtime inventory oleh OpenCode (PARTIAL; laporan PHASE-00-RUNTIME-AUDIT.md).
+- [x] Review pemilik atas laporan Fase 00 dan keputusan DEC-03 untuk 01a (APPROVED 2026-10-15).
+- [x] Fase 01a — authorization backend: peran/kemampuan + enforcement (IMPLEMENTED; test PASS; verifikasi UAT browser/HTTP PASS pada data sintetis; laporan PHASE-01A-ACCESS.md).
+- [x] Keputusan DEC-14 (register/nonaktif/ekspor/legacy/Bahasa UI) APPROVED 2026-10-14 WIB; penyelesaian ekspor siswa (endpoint CSV terlindungi), UI English, koreksi pemetaan legacy.
+- [ ] Konfirmasi pemilik: makna status_user_id; keputusan autentikasi terbuka lain (reset password, bootstrap pengguna pertama, CORS/Sanctum, strategi cabut token).
+- [ ] Subfase 01b (konfigurasi API/error auth) dan 01c (isolasi test lanjutan, validator fixture).
 - [ ] Implementasi dan UAT fase terpilih.

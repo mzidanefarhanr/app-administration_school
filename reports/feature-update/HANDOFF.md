@@ -1,17 +1,33 @@
 # Handoff pengembangan aplikasi sekolah
 
-Checkpoint awal: 14 Oktober 2026 (WIB). Baseline source repo sekolah b02a87f0d57adffec297ed465a8afcd8e8d7ec59.
+Checkpoint terbaru: 2026-10-15 (WIB). HEAD `main` @ `b699feccd65357a10f7430c165400906e6394d49` (belum commit perubahan baru). Working tree berisi perubahan Fase 01a (35 tracked modified + 26 untracked) termasuk perubahan pemilik pada `CHANGELOG.md` yang dipertahankan. Tidak ada commit/push.
 
-## Hasil yang tersedia
-Paket Markdown untuk dipasang pemilik. Source aplikasi belum dimodifikasi oleh penyusun; tidak ada commit/push/PR baru. Runtime/test/build/browser/DB hidup NOT RUN. Seluruh fase implementasi NOT STARTED; persetujuan pemilik PENDING.
-Tujuan aplikasi dan penggunaan OpenCode diketahui; role baru, format nomor surat, hosting, aturan izin dan retensi masih keputusan terbuka.
+## Status fase
+- Fase 00 — Audit baseline: PARTIAL (source+env audit; browser NOT RUN).
+- Fase 01a — Authorization backend: **IMPLEMENTED + PENYELESAIAN (DEC-14) + koreksi akhir** — 49 test PASS; build PASS; UI English; ekspor siswa via endpoint CSV terlindungi dengan batas baris (tolak, bukan potong); pemetaan legacy dikoreksi; UAT browser/HTTP PASS pada data sintetis. Penerimaan manual menyeluruh: PENDING.
+- Fase 01b/01c dan fase lain: NOT STARTED.
+
+## Hasil sesi ini (penyelesaian 01a + koreksi akhir)
+- **DEC-14 APPROVED (2026-10-14 WIB)**: register publik ditutup; akun `status_active=false` ditolak login + request berikutnya; ekspor siswa via `students.export` (frontend+backend, ikut lingkup data); pemetaan legacy `Admin`→Admin Sistem, `User` **tidak** otomatis Operator (default deny); UI English. Persetujuan ini = **kebijakan**, bukan penerimaan manual seluruh implementasi.
+- **Ekspor siswa**: endpoint `GET /api/students/export` (`students.view`+`students.export`), kolom eksplisit, filter sama dengan daftar (seluruh hasil filter). **Batas baris**: >10.000 → **422** English (minta persempit filter), **bukan potong senyap** (`config/students.php`, `STUDENTS_EXPORT_MAX_ROWS` dapat diturunkan). Leading zero & CSV escaping & neutralisasi formula. `Student.vue` unduh via endpoint; tombol mengikuti izin; pencabutan izin berlaku pada request berikutnya.
+- **Legacy**: migration `2029_07_20_000003` dikoreksi (hanya `Admin`→`admin-sistem`; `down()` tidak menghapus penetapan manual).
+- **UI English**: `Roles.vue` (label dipisah dari identifier), nama peran English di katalog, `Accounts.vue` + dialog Assign Roles, tombol/notifikasi ekspor `Student.vue`, `authStore` abilities + `can()`.
+- **Perbaikan kecil**: `authStore.getUser` null-safe; 3 warning formatting `Roles.vue` dirapikan (0 problems).
+- **Koreksi akhir**: tanggal DEC-14 → 2026-10-14 WIB konsisten; batas ekspor 10.000 → tolak 422 (dokumentasi + 2 tes); daftar file berubah dirapikan.
+- Bukti: `php artisan test` → **49 passed (119 assertions)**; `npm run build` PASS; `pint --test` PASS; UAT HTTP+Playwright PASS (bukti `evidence/uat-roles-en.png`, `evidence/uat-students-export.csv`). Guard DB tes tidak dikendurkan.
+
+## Keputusan disetujui
+DEC-03 (peran/kemampuan) dan DEC-14 (register/nonaktif/ekspor/legacy/Bahasa UI; disetujui 2026-10-14 WIB). Persetujuan kebijakan ≠ penerimaan manual implementasi.
+
+## Blockers / keputusan terbuka
+- **BLK-03**: `DatabaseSeeder` masih memuat identitas pribadi (belum diperbaiki; direkomendasikan sebelum data operasional).
+- Makna `status_user_id` belum ditegakkan. Reset password end-to-end, bootstrap pengguna pertama, CORS/Sanctum deployment, strategi cabut token vs sesi: OPEN.
+- Enforcement modul surat/izin/pembelajaran hanya katalog (fitur belum ada).
 
 ## Tugas berikutnya
-Pasang dokumen ke repo lokal dengan membandingkan file existing, jalankan prompt Fase00 di docs/OPENCODE-WORKFLOW. Audit HEAD/working tree aktual dan safe testing. Sesudah laporan, review scope 01a dan DEC-03. Jangan langsung membangun seluruh roadmap.
-
-## Blocker potensial
-DB test belum diisolasi; seed berpotensi data pribadi; API hardcode; permission kosong; data siswa/pegawai CRUD belum lengkap. Jangan menggunakan data sekolah nyata untuk membuktikan fitur.
+1. Review pemilik atas PHASE-01A-ACCESS.md §11–18 (penyelesaian + koreksi) dan bukti UAT.
+2. Persetujuan commit bila diinginkan (belum diotorisasi).
+3. Lanjut 01b atau 01c sesuai instruksi; ganti identitas asli `DatabaseSeeder` (scope terpisah).
 
 ## Aturan pembaruan handoff
-Catat active subphase, branch/HEAD/dirty files, scope otorisasi, hasil yang sudah selesai, bukti, NOT RUN, keputusan, blocker dan next concrete action. Checkpoint ini harus diganti ringkas saat sesi berikutnya; riwayat detail tetap di laporan/CHANGELOG.
-Persetujuan manual mencantumkan cakupan dan kandidat SHA; tidak menghapus NOT RUN alur lain. Jika HEAD berubah setelah uji, periksa relevansi bukti dahulu.
+Catat active subphase, branch/HEAD/dirty files, scope otorisasi, hasil, bukti, NOT RUN, keputusan, blocker dan next action. Ganti ringkas tiap sesi; jangan menulis SHA masa depan. Persetujuan manual terpisah dari hasil otomatis.

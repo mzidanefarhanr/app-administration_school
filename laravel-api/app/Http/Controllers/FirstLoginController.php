@@ -2,73 +2,73 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
-use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Validator;
 
 class FirstLoginController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         //
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         //
     }
 
     /**
-     * Update the specified resource in storage.
+     * Proses login pertama.
+     *
+     * Fase 01a: hanya boleh mengubah akun pengguna yang sedang terautentikasi.
+     * ID di URL tidak lagi dipakai untuk menargetkan pengguna lain (mencegah IDOR).
+     * `status_active` tidak dapat diubah di sini; itu atribut administratif.
      */
     public function update(Request $request, string $id)
     {
-        //find users by ID
-        $users = User::firstWhere('id', $id);
+        $actor = $request->user();
 
-        if (isset($users)) {
-            //define validation rules
-            $validator = Validator::make($request->all(), [
-                'first_login_at'    => ['required'],
-                'status_active'     => ['required'],
-            ]);
+        if (! $actor) {
+            return response()->json(['message' => 'Tidak terautentikasi.'], 401);
+        }
 
-            //check if validation fails
-            if ($validator->fails()) {
-                return response()->json($validator->errors(), 422);
-            }
+        // Tolak bila ID di URL bukan akun actor sendiri.
+        if ((string) $actor->id !== (string) $id) {
+            return response()->json([
+                'message' => 'Anda hanya dapat memperbarui status login akun Anda sendiri.',
+            ], 403);
+        }
 
-            //update users first_login_at & status_active
-            $users->update([
-                'first_login_at'    => $request->first_login_at,
-                'status_active'     => $request->status_active,
-            ]);
+        $users = User::firstWhere('id', $actor->id);
 
-            //return response
-            return new UserResource(true, 'Data User Berhasil Terautentikasi!', $users);
-        } else {
+        if (! isset($users)) {
             return response()->json(['message' => 'Data User Tidak Ditemukan!'], 404);
         }
+
+        // Hanya `first_login_at` yang boleh diubah pengguna sendiri.
+        // `status_active`/`status_user_id` adalah atribut administratif.
+        $validator = Validator::make($request->all(), [
+            'first_login_at' => ['required'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $users->update([
+            'first_login_at' => $request->first_login_at,
+        ]);
+
+        return new UserResource(true, 'Data User Berhasil Terautentikasi!', $users);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
         //

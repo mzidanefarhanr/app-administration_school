@@ -1,7 +1,9 @@
 # Database: baseline dan usulan
 
 ## Status
-Source review migration/model, bukan inspeksi database hidup. Baseline b02a87f. MySQL pada contoh environment; schema aktual instalasi pemilik harus diperiksa Fase 00. Nama tahun pada migration mencapai 2029; Laravel menentukan urutan dari nama file, bukan tanggal bisnis.
+Source review migration/model, bukan inspeksi database hidup. Baseline b02a87f; HEAD audit b699fec (kode identik). MySQL pada contoh environment; schema aktual instalasi pemilik harus diperiksa Fase 00.
+**Isolasi uji (Fase 01a):** tes otomatis berjalan pada SQLite in-memory via `laravel-api/.env.testing` + `phpunit.xml` (`DB_CONNECTION=sqlite`, `DB_DATABASE=:memory:`, `force="true"`) dengan fail-safe di `tests/CreatesApplication.php` yang membatalkan suite bila koneksi bukan sqlite in-memory. Database operasional `backdata_administrations` TIDAK dipakai untuk tes. Koneksi port 3306 terbuka bukan bukti koneksi Laravel/DB.
+Nama tahun pada migration mencapai 2029; Laravel menentukan urutan dari nama file, bukan tanggal bisnis. Migration baru Fase 01a memakai prefix `2029_07_20_*` agar berurutan setelah migration 2029 yang ada.
 
 ## Tabel domain aktual
 | Tabel | Kolom/relasi penting | Catatan |
@@ -22,6 +24,10 @@ Source review migration/model, bukan inspeksi database hidup. Baseline b02a87f. 
 | genders / religions / blood_types / professions / family_statuses | referensi biodata | Identitas/domain berbeda dari role |
 | activities | user_id, table_name, record_id, before/after/new/delete JSON, information enum, timestamps | FK user cascade untuk hard delete; belum memiliki idempotency/rollback linkage |
 | password_reset_tokens / personal_access_tokens / failed_jobs | tabel framework | Jangan masukkan token ke evidence |
+| roles (Fase 01a) | name, slug, description, is_protected, version, soft delete | Peran baru terpisah dari type_users; `is_protected` melindungi Admin Sistem |
+| abilities (Fase 01a) | name unik (mis. students.export), group, description, is_sensitive | Katalog kemampuan bernama; di-seed dari AbilityCatalog |
+| ability_role (Fase 01a) | role_id, ability_id, unique komposit | Pemetaan peran→kemampuan yang dapat diatur admin |
+| role_user (Fase 01a) | user_id, role_id, assigned_by, unique komposit, FK cascade | Penetapan peran; auto-map legacy hanya `Admin`→`admin-sistem` (DEC-14); `User` tidak otomatis; penetapan manual admin tidak dihapus |
 
 ## Kesenjangan model–schema
 Migration siswa punya check_bpms; model fillable yang diperiksa belum memuatnya. StudentRombel migration memiliki graduation/latest_information/check_dapodik/informations_dapodik yang tidak semuanya ada di fillable baseline. Employee relation `relogion` tampak salah eja. Verifikasi consumer sebelum mengganti nama. Jangan menganggap semua model memiliki version atau Loggable; Student/StudentRombel belum menggunakannya.

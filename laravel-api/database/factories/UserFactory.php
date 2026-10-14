@@ -15,10 +15,12 @@ class UserFactory extends Factory
      * The current password being used by the factory.
      */
     protected static ?string $password;
+
     /**
      * The current status_user_id being used by the factory.
      */
     protected static ?string $status_user_id;
+
     /**
      * The current type_user_id being used by the factory.
      */
@@ -32,16 +34,17 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name'              => fake()->name(),
-            'email'             => fake()->unique()->safeEmail(),
+            'name' => fake()->name(),
+            'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'username'          => fake()->name(),
-            'password'          => static::$password ??= Hash::make('password'),
-            'type_user_id'      => static::$type_user_id ??= 2,
-            'status_user_id'    => static::$status_user_id ??= 1,
-            'first_login_at'    => false,
-            'status_active'     => false,
-            'remember_token'    => Str::random(10),
+            'username' => fake()->unique()->userName(),
+            'password' => static::$password ??= Hash::make('password'),
+            'nik' => fake()->unique()->numerify('################'),
+            'type_user_id' => static::$type_user_id ??= 2,
+            'status_user_id' => static::$status_user_id ??= 1,
+            'first_login_at' => false,
+            'status_active' => true,
+            'remember_token' => Str::random(10),
         ];
     }
 

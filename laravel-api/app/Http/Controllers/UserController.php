@@ -2,41 +2,46 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-// use Illuminate\Support\Str;
-use Illuminate\Http\Request;
 use App\Http\Resources\UserResource;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Atribut administratif (peran/status tipe) yang hanya boleh diubah
+     * oleh pengguna dengan kemampuan users.manage.
+     *
+     * @var array<int, string>
      */
+    private const ADMIN_FIELDS = ['type_user_id', 'status_user_id', 'status_active'];
+
     public function index()
     {
-        //get all users
-        $users = User::with(['status_user','type_user'])->orderBy('name')->get();
+        $this->authorize('users.view');
 
-        //return collection of users as a resource
+        $users = User::with(['status_user', 'type_user', 'roles:id,name,slug'])
+            ->orderBy('name')
+            ->get();
+
         return new UserResource(true, 'Users List', $users);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //define validation rules
+        $this->authorize('users.manage');
+
+        // define validation rules
         $validator = Validator::make($request->all(), [
             'name' => [
                 'required', 'min:3', 'max:100',
                 Rule::unique('users')->whereNull('deleted_at'),
             ],
             'email' => [
-                'required', 'email:rfc,dns', 'max:60',
+                'required', 'email:rfc', 'max:60',
                 Rule::unique('users')->whereNull('deleted_at'),
             ],
             'username' => [
@@ -47,11 +52,12 @@ class UserController extends Controller
                 'required', 'min:16',
                 Rule::unique('users')->whereNull('deleted_at'),
             ],
-            'type_user_id'   => ['required', 'min:1'],
-            'status_user_id' => ['required', 'min:1'],
+            'password' => ['required', 'string', 'min:8'],
+            'type_user_id' => ['required', 'exists:type_users,id'],
+            'status_user_id' => ['required', 'exists:status_users,id'],
         ]);
 
-        //check if validation fails
+        // check if validation fails
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
@@ -69,38 +75,44 @@ class UserController extends Controller
             $conflicts = User::withTrashed()
                 ->whereNotNull('deleted_at')
                 ->where('id', '!=', $existingByNik->id)
-                ->where(function($query) use ($request) {
-                    $query->where('name',     $request->name)
-                        ->orWhere('email',    $request->email)
+                ->where(function ($query) use ($request) {
+                    $query->where('name', $request->name)
+                        ->orWhere('email', $request->email)
                         ->orWhere('username', $request->username);
                 })
                 ->first();
 
             if ($conflicts) {
-                if ($conflicts->name     === $request->name)     $conflictingFields[] = 'name';
-                if ($conflicts->email    === $request->email)    $conflictingFields[] = 'email';
-                if ($conflicts->username === $request->username) $conflictingFields[] = 'username';
+                if ($conflicts->name === $request->name) {
+                    $conflictingFields[] = 'name';
+                }
+                if ($conflicts->email === $request->email) {
+                    $conflictingFields[] = 'email';
+                }
+                if ($conflicts->username === $request->username) {
+                    $conflictingFields[] = 'username';
+                }
 
                 return response()->json([
                     'message' => 'Failed to create a new user. The following data is already in use by a deleted account: '
-                        . implode(', ', $conflictingFields)
-                        . '. Please use the NIK associated with that data to restore it, or change the '
-                        . implode(', ', $conflictingFields)
-                        . ' to something new.',
+                        .implode(', ', $conflictingFields)
+                        .'. Please use the NIK associated with that data to restore it, or change the '
+                        .implode(', ', $conflictingFields)
+                        .' to something new.',
                 ], 422);
             }
 
             // No conflict — safe to restore and update
             $existingByNik->restore();
             $existingByNik->update([
-                'name'           => $request->name,
-                'email'          => $request->email,
-                'username'       => $request->username,
-                'password'       => bcrypt($request->password),
-                'nik'            => $request->nik,
-                'type_user_id'   => $request->type_user_id,
+                'name' => $request->name,
+                'email' => $request->email,
+                'username' => $request->username,
+                'password' => bcrypt($request->password),
+                'nik' => $request->nik,
+                'type_user_id' => $request->type_user_id,
                 'status_user_id' => $request->status_user_id,
-                'status_active'  => 0,
+                'status_active' => 0,
                 'first_login_at' => 0,
             ]);
 
@@ -112,219 +124,257 @@ class UserController extends Controller
 
         $conflictsByOtherFields = User::withTrashed()
             ->whereNotNull('deleted_at')
-            ->where(function($query) use ($request) {
-                $query->where('name',     $request->name)
-                    ->orWhere('email',    $request->email)
+            ->where(function ($query) use ($request) {
+                $query->where('name', $request->name)
+                    ->orWhere('email', $request->email)
                     ->orWhere('username', $request->username);
             })
             ->first();
 
         if ($conflictsByOtherFields) {
-            if ($conflictsByOtherFields->name     === $request->name)     $conflictingFields[] = 'name';
-            if ($conflictsByOtherFields->email    === $request->email)    $conflictingFields[] = 'email';
-            if ($conflictsByOtherFields->username === $request->username) $conflictingFields[] = 'username';
+            if ($conflictsByOtherFields->name === $request->name) {
+                $conflictingFields[] = 'name';
+            }
+            if ($conflictsByOtherFields->email === $request->email) {
+                $conflictingFields[] = 'email';
+            }
+            if ($conflictsByOtherFields->username === $request->username) {
+                $conflictingFields[] = 'username';
+            }
 
             return response()->json([
                 'message' => 'Failed to create a new user. The following data is already in use by a deleted account: '
-                    . implode(', ', $conflictingFields)
-                    . '. Please use that account\'s NIK to restore it, or replace the '
-                    . implode(', ', $conflictingFields)
-                    . ' with new data.',
+                    .implode(', ', $conflictingFields)
+                    .'. Please use that account\'s NIK to restore it, or replace the '
+                    .implode(', ', $conflictingFields)
+                    .' with new data.',
             ], 422);
         }
 
         // ── STEP 3: All clear — create fresh user ────────────────────────────────
         $users = User::create([
-            'name'              => $request->name,
-            'email'             => $request->email,
+            'name' => $request->name,
+            'email' => $request->email,
             'email_verified_at' => now(),
-            'username'          => $request->username,
-            'password'          => bcrypt($request->password),
-            'nik'               => $request->nik,
-            'first_login_at'    => 0,
-            'status_active'     => 0,
-            'type_user_id'      => $request->type_user_id,
-            'status_user_id'    => $request->status_user_id,
+            'username' => $request->username,
+            'password' => bcrypt($request->password),
+            'nik' => $request->nik,
+            'first_login_at' => 0,
+            'status_active' => 0,
+            'type_user_id' => $request->type_user_id,
+            'status_user_id' => $request->status_user_id,
         ]);
 
         return new UserResource(true, 'New Users successfully added!', $users);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
-        //find users by ID
-        $users = User::find($id);
+        $this->authorize('users.view');
 
-        //return single users as a resource
+        $users = User::with(['status_user', 'type_user', 'roles:id,name,slug'])->find($id);
+
         return new UserResource(true, 'Users detail found!', $users);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update akun.
+     *
+     * Dua jalur:
+     *  - Profil sendiri (actor == target): hanya nama/email/username/nik/password.
+     *    Atribut administratif (type_user_id/status_user_id/status_active) DIABAIKAN
+     *    dan tidak boleh dipakai untuk menaikkan hak akses sendiri.
+     *  - Pengelolaan akun (butuh users.manage): boleh mengubah atribut administratif,
+     *    dengan perlindungan admin pengelola akses terakhir.
      */
     public function update(Request $request, $id)
     {
-        //find users by ID
         $users = User::firstWhere('id', $id);
 
-
-        if (isset($users)) {
-            // ── Optimistic Lock check ─────────────────────────────────────────────
-            if ((int) $request->version !== (int) $users->version) {
-                return response()->json([
-                    'message' => 'This record has been updated by someone else. Please refresh the page to see the latest changes.',
-                    'latest'  => new UserResource(true, 'Latest data', $users),
-                ], 409); // 409 Conflict
-            }
-
-            //check if type_editor is 1 or admin
-            $editor = User::firstWhere('id', auth()->id());
-            if ($editor['type_user_id'] == 1 && $editor['id'] != $users['id']) {
-                //define validation rules
-                $validator = Validator::make($request->all(), [
-                    'name'              => ['required', 'min:3', 'max:100',
-                        Rule::unique('users')->ignore($id)->whereNull('deleted_at')],
-                    'email'             => ['required', 'email:rfc,dns', 'max:60',
-                        Rule::unique('users')->ignore($id)->whereNull('deleted_at')],
-                    'username'          => ['required', 'min:3', 'max:100',
-                        Rule::unique('users')->ignore($id)->whereNull('deleted_at')],
-                    'nik'               => ['required', 'min:16',
-                        Rule::unique('users')->ignore($id)->whereNull('deleted_at')],
-                    'type_user_id'      => ['required'],
-                    'status_user_id'    => ['required'],
-                    // 'remember_token'    => ['required'],
-                ]);
-
-                //check if validation fails
-                if ($validator->fails()) {
-                    return response()->json($validator->errors(), 422);
-                }
-
-                if ($request->password_new) {
-                    //update users with new password # user
-                    $users->update([
-                        'name'              => $request->name,
-                        'email'             => $request->email,
-                        'email_verified_at' => now(),
-                        'username'          => $request->username,
-                        'password'          => bcrypt($request->password_new),
-                        'nik'               => $request->nik,
-                        'type_user_id'      => $request->type_user_id,
-                        'status_user_id'    => $request->status_user_id,
-                        'version'           => $users->version + 1,
-                    ]);
-
-                    //return response
-                    return new UserResource(true, 'User & Password successfully updated by Admin!', $users);
-                } else {
-                    //update users without new password # user
-                    $users->update([
-                        'name'              => $request->name,
-                        'email'             => $request->email,
-                        'email_verified_at' => now(),
-                        'username'          => $request->username,
-                        'nik'               => $request->nik,
-                        'type_user_id'      => $request->type_user_id,
-                        'status_user_id'    => $request->status_user_id,
-                        'version'           => $users->version + 1,
-                    ]);
-
-                    //return response
-                    return new UserResource(true, 'User successfully updated by Admin!', $users);
-                }
-            } else {
-                //define validation rules
-                $validator = Validator::make($request->all(), [
-                    'name' => ['required', 'min:3', 'max:100',
-                        Rule::unique('users')->ignore($id)->whereNull('deleted_at')],
-                    'email'             => ['required', 'email:rfc,dns', 'max:60'],
-                    'username'          => ['required', 'min:3', 'max:100'],
-                    'nik'               => ['required', 'min:16'],
-                    'type_user_id'      => ['required'],
-                    'status_user_id'    => ['required'],
-                    'password'          => ['required', 'current_password'],
-                    // 'remember_token'    => ['required'],
-                ]);
-
-                //check if validation fails
-                if ($validator->fails()) {
-                    return response()->json($validator->errors(), 422);
-                }
-
-                if ($request->password_new) {
-                    //update users with new password # user
-                    $users->update([
-                        'name'              => $request->name,
-                        'email'             => $request->email,
-                        'email_verified_at' => now(),
-                        'username'          => $request->username,
-                        'password'          => bcrypt($request->password_new),
-                        'nik'               => $request->nik,
-                        'version'           => $users->version + 1,
-                    ]);
-
-                    //return response
-                    return new UserResource(true, 'User successfully updated!', $users);
-                } else {
-                    //update users without new password # user
-                    $users->update([
-                        'name'              => $request->name,
-                        'email'             => $request->email,
-                        'email_verified_at' => now(),
-                        'username'          => $request->username,
-                        'nik'               => $request->nik,
-                        'version'           => $users->version + 1,
-                    ]);
-
-                    //return response
-                    return new UserResource(true, 'User successfully updated!', $users);
-                }
-
-            }
-
-
-        } else {
+        if (! isset($users)) {
             return response()->json(['message' => 'User not found!'], 404);
         }
 
+        $actor = $request->user();
+        $isSelf = (int) $actor->id === (int) $users->id;
+
+        // Izin: mengelola akun orang lain butuh users.manage; memperbarui diri sendiri selalu boleh.
+        if (! $isSelf) {
+            $this->authorize('users.manage');
+        }
+
+        // ── Optimistic Lock check ─────────────────────────────────────────────
+        if ($request->filled('version') && (int) $request->version !== (int) $users->version) {
+            return response()->json([
+                'message' => 'This record has been updated by someone else. Please refresh the page to see the latest changes.',
+                'latest' => new UserResource(true, 'Latest data', $users),
+            ], 409); // 409 Conflict
+        }
+
+        // Tentukan field yang boleh diubah berdasarkan izin.
+        $canManageAdminFields = ! $isSelf && $actor->hasAbility('users.manage');
+
+        // Cegah eskalasi diri: jika self, buang atribut administratif.
+        $payload = $request->all();
+        if (! $canManageAdminFields) {
+            foreach (self::ADMIN_FIELDS as $field) {
+                unset($payload[$field]);
+            }
+        }
+
+        $validator = Validator::make($payload, [
+            'name' => ['required', 'min:3', 'max:100',
+                Rule::unique('users')->ignore($id)->whereNull('deleted_at')],
+            'email' => ['required', 'email:rfc', 'max:60',
+                Rule::unique('users')->ignore($id)->whereNull('deleted_at')],
+            'username' => ['required', 'min:3', 'max:100',
+                Rule::unique('users')->ignore($id)->whereNull('deleted_at')],
+            'nik' => ['required', 'min:16',
+                Rule::unique('users')->ignore($id)->whereNull('deleted_at')],
+            'type_user_id' => ['sometimes', 'required', 'exists:type_users,id'],
+            'status_user_id' => ['sometimes', 'required', 'exists:status_users,id'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        // Untuk self update: wajib password lama (sesuai perilaku lama).
+        if ($isSelf) {
+            $pwValidator = Validator::make($request->all(), [
+                'password' => ['required', 'current_password'],
+            ]);
+            if ($pwValidator->fails()) {
+                return response()->json($pwValidator->errors(), 422);
+            }
+        }
+
+        // ── Perlindungan admin pengelola akses terakhir ───────────────────────
+        $willLoseAccess = $this->wouldRemoveLastAccessManager($users, $payload);
+        if ($willLoseAccess) {
+            return response()->json([
+                'message' => 'Perubahan ditolak: ini akan menghilangkan akses pengelolaan akun '
+                    .'dari admin aktif terakhir. Tetapkan pengelola lain terlebih dahulu.',
+            ], 422);
+        }
+
+        $users = DB::transaction(function () use ($users, $payload, $request, $canManageAdminFields) {
+            $updates = [
+                'name' => $payload['name'],
+                'email' => $payload['email'],
+                'email_verified_at' => now(),
+                'username' => $payload['username'],
+                'nik' => $payload['nik'],
+                'version' => $users->version + 1,
+            ];
+
+            if ($canManageAdminFields) {
+                if (isset($payload['type_user_id'])) {
+                    $updates['type_user_id'] = $payload['type_user_id'];
+                }
+                if (isset($payload['status_user_id'])) {
+                    $updates['status_user_id'] = $payload['status_user_id'];
+                }
+                if (array_key_exists('status_active', $payload)) {
+                    $updates['status_active'] = (bool) $payload['status_active'];
+                }
+            }
+
+            if ($request->filled('password_new')) {
+                $updates['password'] = bcrypt($request->password_new);
+            }
+
+            $users->update($updates);
+
+            return $users;
+        });
+
+        $message = $canManageAdminFields
+            ? ($request->filled('password_new')
+                ? 'User & Password successfully updated by Admin!'
+                : 'User successfully updated by Admin!')
+            : ($request->filled('password_new')
+                ? 'User & Password successfully updated!'
+                : 'User successfully updated!');
+
+        return new UserResource(true, $message, $users);
+    }
+
+    public function destroy(Request $request, $id)
+    {
+        $this->authorize('users.manage');
+
+        $user = User::firstWhere('id', $id);
+
+        if (! isset($user)) {
+            return response()->json(['message' => 'User not found!'], 404);
+        }
+
+        // Tidak boleh menghapus diri sendiri.
+        if ((int) $request->user()->id === (int) $user->id) {
+            return response()->json(['message' => 'Anda tidak dapat menghapus akun Anda sendiri.'], 422);
+        }
+
+        // Perlindungan admin pengelola akses terakhir.
+        if ($this->isLastAccessManager($user)) {
+            return response()->json([
+                'message' => 'Tidak dapat menghapus admin pengelola akses terakhir.',
+            ], 422);
+        }
+
+        // define validation rules
+        $validator = Validator::make($request->all(), [
+            'delete' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        if ($request->delete == 'true') {
+            $user->delete();
+
+            return new UserResource(true, 'User successfully deleted!', null);
+        }
+
+        return response()->json(['message' => 'You are not allowed to delete this data!'], 400);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Apakah $user adalah satu-satunya admin aktif yang mampu mengelola akses?
      */
-    public function destroy($id, Request $request)
+    private function isLastAccessManager(User $user): bool
     {
-        //find user by ID
-        $user = User::firstWhere('id', $id);
-
-        if (isset($user)) {
-            //define validation rules
-            $validator = Validator::make($request->all(), [
-                'delete'             => 'required',
-            ]);
-
-            //check if validation fails
-            if ($validator->fails()) {
-                return response()->json($validator->errors(), 422);
-            }
-
-            //check if delete is true
-            if ($request->delete == 'true') {
-
-                //delete user
-                $user->delete();
-
-                //return response
-                return new UserResource(true, 'User successfully deleted!', null);
-            } else {
-                return response()->json(['message' => 'You are not allowed to delete this data!'], 400);
-            }
-
-        } else {
-            return response()->json(['message' => 'User not found!'], 404);
+        if (! $user->status_active || ! $user->canManageAccess()) {
+            return false;
         }
+
+        return User::query()
+            ->where('status_active', true)
+            ->whereKeyNot($user->id)
+            ->get()
+            ->filter(fn (User $u) => $u->canManageAccess())
+            ->isEmpty();
+    }
+
+    /**
+     * Apakah payload update akan membuat target kehilangan status pengelola akses
+     * terakhir? Mis. menonaktifkan, atau memindahkan status aktif/tipe akun
+     * pengelola terakhir.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private function wouldRemoveLastAccessManager(User $target, array $payload): bool
+    {
+        if (! $this->isLastAccessManager($target)) {
+            return false;
+        }
+
+        // Bila bukan pengelola terakhir, tidak relevan (sudah ditangani di atas).
+        $deactivating = array_key_exists('status_active', $payload) && ! $payload['status_active'];
+        $typeChanged = array_key_exists('type_user_id', $payload)
+            && (int) $payload['type_user_id'] !== (int) $target->type_user_id;
+
+        return $deactivating || $typeChanged;
     }
 }

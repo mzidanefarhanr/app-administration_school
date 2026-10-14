@@ -2,11 +2,40 @@
 
 Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan OpenCode. Agent boleh mengusulkan nilai, tetapi keputusan penting tidak dicatat APPROVED tanpa jawaban pemilik.
 
+## Keputusan disetujui pemilik
+
+### DEC-03 — Role dan kemampuan (APPROVED, 2026-10-15)
+- Konteks: penetapan peran dan penegakan akses backend (Fase 01a).
+- Pilihan pemilik:
+  1. Peran awal: Admin Sistem; Operator Sekolah; Kepala Sekolah; Wakil Kepala Sekolah Bidang Kesiswaan (menggantikan Guru/Wali Kelas, lingkup awal: data kelas, penjadwalan, penilaian asesmen guru).
+  2. Ekspor: Admin Sistem, Operator Sekolah, Kepala Sekolah boleh mengekspor sesuai lingkup akses datanya. Hanya Kepala Sekolah yang awalnya diberi kemampuan menyetujui surat, menyetujui izin, dan menandatangani dokumen. Wakil Kesiswaan tidak mendapat ekspor/persetujuan/penandatanganan secara default.
+  3. Fleksibilitas: Admin Sistem dapat mengatur kemampuan tiap peran dan menetapkan peran pengguna. Konfigurasi di atas adalah nilai AWAL, bukan aturan yang dikunci di kode. Kemampuan bernama + enforcement backend terpusat; pisahkan view/create/update/delete/export/approve/sign; hindari cek inline `type_user_id`; admin tidak otomatis approve/sign; user tidak boleh eskalasi diri; admin pengelola akses terakhir dilindungi; perubahan izin berlaku pada request berikutnya; audit perubahan peran/izin tanpa rahasia.
+- Dampak schema: tabel `roles`, `abilities`, `ability_role`, `role_user` (migration 2029_07_20_*). Field `type_users`/`status_user_id` legacy tidak diubah.
+- Dampak API/UI: `GET/POST/PATCH/DELETE /api/roles`, `GET /api/abilities`, `POST/DELETE /api/users/{user}/roles[/{role}]`; middleware `active`; halaman `/master/roles`.
+- Status: APPROVED. Fase affected: 01a.
+
+### DEC-14 — Registrasi publik, akun nonaktif, ekspor siswa, pemetaan legacy (APPROVED, 2026-10-14 WIB)
+- Konteks: penyelesaian Fase 01a; keputusan pemilik tertulis atas kebijakan autentikasi dan ekspor.
+- Pilihan pemilik:
+  1. **Registrasi publik ditutup**; akun dibuat oleh admin. (`POST /register` tetap dihapus.)
+  2. **Akun `status_active=false`** ditolak login dan ditolak pada request berikutnya dari sesi aktif. `status_active` **tidak disamakan** dengan `status_user_id`.
+  3. **Ekspor siswa dikendalikan kemampuan `students.export`** pada frontend dan backend, dan mengikuti lingkup data yang boleh diakses (tidak memberi akses tambahan melebihi akses baca).
+  4. **Pemetaan legacy**: `Admin` → Admin Sistem. `User` **tidak** otomatis menjadi Operator Sekolah (peran ditetapkan manual admin). Tipe tak dikenal/tanpa tipe → tanpa peran (default deny). Akun operasional tidak diubah; perbaiki mekanisme pemetaan yang belum diterapkan ke operasional tanpa menghapus penetapan peran eksplisit admin.
+  5. **Bahasa UI**: semua teks antarmuka yang ditambah/diubah pada pekerjaan ini memakai **English** (nama tampilan peran: System Administrator, School Operator, Principal, Vice Principal for Student Affairs). Identifier peran/kemampuan tetap. Fitur pergantian bahasa (i18n) **di luar scope**.
+- Dampak API/UI: endpoint baru `GET /api/students/export` (CSV) dengan `students.view` + `students.export`; `Student.vue` mengunduh via endpoint (bukan `dt.exportCSV()`); tombol ekspor mengikuti izin aktual; teks UI halaman roles/matriks/penetapan peran/ekspor memakai English.
+- Dampak schema/migration: migration baru memperbaiki auto-map legacy (hanya `Admin`→Admin Sistem; `User` tidak dipetakan otomatis) sebagai perubahan additive, tanpa menghapus `role_user` yang ditetapkan admin eksplisit.
+- Status: APPROVED. Fase affected: 01a (penyelesaian).
+
+### Keputusan yang masih OPEN (belum diputuskan)
+- Reset password end-to-end (audit alur frontend), bootstrap pengguna pertama (apakah register bootstrap diperlukan), deployment CORS/Sanctum, strategi pencabutan token vs sesi.
+
+## Register
+
 | ID | Keputusan | Usulan awal / pertanyaan | Status | Fase paling lambat |
 |---|---|---|---|---|
 | DEC-01 | Cakupan sekolah | Satu sekolah untuk awal; multi-sekolah di luar scope | PROPOSED | 00 |
 | DEC-02 | Lingkungan operasional | Local/LAN atau hosting; lokasi DB/storage; batas biaya | OPEN | 01b/02 |
-| DEC-03 | Role dan kemampuan | Admin, Operator, Kepala sekolah, Guru/wali kelas; siapa boleh sign/approve/export | PROPOSED | 01a |
+| DEC-03 | Role dan kemampuan | Admin, Operator, Kepala sekolah, Guru/wali kelas; siapa boleh sign/approve/export | APPROVED (2026-10-15) | 01a |
 | DEC-04 | Hubungan pegawai–akun | Profil boleh tanpa login; teacher assignment memakai profil pegawai | PROPOSED | 04a |
 | DEC-05 | Identitas dan keanggotaan | NIK boleh kosong; satu rombel aktif per siswa/periode; NIS unik lingkup sekolah | PROPOSED | 03a/06a |
 | DEC-06 | Format nomor dan persetujuan surat | Format, reset counter, pejabat penandatangan, kapan nomor diterbitkan | OPEN | 07b |
@@ -17,6 +46,7 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 | DEC-11 | Template dokumen | Kop, tanda tangan, stempel, jenis surat pertama dan format rekap yang benar-benar dipakai | OPEN | 07a/07c |
 | DEC-12 | Laporan eksternal | Format ekspor sekolah; Dapodik via rekonsiliasi file dahulu, tanpa API otomatis | PROPOSED | 05b/11b |
 | DEC-13 | Retensi data pribadi | Arsip siswa/alumni, audit, lampiran; siapa boleh memusnahkan | OPEN | 09b/13 |
+| DEC-14 | Register/akun nonaktif/ekspor siswa/pemetaan legacy/Bahasa UI | Register ditutup; nonaktif ditolak; ekspor via `students.export`; legacy Admin→Admin Sistem (User manual); UI English | APPROVED (2026-10-14 WIB) | 01a |
 
 ## Format pencatatan keputusan
 Tanggal WIB; ID; konteks; alternatif; pilihan pemilik dan bukti instruksi; dampak schema/API/UI; fase affected; status OPEN/PROPOSED/APPROVED/SUPERSEDED. Pertahankan riwayat bila keputusan berubah.

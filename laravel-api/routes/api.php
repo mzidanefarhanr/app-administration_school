@@ -1,7 +1,9 @@
 <?php
 
-use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\AbilityController;
+use App\Http\Controllers\AccessAssignmentController;
 // use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\BloodTypeController;
 use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\EducationLevelController;
@@ -19,6 +21,7 @@ use App\Http\Controllers\ProfessionController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\RegencyController;
 use App\Http\Controllers\ReligionController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SchoolLevelController;
 use App\Http\Controllers\SchoolProfileController;
 use App\Http\Controllers\SchoolRombelController;
@@ -27,6 +30,7 @@ use App\Http\Controllers\SemesterController;
 use App\Http\Controllers\StatusUserController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\StudentEntryController;
+use App\Http\Controllers\StudentExportController;
 use App\Http\Controllers\StudentMajorController;
 use App\Http\Controllers\StudentRombelController;
 use App\Http\Controllers\StudentStatusController;
@@ -35,7 +39,6 @@ use App\Http\Controllers\TypeUserController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VillageController;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -49,63 +52,141 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-
 // Ubah dari yang lama menjadi seperti ini:
+// Fase 01a: meminimalkan payload agar tidak mengekspos objek user penuh /
+// atribut sensitif. Cukup status + identitas minimal untuk kebutuhan UI.
 Route::get('/check-auth', function (Request $request) {
-    if (Auth::guard('sanctum')->check()) {
+    $user = $request->user('sanctum');
+
+    if ($user) {
         return response()->json([
             'authenticated' => true,
-            'user' => $request->user('sanctum')
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'username' => $user->username,
+                'type_user_id' => $user->type_user_id,
+                'status_user_id' => $user->status_user_id,
+                'status_active' => (bool) $user->status_active,
+                'abilities' => $user->abilityNames(),
+                'roles' => $user->roles->pluck('slug')->all(),
+            ],
         ], 200);
     }
 
     return response()->json([
         'authenticated' => false,
-        'user' => null
+        'user' => null,
     ], 200); // Mengirim 200 OK agar konsol tetap bersih
 });
 // Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 //     return $request->user();
 // });
 // Grup Rute Terproteksi (Hanya bisa diakses jika sudah login)
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
+// `active` menegakkan status akun pada request berikutnya, termasuk sesi aktif.
+Route::middleware(['auth:sanctum', 'active'])->group(function () {
+    Route::middleware(['auth:sanctum', 'active'])->get('/user', function (Request $request) {
         return $request->user();
     });
+
+    // Fase 01a — pengelolaan peran, kemampuan, dan penetapan peran.
+    Route::get('/roles', [RoleController::class, 'index'])
+        ->middleware('can:roles.view');
+    Route::get('/roles/{role}', [RoleController::class, 'show'])
+        ->middleware('can:roles.view');
+    Route::post('/roles', [RoleController::class, 'store'])
+        ->middleware('can:roles.manage');
+    Route::match(['put', 'patch'], '/roles/{role}', [RoleController::class, 'update'])
+        ->middleware('can:roles.manage');
+    Route::delete('/roles/{role}', [RoleController::class, 'destroy'])
+        ->middleware('can:roles.manage');
+
+    Route::get('/abilities', [AbilityController::class, 'index'])
+        ->middleware('can:roles.view');
+    Route::get('/abilities/{ability}', [AbilityController::class, 'show'])
+        ->middleware('can:roles.view');
+
+    Route::post('/users/{user}/roles', [AccessAssignmentController::class, 'assignRole'])
+        ->middleware('can:access.assign');
+    Route::delete('/users/{user}/roles/{role}', [AccessAssignmentController::class, 'revokeRole'])
+        ->middleware('can:access.assign');
+
     // Route::apiResource('/new-password', NewPasswordController::class);
     Route::apiResource('/users', UserController::class);
-    Route::apiResource('/status-users', StatusUserController::class);
-    Route::apiResource('/type-users', TypeUserController::class);
-    Route::apiResource('/firstlogin', FirstLoginController::class);
-    Route::apiResource('/provinces', ProvinceController::class);
-    Route::apiResource('/regencies', RegencyController::class);
-    Route::apiResource('/districts', DistrictController::class);
-    Route::apiResource('/villages', VillageController::class);
-    Route::apiResource('/school-years', SchoolYearController::class);
-    Route::apiResource('/education-levels', EducationLevelController::class);
-    Route::apiResource('/semesters', SemesterController::class);
-    Route::apiResource('/genders', GenderController::class);
-    Route::apiResource('/religions', ReligionController::class);
-    Route::apiResource('/blood-types', BloodTypeController::class);
-    Route::apiResource('/professions', ProfessionController::class);
-    Route::apiResource('/family-status', FamilyStatusController::class);
-    Route::apiResource('/education-schools', EducationSchoolController::class);
-    Route::apiResource('/student-statuses', StudentStatusController::class);
-    Route::apiResource('/student-entries', StudentEntryController::class);
-    Route::apiResource('/student-majors', StudentMajorController::class);
-    Route::apiResource('/phase-statuses', PhaseStatusController::class);
-    Route::apiResource('/students', StudentController::class);
-    Route::apiResource('/school-levels', SchoolLevelController::class);
-    Route::apiResource('/school-rombels', SchoolRombelController::class);
-    Route::apiResource('/student-rombels', StudentRombelController::class);
-    Route::apiResource('/employee', EmployeeController::class);
+    Route::apiResource('/status-users', StatusUserController::class)
+        ->only(['index', 'show'])->middleware('can:master.view');
+    Route::apiResource('/status-users', StatusUserController::class)
+        ->except(['index', 'show'])->middleware('can:master.manage');
+    Route::apiResource('/type-users', TypeUserController::class)
+        ->only(['index', 'show'])->middleware('can:master.view');
+    Route::apiResource('/type-users', TypeUserController::class)
+        ->except(['index', 'show'])->middleware('can:master.manage');
+    // Fase 01a: firstlogin hanya untuk akun actor sendiri (update saja).
+    Route::match(['put', 'patch'], '/firstlogin/{firstlogin}', [FirstLoginController::class, 'update']);
+    // Fase 01a — penegakan kemampuan pada endpoint master/referensi.
+    // Read = master.view, Write = master.manage.
+    $masterResources = [
+        '/provinces' => ProvinceController::class,
+        '/regencies' => RegencyController::class,
+        '/districts' => DistrictController::class,
+        '/villages' => VillageController::class,
+        '/school-years' => SchoolYearController::class,
+        '/education-levels' => EducationLevelController::class,
+        '/semesters' => SemesterController::class,
+        '/genders' => GenderController::class,
+        '/religions' => ReligionController::class,
+        '/blood-types' => BloodTypeController::class,
+        '/professions' => ProfessionController::class,
+        '/family-status' => FamilyStatusController::class,
+        '/education-schools' => EducationSchoolController::class,
+        '/student-statuses' => StudentStatusController::class,
+        '/student-entries' => StudentEntryController::class,
+        '/student-majors' => StudentMajorController::class,
+        '/phase-statuses' => PhaseStatusController::class,
+    ];
+
+    foreach ($masterResources as $uri => $controller) {
+        Route::apiResource($uri, $controller)
+            ->only(['index', 'show'])
+            ->middleware('can:master.view');
+
+        Route::apiResource($uri, $controller)
+            ->except(['index', 'show'])
+            ->middleware('can:master.manage');
+    }
+
+    // Fase 01a — ekspor siswa (CSV) terlindungi: students.view + students.export.
+    Route::get('/students/export', [StudentExportController::class, 'export'])
+        ->middleware('can:students.view');
+
+    Route::apiResource('/students', StudentController::class)
+        ->only(['index', 'show'])->middleware('can:students.view');
+    Route::apiResource('/students', StudentController::class)
+        ->except(['index', 'show'])->middleware('can:students.manage');
+    Route::apiResource('/school-levels', SchoolLevelController::class)
+        ->only(['index', 'show'])->middleware('can:master.view');
+    Route::apiResource('/school-levels', SchoolLevelController::class)
+        ->except(['index', 'show'])->middleware('can:master.manage');
+    Route::apiResource('/school-rombels', SchoolRombelController::class)
+        ->only(['index', 'show'])->middleware('can:students.view');
+    Route::apiResource('/school-rombels', SchoolRombelController::class)
+        ->except(['index', 'show'])->middleware('can:students.manage');
+    Route::apiResource('/student-rombels', StudentRombelController::class)
+        ->only(['index', 'show'])->middleware('can:students.view');
+    Route::apiResource('/student-rombels', StudentRombelController::class)
+        ->except(['index', 'show'])->middleware('can:students.manage');
+    Route::apiResource('/employee', EmployeeController::class)
+        ->only(['index', 'show'])->middleware('can:employees.view');
+    Route::apiResource('/employee', EmployeeController::class)
+        ->except(['index', 'show'])->middleware('can:employees.manage');
     Route::apiResource('/employee-statuses', EmployeeStatusController::class);
     Route::apiResource('/employee-types', EmployeeTypeController::class);
     Route::apiResource('/employments', EmploymentController::class);
     Route::apiResource('/marital-statuses', MaritalStatusController::class);
     Route::apiResource('/school-profile', SchoolProfileController::class);
     Route::apiResource('/subjects', SubjectController::class);
-    Route::apiResource('/activities', ActivityController::class);
+    Route::apiResource('/activities', ActivityController::class)
+        ->middleware('can:audit.view');
 
 });
 

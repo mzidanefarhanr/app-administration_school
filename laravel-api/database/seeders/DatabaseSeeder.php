@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             StatusUserSeeder::class,
             TypeUserSeeder::class,
+            AccessControlSeeder::class,
         ]);
         User::factory()->create([
             'name' => 'Muhamad Zidane Farhan Ramadhan, S.Kom.',

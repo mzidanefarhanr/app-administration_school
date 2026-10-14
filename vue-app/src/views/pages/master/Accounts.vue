@@ -1,14 +1,65 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import Button from 'primevue/button';
+import Checkbox from 'primevue/checkbox';
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 import { useResourceManager } from '@/utils/useResourceManager';
+import apiLogin from '@/apiLogin';
 
 // ── Local refs (tidak ada di composable) ──────────────────────────────────
 const dt              = ref();
 const filters         = ref();
 const length_rows_pick = ref(10);
 const length_rows      = ref([10, 25, 50, 100]);
+
+// ── Role assignment (English UI) ──────────────────────────────────────────
+const rolesDialog      = ref(false);
+const rolesLoading     = ref(false);
+const rolesSaving      = ref(false);
+const allRoles         = ref([]);
+const roleTargetUser   = ref(null);
+const selectedRoleIds  = ref([]);
+const rolesError       = ref('');
+
+const openRolesDialog = async (user) => {
+    roleTargetUser.value = user;
+    rolesError.value = '';
+    selectedRoleIds.value = (user.roles || []).map((r) => r.id);
+    rolesDialog.value = true;
+    rolesLoading.value = true;
+    try {
+        const response = await apiLogin.get('/api/roles');
+        allRoles.value = response.data.data;
+    } catch (error) {
+        rolesError.value = error.response?.data?.message || 'Failed to load roles.';
+    } finally {
+        rolesLoading.value = false;
+    }
+};
+
+const saveRoles = async () => {
+    if (!roleTargetUser.value) return;
+    rolesSaving.value = true;
+    rolesError.value = '';
+    const userId = roleTargetUser.value.id;
+    const currentIds = (roleTargetUser.value.roles || []).map((r) => r.id);
+    const toAdd = selectedRoleIds.value.filter((id) => !currentIds.includes(id));
+    const toRemove = currentIds.filter((id) => !selectedRoleIds.value.includes(id));
+    try {
+        for (const roleId of toAdd) {
+            await apiLogin.post(`/api/users/${userId}/roles`, { role_id: roleId });
+        }
+        for (const roleId of toRemove) {
+            await apiLogin.delete(`/api/users/${userId}/roles/${roleId}`);
+        }
+        rolesDialog.value = false;
+        fetchDataUserRole();
+    } catch (error) {
+        rolesError.value = error.response?.data?.message || 'Failed to update roles.';
+    } finally {
+        rolesSaving.value = false;
+    }
+};
 
 // ── Composable — semua state & method CRUD diambil dari sini ──────────────
 const {
@@ -257,8 +308,18 @@ onMounted(() => {
                         </template>
                     </Column>
 
-                    <Column header="Action" :exportable="false" style="min-width: 8rem">
+                    <Column header="Roles" :exportable="false" style="min-width: 10rem">
+                        <template #body="{ data }">
+                            <div class="flex flex-wrap gap-1">
+                                <Tag v-for="role in (data.roles || [])" :key="role.id" :value="role.name" severity="info" />
+                                <span v-if="!data.roles || !data.roles.length" class="text-surface-400">No roles</span>
+                            </div>
+                        </template>
+                    </Column>
+
+                    <Column header="Action" :exportable="false" style="min-width: 10rem">
                         <template #body="slotProps">
+                            <Button icon="pi pi-shield" variant="outlined" rounded class="mr-2" title="Assign Roles" @click="openRolesDialog(slotProps.data)" />
                             <Button icon="pi pi-pencil" variant="outlined" rounded class="mr-2" @click="editSingleData(slotProps.data)" />
                             <Button icon="pi pi-trash" variant="outlined" rounded severity="danger" @click="confirmDeleteSingleData(slotProps.data)" />
                         </template>
@@ -271,6 +332,31 @@ onMounted(() => {
 
 
     </Fluid>
+
+    <!-- Assign Roles Dialog (English) -->
+    <Dialog v-model:visible="rolesDialog" :style="{ width: '32rem' }" header="Assign Roles" :modal="true">
+        <div class="flex flex-col gap-4">
+            <div v-if="roleTargetUser" class="text-surface-700 dark:text-surface-200">
+                Account: <span class="font-semibold">{{ roleTargetUser.name }}</span>
+            </div>
+            <Message v-if="rolesError" severity="error" :closable="false">{{ rolesError }}</Message>
+            <div v-if="rolesLoading">Loading roles...</div>
+            <div v-else class="flex flex-col gap-2">
+                <div v-for="role in allRoles" :key="role.id" class="flex items-center gap-2">
+                    <Checkbox v-model="selectedRoleIds" :inputId="`role-${role.id}`" :value="role.id" />
+                    <label :for="`role-${role.id}`" class="cursor-pointer">
+                        {{ role.name }}
+                        <small class="text-surface-400 ml-1">({{ role.slug }})</small>
+                    </label>
+                </div>
+                <div v-if="!allRoles.length" class="text-surface-400">No roles available.</div>
+            </div>
+        </div>
+        <template #footer>
+            <Button label="Cancel" icon="pi pi-times" text @click="rolesDialog = false" />
+            <Button label="Save" icon="pi pi-check" :loading="rolesSaving" @click="saveRoles" />
+        </template>
+    </Dialog>
 
 
     <!-- Confirm Delete Dialog -->

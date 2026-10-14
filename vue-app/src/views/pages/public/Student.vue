@@ -189,6 +189,8 @@ const fetchDataStudentRombels = async () => {
 
 //method fetchDataUserRole
 const fetchDataUserRole = async () => {
+    // Muat kemampuan efektif (mis. students.export) untuk menampilkan tombol sesuai izin.
+    await useAuthStore.checkLogin();
     await useAuthStore.getUser();
     // console.log(useAuthStore.AllUserAssign);
     saveUser.value = useAuthStore.AllUserAssign;
@@ -251,14 +253,41 @@ const getSeverity = (status) => {
     }
 }
 
-const exportCSV = () => {
-    // fetchDataUserRole();
-    // console.log(dt.value);
-    // Pastikan dt.value ada sebelum memanggil metodenya
-    if (dt.value) {
-        dt.value.exportCSV();
-    } else {
-        console.error("DataTable reference is not available.");
+const exportCSV = async () => {
+    // Fase 01a: unduhan via endpoint backend terlindungi (students.view + students.export).
+    // Backend menegakkan izin & lingkup data; perubahan izin berlaku pada request berikutnya.
+    if (!school_years_now.value || !school_years_now.value.id) {
+        toast.add({ severity: 'error', summary: 'Export', detail: 'Please select a school year first.', life: 3000 });
+        return;
+    }
+    try {
+        const response = await apiLogin.get('/api/students/export', {
+            params: { school_year_id: school_years_now.value.id, search: filters.value?.global?.value || undefined },
+            responseType: 'blob'
+        });
+        const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `students_${school_years_now.value.id}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        let detail = 'Failed to export students. Please try again.';
+        if (error.response?.status === 403) {
+            detail = 'You do not have permission to export students.';
+        } else if (error.response?.status === 422) {
+            // Backend mengirim pesan (mis. melebihi batas baris) sebagai blob.
+            try {
+                const text = await error.response.data.text();
+                detail = JSON.parse(text)?.message || detail;
+            } catch {
+                detail = 'The export could not be completed. Please narrow your filters.';
+            }
+        }
+        toast.add({ severity: 'error', summary: 'Export', detail, life: 4000 });
     }
 };
 
@@ -863,7 +892,7 @@ onMounted(() => {
 
                             </div>
                             <div class="flex flex-wrap gap-2">
-                                <Button icon="pi pi-external-link" label="Export" @click="exportCSV($event)" />
+                                <Button v-if="useAuthStore.can('students.export')" icon="pi pi-external-link" label="Export" @click="exportCSV($event)" />
 
                             </div>
                             <div class="flex flex-wrap gap-2">

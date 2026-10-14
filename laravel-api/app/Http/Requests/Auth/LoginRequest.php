@@ -49,6 +49,17 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        // Fase 01a: tolak login akun nonaktif (keputusan pemilik 2026-10-15).
+        $user = Auth::user();
+        if ($user && ! $user->status_active) {
+            Auth::guard('web')->logout();
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'username' => __('Akun Anda tidak aktif. Hubungi administrator.'),
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

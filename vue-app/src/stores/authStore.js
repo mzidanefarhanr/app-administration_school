@@ -5,6 +5,7 @@ export const authStore = defineStore('auth', {
     state: () => ({
         authUser: null,
         hasLogin: null,
+        abilities: [],
         AllUsers: null,
         AllUserAssign: null
     }),
@@ -12,7 +13,8 @@ export const authStore = defineStore('auth', {
     getters: {
         user: (state) => state.authUser,
         users: (state) => state.AllUsers,
-        userassign: (state) => state.AllUserAssign
+        userassign: (state) => state.AllUserAssign,
+        can: (state) => (ability) => Array.isArray(state.abilities) && state.abilities.includes(ability)
     },
 
     actions: {
@@ -21,32 +23,20 @@ export const authStore = defineStore('auth', {
         },
 
         async checkLogin() {
-            // try {
-            //     const response = await apiLogin.get('/api/user');
-            //     if (response.data && response.data.id) {
-            //         this.hasLogin = true;
-            //     } else {
-            //         this.hasLogin = false;
-            //     }
-            // } catch (error) {
-            //     // Biarkan kosong atau set variabel saja
-            //     this.hasLogin = false;
-            //     // Jangan ada console.error atau console.log di sini
-            // }
-
             try {
-                // Ganti URL ke route baru yang kita buat tadi
                 const response = await apiLogin.get('/api/check-auth');
 
                 if (response.data.authenticated) {
                     this.hasLogin = true;
-                    // Anda juga bisa mengambil data user di sini: response.data.user
+                    this.abilities = response.data.user?.abilities || [];
                 } else {
                     this.hasLogin = false;
+                    this.abilities = [];
                 }
             } catch (error) {
                 // Ini hanya akan terpanggil jika terjadi error server (500) atau jaringan
                 this.hasLogin = false;
+                this.abilities = [];
             }
         },
 
@@ -61,9 +51,8 @@ export const authStore = defineStore('auth', {
                         this.authUser = null;
                     }
                 })
-                .catch((error) => {
+                .catch(() => {
                     this.authUser = null;
-                    // console.log(error);
                 });
             await apiLogin
                 .get('/api/users')
@@ -74,11 +63,12 @@ export const authStore = defineStore('auth', {
                         this.AllUsers = null;
                     }
                 })
-                .catch((error) => {
+                .catch(() => {
                     this.AllUsers = null;
-                    // console.log(error);
                 });
-            this.AllUserAssign = this.AllUsers.find(users => users.id == this.authUser.id);
+            this.AllUserAssign = Array.isArray(this.AllUsers) && this.authUser
+                ? this.AllUsers.find(users => users.id == this.authUser.id)
+                : null;
             // console.log(this.AllUserAssign)
         },
 
@@ -92,9 +82,8 @@ export const authStore = defineStore('auth', {
                         this.AllUsers = null;
                     }
                 })
-                .catch((error) => {
+                .catch(() => {
                     this.AllUsers = null;
-                    // console.log(error);
                 });
 
             // console.log(this.AllUsers.id);

@@ -1,6 +1,7 @@
 # Kebutuhan aplikasi
 
 Status: DRAFT untuk pengembangan; disusun 14 Oktober 2026. Tujuan pemilik sudah diketahui, detail kebijakan pada DECISIONS masih terbuka. Tidak semua target di dokumen ini diotorisasi untuk langsung dibangun.
+Catatan Fase 01a (2026-10-15): FR-01 sebagian tercapai — kemampuan bernama + enforcement backend terpusat, FirstLogin terikat actor, akun nonaktif ditolak, admin pengelola akses terakhir dilindungi, register publik ditutup. Ekspor siswa kini punya endpoint backend terlindungi (`students.view` + `students.export`) dengan kolom eksplisit dan filter sama dengan daftar. Sisa FR-01 (cakupan record per modul, pemetaan role lengkap) menunggu modul terkait.
 
 ## Pengguna dan batas produk
 Pengguna utama operator; admin mengatur akses; guru/wali kelas dan kepala sekolah merupakan peran target yang perlu dipetakan ke akun aktual. Default scope satu sekolah, beberapa tahun ajaran. Multi-sekolah, portal orang tua/siswa, pembayaran, LMS lengkap, aplikasi mobile native dan integrasi otomatis pemerintah di luar roadmap awal.

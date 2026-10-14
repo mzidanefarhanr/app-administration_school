@@ -4,7 +4,9 @@ import axios from 'axios';
 
 const apiLogin = axios.create({
     //set default endpoint API
-    baseURL: 'http://26.117.240.38:4001',
+    // baseURL dapat diarahkan ke API lokal (UAT) via VITE_API_BASE_URL.
+    // Fallback dipertahankan agar tidak mengubah perilaku baseline tanpa env.
+    baseURL: import.meta.env.VITE_API_BASE_URL || 'http://26.117.240.38:4001',
     withCredentials: true,
     withXSRFToken: true
 });

@@ -18,6 +18,21 @@ uses(TestCase::class, RefreshDatabase::class)->in('Feature');
 
 /*
 |--------------------------------------------------------------------------
+| Fixture referensi minimum (sintetis)
+|--------------------------------------------------------------------------
+| Tabel type_users/status_users wajib ada sebelum User::factory() dapat
+| membuat akun (FK). Data di bawah sintetis, bukan identitas nyata.
+| Seeder berisi identitas asli (DatabaseSeeder) TIDAK dijalankan pada tes.
+*/
+uses()->beforeEach(function () {
+    \App\Models\TypeUser::firstOrCreate(['name' => 'Admin']);
+    \App\Models\TypeUser::firstOrCreate(['name' => 'User']);
+    \App\Models\StatusUser::firstOrCreate(['name' => 'Aktif']);
+    \App\Models\StatusUser::firstOrCreate(['name' => 'Tidak Aktif']);
+})->in('Feature');
+
+/*
+|--------------------------------------------------------------------------
 | Expectations
 |--------------------------------------------------------------------------
 |
