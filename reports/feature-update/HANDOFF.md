@@ -1,6 +1,6 @@
 # Handoff pengembangan aplikasi sekolah
 
-Checkpoint terbaru: 2026-10-15 (WIB). HEAD `main` @ `b699feccd65357a10f7430c165400906e6394d49` (belum commit perubahan baru). Working tree berisi perubahan Fase 01a (35 tracked modified + 26 untracked) termasuk perubahan pemilik pada `CHANGELOG.md` yang dipertahankan. Tidak ada commit/push.
+Checkpoint terbaru: 2026-10-15 (WIB). Branch `main`. Fase 00–01a **sudah dicatat** pada commit lokal `0f1a02765a4a14b82ec6d0a24aefa988b0016fdd` ("feat(phase-00-01a): record baseline audit and implement access control"); parent `b699feccd65357a10f7430c165400906e6394d49`. Belum push. Perubahan pemilik pada `CHANGELOG.md` (entri "Pengembangan fitur iteratif via sesi Claude") **sengaja tidak di-commit** (masih unstaged) agar tidak mencampur edit pemilik dengan catatan fase.
 
 ## Status fase
 - Fase 00 — Audit baseline: PARTIAL (source+env audit; browser NOT RUN).
@@ -26,7 +26,7 @@ DEC-03 (peran/kemampuan) dan DEC-14 (register/nonaktif/ekspor/legacy/Bahasa UI; 
 
 ## Tugas berikutnya
 1. Review pemilik atas PHASE-01A-ACCESS.md §11–18 (penyelesaian + koreksi) dan bukti UAT.
-2. Persetujuan commit bila diinginkan (belum diotorisasi).
+2. Commit dokumentasi menyusul bila pemilik menerima/menyetujui (penerimaan manual masih PENDING); push/merge/deploy perlu instruksi terpisah.
 3. Lanjut 01b atau 01c sesuai instruksi; ganti identitas asli `DatabaseSeeder` (scope terpisah).
 
 ## Aturan pembaruan handoff
