@@ -1,6 +1,6 @@
 # Handoff pengembangan aplikasi sekolah
 
-Checkpoint terbaru: 2026-10-15 (WIB). Branch `main`. Fase 00–01a **sudah dicatat** pada commit lokal `0f1a02765a4a14b82ec6d0a24aefa988b0016fdd` ("feat(phase-00-01a): record baseline audit and implement access control"); parent `b699feccd65357a10f7430c165400906e6394d49`. Belum push. Perubahan pemilik pada `CHANGELOG.md` (entri "Pengembangan fitur iteratif via sesi Claude") **sengaja tidak di-commit** (masih unstaged) agar tidak mencampur edit pemilik dengan catatan fase.
+Checkpoint terbaru: 2026-10-15 (WIB). Branch `main`. Fase 00–01a dicatat pada commit `0f1a02765a4a14b82ec6d0a24aefa988b0016fdd` ("feat(phase-00-01a): record baseline audit and implement access control"), `parent b699feccd65357a10f7430c165400906e6394d49`. Commit `0f1a027` **sudah di-push ke `origin/main` oleh pemilik**. Kebijakan baru: commit + push per fase ke branch kerja aktif **diotorisasi** (merge/force-push/rewrite history/deploy manual tetap tidak). Perubahan pemilik pada `CHANGELOG.md` (entri "Pengembangan fitur iteratif via sesi Claude") **sengaja tidak di-commit** (masih unstaged) agar tidak mencampur edit pemilik dengan catatan fase.
 
 ## Status fase
 - Fase 00 — Audit baseline: PARTIAL (source+env audit; browser NOT RUN).

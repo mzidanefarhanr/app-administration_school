@@ -41,10 +41,12 @@ Commit/push/PR mengikuti instruksi pemilik; merge/deploy/restore aktif bukan kon
 Jangan menulis SHA masa depan untuk commit yang belum ada. Gunakan SHA parent dan daftar perubahan belum commit, lalu catat SHA aktual pada checkpoint berikutnya.
 
 ## Aturan commit per fase
-- Setiap fase (atau subfase) memiliki commit implementasi/dokumentasi tersendiri **setelah** verifikasi sesuai scope-nya.
+- Setiap fase (atau subfase) dicatat dengan **commit dan push** ke `origin` pada branch kerja aktif **setelah** verifikasi sesuai scope-nya. Commit+push per fase diotorisasi; tidak perlu meminta izin push ulang dalam scope fase yang sedang dikerjakan.
+- **Commit/push bukan bukti penerimaan manual pemilik.** Instruksi untuk commit/push tidak sama dengan approval implementasi.
 - Persetujuan manual dari pemilik yang datang **kemudian** dicatat dalam commit dokumentasi tersendiri; jangan menggabungkannya ke commit implementasi sebelumnya.
-- Instruksi untuk commit **bukan** persetujuan manual atas implementasi. Perbedaan ini dicatat eksplisit di laporan/CHANGELOG.
-- Wajib laporkan: SHA commit, branch aktif, hasil pemeriksaan (mis. `git diff --cached --check`), dan file yang masih belum ter-commit beserta alasannya.
-- **Push/merge/deploy memerlukan instruksi pemilik terpisah** dan tidak otomatis menyertai commit lokal.
+- Wajib laporkan: SHA commit, branch aktif, status sinkronisasi remote, hasil pemeriksaan (mis. `git diff --cached --check`), dan file yang masih belum ter-commit beserta alasannya.
+- **Merge, force-push, rewrite history, dan deploy manual tidak diotorisasi.** Push/merge/deploy di luar pola commit+push per fase memerlukan instruksi pemilik terpisah.
+- Sebelum push: periksa apakah repo memiliki **workflow deployment otomatis** (mis. GitHub Actions/`.github/workflows`). Jika push memicu deployment, laporkan dan gunakan branch pengembangan yang tidak memicu deployment bila diperlukan.
+- Jika push **ditolak** karena remote lebih maju: periksa perbedaannya (`git fetch`, `git log`), jangan gunakan `--force`. Rekonsiliasi tanpa rewrite history (mis. rebase lokal yang belum di-push, atau laporkan ke pemilik).
 - Staging selektif: jangan pakai `git add .`/`git add -A` tanpa pemeriksaan; jangan pernah memasukkan `.env` lokal, kredensial, database, log sensitif, atau data pribadi. Bila perubahan pemilik dalam satu file tidak dapat dipisahkan dengan pasti, biarkan file tersebut belum ter-stage dan laporkan.
 - Jangan merekonstruksi snapshot historis, mengarang commit per fase, atau melakukan rewrite history.
