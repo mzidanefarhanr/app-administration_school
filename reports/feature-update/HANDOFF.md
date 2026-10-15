@@ -1,21 +1,22 @@
 # Handoff pengembangan aplikasi sekolah
 
 Checkpoint terbaru: 2026-10-15 (WIB). Branch `main`.
-HEAD sebelumnya: `8be0d09` ("docs(phase-01a): hand off pending post-login defect").
+HEAD sebelumnya: `b93cbee` ("docs(phase-01a): record owner acceptance of access and export checks").
 Kebijakan commit/push: commit dan push per fase/koreksi ke branch kerja aktif telah **diotorisasi**; merge, force-push, rewrite history, dan deploy manual **tetap tidak diotorisasi**.
 
-Perubahan pemilik pada `CHANGELOG.md` (entri "Pengembangan fitur iteratif via sesi Claude") dan berkas log bukti `console.txt` **sengaja tidak di-commit** (tetap di working tree lokal) agar tidak mencampur perubahan pemilik dengan catatan fase.
+Catatan perubahan pemilik: entri `CHANGELOG.md` yang disebut laporan lama ("Pengembangan fitur iteratif via sesi Claude") **tidak ditemukan** pada working tree maupun history yang diperiksa (lihat §7); penyebab kehilangan belum diketahui dan tidak direkonstruksi. Berkas log bukti `console.txt` tetap ada dan **tidak** di-commit. Entri **baru** milik pemilik pada `CHANGELOG.md` (biaya, dll. bila ada) dipertahankan tanpa menyentuh baris itu.
 
 ---
 
 ## 1. Status Fase
 - **Fase 00 — Audit baseline**: PARTIAL (source & environment audit selesai; browser NOT RUN).
-- **Fase 01a — Authorization backend**: **IMPLEMENTED + KOREKSI INISIALISASI IDENTITAS SELESAI**.
+- **Fase 01a — Authorization backend**: **IMPLEMENTED + DITERIMA pemilik**.
   - Verifikasi otomatis (51 Pest/PHPUnit tests PASS, 3 race unit tests PASS, build PASS, lint PASS).
   - Verifikasi UAT browser sintetis: 4 peran (Operator, Admin, Principal, Waka) langsung login ke Dashboard tanpa refresh; password salah & akun nonaktif menampilkan modal 422 English; refresh menjaga sesi; logout/switch account bersih.
   - **Persetujuan manual pemilik**: **APPROVED** (15 Oktober 2026 WIB). Retest login #1–7 (mengacu `5f4308d`) dan pengujian tambahan akses/ekspor (mengacu `bea4ccd`); seluruh nomor checklist panduan #1–#14 disetujui.
   - **Penerimaan manual Fase 01a**: **DITERIMA** dalam scope checklist. **Bukan** penerimaan seluruh Fase 01 (subfase 01b/01c belum dikerjakan) maupun deployment.
-- **Fase 01b/01c dan fase selanjutnya**: NOT STARTED.
+- **Fase 01b — Konfigurasi API dan error auth**: **AUDIT/RENCANA SELESAI** (implementasi BELUM dijalankan). Laporan: `reports/feature-update/PHASE-01B-API-AUTH-AUDIT.md`. Status review: PENDING.
+- **Fase 01c dan fase selanjutnya**: NOT STARTED. BLK-03 dialokasikan ke 01c.
 
 ---
 
@@ -86,3 +87,22 @@ Pemilik dapat langsung melakukan verifikasi manual dari form login pada URL `htt
 8. [x] Hak ekspor siswa (penambahan/pencabutan izin runtime, unduhan CSV, 403 tanpa izin, batas 422), kontrol Roles & Abilities English, topbar, dan bahasa UI mengikuti checklist lengkap di `reports/feature-update/PHASE-01A-MANUAL-REVIEW.md` (nomor #5–#11, #13–#14). — **APPROVED** (2026-10-15 WIB).
 
 Catatan: Seluruh nomor checklist Fase 01a (#1–#14) **APPROVED** pemilik. Persetujuan ini mencakup scope checklist Fase 01a dan **tidak** memperluas ke deployment, modul yang belum tersedia (surat/izin/pembelajaran), atau subfase 01b/01c. **BLK-03** dan keputusan autentikasi lain tetap **OPEN**.
+
+---
+
+## 7. Fase 01b — Ringkasan Audit & Rencana (2026-10-15)
+Laporan penuh: `reports/feature-update/PHASE-01B-API-AUTH-AUDIT.md`. Status: **AUDIT/RENCANA** (implementasi BELUM). Temuan utama (source review HEAD `b93cbee`):
+- **Interceptor tidak aktif**: interceptor dipasang pada global `axios`, bukan instance `apiLogin` yang dipakai seluruh kode → tidak berjalan.
+- **Guard router**: `beforeEnter` parent `/` tidak dievaluasi pada transisi antar-child; gating `/master` tidak dicek ulang.
+- **Error handling**: 401/403/419/422/429/5xx/timeout/tanpa-response tidak ditangani seragam; belum ada `timeout`.
+- **Logout tak konsisten**: `Logout.vue` mengakses `response.data.id` pada 204, memanggil `/logout` dua kali, memakai helper tak terdefinisi.
+- **Reset password**: backend lengkap (routes+broker+notification), frontend **gap** (link placeholder tanpa route/form). Butuh keputusan pemilik (Q1) apakah masuk scope 01b.
+- **Kontrak auth**: aktif = **cookie session Sanctum** saja (tanpa bearer); tidak perlu mengubah strategi token/sesi.
+- Rencana C-01..C-06 (§4 laporan) dan rencana verifikasi (§5 laporan) sudah disusun; keputusan pemilik Q1–Q3 di §7 laporan.
+
+## 8. Klarifikasi Entri CHANGELOG Pemilik
+Berdasarkan pemeriksaan `git status`, `git diff`, `git log -S/-G`, dan pemindaian blob history pada HEAD `b93cbee`:
+- Working tree bersih (hanya `?? console.txt`).
+- Frasa entri pemilik `"Pengembangan fitur iteratif via sesi Claude"` **tidak ditemukan** pada `CHANGELOG.md` di working tree **maupun** pada blob `CHANGELOG.md` mana pun di history yang diperiksa. Frasa hanya pernah hidup di `reports/feature-update/HANDOFF.md`.
+- Jejak terakhir: pesan commit `5f18c06` dan `ad937e0` menyebut "owner CHANGELOG.md entry preserved unstaged".
+- **Kesimpulan**: entri tersebut pernah berupa perubahan working tree tidak ter-commit lalu **tidak ada lagi**; penyebab persis kehilangan **belum diketahui**. Isi tidak direkonstruksi tanpa sumber.

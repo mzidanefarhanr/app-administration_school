@@ -17,6 +17,24 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-15] Fase 01b — Docs: audit konfigurasi API dan alur error autentikasi
+- Type: Docs
+- Scope / fase: audit kondisi aktual dan penyusunan rencana implementasi Fase 01b (implementasi BELUM dijalankan).
+- Files touched: `reports/feature-update/{PHASE-01B-API-AUTH-AUDIT.md (baru),INDEX.md,HANDOFF.md}`, `roadmap/ROADMAP.md`, `CHANGELOG.md`.
+- What changed:
+  1. Audit kondisi aktual pasca-01a: instance axios tunggal `apiLogin` (baseURL dari env, withCredentials/withXSRFToken aktif, tanpa URL hardcode tersisa); ditemukan bahwa response interceptor terdaftar pada global `axios`, bukan instance `apiLogin` → tidak berjalan.
+  2. Audit router: `beforeEnter` parent `/` tidak dievaluasi saat navigasi antar-child; gating `/master` (`can('users.view')`) tidak dicek ulang.
+  3. Audit error auth: 401/403/419/422/429/5xx/timeout belum ditangani seragam; `Logout.vue` memiliki risiko bug (akses `response.data.id` pada 204, memanggil logout dua kali, helper tak terdefinisi).
+  4. Audit kontrak auth: strategi aktif = cookie session Sanctum saja (tanpa bearer); konfigurasi CORS/Sanctum UAT memadai untuk pengujian lokal; tidak perlu mengubah strategi token/sesi.
+  5. Audit reset password: backend lengkap (routes+controller+broker+notification), frontend gap (link placeholder tanpa route/view/pemanggilan API). Disusun opsi minimum (Q1–Q4) untuk pemilik.
+  6. Rencana implementasi C-01..C-06 dan rencana verifikasi menyeluruh disusun; keputusan penghalang diidentifikasi (Q1: apakah reset password masuk 01b).
+  7. Klarifikasi CHANGELOG: entri pemilik ("Pengembangan fitur iteratif via sesi Claude") tidak ditemukan pada working tree maupun history yang diperiksa; penyebab kehilangan belum diketahui dan tidak direkonstruksi tanpa sumber.
+  8. Status: 01a tetap DITERIMA pemilik; 01b berstatus audit/rencana (belum implementasi); BLK-03 tetap OPEN dan dialokasikan ke 01c.
+- Why: memenuhi prasyarat perencanaan subfase 01b sebelum pelaksanaan kode, sesuai aturan roadmap.
+- Validation: source review statis (tidak ada kode/config/data yang diubah; tidak menjalankan test/build/browser pada langkah ini).
+- Notes / risks: Implementasi **belum** dimulai; keputusan Q1 pemilik menentukan cakupan reset password; BLK-03 tetap OPEN; tidak ada email reset nyata.
+- Evidence: reports/feature-update/PHASE-01B-API-AUTH-AUDIT.md.
+
 ## [2026-10-15] Fase 01a — Docs: penerimaan manual pemilik (akses & ekspor) dan penutupan review 01a
 - Type: Docs
 - Scope / fase: pencatatan penerimaan manual pemilik atas pengujian tambahan akses & ekspor Fase 01a dan penutupan review 01a.

@@ -6,11 +6,12 @@
 | [Fase 00 runtime audit](PHASE-00-RUNTIME-AUDIT.md) | Audit HEAD b699fec: source, route, Vue, schema, akses, seed, lingkungan | PARTIAL; test/build/browser NOT RUN |
 | [Fase 01a authorization backend](PHASE-01A-ACCESS.md) | Peran/kemampuan fleksibel, enforcement Gate, IDOR FirstLogin, admin terakhir, isolasi DB uji, ekspor siswa (endpoint CSV terlindungi + batas baris), pemetaan legacy DEC-14, UI English, inisialisasi identitas pasca-login langsung | IMPLEMENTED + KOREKSI DEFECT; 51 test PASS; build PASS; unit race test PASS; browser/HTTP UAT PASS (sintetis); **penerimaan manual pemilik: APPROVED (scope checklist 01a)** 2026-10-15 WIB; modul surat/izin/pembelajaran N/A |
 | [Panduan review manual 01a](PHASE-01A-MANUAL-REVIEW.md) | Checklist UAT sintetis (roles, izin ekspor, 403, batas baris, akun nonaktif, UI English, login langsung) + perintah server | APPROVED pemilik: seluruh nomor #1–#14 (2026-10-15 WIB) |
+| [Fase 01b audit API & error auth](PHASE-01B-API-AUTH-AUDIT.md) | Audit instance axios/interceptor, baseURL, CSRF, kontrak cookie session Sanctum, guard router child, penanganan 401/403/419/422/429/5xx/timeout, alur reset password; rencana implementasi 01b | AUDIT/RENCANA (implementasi BELUM dijalankan; review PENDING) |
 | [Bukti UAT roles (English)](evidence/uat-roles-en.png) | Tangkapan layar `/master/roles` English pada UAT sintetis | Artefak (data sintetis) |
 | [Bukti UAT operator dashboard](evidence/uat-operator-dashboard.png) | Tangkapan layar dashboard operator tanpa widget online users & tanpa 403 | Artefak (data sintetis) |
 | [Bukti UAT operator profile](evidence/uat-operator-profile-dropdown.png) | Tangkapan layar dropdown profil operator dengan nama & peran sesi | Artefak (data sintetis) |
 | [Bukti UAT ekspor CSV](evidence/uat-students-export.csv) | CSV hasil unduhan endpoint terproteksi (sintetis) | Artefak (data sintetis) |
-| [Handoff](HANDOFF.md) | Checkpoint dan langkah berikutnya | Fase 01a DITERIMA pemilik (checklist APPROVED 2026-10-15 WIB); sisa subfase 01b/01c NOT STARTED |
+| [Handoff](HANDOFF.md) | Checkpoint dan langkah berikutnya | Fase 01a DITERIMA pemilik; Fase 01b audit/rencana selesai (implementasi BELUM); sisa subfase 01c NOT STARTED |
 | [Template laporan](PHASE-REPORT-TEMPLATE.md) | Format evidence, bukan hasil uji | TEMPLATE |
 | [Validasi paket](VALIDATION.md) | Struktur/tautan/ZIP | Validasi dokumentasi saja |
 
