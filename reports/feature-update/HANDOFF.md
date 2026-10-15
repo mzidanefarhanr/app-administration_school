@@ -1,41 +1,90 @@
 # Handoff pengembangan aplikasi sekolah
 
-Checkpoint terbaru: 2026-10-15 (WIB). Branch `main`. Fase 00–01a dicatat pada commit `0f1a02765a4a14b82ec6d0a24aefa988b0016fdd` ("feat(phase-00-01a): record baseline audit and implement access control"), `parent b699feccd65357a10f7430c165400906e6394d49`. Commit `0f1a027` **sudah di-push ke `origin/main` oleh pemilik**. Kebijakan baru: commit + push per fase ke branch kerja aktif **diotorisasi** (merge/force-push/rewrite history/deploy manual tetap tidak). Perubahan pemilik pada `CHANGELOG.md` (entri "Pengembangan fitur iteratif via sesi Claude") **sengaja tidak di-commit** (masih unstaged) agar tidak mencampur edit pemilik dengan catatan fase.
+Checkpoint terbaru: 2026-10-15 (WIB). Branch `main`.
+HEAD aktual: `5f18c06f784542451e89426f14ea7c28071999da` ("fix(phase-01a): decouple signed-in identity from account administration"), **sudah di-push ke `origin/main`** (tersinkronisasi penuh).
+Kebijakan commit/push: commit dan push per fase/koreksi ke branch kerja aktif telah **diotorisasi**; merge, force-push, rewrite history, dan deploy manual **tetap tidak diotorisasi**.
 
-## Status fase
-- Fase 00 — Audit baseline: PARTIAL (source+env audit; browser NOT RUN).
-- Fase 01a — Authorization backend: **IMPLEMENTED + PENYELESAIAN (DEC-14) + koreksi akhir** — 49 test PASS; build PASS; UI English; ekspor siswa via endpoint CSV terlindungi dengan batas baris (tolak, bukan potong); pemetaan legacy dikoreksi; UAT browser/HTTP PASS pada data sintetis. Penerimaan manual menyeluruh: PENDING.
-- Fase 01b/01c dan fase lain: NOT STARTED.
+Perubahan pemilik pada `CHANGELOG.md` (entri "Pengembangan fitur iteratif via sesi Claude") dan berkas log bukti `console.txt` **sengaja tidak di-commit** (tetap di working tree lokal) agar tidak mencampur perubahan pemilik dengan catatan fase.
 
-## Hasil sesi ini (penyelesaian 01a + koreksi akhir + fix defect operator)
-- **DEC-14 APPROVED (2026-10-14 WIB)**: register publik ditutup; akun `status_active=false` ditolak login + request berikutnya; ekspor siswa via `students.export` (frontend+backend, ikut lingkup data); pemetaan legacy `Admin`→Admin Sistem, `User` **tidak** otomatis Operator (default deny); UI English. Persetujuan ini = **kebijakan**, bukan penerimaan manual seluruh implementasi.
-- **Ekspor siswa**: endpoint `GET /api/students/export` (`students.view`+`students.export`), kolom eksplisit, filter sama dengan daftar (seluruh hasil filter). **Batas baris**: >10.000 → **422** English (minta persempit filter), **bukan potong senyap** (`config/students.php`, `STUDENTS_EXPORT_MAX_ROWS` dapat diturunkan). Leading zero & CSV escaping & neutralisasi formula. `Student.vue` unduh via endpoint; tombol mengikuti izin; pencabutan izin berlaku pada request berikutnya.
-- **Legacy**: migration `2029_07_20_000003` dikoreksi (hanya `Admin`→`admin-sistem`; `down()` tidak menghapus penetapan manual).
-- **UI English**: `Roles.vue` (label dipisah dari identifier), nama peran English di katalog, `Accounts.vue` + dialog Assign Roles, tombol/notifikasi ekspor `Student.vue`, `authStore` abilities + `can()`.
-- **Perbaikan defect UAT Operator**:
-  - Identitas pengguna login dipisahkan dari `/api/users` via `authStore.fetchIdentity()` menggunakan kontrak ringan `GET /api/check-auth`.
-  - `ListUsersOnlineWidget.vue` diproteksi `v-if="canViewUsers"`, tidak memanggil `/api/users` jika tidak memiliki `users.view`.
-  - `AppUsers.vue` & `AppMenu.vue` null-safe dan beralih ke gating kemampuan bernama (menghapus inline `type_user_id`).
-  - Logout menggunakan endpoint backend session (`POST /logout`), tidak bergantung pada data daftar pengguna.
-  - State antar-akun dibersihkan saat logout (`$reset()`).
-  - `main.js` meregistrasikan directive PrimeVue `StyleClass` (`v-styleclass` tanpa warning).
-  - `apiLogin/index.js` menghapus fallback IP lama, melempar error konfigurasi English jika `VITE_API_BASE_URL` tidak valid, dan membedakan network error dari 401.
-  - `Login_2.vue` membedakan network error dari invalid credentials (422).
-  - Script `"dev:uat"` ditambahkan ke `package.json`.
-- Bukti verifikasi: `php artisan test` → **49 passed (119 assertions)**; `npm run build` PASS; `pint --test` PASS; UAT Playwright & HTTP PASS di 4 peran (Operator, Admin, Principal, Waka) dengan 0 console error dan 0 `/api/users` calls pada non-admin.
+---
 
-## Keputusan disetujui
-DEC-03 (peran/kemampuan) dan DEC-14 (register/nonaktif/ekspor/legacy/Bahasa UI; disetujui 2026-10-14 WIB). Persetujuan kebijakan ≠ penerimaan manual implementasi.
+## 1. Status Fase
+- **Fase 00 — Audit baseline**: PARTIAL (source & environment audit selesai; browser NOT RUN).
+- **Fase 01a — Authorization backend**: **IMPLEMENTED + KOREKSI TERAKHIR (5f18c06)**.
+  - Verifikasi otomatis & UAT sintetis terdahulu PASS.
+  - **Penerimaan manual pemilik**: **PENDING** (belum disetujui manual; instruksi commit/push bukan persetujuan manual implementasi).
+- **Fase 01b/01c dan fase selanjutnya**: NOT STARTED.
 
-## Blockers / keputusan terbuka
-- **BLK-03**: `DatabaseSeeder` masih memuat identitas pribadi (belum diperbaiki; direkomendasikan sebelum data operasional).
-- Makna `status_user_id` belum ditegakkan. Reset password end-to-end, bootstrap pengguna pertama, CORS/Sanctum deployment, strategi cabut token vs sesi: OPEN.
-- Enforcement modul surat/izin/pembelajaran hanya katalog (fitur belum ada).
+---
 
-## Tugas berikutnya
-1. Review pemilik atas laporan `PHASE-01A-ACCESS.md` dan panduan `PHASE-01A-MANUAL-REVIEW.md`.
-2. Penerimaan manual pemilik (status masih PENDING).
-3. Lanjut 01b atau 01c sesuai instruksi; ganti identitas asli `DatabaseSeeder` (scope terpisah).
+## 2. Riwayat Koreksi Terakhir (`5f18c06`)
+Koreksi pada commit `5f18c06` memisahkan identitas pengguna login dari daftar akun administratif:
+1. `authStore.js`: identitas sesi dimuat melalui `fetchIdentity()` menggunakan kontrak ringan `GET /api/check-auth` (payload minimum), menghapus pemanggilan `GET /api/users` untuk mencari profil sendiri.
+2. `ListUsersOnlineWidget.vue`: diproteksi `v-if="canViewUsers"`, tidak memanggil `/api/users` bila pengguna tidak memiliki izin `users.view`.
+3. `AppUsers.vue` & `AppMenu.vue`: null-safe dan beralih ke gating kemampuan bernama (`requires`), menghapus pemeriksaan numerik inline `type_user_id`.
+4. Logout dilakukan berbasis sesi backend (`POST /logout`), tidak bergantung pada data daftar pengguna; state sesi dibersihkan via `authStore.$reset()`.
+5. `main.js`: directive PrimeVue `StyleClass` diregistrasikan (`app.directive('styleclass', StyleClass)`).
+6. `apiLogin/index.js`: menghapus fallback diam-diam ke IP lama, menambahkan validasi `VITE_API_BASE_URL` dengan error English yang jelas, membedakan network error dari 401.
+7. `Login_2.vue`: membedakan network error dari invalid credentials (422).
+8. `package.json`: menambahkan script `"dev:uat"`.
 
-## Aturan pembaruan handoff
-Catat active subphase, branch/HEAD/dirty files, scope otorisasi, hasil, bukti, NOT RUN, keputusan, blocker dan next action. Ganti ringkas tiap sesi; jangan menulis SHA masa depan. Persetujuan manual terpisah dari hasil otomatis.
+---
+
+## 3. Defect Baru Ditemukan Pemilik (PENDING — Belum Diperbaiki)
+Saat pengujian manual login dengan akun `uat.operator`, pemilik menemukan defect post-login identity initialization:
+- **Gejala visual**: Muncul modal dialog:
+  - Header: `Authentication Error`
+  - Pesan: `Failed to validate user session.`
+- **Log console browser**:
+  - `Error: User data not found.`
+  - Stack trace mengarah ke fungsi `authenticated` di `Login_2.vue` (sekitar baris 144 / 165 / 173), dipanggil dari `submitLogin` (sekitar baris 229).
+- **Perilaku pasca-error**: Setelah pengguna melakukan refresh halaman, pengguna berhasil masuk ke beranda / dashboard normal.
+- **Status investigasi**: **Penyebab belum terbukti.** Dugaan mengenai ketidaksesuaian kontrak respons, race condition state, atau timing initialization hanya hipotesis awal dan belum diverifikasi.
+- **Status pekerjaan**: **Prompt perbaikan defect ini BELUM dijalankan.** Sesi ditutup karena batas konteks (~600k token). Perbaikan defect ini menjadi **pekerjaan pertama sesi berikutnya**.
+
+---
+
+## 4. Bukti & Artefak yang Tersedia
+- **Berkas bukti sintetis**:
+  - `reports/feature-update/evidence/uat-roles-en.png` (tangkapan layar Roles & Abilities English)
+  - `reports/feature-update/evidence/uat-operator-dashboard.png` (tangkapan layar dashboard operator)
+  - `reports/feature-update/evidence/uat-operator-profile-dropdown.png` (tangkapan layar dropdown profil operator)
+  - `reports/feature-update/evidence/uat-students-export.csv` (unduhan CSV siswa sintetis dari endpoint terproteksi)
+- **Log bukti pemilik**:
+  - `console.txt` (catatan error console awal dari pengujian operator oleh pemilik)
+- **Hasil verifikasi otomatis terdahulu**:
+  - PHPUnit test suite: **49 passed (119 assertions)** di database terisolasi SQLite in-memory.
+  - Frontend build: `npm run build` PASS.
+  - Pint style check: PASS pada seluruh berkas backend yang disentuh.
+  - ESLint `Roles.vue`: 0 problems; berkas sentuhan lain 0 error.
+- **Batas pengujian**:
+  - Seluruh verifikasi berjalan pada database/data sintetis terisolasi (`school_access_uat` dan SQLite `:memory:`).
+  - Modul surat, izin, dan pembelajaran belum tersedia (hanya katalog kemampuan).
+  - Tidak ada pengujian pada database operasional.
+
+---
+
+## 5. Keputusan & Blocker Terbuka
+- **DEC-03** (peran & kemampuan fleksibel): **APPROVED** (2026-10-15).
+- **DEC-14** (register publik ditutup, status_active ditolak, ekspor via students.export, legacy mapping per nama, UI English): **APPROVED** (2026-10-14 WIB).
+- **BLK-03**: **OPEN** (`DatabaseSeeder` masih memuat identitas asli; dilarang dijalankan untuk pengujian).
+- **Keputusan autentikasi lain**: makna `status_user_id` (jangan disamakan dengan `status_active`), reset password end-to-end, bootstrap pengguna pertama, deployment CORS/Sanctum, strategi pencabutan token vs sesi: **OPEN**.
+- **UI Language**: Seluruh antarmuka dalam scope tetap **English**.
+
+---
+
+## 6. Server & Lingkungan Aktif
+Server UAT lokal yang teridentifikasi sedang berjalan (jangan dihentikan sembarangan agar tidak mengganggu proses pemilik):
+- **API UAT**: port `8001` (PID 16124, `php artisan serve --host=127.0.0.1 --port=8001 --env=uat`)
+- **SPA UAT**: port `4001` (PID 21372, `vite --mode uat --host 127.0.0.1 --port 4001`)
+- **Database UAT**: MySQL `school_access_uat` (disposable, terpisah dari `backdata_administrations`)
+- Server operasional pada port `8000` dibiarkan utuh.
+
+---
+
+## 7. Pekerjaan Pertama Sesi Baru
+1. Investigasi & reproduksi defect post-login pada `Login_2.vue` (modal "Authentication Error — Failed to validate user session" / "User data not found").
+2. Buktikan akar masalah dengan memeriksa alur `submitLogin` dan `authenticated` di `Login_2.vue` saat berinteraksi dengan `authStore` dan endpoint `/api/check-auth` / `/api/user`.
+3. Perbaiki rantai inisialisasi identitas pasca-login secara terukur tanpa memanggil `/api/users`.
+4. Verifikasi login ulang dengan akun `uat.operator`, `uat.admin`, `uat.kepsek`, dan `uat.waka` di browser UAT.
+5. Perbarui dokumentasi dan siapkan retest manual pemilik.
