@@ -13,7 +13,8 @@ Perubahan pemilik pada `CHANGELOG.md` (entri "Pengembangan fitur iteratif via se
 - **Fase 01a — Authorization backend**: **IMPLEMENTED + KOREKSI INISIALISASI IDENTITAS SELESAI**.
   - Verifikasi otomatis (51 Pest/PHPUnit tests PASS, 3 race unit tests PASS, build PASS, lint PASS).
   - Verifikasi UAT browser sintetis: 4 peran (Operator, Admin, Principal, Waka) langsung login ke Dashboard tanpa refresh; password salah & akun nonaktif menampilkan modal 422 English; refresh menjaga sesi; logout/switch account bersih.
-  - **Penerimaan manual pemilik**: **PENDING** (belum disetujui manual; instruksi commit/push bukan persetujuan manual implementasi).
+  - **Persetujuan manual pemilik (retest login #1–7)**: **APPROVED** (15 Oktober 2026 WIB, mengacu implementasi `5f4308d`). **Terbatas pada alur login/sesi**; checklist kontrol izin, ekspor, dan bahasa UI tetap PENDING.
+  - **Penerimaan manual Fase 01a keseluruhan**: **PARTIAL/PENDING** (bukan penerimaan menyeluruh).
 - **Fase 01b/01c dan fase selanjutnya**: NOT STARTED.
 
 ---
@@ -75,11 +76,14 @@ Server UAT lokal yang teridentifikasi sedang berjalan (jangan dihentikan sembara
 
 ## 6. Checklist Retest Pemilik (Fase 01a Review)
 Pemilik dapat langsung melakukan verifikasi manual dari form login pada URL `http://127.0.0.1:4001/auth/login`:
-1. [ ] Login `uat.operator` + sandi sintetis: form langsung berhasil divalidasi, dialog success tampil, lalu langsung masuk ke Dashboard (`/`) **tanpa refresh**.
-2. [ ] Dashboard operator: 0 console errors, tidak ada pemanggilan `/api/users`, widget online users tersembunyi, menu Admin tersembunyi.
-3. [ ] Refresh halaman Dashboard: sesi tetap aktif dan valid di Dashboard.
-4. [ ] Buka dropdown profil di topbar: menampilkan "UAT Operator Sekolah" dan "operator-sekolah", tombol Logout berfungsi normal.
-5. [ ] Login `uat.admin`: langsung masuk ke Dashboard, widget online users tampil 5 akun, menu Admin tampil lengkap.
-6. [ ] Login `uat.inactive`: ditolak dengan dialog "Login Failed: Your account is inactive. Please contact the administrator."
-7. [ ] Login password salah: ditolak dengan dialog "Login Failed: These credentials do not match our records."
-8. [ ] Pengujian hak ekspor siswa dan Roles & Abilities mengikuti checklist lengkap di `reports/feature-update/PHASE-01A-MANUAL-REVIEW.md`.
+1. [x] Login `uat.operator` + sandi sintetis: form langsung berhasil divalidasi, dialog success tampil, lalu langsung masuk ke Dashboard (`/`) **tanpa refresh**. — **APPROVED** (2026-10-15 WIB).
+2. [x] Dashboard operator: 0 console errors, tidak ada pemanggilan `/api/users`, widget online users tersembunyi, menu Admin tersembunyi. — **APPROVED** (2026-10-15 WIB).
+3. [x] Refresh halaman Dashboard: sesi tetap aktif dan valid di Dashboard. — **APPROVED** (2026-10-15 WIB).
+4. [x] Buka dropdown profil di topbar: menampilkan "UAT Operator Sekolah" dan "operator-sekolah", tombol Logout berfungsi normal. — **APPROVED** (2026-10-15 WIB).
+5. [x] Login `uat.admin`: langsung masuk ke Dashboard, widget online users tampil 5 akun, menu Admin tampil lengkap. — **APPROVED** (2026-10-15 WIB).
+6. [x] Login `uat.inactive`: ditolak dengan dialog "Login Failed: Your account is inactive. Please contact the administrator." — **APPROVED** (2026-10-15 WIB).
+7. [x] Login password salah: ditolak dengan dialog "Login Failed: These credentials do not match our records." — **APPROVED** (2026-10-15 WIB).
+8. [ ] Pengujian hak ekspor siswa (penambahan/pencabutan izin runtime, unduhan CSV, 403 tanpa izin, batas 422) dan kontrol Roles & Abilities mengikuti checklist lengkap di `reports/feature-update/PHASE-01A-MANUAL-REVIEW.md` (nomor #5–11). — **PENDING**.
+9. [ ] Pengujian topbar (theme/menu/notifications/messages) dan audit bahasa UI English menyeluruh (#13–14). — **PENDING**.
+
+Catatan: Persetujuan nomor 1–7 di atas **hanya** mencakup alur login/sesi dan **tidak** memperluas penerimaan ke kontrol izin, ekspor, batas ekspor, atau modul lain. **BLK-03** dan keputusan autentikasi lain tetap **OPEN**.

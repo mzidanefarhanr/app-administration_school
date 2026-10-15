@@ -7,7 +7,7 @@
 - Working tree sebelum: `M CHANGELOG.md` (edisi pemilik +7 baris, dipertahankan), `M HANDOFF.md`, `M INDEX.md`, `M ROADMAP.md`, `?? PHASE-00-RUNTIME-AUDIT.md`.
 - Working tree sesudah: 29 file tracked termodifikasi + 19 file baru (lihat Â§7). Termasuk perubahan pemilik pada CHANGELOG.md yang **tidak** direset/ditimpa.
 - Lingkungan: Windows, PHP 8.1.25, Composer 2.8.2, Node 24.18.0, npm 11.4.2, MySQL port 3306 terbuka. DB uji = SQLite in-memory (isolated).
-- Status teknis: `IMPLEMENTED` (test backend PASS; build frontend PASS). Status review: `PENDING`.
+- Status teknis: `IMPLEMENTED` (test backend 51 PASS; unit race test PASS; build frontend PASS). Status review: `PARTIAL` (retest login nomor 1–7 APPROVED pemilik 2026-10-15 WIB; kontrol izin peran & ekspor PENDING).
 
 ## 1. Outcome dan cakupan
 
@@ -377,4 +377,38 @@ Semua verifikasi dijalankan pada lingkungan UAT sintetis (`127.0.0.1:8001`, DB `
   6. `uat.waka` + `password` → langsung masuk Dashboard tanpa refresh (dropdown menampilkan "UAT Wakil Kesiswaan" & "wakil-kesiswaan").
   7. `uat.operator` + `wrong-password` → ditolak 422, modal English "These credentials do not match our records."
   8. `uat.inactive` + `password` → ditolak 422, modal English "Your account is inactive. Please contact the administrator."
-- **Penerimaan manual pemilik**: tetap **PENDING**.
+- **Penerimaan manual pemilik**: **PARTIAL** (retest login alur 1–7 APPROVED; kontrol izin & ekspor PENDING, lihat §21).
+
+## 21. Persetujuan Manual Pemilik — Retest Login 01a Nomor 1–7 (15 Oktober 2026 WIB)
+
+### 21a. Rincian Persetujuan Manual
+Persetujuan manual diberikan langsung oleh pemilik aplikasi pada tanggal **15 Oktober 2026 WIB**, mengacu pada hasil implementasi dan pengujian commit `5f4308d` ("fix(phase-01a): correct post-login identity initialization") pada lingkungan UAT sintetis:
+
+1. **Operator login langsung ke Dashboard**: Form login `uat.operator` langsung berhasil divalidasi dan diarahkan ke Dashboard (`/`) tanpa perlu refresh halaman atau memunculkan error di console. → **APPROVED**.
+2. **Refresh mempertahankan sesi**: Pengguna me-refresh halaman Dashboard dan sesi tetap aktif secara konsisten. → **APPROVED**.
+3. **Profil Operator**: Dropdown profil topbar menampilkan identitas nama ("UAT Operator Sekolah") dan peran ("operator-sekolah") dengan benar dari kontrak ringan `check-auth`. → **APPROVED**.
+4. **Logout**: Tombol logout mengakhiri sesi backend dan mengembalikan pengguna ke halaman `/auth/login`. → **APPROVED**.
+5. **Admin login**: Akun `uat.admin` dapat login langsung ke Dashboard dengan menu administrasi lengkap dan widget online users yang menampilkan data akun. → **APPROVED**.
+6. **Akun nonaktif ditolak**: Login `uat.inactive` ditolak server dengan pesan error berbahasa English yang sesuai ("Your account is inactive. Please contact the administrator."). → **APPROVED**.
+7. **Password salah ditolak**: Login dengan password salah ditolak server dengan pesan error berbahasa English yang sesuai ("These credentials do not match our records."). → **APPROVED**.
+
+### 21b. Pembedaan Bukti Manual Pemilik vs Verifikasi Agen
+- **Persetujuan Manual Pemilik**: 7 butir di atas adalah pengujian yang dilakukan dan divalidasi langsung oleh pemilik aplikasi di lingkungan UAT browser.
+- **Verifikasi Otomatis Agen**: Seluruh hasil automated testing (51 tes PHPUnit/Pest di DB SQLite in-memory terisolasi, 3 tes deterministik Node di `vue-app/tests/auth-race-condition.test.mjs`, build Vite `npm run build`, linting ESLint 0 errors, dan penjelajahan Playwright) adalah bukti pelengkap dari agen kode dan **terpisah** dari persetujuan manual pemilik.
+
+### 21c. Batasan Persetujuan & Checklist Tertunda (PENDING)
+Persetujuan ini **secara tegas dibatasi hanya pada alur login dan inisialisasi sesi pasca-login (nomor 1–7)** dan **TIDAK** memperluas penerimaan ke seluruh modul Fase 01a:
+- **Penerimaan Manual Fase 01a secara keseluruhan**: tetap **PENDING / PARTIAL**.
+- **Checklist Manual Fase 01a yang Masih Tertunda (belum diperiksa/disetujui pemilik)**:
+  1. [ ] Pengujian matriks Roles & Abilities English di `/master/roles` (checklist panduan #5).
+  2. [ ] Pengujian penyimpanan perubahan kemampuan pada peran (checklist panduan #6).
+  3. [ ] Pengujian berlakunya penambahan izin ekspor secara runtime pada request berikutnya di sesi aktif Wakil Kesiswaan (checklist panduan #7).
+  4. [ ] Pengujian berlakunya pencabutan izin ekspor secara runtime pada request berikutnya di sesi aktif Wakil Kesiswaan (checklist panduan #8).
+  5. [ ] Pengujian ekspor CSV siswa berizin `students.export` pada tahun ajaran 2026/2027 (checklist panduan #9).
+  6. [ ] Pengujian penolakan 403 tombol dan direct call unduhan bagi peran tanpa `students.export` (checklist panduan #10).
+  7. [ ] Pengujian penolakan 422 batas baris ekspor tanpa pemotongan CSV (checklist panduan #11).
+  8. [ ] Pengujian interaksi Topbar (Dark/Light theme toggle, Menu toggle, Notifications, Messages) (checklist panduan #13).
+  9. [ ] Audit kelengkapan bahasa antarmuka English di seluruh dialog dan tombol Fase 01a (checklist panduan #14).
+- **Status Blocker & Keputusan Lain**:
+  - **BLK-03** (`DatabaseSeeder` masih memuat identitas asli) **tetap OPEN** (dilarang dijalankan untuk pengujian).
+  - Keputusan autentikasi lanjutan (makna `status_user_id`, reset password end-to-end, bootstrap pengguna pertama, deployment CORS/Sanctum, strategi cabut token vs sesi) **tetap OPEN**.

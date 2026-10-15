@@ -17,6 +17,20 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-15] Fase 01a — Docs: persetujuan manual pemilik atas retest login
+- Type: Docs
+- Scope / fase: pencatatan persetujuan manual pemilik atas retest login Fase 01a nomor 1–7.
+- Files touched: reports/feature-update/{PHASE-01A-ACCESS.md,PHASE-01A-MANUAL-REVIEW.md,INDEX.md,HANDOFF.md}, roadmap/ROADMAP.md, CHANGELOG.md.
+- What changed:
+  1. Dicatat persetujuan manual pemilik (15 Oktober 2026 WIB, mengacu implementasi `5f4308d`) untuk retest login: Operator login langsung ke Dashboard tanpa refresh/error console; refresh mempertahankan sesi; profil Operator menampilkan identitas & peran; logout kembali ke halaman login; Admin login dengan menu & widget pengguna sesuai; akun nonaktif ditolak dengan pesan English; password salah ditolak dengan pesan English.
+  2. Ditambahkan bagian §21 pada `PHASE-01A-ACCESS.md` yang membedakan **bukti manual pemilik** dari **verifikasi otomatis agen**, menegaskan batas persetujuan (hanya alur login/sesi), dan mendaftar checklist yang masih tertunda.
+  3. Panduan review manual `PHASE-01A-MANUAL-REVIEW.md` diberi kolom status (APPROVED/PENDING) per nomor.
+  4. INDEX, HANDOFF, dan ROADMAP diperbarui ke status penerimaan parsial (login APPROVED; izin/ekspor PENDING).
+- Why: mencatat bukti persetujuan manual pemilik secara akurat tanpa memperluasnya ke seluruh Fase 01a.
+- Validation: dokumentasi saja (tidak ada perubahan kode). Tidak mengulang tes/build sesuai instruksi pemilik.
+- Notes / risks: Persetujuan **terbatas** pada alur login; kontrol izin, ekspor, batas ekspor, dan modul lain **tetap PENDING**. **BLK-03** dan keputusan autentikasi lain tetap **OPEN**.
+- Evidence: reports/feature-update/PHASE-01A-ACCESS.md §21; reports/feature-update/PHASE-01A-MANUAL-REVIEW.md §4/§6.
+
 ## [2026-10-15] Fase 01a — Fix: inisialisasi identitas pasca-login (Login_2.vue & authStore)
 - Type: Fix, Security, Test
 - Scope / fase: koreksi inisialisasi identitas pasca-login pada Fase 01a tanpa reload/polling/penambahan izin.
