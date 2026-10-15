@@ -17,6 +17,25 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-15] Fase 01a — Fix: pemisahan identitas pengguna dari administrasi akun
+- Type: Fix, Security, Refactor
+- Scope / fase: perbaikan defect UAT akun operator pada Fase 01a.
+- Files touched: vue-app/src/stores/authStore.js, vue-app/src/components/dashboard/ListUsersOnlineWidget.vue, vue-app/src/layout/AppUsers.vue, vue-app/src/layout/AppMenu.vue, vue-app/src/router/index.js, vue-app/src/apiLogin/index.js, vue-app/src/main.js, vue-app/src/utils/useResourceManager.js, vue-app/src/views/pages/auth/Profile.vue, vue-app/src/views/pages/auth/Login_2.vue, vue-app/package.json, reports/feature-update/{PHASE-01A-ACCESS.md,PHASE-01A-MANUAL-REVIEW.md,INDEX.md,HANDOFF.md}, roadmap/ROADMAP.md.
+- What changed:
+  1. Identitas sesi dialihkan ke kontrak ringan `GET /api/check-auth` (`authStore.fetchIdentity()`); menghapus pemanggilan `GET /api/users` untuk mencari profil sendiri.
+  2. `ListUsersOnlineWidget.vue` diproteksi `v-if="canViewUsers"`, tidak memanggil `/api/users` jika operator tidak memiliki `users.view`; error ditangani tanpa unhandled promise.
+  3. `AppUsers.vue` membaca nama dan peran sesi langsung dari store identitas; logout berbasis sesi backend `POST /logout` tanpa ketergantungan ID dari daftar pengguna.
+  4. State sesi dibersihkan saat logout (`$reset()`) untuk mencegah kebocoran state antar-akun.
+  5. `AppMenu.vue` beralih ke gating kemampuan bernama (`requires`), menghapus pemeriksaan numerik inline `type_user_id`.
+  6. `main.js` meregistrasikan directive PrimeVue `StyleClass` (`v-styleclass` tanpa warning).
+  7. `apiLogin/index.js` menghapus fallback IP lama; error konfigurasi English jika `VITE_API_BASE_URL` hilang/tidak valid; membedakan network error dari session expired.
+  8. `Login_2.vue` membedakan network error dari invalid credentials (422).
+  9. `package.json` menambahkan script `"dev:uat"`.
+- Why: memperbaiki defect console error 403, TypeError null render, dan failure logout pada operator saat UAT, tanpa mengorbankan keamanan backend.
+- Validation: automated test 49 passed (119 assertions); frontend build PASS; lint changed files 0 error; UAT browser walkthrough pada 4 peran (Operator, Admin, Principal, Waka) PASS dengan 0 console error dan 0 `/api/users` calls pada non-admin; topbar buttons PASS tanpa directive warning.
+- Notes / risks: BLK-03 tetap OPEN; penerimaan manual pemilik PENDING.
+- Evidence: reports/feature-update/PHASE-01A-ACCESS.md §19; reports/feature-update/evidence/{uat-operator-dashboard.png, uat-operator-profile-dropdown.png}.
+
 ## [2026-10-15] Fase 01a — Koreksi akhir (tanggal DEC-14, batas ekspor, daftar file)
 - Type: Fix, Docs
 - Scope / fase: koreksi terbatas sebelum penerimaan pemilik Fase 01a.

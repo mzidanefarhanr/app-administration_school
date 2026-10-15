@@ -89,22 +89,17 @@ const firstLogin = async (event) => {
         // console.log(response.data.message);
         // console.log(response.data);
     }).catch(error => {
-        console.error(error);
-        if (error.response.status === 422) {
-            // alert('"These credentials do not match our records."');
-            // getMessage.value = error.response.data.message;
-            visibleStaticBackdropWaitings();
-            titleDanger = 'Login Failed';
-            fieldDanger = error.response?.data?.message || 'Invalid username or password.';;
-            visibleStaticBackdropDangers();
+        visibleStaticBackdropWaitings();
+        titleDanger.value = 'Login Failed';
+        if (!error.response) {
+            // Kegagalan koneksi / konfigurasi — BUKAN kredensial salah.
+            fieldDanger.value = 'Could not reach the API server. Check your connection or API configuration and try again.';
+        } else if (error.response.status === 422) {
+            fieldDanger.value = error.response?.data?.message || 'Invalid username or password.';
         } else {
-            // alert('An error occurred');
-            // getMessage.value = error.response.data.message;
-            visibleStaticBackdropWaitings();
-            titleDanger = 'Login Failed';
-            fieldDanger = error.response?.data?.message;
-            visibleStaticBackdropDangers();
+            fieldDanger.value = error.response?.data?.message || 'An unexpected error occurred. Please try again.';
         }
+        visibleStaticBackdropDangers();
     });
 };
 

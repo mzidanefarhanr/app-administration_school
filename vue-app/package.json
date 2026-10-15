@@ -3,6 +3,7 @@
     "version": "4.3.0",
     "scripts": {
         "dev": "vite --host",
+        "dev:uat": "vite --mode uat --host 127.0.0.1 --port 4001",
         "build": "vite build",
         "preview": "vite preview",
         "lint": "eslint --fix . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"

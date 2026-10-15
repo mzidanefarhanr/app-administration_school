@@ -9,6 +9,7 @@ import Aura from '@primeuix/themes/aura';
 import piniaPluginPersistedState from 'pinia-plugin-persistedstate';
 import PrimeVue from 'primevue/config';
 import ConfirmationService from 'primevue/confirmationservice';
+import StyleClass from 'primevue/styleclass';
 import ToastService from 'primevue/toastservice';
 
 import '@/assets/styles.scss';
@@ -31,6 +32,8 @@ app.use(PrimeVue, {
 });
 app.use(ToastService);
 app.use(ConfirmationService);
+// Register the PrimeVue StyleClass directive used by v-styleclass in the layout.
+app.directive('styleclass', StyleClass);
 
 if (import.meta.env.PROD) {
     console.error = () => {};

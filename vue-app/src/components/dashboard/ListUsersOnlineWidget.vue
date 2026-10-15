@@ -1,43 +1,59 @@
 <script setup>
-import { useLayout } from '@/layout/composables/layout';
-import { onMounted, ref, watch } from 'vue';
-import { useToast } from "primevue/usetoast";
+import { onMounted, ref, computed } from 'vue';
+import { authStore } from '@/stores/authStore';
 import apiLogin from '@/apiLogin';
+
+const useAuthStore = authStore();
 
 //define state
 const userOnline = ref([]);
 const users = ref();
 const selectedUser = ref();
 const filteredUsers = ref();
+const loading = ref(false);
+const loadError = ref(false);
+
+// Widget ini memerlukan kemampuan melihat akun. Bila tidak dimiliki,
+// widget tidak memuat data sama sekali (tidak memanggil /api/users).
+const canViewUsers = computed(() => useAuthStore.can('users.view'));
 
 const search = (event) => {
     setTimeout(() => {
-        // console.log(event.query.toLowerCase());
         if (!event.query.trim().length) {
-            filteredUsers.value = [...users.value];
-            // console.log('kosong');
+            filteredUsers.value = [...(users.value || [])];
         } else {
             filteredUsers.value = userOnline.value.filter((user) => {
                 return user.name.toLowerCase().match(event.query.toLowerCase());
-                // return user.name.toLowerCase().startsWith(event.query.toLowerCase());
             });
         }
     }, 250);
 }
 
 const getBadge = (user) => {
-    if (user.type_user.name === 'User') return 'info';
-    else if (user.type_user.name === 'Guest') return 'warn';
+    if (user?.type_user?.name === 'User') return 'info';
+    else if (user?.type_user?.name === 'Guest') return 'warn';
     else return null;
 }
+
 //method fetchDataUsersOnline
 const fetchDataUsersOnline = async () => {
-    //fetch data
-    await apiLogin.get(`/api/users`)
-    .then(response => {
-        //set response data to state "usersOnline"
-        userOnline.value = response.data.data;
-    });
+    if (!canViewUsers.value) {
+        // Tanpa izin: jangan panggil endpoint administratif.
+        userOnline.value = [];
+        return;
+    }
+    loading.value = true;
+    loadError.value = false;
+    try {
+        const response = await apiLogin.get('/api/users');
+        userOnline.value = response.data?.data ?? [];
+    } catch (error) {
+        // Tangani kegagalan tanpa unhandled promise; jangan menghapus identitas sesi.
+        userOnline.value = [];
+        loadError.value = true;
+    } finally {
+        loading.value = false;
+    }
 }
 
 //function toggleUserVisibility
@@ -48,27 +64,32 @@ function toggleUserVisibility() {
 
 //run hook "onMounted"
 onMounted(() => {
-    //call method "fetchDataUsersOnline"
     fetchDataUsersOnline();
-  });
+});
 </script>
 
 <template>
-    <div class="card sm:justify-center h-full">
+    <div v-if="canViewUsers" class="card sm:justify-center h-full">
         <Menubar>
             <template #start>
                 <div class="font-semibold text-xl w-full">List Users Online</div>
             </template>
             <template #end>
                 <div class="flex items-center gap-2">
-                    <!-- <InputText placeholder="Search" type="text" class="w-32 sm:w-auto" /> -->
                     <AutoComplete v-model="selectedUser" optionLabel="name" placeholder="Search" :suggestions="filteredUsers" @complete="search" class="w-full"/>
-                    <!-- <InputIcon v-if="filteredUsers && filteredUsers.length > 0" @click="toggleUserVisibility" class="pi pi-times" /> -->
                     <i v-if="filteredUsers && filteredUsers.length > 0" @click="toggleUserVisibility" class="pi pi-times"></i>
                 </div>
             </template>
         </Menubar>
-        <ScrollPanel v-if="filteredUsers && filteredUsers.length > 0" style="width: 100%; height: 20rem">
+
+        <div v-if="loading" class="p-4 text-surface-500">Loading users...</div>
+
+        <div v-else-if="loadError" class="p-4 text-red-500">
+            Could not load the user list. Your session is unaffected.
+            <Button label="Retry" text size="small" @click="fetchDataUsersOnline" />
+        </div>
+
+        <ScrollPanel v-else-if="filteredUsers && filteredUsers.length > 0" style="width: 100%; height: 20rem">
             <ul class="m-0 list-none rounded p-4 flex flex-col gap-2 w-full">
                 <li
                     v-for="user in filteredUsers"
@@ -82,12 +103,13 @@ onMounted(() => {
                         <img :alt="user.name" :src="`https://primefaces.org/cdn/primevue/images/avatar/bernardodominic.png`" class="w-8 h-8" v-else/>
                         <span class="font-bold">{{ user.name }}</span>
                     </div>
-                    <Tag :value="user.type_user.name" :severity="getBadge(user)" />
+                    <Tag :value="user.type_user ? user.type_user.name : ''" :severity="getBadge(user)" />
                 </li>
             </ul>
 
             <ScrollTop target="parent" :threshold="100" icon="pi pi-arrow-up"></ScrollTop>
         </ScrollPanel>
+
         <ScrollPanel v-else style="width: 100%; height: 20rem">
             <ul class="m-0 list-none rounded p-4 flex flex-col gap-2 w-full">
                 <li
@@ -102,8 +124,9 @@ onMounted(() => {
                         <img :alt="user.name" :src="`https://primefaces.org/cdn/primevue/images/avatar/bernardodominic.png`" class="w-8 h-8" v-else/>
                         <span class="font-bold">{{ user.name }}</span>
                     </div>
-                    <Tag :value="user.type_user.name" :severity="getBadge(user)" />
+                    <Tag :value="user.type_user ? user.type_user.name : ''" :severity="getBadge(user)" />
                 </li>
+                <li v-if="!userOnline.length" class="p-2 text-surface-500">No users to display.</li>
             </ul>
 
             <ScrollTop target="parent" :threshold="100" icon="pi pi-arrow-up"></ScrollTop>

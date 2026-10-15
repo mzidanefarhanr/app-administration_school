@@ -129,12 +129,9 @@ const fetchValidate = async () => {
 
 //method fetchDataUserRole
 const fetchDataUserRole = async () => {
-    await useAuthStore.getUser();
-    // console.log(useAuthStore.AllUserAssign);
-    saveUser.value = useAuthStore.AllUserAssign;
-    // saveCompany.value = '' + saveUser.value.company;
-    // console.log(saveUser.value);
-    // console.log(saveUser.value.status_user);
+    // Profil lengkap akun sendiri dari endpoint self-profile terlindungi
+    // GET /api/user (bukan daftar akun administratif).
+    saveUser.value = await useAuthStore.fetchSelfProfile();
 };
 
 const submitNewPassword = async (event) => {

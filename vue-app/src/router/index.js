@@ -4,7 +4,9 @@ import { authStore } from '../stores/authStore';
 
 const authNav = async (to, from, next) => {
     const useAuthStore = authStore();
-    await useAuthStore.checkLogin();
+    // Identitas + kemampuan diambil dari kontrak ringan check-auth
+    // (bukan /api/users), sehingga berlaku untuk semua pengguna.
+    await useAuthStore.fetchIdentity();
 
     if (useAuthStore.hasLogin && to.name == 'login') {
         useAuthStore.getToken();
@@ -12,18 +14,12 @@ const authNav = async (to, from, next) => {
     } else if (!useAuthStore.hasLogin && to.name !== 'login') {
         next({ path: '/auth/login' }); //not acces to dashboard
     } else {
-        // Ambil data user dari store
-        // await useAuthStore.getUser();
-        const user = useAuthStore.AllUserAssign;
-        const typeUserId = user?.type_user_id;
-        // console.log('to.meta.hasLogin: ', useAuthStore.hasLogin);
-        // Jika User ID = 2 dan mencoba akses path yang dimulai dengan /master
-        if (typeUserId == 2 && to.path.startsWith('/master')) {
-            console.warn('Akses ditolak: User tidak boleh mengakses area Master');
+        // Gating area /master memakai KEMAMPUAN BERNAMA, bukan type_user_id inline.
+        if (to.path.startsWith('/master') && !useAuthStore.can('users.view')) {
+            console.warn('Access denied: missing required ability for Master area.');
             next({ path: '/auth/access' }); // Redirect ke halaman error/no access
         }
         else {
-            // Jika typeUserId = 1 atau User ID 2 akses path non-master
             next();
         }
 

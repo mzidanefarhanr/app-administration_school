@@ -1,16 +1,17 @@
-<script setup>
-import { ref } from 'vue';
+﻿<script setup>
+import { ref, computed, onMounted } from 'vue';
 
 import AppMenuItem from './AppMenuItem.vue';
 import { authStore } from '@/stores/authStore';
-import { onMounted } from 'vue';
 
 const useAuthStore = authStore();
-const saveUser = ref('');
+
+// Setiap grup menu diberi kemampuan bernama (`requires`) bila perlu.
+// `null` berarti tersedia untuk semua pengguna yang login.
 const model = ref([
     {
         label: 'Home',
-        access: 2,
+        requires: null,
         items: [
             { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' },
             { label: 'Profile School', icon: 'pi pi-fw pi-building-columns', to: '/public/schoolprofile' },
@@ -18,7 +19,7 @@ const model = ref([
     },
     {
         label: 'Masters',
-        access: 2,
+        requires: 'master.view',
         items: [
             { label: 'Education Levels', icon: 'pi pi-fw pi-chart-bar', to: '/public/educationlevels' },
             { label: 'Education Schools', icon: 'pi pi-fw pi-building-columns', to: '/public/educationschools' },
@@ -31,9 +32,9 @@ const model = ref([
     },
     {
         label: 'Public',
-        access: 2,
+        requires: null,
         items: [
-            { label: 'Students', icon: 'pi pi-fw pi-graduation-cap', to: '/public/students' },
+            { label: 'Students', icon: 'pi pi-fw pi-graduation-cap', to: '/public/students', requires: 'students.view' },
             { label: 'Teachers', icon: 'pi pi-fw pi-slack', to: '#' },
             { label: 'Employees', icon: 'pi pi-fw pi-address-book', to: '#' },
             { label: 'Letters Form', icon: 'pi pi-fw pi-book', to: '#' },
@@ -41,21 +42,21 @@ const model = ref([
     },
     {
         label: 'Personal',
-        access: 2,
+        requires: null,
         items: [{ label: 'Profile', icon: 'pi pi-fw pi-user', to: '/profile/user' }]
     },
     {
         label: 'Admin',
-        access: 1,
+        requires: 'users.view',
         items: [
-            { label: 'Accounts', icon: 'pi pi-fw pi-users', to: '/master/accounts' },
-            { label: 'User Type', icon: 'pi pi-fw pi-user-edit', to: '/master/typeusers' },
-            { label: 'Roles & Abilities', icon: 'pi pi-fw pi-shield', to: '/master/roles' },
+            { label: 'Accounts', icon: 'pi pi-fw pi-users', to: '/master/accounts', requires: 'users.view' },
+            { label: 'User Type', icon: 'pi pi-fw pi-user-edit', to: '/master/typeusers', requires: 'master.manage' },
+            { label: 'Roles & Abilities', icon: 'pi pi-fw pi-shield', to: '/master/roles', requires: 'roles.view' },
         ]
     },
     {
         label: 'UI Components',
-        access: 2,
+        requires: null,
         items: [
             { label: 'Form Layout', icon: 'pi pi-fw pi-id-card', to: '/uikit/formlayout' },
             { label: 'Input', icon: 'pi pi-fw pi-check-square', to: '/uikit/input' },
@@ -76,7 +77,7 @@ const model = ref([
     },
     {
         label: 'Pages',
-        access: 2,
+        requires: null,
         icon: 'pi pi-fw pi-briefcase',
         to: '/pages',
         items: [
@@ -125,7 +126,7 @@ const model = ref([
     },
     {
         label: 'Hierarchy',
-        access: 2,
+        requires: null,
         items: [
             {
                 label: 'Submenu 1',
@@ -170,40 +171,48 @@ const model = ref([
     },
     {
         label: 'Get Started',
-        access: 2,
+        requires: null,
         items: [
             {
                 label: 'Documentation',
-                icon: 'pi pi-fw pi-book',
+                icon: 'pi pi-fw pi-question',
                 to: '/documentation'
             },
             {
                 label: 'View Source',
                 icon: 'pi pi-fw pi-github',
-                url: 'https://github.com/primefaces/sakai-vue',
+                url: 'https://github.com/primefaces/sakue-vue',
                 target: '_blank'
             }
         ]
     }
 ]);
-//method fetchDataUserRole
-const fetchDataUserRole = async () => {
-    await useAuthStore.getUser();
-    const datas = useAuthStore.AllUserAssign;
-    saveUser.value = datas.type_user_id;
-    // console.log(saveUser.value <= 1);
-};
+
+// Bila pengguna dapat mengakses setidaknya satu kemampuan grup.
+const canSee = (requires) => !requires || useAuthStore.can(requires);
+
+// Item grup yang tampil, difilter berdasarkan kemampuan dan item individual.
+const visibleModel = computed(() =>
+    model.value
+        .filter((group) => canSee(group.requires))
+        .map((group) => ({
+            ...group,
+            items: (group.items || []).filter((item) => canSee(item.requires))
+        }))
+        .filter((group) => (group.items ? group.items.length > 0 : true))
+);
+
 onMounted(() => {
-    fetchDataUserRole();
+    // Identitas & kemampuan dari kontrak ringan check-auth (bukan /api/users).
+    useAuthStore.fetchIdentity();
 });
 </script>
 
 <template>
     <ul class="layout-menu">
-        <template v-for="(item, i) in model" :key="item">
-            <app-menu-item v-if="!item.separator && saveUser <= item.access && saveUser" :item="item" :index="i"></app-menu-item>
-            <li v-if="item.separator && saveUser <= item.access && saveUser" class="menu-separator"></li>
-            <!-- <br><small>{{ saveUser }} <= {{ item.access }} = {{ saveUser <= item.access }}</small> -->
+        <template v-for="(item, i) in visibleModel" :key="item">
+            <app-menu-item v-if="!item.separator && useAuthStore.hasLogin" :item="item" :index="i"></app-menu-item>
+            <li v-if="item.separator && useAuthStore.hasLogin" class="menu-separator"></li>
         </template>
     </ul>
 </template>

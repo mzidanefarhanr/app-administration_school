@@ -189,8 +189,9 @@ export function useResourceManager(config) {
     };
 
     const fetchDataUserRole = async () => {
+        // Identitas sesi dari kontrak ringan check-auth (bukan daftar /api/users).
         await useAuthStore.getUser();
-        saveUser.value          = useAuthStore.AllUserAssign;
+        saveUser.value          = useAuthStore.identity;
         entityLabel.value       = menuLabel;
         entityLabelPlural.value = menuLabelPlural;
         await fetchDataAll();
@@ -271,7 +272,7 @@ export function useResourceManager(config) {
 
             singleData.value._method     = 'PATCH';
             if (endpoint == 'users') {
-                singleData.value.type_editor = saveUser.value.type_user_id;
+                singleData.value.type_editor = saveUser.value?.type_user_id ?? null;
                 delete singleData.value['password'];
             }
 
