@@ -10,7 +10,7 @@ Fondasi keamanan + backup dahulu; penyelesaian pendataan; pengolahan massal dan 
 | Fase | Scope | Dependensi | Status teknis | Review |
 |---|---|---|---|---|
 | 00 | [Audit baseline dan kesiapan lingkungan](phases/PHASE-00-BASELINE.md) | Tidak ada | PARTIAL (source+env audit; test/build/browser NOT RUN) | PENDING |
-| 01 | [Hak akses, autentikasi dan lingkungan aman](phases/PHASE-01-ACCESS.md) | 00; DEC-03 untuk 01a | 01a IMPLEMENTED + penyelesaian DEC-14 + fix post-login identity initialization (backend 51 test PASS; unit race test PASS; build PASS; UI English; UAT browser/HTTP PASS di 4 peran + akun nonaktif); persetujuan manual login #1–7 APPROVED pemilik (2026-10-15 WIB); checklist izin/ekspor PENDING; 01b/01c NOT STARTED | PARTIAL (login APPROVED; sisa PENDING) |
+| 01 | [Hak akses, autentikasi dan lingkungan aman](phases/PHASE-01-ACCESS.md) | 00; DEC-03 untuk 01a | 01a IMPLEMENTED + penyelesaian DEC-14 + fix post-login identity initialization (backend 51 test PASS; unit race test PASS; build PASS; UI English; UAT browser/HTTP PASS di 4 peran + akun nonaktif); **penerimaan manual pemilik checklist 01a APPROVED (2026-10-15 WIB)**; 01b/01c NOT STARTED | 01a APPROVED; 01b/01c PENDING |
 | 02 | [Audit terpercaya dan backup yang dapat dipulihkan](phases/PHASE-02-BACKUP-AUDIT.md) | 01; DEC-02 dan DEC-09 untuk backup | NOT STARTED | PENDING |
 | 03 | [Pendataan siswa lengkap dan aman](phases/PHASE-03-STUDENTS.md) | 01; 02 sebelum data operasional; DEC-05 | NOT STARTED | PENDING |
 | 04 | [Guru dan pegawai](phases/PHASE-04-EMPLOYEES.md) | 01; 02; DEC-04 | NOT STARTED | PENDING |
@@ -55,6 +55,7 @@ Baca [prompt OpenCode](../docs/OPENCODE-WORKFLOW.md), jalankan 00a–00b audit s
 - [x] Review pemilik atas laporan Fase 00 dan keputusan DEC-03 untuk 01a (APPROVED 2026-10-15).
 - [x] Fase 01a — authorization backend: peran/kemampuan + enforcement (IMPLEMENTED; test PASS; verifikasi UAT browser/HTTP PASS pada data sintetis; laporan PHASE-01A-ACCESS.md).
 - [x] Keputusan DEC-14 (register/nonaktif/ekspor/legacy/Bahasa UI) APPROVED 2026-10-14 WIB; penyelesaian ekspor siswa (endpoint CSV terlindungi), UI English, koreksi pemetaan legacy.
+- [x] Penerimaan manual pemilik Fase 01a (checklist #1–#14 APPROVED 2026-10-15 WIB; laporan PHASE-01A-ACCESS.md §21–§22).
 - [ ] Konfirmasi pemilik: makna status_user_id; keputusan autentikasi terbuka lain (reset password, bootstrap pengguna pertama, CORS/Sanctum, strategi cabut token).
 - [ ] Subfase 01b (konfigurasi API/error auth) dan 01c (isolasi test lanjutan, validator fixture).
 - [ ] Implementasi dan UAT fase terpilih.

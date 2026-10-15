@@ -7,7 +7,7 @@
 - Working tree sebelum: `M CHANGELOG.md` (edisi pemilik +7 baris, dipertahankan), `M HANDOFF.md`, `M INDEX.md`, `M ROADMAP.md`, `?? PHASE-00-RUNTIME-AUDIT.md`.
 - Working tree sesudah: 29 file tracked termodifikasi + 19 file baru (lihat Â§7). Termasuk perubahan pemilik pada CHANGELOG.md yang **tidak** direset/ditimpa.
 - Lingkungan: Windows, PHP 8.1.25, Composer 2.8.2, Node 24.18.0, npm 11.4.2, MySQL port 3306 terbuka. DB uji = SQLite in-memory (isolated).
-- Status teknis: `IMPLEMENTED` (test backend 51 PASS; unit race test PASS; build frontend PASS). Status review: `PARTIAL` (retest login nomor 1–7 APPROVED pemilik 2026-10-15 WIB; kontrol izin peran & ekspor PENDING).
+- Status teknis: `IMPLEMENTED` (test backend 51 PASS; unit race test PASS; build frontend PASS). Status review: `APPROVED` (seluruh checklist manual Fase 01a disetujui pemilik 2026-10-15 WIB; lihat §21–§22).
 
 ## 1. Outcome dan cakupan
 
@@ -377,7 +377,7 @@ Semua verifikasi dijalankan pada lingkungan UAT sintetis (`127.0.0.1:8001`, DB `
   6. `uat.waka` + `password` → langsung masuk Dashboard tanpa refresh (dropdown menampilkan "UAT Wakil Kesiswaan" & "wakil-kesiswaan").
   7. `uat.operator` + `wrong-password` → ditolak 422, modal English "These credentials do not match our records."
   8. `uat.inactive` + `password` → ditolak 422, modal English "Your account is inactive. Please contact the administrator."
-- **Penerimaan manual pemilik**: **PARTIAL** (retest login alur 1–7 APPROVED; kontrol izin & ekspor PENDING, lihat §21).
+- **Penerimaan manual pemilik**: **APPROVED untuk seluruh checklist Fase 01a** (retest login §21 + pengujian akses/ekspor §22).
 
 ## 21. Persetujuan Manual Pemilik — Retest Login 01a Nomor 1–7 (15 Oktober 2026 WIB)
 
@@ -396,19 +396,44 @@ Persetujuan manual diberikan langsung oleh pemilik aplikasi pada tanggal **15 Ok
 - **Persetujuan Manual Pemilik**: 7 butir di atas adalah pengujian yang dilakukan dan divalidasi langsung oleh pemilik aplikasi di lingkungan UAT browser.
 - **Verifikasi Otomatis Agen**: Seluruh hasil automated testing (51 tes PHPUnit/Pest di DB SQLite in-memory terisolasi, 3 tes deterministik Node di `vue-app/tests/auth-race-condition.test.mjs`, build Vite `npm run build`, linting ESLint 0 errors, dan penjelajahan Playwright) adalah bukti pelengkap dari agen kode dan **terpisah** dari persetujuan manual pemilik.
 
-### 21c. Batasan Persetujuan & Checklist Tertunda (PENDING)
-Persetujuan ini **secara tegas dibatasi hanya pada alur login dan inisialisasi sesi pasca-login (nomor 1–7)** dan **TIDAK** memperluas penerimaan ke seluruh modul Fase 01a:
-- **Penerimaan Manual Fase 01a secara keseluruhan**: tetap **PENDING / PARTIAL**.
-- **Checklist Manual Fase 01a yang Masih Tertunda (belum diperiksa/disetujui pemilik)**:
-  1. [ ] Pengujian matriks Roles & Abilities English di `/master/roles` (checklist panduan #5).
-  2. [ ] Pengujian penyimpanan perubahan kemampuan pada peran (checklist panduan #6).
-  3. [ ] Pengujian berlakunya penambahan izin ekspor secara runtime pada request berikutnya di sesi aktif Wakil Kesiswaan (checklist panduan #7).
-  4. [ ] Pengujian berlakunya pencabutan izin ekspor secara runtime pada request berikutnya di sesi aktif Wakil Kesiswaan (checklist panduan #8).
-  5. [ ] Pengujian ekspor CSV siswa berizin `students.export` pada tahun ajaran 2026/2027 (checklist panduan #9).
-  6. [ ] Pengujian penolakan 403 tombol dan direct call unduhan bagi peran tanpa `students.export` (checklist panduan #10).
-  7. [ ] Pengujian penolakan 422 batas baris ekspor tanpa pemotongan CSV (checklist panduan #11).
-  8. [ ] Pengujian interaksi Topbar (Dark/Light theme toggle, Menu toggle, Notifications, Messages) (checklist panduan #13).
-  9. [ ] Audit kelengkapan bahasa antarmuka English di seluruh dialog dan tombol Fase 01a (checklist panduan #14).
+### 21c. Batasan Persetujuan Retest Login
+Persetujuan retest login ini **secara tegas dibatasi hanya pada alur login dan inisialisasi sesi pasca-login (nomor 1–7)** dan **TIDAK** memperluas penerimaan ke seluruh modul Fase 01a. Pada saat pencatatan ini, checklist akses/ekspor (`#5–#11`, `#13`, `#14`) belum disetujui; statusnya kemudian **ditutup pada §22** (persetujuan tambahan 2026-10-15 WIB).
 - **Status Blocker & Keputusan Lain**:
   - **BLK-03** (`DatabaseSeeder` masih memuat identitas asli) **tetap OPEN** (dilarang dijalankan untuk pengujian).
   - Keputusan autentikasi lanjutan (makna `status_user_id`, reset password end-to-end, bootstrap pengguna pertama, deployment CORS/Sanctum, strategi cabut token vs sesi) **tetap OPEN**.
+
+## 22. Persetujuan Manual Pemilik — Pengujian Tambahan Akses & Ekspor 01a (15 Oktober 2026 WIB)
+
+### 22a. Rincian Persetujuan Manual
+Persetujuan manual tambahan diberikan langsung oleh pemilik aplikasi pada **15 Oktober 2026 WIB**, melengkapi persetujuan retest login (§21, mengacu `5f4308d`). Pengujian tambahan ini mengacu pada hasil yang sudah dicatat pada commit `bea4ccd`:
+1. **Matriks Roles & Abilities English**: Halaman matriks Roles & Abilities tampil dalam bahasa English. → **APPROVED** (memetakan checklist panduan #5).
+2. **Tambah & simpan `students.export`**: Admin berhasil menambahkan dan menyimpan `students.export` untuk Waka. → **APPROVED** (checklist #6).
+3. **Izin tambahan berlaku pada sesi berjalan**: Izin tambahan berlaku pada sesi Waka yang tetap login; ekspor berhasil. → **APPROVED** (checklist #7).
+4. **Pencabutan izin berlaku**: Pencabutan izin berlaku pada request berikutnya; ekspor ditolak `403`. → **APPROVED** (checklist #8, mencakup #10).
+5. **Ekspor sesuai filter tahun ajaran**: Operator/Principal berhasil mengekspor sesuai filter tahun ajaran; nol awal identitas tetap utuh. → **APPROVED** (checklist #9).
+6. **Batas ekspor**: Ekspor melebihi batas ditolak `422` dengan pesan English tanpa CSV terpotong. → **APPROVED** (checklist #11).
+7. **Interaksi topbar**: Interaksi topbar berfungsi tanpa error/warning console. → **APPROVED** (checklist #13).
+8. **Bahasa UI**: UI yang disentuh dalam scope 01a menggunakan English. → **APPROVED** (checklist #14).
+
+### 22b. Pemetaan Nomor (Berbasis Isi, Bukan Menyamakan Nomor)
+Penomoran berasal dari **dua checklist berbeda**: retest login pemilik (§21) dan pengujian tambahan akses/ekspor (§22). Pemetaan ke nomor panduan dilakukan **berdasarkan isi pemeriksaan**:
+
+| Butir pengujian tambahan pemilik | Isi pemeriksaan | Nomor panduan |
+|---|---|---|
+| 1 | Matriks Roles & Abilities English | #5 |
+| 2 | Admin menambah & menyimpan `students.export` untuk Waka | #6 |
+| 3 | Izin tambahan berlaku di sesi Waka yang tetap login; ekspor berhasil | #7 |
+| 4 | Pencabutan izin berlaku pada request berikutnya; ekspor ditolak 403 | #8 (+#10) |
+| 5 | Operator/Principal ekspor sesuai filter tahun ajaran; nol awal utuh | #9 |
+| 6 | Ekspor melebihi batas ditolak 422 English; tanpa CSV terpotong | #11 |
+| 7 | Interaksi topbar tanpa error/warning console | #13 |
+| 8 | UI dalam scope 01a memakai English | #14 |
+
+### 22c. Pembedaan Bukti & Batasan
+- **Bukti manual pemilik**: 8 butir di §22a adalah **pernyataan pengujian dan persetujuan manual pemilik**, bukan screenshot/log tambahan yang dibuat agen.
+- **Verifikasi agen**: uji otomatis (51 Pest/PHPUnit, 3 unit Node race, build Vite, ESLint, Playwright) tetap bukti pelengkap yang **terpisah** dari persetujuan manual.
+- **Batasan**: persetujuan ini **hanya** mencakup scope checklist Fase 01a dan **BUKAN** persetujuan deployment maupun modul yang belum tersedia (surat/izin/pembelajaran). Subfase lain pada Fase 01 (**01b**, **01c**) tetap **NOT STARTED**.
+- **BLK-03** dan keputusan autentikasi lanjutan tetap **OPEN**.
+
+### 22d. Status Penerimaan 01a
+Seluruh nomor checklist panduan manual Fase 01a (**#1–#14**) kini **APPROVED** pemilik. Fase 01a **DITERIMA** dalam scope checklist; namun ini **tidak** menandai keseluruhan Fase 01 selesai (01b/01c belum dikerjakan).

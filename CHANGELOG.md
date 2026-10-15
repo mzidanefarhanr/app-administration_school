@@ -17,6 +17,20 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-15] Fase 01a — Docs: penerimaan manual pemilik (akses & ekspor) dan penutupan review 01a
+- Type: Docs
+- Scope / fase: pencatatan penerimaan manual pemilik atas pengujian tambahan akses & ekspor Fase 01a dan penutupan review 01a.
+- Files touched: reports/feature-update/{PHASE-01A-ACCESS.md,PHASE-01A-MANUAL-REVIEW.md,INDEX.md,HANDOFF.md}, roadmap/ROADMAP.md, CHANGELOG.md.
+- What changed:
+  1. Dicatat persetujuan manual pemilik (15 Oktober 2026 WIB, mengacu implementasi `bea4ccd`) atas 8 butir pengujian tambahan: matriks Roles & Abilities English; admin menambah & menyimpan `students.export` untuk Waka; izin tambahan berlaku di sesi Waka berjalan (ekspor berhasil); pencabutan izin berlaku pada request berikutnya (ekspor ditolak 403); ekspor Operator/Principal sesuai filter tahun ajaran dengan nol awal identitas utuh; ekspor melebihi batas ditolak 422 English tanpa CSV terpotong; interaksi topbar tanpa error/warning; UI scope 01a English.
+  2. Butir pengujian tambahan dipetakan ke checklist panduan **berdasarkan isi pemeriksaan**, bukan menyamakan nomor (paparan di `PHASE-01A-MANUAL-REVIEW.md` §6 dan `PHASE-01A-ACCESS.md` §22b).
+  3. Ditambahkan `PHASE-01A-ACCESS.md` §22; §21c disesuaikan agar tidak lagi menyebut checklist sebagai tertunda (ditutup pada §22).
+  4. Seluruh nomor checklist panduan #1–#14 kini APPROVED; Fase 01a ditandai **DITERIMA** dalam scope checklist. INDEX, HANDOFF, dan ROADMAP disinkronkan.
+- Why: menutup review Fase 01a sesuai bukti persetujuan manual pemilik, tanpa memperluas ke subfase lain/deployment.
+- Validation: dokumentasi saja (tidak ada perubahan kode). Tidak mengulang tes/build sesuai instruksi pemilik.
+- Notes / risks: Penerimaan 01a **bukan** penerimaan seluruh Fase 01 (01b/01c NOT STARTED) dan bukan izin deployment/modul belum tersedia. **BLK-03** dan keputusan autentikasi lain tetap **OPEN**.
+- Evidence: reports/feature-update/PHASE-01A-ACCESS.md §22; reports/feature-update/PHASE-01A-MANUAL-REVIEW.md §4/§6.
+
 ## [2026-10-15] Fase 01a — Docs: persetujuan manual pemilik atas retest login
 - Type: Docs
 - Scope / fase: pencatatan persetujuan manual pemilik atas retest login Fase 01a nomor 1–7.

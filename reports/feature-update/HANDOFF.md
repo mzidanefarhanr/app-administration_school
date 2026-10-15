@@ -13,8 +13,8 @@ Perubahan pemilik pada `CHANGELOG.md` (entri "Pengembangan fitur iteratif via se
 - **Fase 01a — Authorization backend**: **IMPLEMENTED + KOREKSI INISIALISASI IDENTITAS SELESAI**.
   - Verifikasi otomatis (51 Pest/PHPUnit tests PASS, 3 race unit tests PASS, build PASS, lint PASS).
   - Verifikasi UAT browser sintetis: 4 peran (Operator, Admin, Principal, Waka) langsung login ke Dashboard tanpa refresh; password salah & akun nonaktif menampilkan modal 422 English; refresh menjaga sesi; logout/switch account bersih.
-  - **Persetujuan manual pemilik (retest login #1–7)**: **APPROVED** (15 Oktober 2026 WIB, mengacu implementasi `5f4308d`). **Terbatas pada alur login/sesi**; checklist kontrol izin, ekspor, dan bahasa UI tetap PENDING.
-  - **Penerimaan manual Fase 01a keseluruhan**: **PARTIAL/PENDING** (bukan penerimaan menyeluruh).
+  - **Persetujuan manual pemilik**: **APPROVED** (15 Oktober 2026 WIB). Retest login #1–7 (mengacu `5f4308d`) dan pengujian tambahan akses/ekspor (mengacu `bea4ccd`); seluruh nomor checklist panduan #1–#14 disetujui.
+  - **Penerimaan manual Fase 01a**: **DITERIMA** dalam scope checklist. **Bukan** penerimaan seluruh Fase 01 (subfase 01b/01c belum dikerjakan) maupun deployment.
 - **Fase 01b/01c dan fase selanjutnya**: NOT STARTED.
 
 ---
@@ -83,7 +83,6 @@ Pemilik dapat langsung melakukan verifikasi manual dari form login pada URL `htt
 5. [x] Login `uat.admin`: langsung masuk ke Dashboard, widget online users tampil 5 akun, menu Admin tampil lengkap. — **APPROVED** (2026-10-15 WIB).
 6. [x] Login `uat.inactive`: ditolak dengan dialog "Login Failed: Your account is inactive. Please contact the administrator." — **APPROVED** (2026-10-15 WIB).
 7. [x] Login password salah: ditolak dengan dialog "Login Failed: These credentials do not match our records." — **APPROVED** (2026-10-15 WIB).
-8. [ ] Pengujian hak ekspor siswa (penambahan/pencabutan izin runtime, unduhan CSV, 403 tanpa izin, batas 422) dan kontrol Roles & Abilities mengikuti checklist lengkap di `reports/feature-update/PHASE-01A-MANUAL-REVIEW.md` (nomor #5–11). — **PENDING**.
-9. [ ] Pengujian topbar (theme/menu/notifications/messages) dan audit bahasa UI English menyeluruh (#13–14). — **PENDING**.
+8. [x] Hak ekspor siswa (penambahan/pencabutan izin runtime, unduhan CSV, 403 tanpa izin, batas 422), kontrol Roles & Abilities English, topbar, dan bahasa UI mengikuti checklist lengkap di `reports/feature-update/PHASE-01A-MANUAL-REVIEW.md` (nomor #5–#11, #13–#14). — **APPROVED** (2026-10-15 WIB).
 
-Catatan: Persetujuan nomor 1–7 di atas **hanya** mencakup alur login/sesi dan **tidak** memperluas penerimaan ke kontrol izin, ekspor, batas ekspor, atau modul lain. **BLK-03** dan keputusan autentikasi lain tetap **OPEN**.
+Catatan: Seluruh nomor checklist Fase 01a (#1–#14) **APPROVED** pemilik. Persetujuan ini mencakup scope checklist Fase 01a dan **tidak** memperluas ke deployment, modul yang belum tersedia (surat/izin/pembelajaran), atau subfase 01b/01c. **BLK-03** dan keputusan autentikasi lain tetap **OPEN**.
