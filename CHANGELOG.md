@@ -17,6 +17,37 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-15] Fase 01a — Fix: inisialisasi identitas pasca-login (Login_2.vue & authStore)
+- Type: Fix, Security, Test
+- Scope / fase: koreksi inisialisasi identitas pasca-login pada Fase 01a tanpa reload/polling/penambahan izin.
+- Files touched:
+  - `vue-app/src/stores/authStore.js`
+  - `vue-app/src/views/pages/auth/Login_2.vue`
+  - `vue-app/tests/auth-race-condition.test.mjs`
+  - `laravel-api/app/Http/Requests/Auth/LoginRequest.php`
+  - `laravel-api/app/Http/Middleware/EnsureUserIsActive.php`
+  - `laravel-api/tests/Feature/Auth/AuthenticationTest.php`
+  - `.gitignore`
+  - `reports/feature-update/{PHASE-01A-ACCESS.md,PHASE-01A-MANUAL-REVIEW.md,INDEX.md,HANDOFF.md}`
+  - `roadmap/ROADMAP.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Investigasi & pembuktian akar masalah: `Login_2.vue` mengakses properti usang `authStore().authUser` yang telah dihapus pada refactor sebelumnya, menyebabkan pelemparan exception "User data not found." dan modal "Failed to validate user session." padahal backend telah sukses mengautentikasi (sehingga refresh manual berhasil masuk).
+  2. `authStore.js`: menambahkan getter kompatibilitas `authUser` dan `AllUserAssign` yang konsisten merujuk ke `identity`.
+  3. `authStore.js`: menambahkan sequence tracker `_requestId` pada `fetchIdentity()` untuk mendiskualifikasi respons in-flight guest check yang datang terlambat agar tidak menimpa sesi login aktif (anti-race condition deterministik). `fetchIdentity()`, `getUser()`, dan `checkLogin()` mengembalikan data `identity`.
+  4. `Login_2.vue`: mengintegrasikan pencegahan submit ganda (`isSubmitting` guard + disabled/loading button), explicit boolean dialog flags, dan `await useAuthStore.fetchIdentity()` sebelum navigasi.
+  5. Pesan error English per jenis kegagalan: koneksi API server, kredensial salah (422), akun nonaktif (422), dan sesi tidak valid. Pesan nonaktif di `LoginRequest.php` dan `EnsureUserIsActive.php` diselaraskan ke English.
+- Why: memastikan pengguna dapat langsung login ke beranda tanpa perlu refresh manual, bebas race condition, dan tanpa memanggil endpoint terproteksi `/api/users`.
+- Validation:
+  - `php artisan test` backend: 51 passed (131 assertions) di SQLite in-memory terisolasi (2 tes baru).
+  - Pint style check: PASS pada seluruh file PHP yang diubah.
+  - `node --test vue-app/tests/auth-race-condition.test.mjs`: 3 passed (race condition & getter consistency).
+  - `npm run build`: PASS (`✓ built in 42s`).
+  - `npx eslint`: 0 errors pada berkas yang disentuh.
+  - Playwright browser UAT sintetis: Form login Operator, Admin, Principal, Wakil Kesiswaan langsung berhasil ke Dashboard tanpa refresh; refresh menjaga sesi; logout dan switch account bersih; password salah menampilkan error 422 English; akun nonaktif menampilkan error 422 English. Request `/api/users` pada non-admin = 0.
+- Notes / risks: BLK-03 tetap OPEN (`DatabaseSeeder` dilarang); penerimaan manual pemilik PENDING.
+- Evidence: reports/feature-update/PHASE-01A-ACCESS.md §20; `vue-app/tests/auth-race-condition.test.mjs`.
+
 ## [2026-10-15] Fase 01a — Fix: pemisahan identitas pengguna dari administrasi akun
 - Type: Fix, Security, Refactor
 - Scope / fase: perbaikan defect UAT akun operator pada Fase 01a.

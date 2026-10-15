@@ -3,8 +3,6 @@ import Button from 'primevue/button';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
-import ImagesLogin from '@/assets/pictures/signin-glass.jpg';
-import logoDefault from '@/assets/pictures/logo_default.jpg';
 import { ref, onMounted } from 'vue';
 import apiLogin from '@/apiLogin';
 import { useRouter } from 'vue-router';
@@ -12,49 +10,31 @@ import { authStore } from '@/stores/authStore.js';
 import gifSuccess from '@/assets/gif/success.gif';
 import AppLogoDefault from '@/layout/AppLogoDefault.vue';
 
-
 const router = useRouter();
 const useAuthStore = authStore();
-const password = ref('');
 const inputTypePassword = ref('');
 const inputIconPassword = ref('');
 const showPassword = ref(false);
-const showUser = ref([]);
+const showUser = ref(null);
+const isSubmitting = ref(false);
 const form = ref({
     username: '',
     password: ''
 });
-const _method= "PATCH";
 
 const visibleStaticBackdropDanger = ref(false);
-var titleDanger = ref('');
-var fieldDanger = ref('');
+const titleDanger = ref('');
+const fieldDanger = ref('');
 const visibleStaticBackdropSuccess = ref(false);
-var titleSuccess = ref('');
-var fieldSuccess = ref('');
+const titleSuccess = ref('');
+const fieldSuccess = ref('');
 const visibleStaticBackdropWaiting = ref(false);
-var titleWaiting = ref('');
-var fieldWaiting = ref('');
-
-//function visibleStaticBackdropDangers
-function visibleStaticBackdropDangers() {
-    visibleStaticBackdropDanger.value = !visibleStaticBackdropDanger.value;
-}
-
-//function visibleStaticBackdropWaitings
-function visibleStaticBackdropWaitings() {
-    visibleStaticBackdropWaiting.value = !visibleStaticBackdropWaiting.value;
-}
-
-//function visibleStaticBackdropSuccesss
-function visibleStaticBackdropSuccesss() {
-    visibleStaticBackdropSuccess.value = !visibleStaticBackdropSuccess.value;
-}
+const titleWaiting = ref('Processing Request');
+const fieldWaiting = ref('Please wait, your data is being processed...');
 
 //function togglePasswordVisibility
 function togglePasswordVisibility() {
     showPassword.value = !showPassword.value;
-    // console.log(showPassword.value);
     fetchValidate();
 }
 const fetchValidate = async () => {
@@ -67,168 +47,84 @@ const fetchValidate = async () => {
     }
 };
 
-const firstLogin = async (event) => {
-    const first_login_at = true;
-    const status_active = true;
-    await apiLogin.post(`/api/firstlogin/${showUser.value.id}`, {
-        first_login_at: first_login_at,
-        status_active: status_active,
-        _method: _method,
-    }).then(response => {
-        if (response.data.success === true) {
-            visibleStaticBackdropWaitings();
-            titleSuccess = 'Success';
-            fieldSuccess = 'Login validated, please wait a moment.';
-            visibleStaticBackdropSuccesss();
-
-            setTimeout(function () {
-                visibleStaticBackdropSuccesss();
-                router.push({ path: '/' });
-            }, 2000);
-        }
-        // console.log(response.data.message);
-        // console.log(response.data);
-    }).catch(error => {
-        visibleStaticBackdropWaitings();
-        titleDanger.value = 'Login Failed';
-        if (!error.response) {
-            // Kegagalan koneksi / konfigurasi — BUKAN kredensial salah.
-            fieldDanger.value = 'Could not reach the API server. Check your connection or API configuration and try again.';
-        } else if (error.response.status === 422) {
-            fieldDanger.value = error.response?.data?.message || 'Invalid username or password.';
-        } else {
-            fieldDanger.value = error.response?.data?.message || 'An unexpected error occurred. Please try again.';
-        }
-        visibleStaticBackdropDangers();
-    });
-};
-
-//Before
-// const authenticated = async (event) => {
-//     const usersCheck = ref([]);
-//     await apiLogin.get('/api/users').then((response) => {
-//         //set response data to state "Users"
-//         usersCheck.value = response.data.data;
-//         // console.log(usersCheck.value)
-//     });
-//     showUser.value = usersCheck.value.find((users) => users.username == form.value.username);
-
-//     if (showUser.value.status_user_id === 1) {
-//         firstLogin();
-//     } else {
-//         //Gagal status
-//         visibleStaticBackdropWaitings();
-//         titleDanger = 'GAGAL!!';
-//         fieldDanger = 'Akun dinonaktifkan, silahkan hubungi Admin Website!!';
-//         visibleStaticBackdropDangers();
-//     }
-// };
-//After
-const authenticated = async () => {
-    try {
-        // Ambil data user yang sedang login saat ini saja (lebih aman daripada fetch semua users)
-        // await authStore().checkLogin();
-        // const currentUser = authStore().AllUserAssign;
-        await authStore().getUser();
-        const currentUser = authStore().authUser;
-
-        if (!currentUser) {
-             throw new Error("User data not found.");
-        }
-
-        // Simpan ke showUser agar bisa dipakai firstLogin()
-        showUser.value = currentUser;
-
-        // Cek status_user_id (1 = Aktif, 2 = Non-Aktif)
-        if (currentUser.status_user_id === 1) {
-            await firstLogin();
-        } else {
-            // Jika tidak aktif, paksa logout di store agar tidak nyangkut
-            authStore().$reset();
-            await apiLogin.post('/logout').then((response) => {
-                useAuthStore.logOut();
-            }).catch((error) => {
-                console.log(error);
-            });
-
-            visibleStaticBackdropWaitings();
-            titleDanger = 'Account Inactive';
-            fieldDanger = 'Your account is disabled. Please contact the administrator.';
-            visibleStaticBackdropDangers();
-
-            setTimeout(function () {
-                visibleStaticBackdropDangers();
-                router.push({ path: '/auth/login' });
-            }, 2000);
-        }
-    } catch (error) {
-        console.error(error);
-        visibleStaticBackdropWaitings();
-        titleDanger = 'Authentication Error';
-        fieldDanger = 'Failed to validate user session.';
-        visibleStaticBackdropDangers();
-    }
-};
-
-//Before
-// const submitLogin = async () => {
-//     // await useAuthStore.getToken();
-//     visibleStaticBackdropWaitings();
-//     await apiLogin
-//         .post('/login', {
-//             username: form.value.username,
-//             password: form.value.password
-//         })
-//         .then((response) => {
-//             if (response.status === 204) {
-//                 authenticated();
-//             }
-//         })
-//         .catch((error) => {
-//             console.error(error);
-//             if (error.response.status === 422) {
-//                 // alert('"These credentials do not match our records."');
-//                 // getMessage.value = error.response.data.message;
-//                 visibleStaticBackdropWaitings();
-//                 titleDanger = 'GAGAL!!';
-//                 fieldDanger = 'Username atau Password tidak tervalidasi, silahkan masukkan data dengan benar!!';
-//                 visibleStaticBackdropDangers();
-//             } else {
-//                 // alert('An error occurred');
-//                 // getMessage.value = error.response.data.message;
-//                 visibleStaticBackdropWaitings();
-//                 titleDanger = 'GAGAL!!';
-//                 fieldDanger = error.response.data.message;
-//                 visibleStaticBackdropDangers();
-//             }
-//         });
-
-// };
-//After
 const submitLogin = async () => {
-    // 1. RESET STATE: Bersihkan sisa session/data user sebelumnya
-    const useAuthStore = authStore();
+    if (isSubmitting.value) return;
+    isSubmitting.value = true;
+
+    // Bersihkan sesi / identitas sebelumnya sebelum login baru
     useAuthStore.$reset();
 
-    visibleStaticBackdropWaitings();
+    visibleStaticBackdropWaiting.value = true;
 
     try {
         const response = await apiLogin.post('/login', form.value);
 
-        // Jika Laravel menggunakan Sanctum/Fortify, status 204 atau 200 berarti sukses
         if (response.status === 204 || response.status === 200) {
-            // Jalankan fungsi pengecekan status user
-            await authenticated();
+            // Tunggu identitas dan kemampuan siap sebelum navigasi
+            const currentUser = await useAuthStore.fetchIdentity();
+
+            if (!currentUser || !useAuthStore.hasLogin) {
+                throw new Error('Failed to validate user session.');
+            }
+
+            showUser.value = currentUser;
+
+            // Validasi status akun (status_active boolean / status_user_id)
+            if (currentUser.status_active === false || (currentUser.status_user_id !== undefined && currentUser.status_user_id !== 1)) {
+                await useAuthStore.logOut();
+                visibleStaticBackdropWaiting.value = false;
+                titleDanger.value = 'Account Inactive';
+                fieldDanger.value = 'Your account is disabled. Please contact the administrator.';
+                visibleStaticBackdropDanger.value = true;
+                isSubmitting.value = false;
+                return;
+            }
+
+            // Catat login pertama akun actor sendiri jika didukung backend
+            try {
+                await apiLogin.post(`/api/firstlogin/${currentUser.id}`, {
+                    first_login_at: true,
+                    _method: 'PATCH'
+                });
+            } catch (firstLoginErr) {
+                console.warn('First login update deferred:', firstLoginErr);
+            }
+
+            visibleStaticBackdropWaiting.value = false;
+            titleSuccess.value = 'Success';
+            fieldSuccess.value = 'Login validated, please wait a moment.';
+            visibleStaticBackdropSuccess.value = true;
+
+            setTimeout(function () {
+                visibleStaticBackdropSuccess.value = false;
+                isSubmitting.value = false;
+                router.push({ path: '/' });
+            }, 1000);
+        } else {
+            throw new Error('Unexpected login response status: ' + response.status);
         }
     } catch (error) {
-        // console.error(error);
-        visibleStaticBackdropWaitings(); // Tutup loading
-        titleDanger = 'Login Failed';
+        visibleStaticBackdropWaiting.value = false;
+        isSubmitting.value = false;
 
-        // Ambil pesan error langsung dari Laravel (termasuk pesan "Akun tidak aktif")
-        fieldDanger = error.response?.data?.message || 'Invalid credentials.';
+        if (error.message === 'Failed to validate user session.') {
+            titleDanger.value = 'Authentication Error';
+            fieldDanger.value = 'Failed to validate user session.';
+        } else if (!error.response) {
+            titleDanger.value = 'Login Failed';
+            fieldDanger.value = 'Could not reach the API server. Check your connection or API configuration and try again.';
+        } else if (error.response.status === 422) {
+            titleDanger.value = 'Login Failed';
+            fieldDanger.value = error.response.data?.message || 'Invalid username or password.';
+        } else if (error.response.status === 401) {
+            titleDanger.value = 'Authentication Error';
+            fieldDanger.value = error.response.data?.message || 'Authentication failed. Please check your credentials.';
+        } else {
+            titleDanger.value = 'Login Failed';
+            fieldDanger.value = error.response.data?.message || error.message || 'An unexpected error occurred. Please try again.';
+        }
 
-        visibleStaticBackdropDangers();
+        visibleStaticBackdropDanger.value = true;
     }
 };
 
@@ -278,7 +174,7 @@ onMounted(() => {
                             <InputIcon @click="togglePasswordVisibility" :class="inputIconPassword" />
                         </IconField>
                     </div>
-                    <Button type="submit" label="Sign In" class="!w-full !rounded-3xl !bg-surface-950 !border !border-surface-950 !text-white hover:!bg-surface-950/80" />
+                    <Button type="submit" label="Sign In" :loading="isSubmitting" :disabled="isSubmitting" class="!w-full !rounded-3xl !bg-surface-950 !border !border-surface-950 !text-white hover:!bg-surface-950/80" />
                 </div>
                 <a class="text-white/80 cursor-pointer hover:text-white/90">Forgot Password?</a>
             </div>
@@ -297,12 +193,12 @@ onMounted(() => {
         </Dialog>
 
         <!-- <Button label="Waiting" @click="visibleStaticBackdropWaitings" /> -->
-        <Dialog v-model:visible="visibleStaticBackdropWaiting" modal header="Processing Request">
+        <Dialog v-model:visible="visibleStaticBackdropWaiting" modal :header="titleWaiting">
             <div class="text-center justify-content-center align-items-center">
                 <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: green"></i>
                 <p class="text-success mt-3" style="font-size: 1.1rem; font-weight: 500;">
-                Please wait, your data is being processed...
-            </p>
+                    {{ fieldWaiting }}
+                </p>
             </div>
         </Dialog>
     </div>

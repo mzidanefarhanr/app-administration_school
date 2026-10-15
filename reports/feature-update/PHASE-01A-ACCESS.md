@@ -333,3 +333,48 @@ Semua verifikasi dijalankan pada lingkungan UAT sintetis (`127.0.0.1:8001`, DB `
 | **Wakil Kesiswaan** (`uat.waka`) | Login â†’ dashboard â†’ menu â†’ cek export â†’ direct call â†’ logout | Dashboard: 0 console errors, tidak meminta `/api/users`. Tombol Export **tidak tampil** di `/public/students`. Direct request `GET /api/students/export?school_year_id=1` â†’ **403**. Direct request `GET /api/users` â†’ **403**. Logout berhasil. | **PASS** |
 | **Topbar Interaction** | Klik Dark/Light toggle, Menu toggle, Notification, Messages, Profile dropdown | Seluruh tombol merespons interaksi dengan **0 errors, 0 warnings** di console browser. Directive `v-styleclass` berjalan tanpa warning. | **PASS** |
 | **Pergantian Akun** | Transisi antar-sesi Operator â†” Admin â†” Principal â†” Waka | State sesi dibersihkan sempurna setiap logout (`$reset()`). Tidak ada data atau kemampuan akun sebelumnya yang terbawa. | **PASS** |
+
+## 20. Koreksi Defect Inisialisasi Identitas Pasca-Login (2026-10-15)
+
+### 20a. Bukti Reproduksi & Investigasi Penyebab
+1. **Reproduksi dari kondisi logout (UAT sintetis)**:
+   - Login `uat.operator` memunculkan modal dialog `Authentication Error — Failed to validate user session.`
+   - Console browser merekam: `Error: User data not found. at authenticated (Login_2.vue:144:20) at async submitLogin (Login_2.vue:229:13)`.
+   - Namun session cookie Laravel (`POST /login` 204) sudah berhasil dibuat, sehingga saat halaman di-refresh, `router.beforeEnter: authNav` menjalankan `fetchIdentity()` dan langsung mengizinkan pengguna masuk ke dashboard.
+2. **Penyebab terbukti (Rantai 3 Titik)**:
+   - **Ekspektasi struktur lama vs baru**: `Login_2.vue` membaca properti `authStore().authUser`. Pada refactoring `5f18c06`, `authStore` beralih ke state `identity` dan getter `user` dari payload `GET /api/check-auth`. Properti `authUser` dihapus tanpa getter kompatibilitas, sehingga bernilai `undefined` dan memicu `throw new Error("User data not found.")`.
+   - **Timing pemuatan identitas**: `POST /login` Laravel mengembalikan 204 No Content tanpa payload identitas. `Login_2.vue` perlu menunggu `await useAuthStore.fetchIdentity()` selesai dan mengecek `currentUser` sebelum menyatakan sukses dan navigasi.
+   - **Potensi race condition request guest**: Jika ada request `check-auth` guest yang berjalan lambat di jaringan, respons unauthenticated yang tiba belakangan berpotensi menimpa state `identity` login jika tidak ada penanda urutan request. Selain itu, form login belum memiliki proteksi submit ganda (`isSubmitting`) dan variabel dialog di-assign string mentah yang mematikan reaktivitas.
+
+### 20b. Perubahan yang Diterapkan
+1. **`vue-app/src/stores/authStore.js`**:
+   - Menambahkan getter kompatibilitas `authUser` dan `AllUserAssign` yang merujuk konsisten ke `identity`.
+   - Menambahkan sequence tracker `_requestId` pada `fetchIdentity()`: bila request ID yang kembali bukan request ID aktif saat itu, respons usang dibuang sehingga tidak dapat menimpa sesi login aktif.
+   - `fetchIdentity()`, `getUser()`, dan `checkLogin()` mengembalikan `this.identity` (atau `null`).
+2. **`vue-app/src/views/pages/auth/Login_2.vue`**:
+   - Menambahkan `isSubmitting` guard pada `submitLogin` dan atribut `:loading="isSubmitting" :disabled="isSubmitting"` pada tombol submit untuk mencegah submit ganda.
+   - Menggunakan `ref` reaktif konsisten (`.value`) untuk teks judul dan pesan dialog modal.
+   - Memanggil `await useAuthStore.fetchIdentity()` dan memvalidasi `currentUser` serta `hasLogin` sebelum transisi ke `firstLogin()` dan navigasi.
+   - Menampilkan pesan error English yang spesifik: koneksi API server, kredensial tidak cocok (422), akun dinonaktifkan (422), dan kegagalan inisialisasi sesi.
+3. **`laravel-api/app/Http/Requests/Auth/LoginRequest.php` & `EnsureUserIsActive.php`**:
+   - Menyelaraskan pesan penolakan akun nonaktif ke English: `"Your account is inactive. Please contact the administrator."`.
+4. **Pengujian deterministik**:
+   - `vue-app/tests/auth-race-condition.test.mjs`: tes Node terisolasi untuk membuktikan getter konsisten dan respons guest lambat tidak menimpa sesi login aktif.
+   - `laravel-api/tests/Feature/Auth/AuthenticationTest.php`: menambah tes kontrak `check-auth` pasca-login, penolakan pesan nonaktif English, dan unauthenticated check-auth.
+
+### 20c. Hasil Pengujian Lengkap
+- **Automated backend tests**: `php artisan test` → **51 passed (131 assertions)** di SQLite `:memory:`.
+- **PHP style check**: `./vendor/bin/pint --test` → PASS pada seluruh berkas PHP yang diubah.
+- **Frontend unit / race test**: `node --test vue-app/tests/auth-race-condition.test.mjs` → **3 passed (0 failed)**.
+- **Frontend build**: `npm run build` → PASS (`✓ built in 42s`).
+- **ESLint**: `npx eslint` → **0 errors** pada `authStore.js` dan `Login_2.vue`.
+- **Playwright Browser UAT sintetis**:
+  1. `uat.operator` + `password` → langsung masuk Dashboard tanpa refresh (0 console error, 0 `/api/users` calls, widget online users tersembunyi).
+  2. Refresh di sesi `uat.operator` → Dashboard tetap utuh dan sesi valid.
+  3. Logout `uat.operator` → kembali ke `/auth/login`, sesi berakhir.
+  4. `uat.admin` + `password` → langsung masuk Dashboard tanpa refresh (widget online users tampil dengan 5 akun, menu Admin lengkap).
+  5. `uat.kepsek` + `password` → langsung masuk Dashboard tanpa refresh (dropdown menampilkan "UAT Kepala Sekolah" & "kepala-sekolah").
+  6. `uat.waka` + `password` → langsung masuk Dashboard tanpa refresh (dropdown menampilkan "UAT Wakil Kesiswaan" & "wakil-kesiswaan").
+  7. `uat.operator` + `wrong-password` → ditolak 422, modal English "These credentials do not match our records."
+  8. `uat.inactive` + `password` → ditolak 422, modal English "Your account is inactive. Please contact the administrator."
+- **Penerimaan manual pemilik**: tetap **PENDING**.

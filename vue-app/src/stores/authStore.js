@@ -13,6 +13,8 @@ import apiLogin from '../apiLogin';
  */
 export const authStore = defineStore('auth', {
     state: () => ({
+        // Request sequence ID untuk mencegah response lama menimpa state terbaru (race condition)
+        _requestId: 0,
         // Identitas sesi (dari check-auth): id, name, username, type_user_id,
         // status_user_id, status_active, abilities[], roles[].
         identity: null,
@@ -28,6 +30,8 @@ export const authStore = defineStore('auth', {
 
     getters: {
         user: (state) => state.identity,
+        authUser: (state) => state.identity,
+        AllUserAssign: (state) => state.identity,
         users: (state) => state.AllUsers,
         // Nama tampilan pengguna login.
         displayName: (state) => state.identity?.name || null,
@@ -46,21 +50,35 @@ export const authStore = defineStore('auth', {
          * Ambil identitas + kemampuan dari kontrak ringan check-auth.
          * Tidak memanggil /api/users. Kegagalan jaringan tidak menghapus
          * identitas yang sudah ada kecuali memang sesi tidak valid.
+         * Mengembalikan data user atau null.
          */
         async fetchIdentity() {
+            const currentRequestId = ++this._requestId;
             try {
                 const response = await apiLogin.get('/api/check-auth');
+
+                // Jika ada request identitas yang lebih baru (mis. login baru dimulai),
+                // abaikan response usang ini agar tidak menimpa state terbaru.
+                if (currentRequestId !== this._requestId) {
+                    return this.identity;
+                }
 
                 if (response.data?.authenticated && response.data.user) {
                     this.identity = response.data.user;
                     this.abilities = response.data.user.abilities || [];
                     this.hasLogin = true;
+                    return this.identity;
                 } else {
                     // Sesi tidak valid → bersihkan identitas.
                     this.clearIdentity();
                     this.hasLogin = false;
+                    return null;
                 }
             } catch (error) {
+                if (currentRequestId !== this._requestId) {
+                    return this.identity;
+                }
+
                 // Respons non-2xx (mis. server) bukan bukti sesi berakhir;
                 // jangan hapus identitas karena kegagalan semata. Namun bila
                 // belum ada identitas, tandai belum login.
@@ -70,6 +88,7 @@ export const authStore = defineStore('auth', {
                 } else if (!this.identity) {
                     this.hasLogin = false;
                 }
+                return null;
             }
         },
 
@@ -77,7 +96,7 @@ export const authStore = defineStore('auth', {
          * Kompatibilitas: pemeriksaan login berbasis check-auth.
          */
         async checkLogin() {
-            await this.fetchIdentity();
+            return await this.fetchIdentity();
         },
 
         /**
@@ -105,7 +124,7 @@ export const authStore = defineStore('auth', {
          * Tidak lagi memuat seluruh daftar akun untuk mencari akun sendiri.
          */
         async getUser() {
-            await this.fetchIdentity();
+            return await this.fetchIdentity();
         },
 
         /**

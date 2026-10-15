@@ -46,7 +46,7 @@ Login memakai `username` + kata sandi sintetis yang Anda tetapkan.
 
 | # | Langkah | Hasil yang diharapkan |
 |---|---|---|
-| 1 | Login `uat.operator` → Dashboard (`/`) | Dashboard termuat bersih: **0 console error**, **tidak ada pemanggilan ke `/api/users`**. Widget online users tidak tampil. Menu "Admin" tidak tampil. |
+| 1 | Login `uat.operator` → Dashboard (`/`) | Form login langsung berhasil tanpa perlu refresh: muncul modal success lalu navigasi langsung ke Dashboard (`/`). Dashboard termuat bersih: **0 console error**, **tidak ada pemanggilan ke `/api/users`**. Widget online users tidak tampil. Menu "Admin" tidak tampil. |
 | 2 | Di sesi `uat.operator`, klik Topbar profile dropdown | Menampilkan "UAT Operator Sekolah" dan "operator-sekolah" (berasal dari check-auth ringan). Tombol Profile dan Logout berfungsi normal. |
 | 3 | Di sesi `uat.operator`, klik **Logout** | Berhasil logout kembali ke `/auth/login`, sesi berakhir (`/api/check-auth` mengembalikan `authenticated: false`). State sesi dibersihkan. |
 | 4 | Login `uat.admin` → Dashboard (`/`) | Widget online users tampil normal (memanggil `/api/users` 200). Menu Admin tampil lengkap. |

@@ -4,13 +4,13 @@
 |---|---|---|
 | [Baseline source awal](PHASE-00-SOURCE-BASELINE.md) | Review source penyusunan paket (baseline b02a87f) | SOURCE REVIEW; runtime NOT RUN |
 | [Fase 00 runtime audit](PHASE-00-RUNTIME-AUDIT.md) | Audit HEAD b699fec: source, route, Vue, schema, akses, seed, lingkungan | PARTIAL; test/build/browser NOT RUN |
-| [Fase 01a authorization backend](PHASE-01A-ACCESS.md) | Peran/kemampuan fleksibel, enforcement Gate, IDOR FirstLogin, admin terakhir, isolasi DB uji, ekspor siswa (endpoint CSV terlindungi + batas baris), pemetaan legacy DEC-14, UI English | IMPLEMENTED + PENYELESAIAN; 49 test PASS; build PASS; browser/HTTP UAT PASS (sintetis); penerimaan manual PENDING; modul surat/izin/pembelajaran N/A |
-| [Panduan review manual 01a](PHASE-01A-MANUAL-REVIEW.md) | Checklist UAT sintetis (roles, izin ekspor, 403, batas baris, akun nonaktif, UI English) + perintah server | PENDING (belum dijalankan pemilik) |
+| [Fase 01a authorization backend](PHASE-01A-ACCESS.md) | Peran/kemampuan fleksibel, enforcement Gate, IDOR FirstLogin, admin terakhir, isolasi DB uji, ekspor siswa (endpoint CSV terlindungi + batas baris), pemetaan legacy DEC-14, UI English, inisialisasi identitas pasca-login langsung | IMPLEMENTED + KOREKSI DEFECT; 51 test PASS; build PASS; unit race test PASS; browser/HTTP UAT PASS (sintetis); penerimaan manual PENDING; modul surat/izin/pembelajaran N/A |
+| [Panduan review manual 01a](PHASE-01A-MANUAL-REVIEW.md) | Checklist UAT sintetis (roles, izin ekspor, 403, batas baris, akun nonaktif, UI English, login langsung) + perintah server | PENDING (belum dijalankan pemilik) |
 | [Bukti UAT roles (English)](evidence/uat-roles-en.png) | Tangkapan layar `/master/roles` English pada UAT sintetis | Artefak (data sintetis) |
 | [Bukti UAT operator dashboard](evidence/uat-operator-dashboard.png) | Tangkapan layar dashboard operator tanpa widget online users & tanpa 403 | Artefak (data sintetis) |
 | [Bukti UAT operator profile](evidence/uat-operator-profile-dropdown.png) | Tangkapan layar dropdown profil operator dengan nama & peran sesi | Artefak (data sintetis) |
 | [Bukti UAT ekspor CSV](evidence/uat-students-export.csv) | CSV hasil unduhan endpoint terproteksi (sintetis) | Artefak (data sintetis) |
-| [Handoff](HANDOFF.md) | Checkpoint dan langkah berikutnya | Fase 01a selesai (penyelesaian DEC-14 + koreksi akhir); siap review pemilik |
+| [Handoff](HANDOFF.md) | Checkpoint dan langkah berikutnya | Fase 01a selesai (penyelesaian DEC-14 + fix identitas pasca-login); siap review pemilik |
 | [Template laporan](PHASE-REPORT-TEMPLATE.md) | Format evidence, bukan hasil uji | TEMPLATE |
 | [Validasi paket](VALIDATION.md) | Struktur/tautan/ZIP | Validasi dokumentasi saja |
 
