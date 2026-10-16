@@ -26,8 +26,17 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 - Dampak schema/migration: migration baru memperbaiki auto-map legacy (hanya `Admin`→Admin Sistem; `User` tidak dipetakan otomatis) sebagai perubahan additive, tanpa menghapus `role_user` yang ditetapkan admin eksplisit.
 - Status: APPROVED. Fase affected: 01a (penyelesaian).
 
+### DEC-15 — Alur error autentikasi, pemulihan CSRF, dan reset password (APPROVED, 2026-10-16 WIB)
+- Konteks: implementasi Fase 01b berdasarkan audit dan jawaban pemilik atas Q1–Q3.
+- Pilihan pemilik:
+  1. **Reset password (Q1)**: Form forgot password dan form password baru masuk scope 01b (dikerjakan setelah C-01–C-04 stabil). UAT lokal memakai `MAIL_MAILER=log` tanpa mengirim email nyata ke server/kredensial luar.
+  2. **Sesi kedaluwarsa (Q2)**: Saat sesi aktif kedaluwarsa (401 pada request selain login/guest check), pengguna diarahkan ke `/auth/login` dengan pesan English yang tetap terlihat: "Your session has expired. Please sign in again." Tidak memakai modal konfirmasi.
+  3. **Pemulihan CSRF 419 (Q3)**: Pada respons 419 yang dipastikan berasal dari penolakan CSRF, interceptor menyegarkan `csrf-cookie` sekali lalu mengulangi request asli maksimal sekali dengan payload utuh. Jika retry tetap gagal, tampilkan pesan pemulihan yang jelas tanpa loop.
+- Dampak API/UI: interceptor `apiLogin` diperbaiki; routing dan form `/auth/forgot-password` serta `/auth/reset-password/:token` ditambahkan; `Logout.vue` dan `Profile.vue` diselaraskan ke English; `.env.uat` memakai `MAIL_MAILER=log`.
+- Status: APPROVED. Fase affected: 01b.
+
 ### Keputusan yang masih OPEN (belum diputuskan)
-- Reset password end-to-end (audit alur frontend), bootstrap pengguna pertama (apakah register bootstrap diperlukan), deployment CORS/Sanctum, strategi pencabutan token vs sesi.
+- Makna `status_user_id` (jangan disamakan dengan `status_active`), bootstrap pengguna pertama (apakah register bootstrap diperlukan), deployment CORS/Sanctum produksi, strategi pencabutan token vs sesi.
 
 ## Register
 
@@ -47,6 +56,7 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 | DEC-12 | Laporan eksternal | Format ekspor sekolah; Dapodik via rekonsiliasi file dahulu, tanpa API otomatis | PROPOSED | 05b/11b |
 | DEC-13 | Retensi data pribadi | Arsip siswa/alumni, audit, lampiran; siapa boleh memusnahkan | OPEN | 09b/13 |
 | DEC-14 | Register/akun nonaktif/ekspor siswa/pemetaan legacy/Bahasa UI | Register ditutup; nonaktif ditolak; ekspor via `students.export`; legacy Admin→Admin Sistem (User manual); UI English | APPROVED (2026-10-14 WIB) | 01a |
+| DEC-15 | Error auth, CSRF 419 retry, reset password scope 01b | Reset password in scope (mail log); session expired redirect login; 419 single retry | APPROVED (2026-10-16 WIB) | 01b |
 
 ## Format pencatatan keputusan
 Tanggal WIB; ID; konteks; alternatif; pilihan pemilik dan bukti instruksi; dampak schema/API/UI; fase affected; status OPEN/PROPOSED/APPROVED/SUPERSEDED. Pertahankan riwayat bila keputusan berubah.
