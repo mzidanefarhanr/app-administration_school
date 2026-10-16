@@ -2,37 +2,13 @@ import AppLayout from '@/layout/AppLayout.vue';
 import { createRouter, createWebHistory } from 'vue-router';
 import { authStore } from '../stores/authStore';
 
-const authNav = async (to, from, next) => {
-    const useAuthStore = authStore();
-    // Identitas + kemampuan diambil dari kontrak ringan check-auth
-    // (bukan /api/users), sehingga berlaku untuk semua pengguna.
-    await useAuthStore.fetchIdentity();
-
-    if (useAuthStore.hasLogin && to.name == 'login') {
-        useAuthStore.getToken();
-        next({ path: '/' }); //success acces to dashboard
-    } else if (!useAuthStore.hasLogin && to.name !== 'login') {
-        next({ path: '/auth/login' }); //not acces to dashboard
-    } else {
-        // Gating area /master memakai KEMAMPUAN BERNAMA, bukan type_user_id inline.
-        if (to.path.startsWith('/master') && !useAuthStore.can('users.view')) {
-            console.warn('Access denied: missing required ability for Master area.');
-            next({ path: '/auth/access' }); // Redirect ke halaman error/no access
-        }
-        else {
-            next();
-        }
-
-    }
-};
-
 const router = createRouter({
     history: createWebHistory(),
     routes: [
         {
             path: '/',
-            beforeEnter: authNav,
             component: AppLayout,
+            meta: { requiresAuth: true },
             children: [
                 {
                     path: '/',
@@ -48,49 +24,49 @@ const router = createRouter({
                 {
                     path: '/public/educationlevels',
                     name: 'educationLevels',
-                    meta: { breadcrumb: 'Education Levels' },
+                    meta: { breadcrumb: 'Education Levels', requiresAbility: 'master.view' },
                     component: () => import('@/views/pages/public/EducationLevels.vue')
                 },
                 {
                     path: '/public/educationschools',
                     name: 'educationSchools',
-                    meta: { breadcrumb: 'Education Schools' },
+                    meta: { breadcrumb: 'Education Schools', requiresAbility: 'master.view' },
                     component: () => import('@/views/pages/public/EducationSchools.vue')
                 },
                 {
                     path: '/public/phasestatuses',
                     name: 'phasestatuses',
-                    meta: { breadcrumb: 'Phase Status' },
+                    meta: { breadcrumb: 'Phase Status', requiresAbility: 'master.view' },
                     component: () => import('@/views/pages/public/PhaseStatus.vue')
                 },
                 {
                     path: '/public/professions',
                     name: 'professions',
-                    meta: { breadcrumb: 'Profession' },
+                    meta: { breadcrumb: 'Profession', requiresAbility: 'master.view' },
                     component: () => import('@/views/pages/public/Profession.vue')
                 },
                 {
                     path: '/public/schoolyears',
                     name: 'schoolyears',
-                    meta: { breadcrumb: 'School Years' },
+                    meta: { breadcrumb: 'School Years', requiresAbility: 'master.view' },
                     component: () => import('@/views/pages/public/SchoolYears.vue')
                 },
                 {
                     path: '/public/schoolrombels',
                     name: 'schoolrombels',
-                    meta: { breadcrumb: 'School Rombels' },
+                    meta: { breadcrumb: 'School Rombels', requiresAbility: 'master.view' },
                     component: () => import('@/views/pages/public/SchoolRombels.vue')
                 },
                 {
                     path: '/public/studentmajors',
                     name: 'studentmajors',
-                    meta: { breadcrumb: 'Student Majors' },
+                    meta: { breadcrumb: 'Student Majors', requiresAbility: 'master.view' },
                     component: () => import('@/views/pages/public/StudentMajors.vue')
                 },
                 {
                     path: '/public/students',
                     name: 'students',
-                    meta: { breadcrumb: 'Students' },
+                    meta: { breadcrumb: 'Students', requiresAbility: 'students.view' },
                     component: () => import('@/views/pages/public/Student.vue')
                 },
                 {
@@ -102,19 +78,19 @@ const router = createRouter({
                 {
                     path: '/master/accounts',
                     name: 'masteraccounts',
-                    meta: { breadcrumb: 'Accounts' },
+                    meta: { breadcrumb: 'Accounts', requiresAbility: 'users.view' },
                     component: () => import('@/views/pages/master/Accounts.vue')
                 },
                 {
                     path: '/master/typeusers',
                     name: 'mastertypeusers',
-                    meta: { breadcrumb: 'Type Users' },
+                    meta: { breadcrumb: 'Type Users', requiresAbility: 'master.manage' },
                     component: () => import('@/views/pages/master/TypeUsers.vue')
                 },
                 {
                     path: '/master/roles',
                     name: 'masterroles',
-                    meta: { breadcrumb: 'Roles & Abilities' },
+                    meta: { breadcrumb: 'Roles & Abilities', requiresAbility: 'roles.view' },
                     component: () => import('@/views/pages/master/Roles.vue')
                 },
                 {
@@ -213,46 +189,102 @@ const router = createRouter({
         {
             path: '/landing',
             name: 'landing',
-            // beforeEnter: authNav,
+            meta: { public: true },
             component: () => import('@/views/pages/Landing.vue')
         },
         {
             path: '/pages/notfound',
             name: 'notfound',
-            // beforeEnter: authNav,
+            meta: { public: true },
             component: () => import('@/views/pages/NotFound.vue')
         },
 
         {
             path: '/auth/login',
             name: 'login',
-            beforeEnter: authNav,
+            meta: { guestOnly: true },
             component: () => import('@/views/pages/auth/Login_2.vue')
+        },
+        {
+            path: '/auth/forgot-password',
+            name: 'forgotPassword',
+            meta: { guestOnly: true },
+            component: () => import('@/views/pages/auth/ForgotPassword.vue')
+        },
+        {
+            path: '/password-reset/:token',
+            name: 'passwordReset',
+            meta: { guestOnly: true },
+            component: () => import('@/views/pages/auth/ResetPassword.vue')
+        },
+        {
+            path: '/auth/reset-password/:token',
+            name: 'resetPassword',
+            meta: { guestOnly: true },
+            component: () => import('@/views/pages/auth/ResetPassword.vue')
         },
         {
             path: '/auth/logout',
             name: 'logout',
-            beforeEnter: authNav,
+            meta: { requiresAuth: true },
             component: () => import('@/views/pages/auth/Logout.vue')
         },
         {
             path: '/auth/access',
             name: 'accessDenied',
-            // beforeEnter: authNav,
+            meta: { public: true },
             component: () => import('@/views/pages/auth/Access.vue')
         },
         {
             path: '/auth/error',
             name: 'error',
-            // beforeEnter: authNav,
+            meta: { public: true },
             component: () => import('@/views/pages/auth/Error.vue')
         },
         {
             path: '/:pathMatch(.*)',
             name: 'notFound',
+            meta: { public: true },
             component: () => import('@/views/pages/NotFound.vue')
         }
     ]
+});
+
+// Guard global: dievaluasi pada navigasi langsung maupun antar-child
+router.beforeEach(async (to, from, next) => {
+    const useAuthStore = authStore();
+
+    // Inisialisasi identitas sesi saat awal buka atau refresh
+    if (useAuthStore.identity === null && useAuthStore.hasLogin === null) {
+        await useAuthStore.fetchIdentity();
+    }
+
+    const isAuthenticated = !!useAuthStore.hasLogin;
+    const isGuestOnly = to.matched.some((record) => record.meta?.guestOnly);
+    const isPublic = to.matched.some((record) => record.meta?.public);
+    const requiresAuth = to.matched.some((record) => record.meta?.requiresAuth) || (!isPublic && !isGuestOnly);
+
+    // Pengguna yang sudah login dilarang membuka halaman guest-only (login/forgot-password/reset-password)
+    if (isAuthenticated && isGuestOnly) {
+        next({ path: '/' });
+        return;
+    }
+
+    // Pengguna belum login ditolak dari rute terproteksi
+    if (!isAuthenticated && requiresAuth) {
+        next({ path: '/auth/login' });
+        return;
+    }
+
+    // Evaluasi kemampuan spesifik per halaman (berlaku pada navigasi langsung dan antar-child)
+    const requiredAbility = to.meta?.requiresAbility;
+    if (requiredAbility && !useAuthStore.can(requiredAbility)) {
+        console.warn(`Access denied: missing required ability "${requiredAbility}".`);
+        next({ path: '/auth/access' });
+        return;
+    }
+
+    next();
 });
 
 export default router;

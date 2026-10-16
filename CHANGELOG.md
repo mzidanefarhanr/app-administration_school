@@ -17,6 +17,30 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-16] Fase 01b — Fix: penyelarasan error sesi, guard router, dan reset password (C-01–C-06)
+- Type: Fix, Feature, Security, Test
+- Scope / fase: implementasi Fase 01b berdasarkan audit 6a3d71f dan keputusan DEC-15 (Q1–Q3).
+- Files touched: `laravel-api/.env.uat.example`, `laravel-api/tests/Feature/Auth/PasswordResetTest.php`, `docs/API-CONTRACTS.md`, `vue-app/src/apiLogin/index.js`, `vue-app/src/main.js`, `vue-app/src/stores/authStore.js`, `vue-app/src/router/index.js`, `vue-app/src/views/pages/auth/Login_2.vue`, `vue-app/src/views/pages/auth/Logout.vue`, `vue-app/src/views/pages/auth/Profile.vue`, `vue-app/src/layout/AppUsers.vue`, `vue-app/src/views/pages/auth/ForgotPassword.vue` (baru), `vue-app/src/views/pages/auth/ResetPassword.vue` (baru), `vue-app/tests/phase-01b-api-auth.test.mjs` (baru), `reports/feature-update/{PHASE-01B-API-AUTH.md,PHASE-01B-MANUAL-REVIEW.md,INDEX.md,HANDOFF.md}`, `roadmap/ROADMAP.md`, `CHANGELOG.md`.
+- What changed:
+  1. Interceptor dipindahkan ke instance `apiLogin` yang benar (timeout 15.000 ms, withCredentials, withXSRFToken).
+  2. Pemulihan CSRF 419 terkoordinasi (single retry setelah penyegaran cookie, koordinasi request bersamaan, payload utuh, tanpa rekursi).
+  3. Penanganan sesi aktif kedaluwarsa (401 non-auth) mengalihkan ke `/auth/login` dengan modal banner persisten; request bersamaan dideduplikasi.
+  4. Penolakan izin fitur (403) mempertahankan sesi; akun nonaktif mengalihkan ke login.
+  5. Router guard dievaluasi pada setiap navigasi langsung maupun antar-child (`router.beforeEach`), memetakan kemampuan per halaman secara eksplisit.
+  6. Logout disatukan ke `authStore.logOut()` tunggal (`POST /logout` 204 tanpa membaca body), status server dilaporkan akurat.
+  7. Form Forgot Password dan Reset Password end-to-end dibangun (anti-enumerasi, validasi token, broker Laravel, redirect login); UAT memakai `MAIL_MAILER=log`.
+  8. Penyelarasan bahasa UI English pada kontrol tersentuh (`Profile.vue`, `Logout.vue`).
+- Why: menutup gap konfigurasi API, mencegah kegagalan sesi diam-diam, menutup celah navigasi child, dan melengkapi alur reset password end-to-end sesuai keputusan pemilik.
+- Validation:
+  - Backend: 55 passed (149 assertions) di SQLite in-memory (`php artisan test`).
+  - Pint: PASS (100% clean).
+  - Frontend: 10 passed (`node --test tests/phase-01b-api-auth.test.mjs tests/auth-race-condition.test.mjs`).
+  - Build: PASS (`npm run build`).
+  - Lint: 0 errors (`npx eslint ... --quiet`).
+  - Playwright UAT: form login, child guard, CSRF 419 recovery nyata, session expired redirect, forgot/reset password end-to-end via email log, logout 204.
+- Notes / risks: BLK-03 tetap OPEN (Fase 01c); review pemilik PENDING.
+- Evidence: `reports/feature-update/PHASE-01B-API-AUTH.md`, `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md`.
+
 ## [2026-10-15] Fase 01b — Docs: audit konfigurasi API dan alur error autentikasi
 - Type: Docs
 - Scope / fase: audit kondisi aktual dan penyusunan rencana implementasi Fase 01b (implementasi BELUM dijalankan).

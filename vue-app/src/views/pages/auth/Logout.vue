@@ -1,56 +1,22 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { onMounted } from 'vue';
 import { authStore } from '@/stores/authStore';
 import { useRouter } from 'vue-router';
-import apiLogin from '@/apiLogin';
 
 const useAuthStore = authStore();
+const router = useRouter();
 
-const clickLogedOut = async () => {
-    visibleStaticBackdropWaiting.value = true;
-
-    await apiLogin
-        .post('/logout')
-        .then((response) => {
-            if (response.data.id != null) {
-                // alert('Logout successfully');
-                useAuthStore.logOut();
-                // router.replace({ path: '/login' });
-                visibleStaticBackdropWaiting.value = false;
-                visibleStaticBackdropSuccess.value = true;
-                titleSuccess = 'Success!!';
-                fieldSuccess = 'Logout Berhasil, Tunggu Beberapa Saat!';
-                setTimeout(function () {
-                    visibleStaticBackdropSuccess.value = false;
-                    router.push({ path: '/login' });
-                }, 2000);
-            } else {
-                useAuthStore.logOut();
-                // alert('Logout successfully');
-                // router.replace({ path: '/login' });
-                // router.push('/login');
-                visibleStaticBackdropWaiting.value = false;
-                visibleStaticBackdropSuccess.value = true;
-                titleSuccess = 'Success!!';
-                fieldSuccess = 'Logout Berhasil, Tunggu Beberapa Saat!';
-                setTimeout(function () {
-                    visibleStaticBackdropSuccess.value = false;
-                    router.push({ path: '/login' });
-                }, 2000);
-            }
-        })
-        .catch((error) => {
-            useAuthStore.logOut();
-            console.log(error);
-        });
-};
-
-function clickLogOt() {
-    clickLogedOut();
-}
 onMounted(async () => {
-    clickLogedOut();
+    await useAuthStore.logOut();
+    router.push({ path: '/auth/login' });
 });
 </script>
 
-<template></template>
+<template>
+    <div class="flex items-center justify-center min-h-screen">
+        <div class="text-center">
+            <i class="pi pi-spin pi-spinner text-4xl text-primary mb-3"></i>
+            <p class="text-lg font-medium text-surface-600 dark:text-surface-400">Signing out...</p>
+        </div>
+    </div>
+</template>

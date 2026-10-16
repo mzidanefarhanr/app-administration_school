@@ -1,20 +1,16 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
 import Button from 'primevue/button';
-import { useRouter, useRoute, RouterLink } from 'vue-router';
 import { authStore } from '@/stores/authStore';
 import { useConfirm } from "primevue/useconfirm";
 import { useToast } from "primevue/usetoast";
 import apiLogin from '@/apiLogin';
 import gifSuccess from '@/assets/gif/success.gif';
-import { getChangeDetail } from '@/utils/diff';
 
 const confirm = useConfirm();
 const toast = useToast();
-const router = useRouter();
 const useAuthStore = authStore();
 const saveUser = ref([]);
-const saveCompany = ref([]);
 const inputTypePassword_old = ref('');
 const inputTypePassword_new = ref('');
 const inputTypePassword_new_confirm = ref('');
@@ -45,24 +41,13 @@ const getDefaultFormData = () => ({
 const form = reactive(getDefaultFormData());
 const _method= "PATCH";
 
-const visibleStaticBackdropWarning = ref(false);
-const validContinue = ref(false);
-var titleWarning = ref('');
-var fieldWarning = ref('');
 const visibleStaticBackdropDanger = ref(false);
-var titleDanger = ref('');
-var fieldDanger = ref('');
+const titleDanger = ref('');
+const fieldDanger = ref('');
 const visibleStaticBackdropSuccess = ref(false);
-var titleSuccess = ref('');
-var fieldSuccess = ref('');
+const titleSuccess = ref('');
+const fieldSuccess = ref('');
 const visibleStaticBackdropWaiting = ref(false);
-var titleWaiting = ref('');
-var fieldWaiting = ref('');
-
-//function visibleStaticBackdropWarnings
-function visibleStaticBackdropWarnings() {
-    visibleStaticBackdropWarning.value = !visibleStaticBackdropWarning.value;
-}
 
 //function visibleStaticBackdropDangers
 function visibleStaticBackdropDangers() {
@@ -77,10 +62,6 @@ function visibleStaticBackdropWaitings() {
 //function visibleStaticBackdropSuccesss
 function visibleStaticBackdropSuccesss() {
     visibleStaticBackdropSuccess.value = !visibleStaticBackdropSuccess.value;
-}
-//function saveValidContinue
-function saveValidContinue() {
-    validContinue.value = !validContinue.value;
 }
 
 const dropdownItem = ref(null);
@@ -134,31 +115,31 @@ const fetchDataUserRole = async () => {
     saveUser.value = await useAuthStore.fetchSelfProfile();
 };
 
-const submitNewPassword = async (event) => {
+const submitNewPassword = async () => {
     //
     if (!form.password_old || !form.password_new || !form.password_new_confirm) {
-        titleDanger = 'GAGAL!!';
-        fieldDanger = 'Password Harus Terisi!!';
+        titleDanger.value = 'Failed';
+        fieldDanger.value = 'All password fields are required.';
         visibleStaticBackdropDangers();
     } else if (form.password_new != form.password_new_confirm) {
-        titleDanger = 'GAGAL!!';
-        fieldDanger = 'Password Baru tidak sama!!';
+        titleDanger.value = 'Failed';
+        fieldDanger.value = 'New password and confirmation do not match.';
         visibleStaticBackdropDangers();
     } else if (form.password_old == form.password_new_confirm) {
-        titleDanger = 'GAGAL!!';
-        fieldDanger = 'Password Baru tidak boleh sama dengan password lama!!';
+        titleDanger.value = 'Failed';
+        fieldDanger.value = 'New password cannot be the same as current password.';
         visibleStaticBackdropDangers();
     } else {
         confirm.require({
             group: 'headless',
-            header: 'Anda yakin ingin mengubah Password?',
-            message: 'Klik Simpan untuk memproses.',
+            header: 'Are you sure you want to change your password?',
+            message: 'Click Save to proceed.',
             accept: () => {
                 visibleStaticBackdropWaitings();
                 fetchDataNewPassword();
             },
             reject: () => {
-                toast.add({ severity: 'error', summary: 'Batal', detail: 'Berhasil dibatalkan', life: 3000 });
+                toast.add({ severity: 'info', summary: 'Cancelled', detail: 'Password change cancelled.', life: 3000 });
             }
         });
 
@@ -178,36 +159,26 @@ const fetchDataNewPassword = async () => {
         _method: _method,
     }).then(response => {
         if (response.data.success === true) {
-            console.log("Sukses")
             visibleStaticBackdropWaitings();
             visibleStaticBackdropSuccesss();
-            titleSuccess = 'Success!!';
-            fieldSuccess = 'Password Baru Berhasil Dibuat!';
+            titleSuccess.value = 'Success';
+            fieldSuccess.value = 'Password changed successfully!';
             setTimeout(function () {
                 visibleStaticBackdropSuccesss();
                 fetchDataUserRole();
                 Object.assign(form, getDefaultFormData());
             }, 2000);
         }
-        // console.log(response.data.message);
-        // console.log(response.data);
     }).catch(error => {
         console.error(error);
-        if (error.response.status === 422) {
-            // alert('"These credentials do not match our records."');
-            // getMessage.value = error.response.data.message;
-            visibleStaticBackdropWaitings();
-            titleDanger = 'GAGAL!!';
-            fieldDanger = 'Password tidak tervalidasi, silahkan masukkan data dengan benar!!';
-            visibleStaticBackdropDangers();
+        visibleStaticBackdropWaitings();
+        titleDanger.value = 'Failed';
+        if (error.response?.status === 422) {
+            fieldDanger.value = error.response?.data?.message || 'Validation error. Please check your input.';
         } else {
-            // alert('An error occurred');
-            // getMessage.value = error.response.data.message;
-            visibleStaticBackdropWaitings();
-            titleDanger = 'GAGAL!!';
-            fieldDanger = error.response.data.message;
-            visibleStaticBackdropDangers();
+            fieldDanger.value = error.response?.data?.message || 'An unexpected error occurred.';
         }
+        visibleStaticBackdropDangers();
     });
 }
 
@@ -275,37 +246,36 @@ onMounted(() => {
             <div class="md:w-1/2">
                 <form @submit.prevent="submitNewPassword">
                     <div class="card flex flex-col gap-4">
-                        <div class="font-semibold text-xl">Ubah Password</div>
+                        <div class="font-semibold text-xl">Change Password</div>
                         <div class="grid grid-cols-12 gap-2">
-                            <label for="password_old" class="flex items-center col-span-12 mb-2 md:col-span-6 md:mb-0">Password Lama</label>
+                            <label for="password_old" class="flex items-center col-span-12 mb-2 md:col-span-6 md:mb-0">Current Password</label>
                             <div class="col-span-12 md:col-span-6">
                                 <IconField>
                                     <FloatLabel variant="on">
-                                        <InputText :type="inputTypePassword_old" id="password_old" type="text" v-model="form.password_old" />
+                                        <InputText :type="inputTypePassword_old" id="password_old" v-model="form.password_old" />
                                         <InputIcon @click="togglePassword_oldVisibility" :class="inputIconPassword_old" />
                                     </FloatLabel>
                                 </IconField>
                             </div>
                         </div>
                         <div class="grid grid-cols-12 gap-2">
-                            <label for="password_new" class="flex items-center col-span-12 mb-2 md:col-span-6 md:mb-0">Password Baru</label>
+                            <label for="password_new" class="flex items-center col-span-12 mb-2 md:col-span-6 md:mb-0">New Password</label>
                             <div class="col-span-12 md:col-span-6">
                                 <IconField>
                                     <FloatLabel variant="on">
-                                        <InputText :type="inputTypePassword_new" id="password_new" type="text" v-model="form.password_new" />
+                                        <InputText :type="inputTypePassword_new" id="password_new" v-model="form.password_new" />
                                         <InputIcon @click="togglePassword_newVisibility" :class="inputIconPassword_new" />
                                     </FloatLabel>
                                 </IconField>
                             </div>
                         </div>
                         <div class="grid grid-cols-12 gap-2">
-                            <label for="password_new_confirm" class="flex items-center col-span-12 mb-2 md:col-span-6 md:mb-0">Password Baru Konfirmasi</label>
+                            <label for="password_new_confirm" class="flex items-center col-span-12 mb-2 md:col-span-6 md:mb-0">Confirm New Password</label>
                             <div class="col-span-12 md:col-span-6">
                                 <IconField>
                                     <FloatLabel variant="on">
-                                        <InputText :type="inputTypePassword_new_confirm" id="password_new_confirm" type="text" v-model="form.password_new_confirm" :invalid="form.password_new != form.password_new_confirm" />
+                                        <InputText :type="inputTypePassword_new_confirm" id="password_new_confirm" v-model="form.password_new_confirm" :invalid="form.password_new != form.password_new_confirm" />
                                         <InputIcon @click="togglePassword_new_confirmVisibility" :class="inputIconPassword_new_confirm" />
-                                        <!-- <Message v-if="form.password_new != form.password_new_confirm" severity="error" size="small" variant="simple">Password Baru Tidak Sama!!</Message> -->
                                     </FloatLabel>
                                 </IconField>
                             </div>
@@ -315,13 +285,13 @@ onMounted(() => {
                             <div class="col-span-12 md:col-span-6">
                                 <IconField>
                                     <FloatLabel variant="on">
-                                        <Message v-if="form.password_new != form.password_new_confirm" severity="error" size="small" variant="simple">Password Baru Tidak Sama!!</Message>
+                                        <Message v-if="form.password_new != form.password_new_confirm" severity="error" size="small" variant="simple">New passwords do not match!</Message>
                                     </FloatLabel>
                                 </IconField>
                             </div>
                         </div>
                         <div style="text-align: right;">
-                            <Button class="md:w-1/6 flex items-center" type="submit" label="Simpan" :fluid="false" />
+                            <Button class="md:w-1/6 flex items-center" type="submit" label="Save" :fluid="false" />
                         </div>
                     </div>
                 </form>

@@ -15,6 +15,7 @@ export const authStore = defineStore('auth', {
     state: () => ({
         // Request sequence ID untuk mencegah response lama menimpa state terbaru (race condition)
         _requestId: 0,
+        loginTimestamp: 0,
         // Identitas sesi (dari check-auth): id, name, username, type_user_id,
         // status_user_id, status_active, abilities[], roles[].
         identity: null,
@@ -55,7 +56,7 @@ export const authStore = defineStore('auth', {
         async fetchIdentity() {
             const currentRequestId = ++this._requestId;
             try {
-                const response = await apiLogin.get('/api/check-auth');
+                const response = await apiLogin.get('/api/check-auth', { skipAuthRedirect: true });
 
                 // Jika ada request identitas yang lebih baru (mis. login baru dimulai),
                 // abaikan response usang ini agar tidak menimpa state terbaru.
@@ -67,6 +68,7 @@ export const authStore = defineStore('auth', {
                     this.identity = response.data.user;
                     this.abilities = response.data.user.abilities || [];
                     this.hasLogin = true;
+                    this.loginTimestamp = Date.now();
                     return this.identity;
                 } else {
                     // Sesi tidak valid → bersihkan identitas.
@@ -155,17 +157,27 @@ export const authStore = defineStore('auth', {
 
         /**
          * Logout: akhiri sesi di backend lalu bersihkan seluruh state.
-         * Tidak bergantung pada id dari daftar akun.
+         * Respons 204 No Content tidak memiliki body.
          */
         async logOut() {
+            let serverSuccess = true;
             try {
-                await apiLogin.post('/logout');
+                const response = await apiLogin.post('/logout', null, { skipAuthRedirect: true });
+                if (response.status !== 204 && response.status !== 200) {
+                    serverSuccess = false;
+                }
             } catch (error) {
-                // Meski request logout gagal, tetap bersihkan state lokal
-                // agar tidak ada identitas yang tertinggal.
+                // Jika sudah 401, sesi server memang sudah tidak ada (tetap dianggap berakhir)
+                if (error.response?.status === 401) {
+                    serverSuccess = true;
+                } else {
+                    serverSuccess = false;
+                    console.warn('Logout server request failed:', error);
+                }
             } finally {
                 this.$reset();
             }
+            return { success: true, serverSuccess };
         }
     },
 

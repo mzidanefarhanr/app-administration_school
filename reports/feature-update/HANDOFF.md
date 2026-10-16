@@ -15,7 +15,7 @@ Catatan perubahan pemilik: entri `CHANGELOG.md` yang disebut laporan lama ("Peng
   - Verifikasi UAT browser sintetis: 4 peran (Operator, Admin, Principal, Waka) langsung login ke Dashboard tanpa refresh; password salah & akun nonaktif menampilkan modal 422 English; refresh menjaga sesi; logout/switch account bersih.
   - **Persetujuan manual pemilik**: **APPROVED** (15 Oktober 2026 WIB). Retest login #1–7 (mengacu `5f4308d`) dan pengujian tambahan akses/ekspor (mengacu `bea4ccd`); seluruh nomor checklist panduan #1–#14 disetujui.
   - **Penerimaan manual Fase 01a**: **DITERIMA** dalam scope checklist. **Bukan** penerimaan seluruh Fase 01 (subfase 01b/01c belum dikerjakan) maupun deployment.
-- **Fase 01b — Konfigurasi API dan error auth**: **AUDIT/RENCANA SELESAI** (implementasi BELUM dijalankan). Laporan: `reports/feature-update/PHASE-01B-API-AUTH-AUDIT.md`. Status review: PENDING.
+- **Fase 01b — Konfigurasi API dan error auth**: **IMPLEMENTED & VERIFIED** (DEC-15 APPROVED 2026-10-16 WIB). Interceptor apiLogin diperbaiki, retry 419 terkoordinasi, guard router antar-child, single logout 204, alur forgot & reset password end-to-end, UI English. Verifikasi: 55 backend test PASS, 10 unit test frontend PASS, build PASS, lint PASS, UAT browser PASS. Laporan: `reports/feature-update/PHASE-01B-API-AUTH.md`. Panduan manual: `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md`. Status review: **PENDING**.
 - **Fase 01c dan fase selanjutnya**: NOT STARTED. BLK-03 dialokasikan ke 01c.
 
 ---
@@ -60,8 +60,9 @@ Defect "Failed to validate user session" dan console "User data not found" pada 
 ## 4. Keputusan & Blocker Terbuka
 - **DEC-03** (peran & kemampuan fleksibel): **APPROVED** (2026-10-15).
 - **DEC-14** (register publik ditutup, status_active ditolak, ekspor via students.export, legacy mapping per nama, UI English): **APPROVED** (2026-10-14 WIB).
-- **BLK-03**: **OPEN** (`DatabaseSeeder` masih memuat identitas asli; dilarang dijalankan untuk pengujian).
-- **Keputusan autentikasi lain**: makna `status_user_id` (jangan disamakan dengan `status_active`), reset password end-to-end, bootstrap pengguna pertama, deployment CORS/Sanctum, strategi pencabutan token vs sesi: **OPEN**.
+- **DEC-15** (error auth, 419 single retry, reset password scope 01b via mail log): **APPROVED** (2026-10-16 WIB).
+- **BLK-03**: **OPEN** (`DatabaseSeeder` masih memuat identitas asli; dilarang dijalankan untuk pengujian; dialokasikan ke 01c).
+- **Keputusan autentikasi lain**: makna `status_user_id` (jangan disamakan dengan `status_active`), bootstrap pengguna pertama, deployment CORS/Sanctum produksi, strategi pencabutan token vs sesi: **OPEN** (tidak menghambat 01b).
 - **UI Language**: Seluruh antarmuka dalam scope tetap **English**.
 
 ---
@@ -90,19 +91,39 @@ Catatan: Seluruh nomor checklist Fase 01a (#1–#14) **APPROVED** pemilik. Perse
 
 ---
 
-## 7. Fase 01b — Ringkasan Audit & Rencana (2026-10-15)
-Laporan penuh: `reports/feature-update/PHASE-01B-API-AUTH-AUDIT.md`. Status: **AUDIT/RENCANA** (implementasi BELUM). Temuan utama (source review HEAD `b93cbee`):
-- **Interceptor tidak aktif**: interceptor dipasang pada global `axios`, bukan instance `apiLogin` yang dipakai seluruh kode → tidak berjalan.
-- **Guard router**: `beforeEnter` parent `/` tidak dievaluasi pada transisi antar-child; gating `/master` tidak dicek ulang.
-- **Error handling**: 401/403/419/422/429/5xx/timeout/tanpa-response tidak ditangani seragam; belum ada `timeout`.
-- **Logout tak konsisten**: `Logout.vue` mengakses `response.data.id` pada 204, memanggil `/logout` dua kali, memakai helper tak terdefinisi.
-- **Reset password**: backend lengkap (routes+broker+notification), frontend **gap** (link placeholder tanpa route/form). Butuh keputusan pemilik (Q1) apakah masuk scope 01b.
-- **Kontrak auth**: aktif = **cookie session Sanctum** saja (tanpa bearer); tidak perlu mengubah strategi token/sesi.
-- Rencana C-01..C-06 (§4 laporan) dan rencana verifikasi (§5 laporan) sudah disusun; keputusan pemilik Q1–Q3 di §7 laporan.
+## 7. Fase 01b — Implementasi & Checklist Retest Pemilik (2026-10-16)
+Laporan implementasi lengkap: `reports/feature-update/PHASE-01B-API-AUTH.md`. Panduan retest manual lengkap: `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md`.
+
+Ringkasan hasil verifikasi otomatis:
+- Backend: **55 passed (149 assertions)** (`php artisan test`).
+- Pint style check: **PASS** (100% clean).
+- Frontend unit/integration test: **10 passed (0 failed)** (`node --test tests/phase-01b-api-auth.test.mjs tests/auth-race-condition.test.mjs`).
+- Build frontend: `npm run build` PASS (0 errors, 0 warnings).
+- Lint frontend: `npx eslint ... --quiet` (0 errors).
+
+Checklist manual UAT pemilik (siap diuji di browser):
+1. [ ] Buka `http://127.0.0.1:4001/auth/login` → klik "Forgot Password?" → form `/auth/forgot-password` termuat.
+2. [ ] Masukkan `uat.operator@uat.local` → klik Send Reset Link → dialog anti-enumerasi tampil.
+3. [ ] Buka `laravel-api/storage/logs/laravel.log` → ambil link reset bertoken (`/password-reset/<token>?email=...`).
+4. [ ] Buka link di browser → form reset password termuat dengan email terisi.
+5. [ ] Coba password tidak valid (< 8 karakter / tidak cocok) → validasi English muncul.
+6. [ ] Masukkan password valid (`newpassword123`) → submit → password ter-reset, redirect ke login.
+7. [ ] Login `uat.operator` dengan password lama (`password`) → ditolak 422.
+8. [ ] Login `uat.operator` dengan password baru (`newpassword123`) → berhasil masuk Dashboard.
+9. [ ] Kembalikan password `uat.operator` ke `password` jika ingin konsisten dengan checklist lain.
+10. [ ] Buka kembali link bertoken yang sama → ditolak 422 (token bekas pakai).
+11. [ ] Di sesi `uat.operator`, navigasi child ke `/master/roles` atau `/master/accounts` → diblokir ke `/auth/access`.
+12. [ ] Di sesi `uat.operator`, navigasi child ke `/master/typeusers` → diizinkan (memiliki `master.manage`).
+13. [ ] Sesi aktif kedaluwarsa → trigger API → otomatis redirect ke `/auth/login` dengan modal "Session Expired: Your session has expired. Please sign in again."
+14. [ ] Penolakan izin fitur (403) mempertahankan sesi lokal.
+15. [ ] Klik Logout → sesi backend berakhir via `POST /logout` 204 tanpa membaca body, redirect ke login.
+16. [ ] Seluruh antarmuka yang disentuh (`Profile.vue`, `Logout.vue`, form reset) menggunakan English.
+
+---
 
 ## 8. Klarifikasi Entri CHANGELOG Pemilik
-Berdasarkan pemeriksaan `git status`, `git diff`, `git log -S/-G`, dan pemindaian blob history pada HEAD `b93cbee`:
+Berdasarkan pemeriksaan `git status`, `git diff`, `git log -S/-G`, dan pemindaian blob history pada HEAD:
 - Working tree bersih (hanya `?? console.txt`).
-- Frasa entri pemilik `"Pengembangan fitur iteratif via sesi Claude"` **tidak ditemukan** pada `CHANGELOG.md` di working tree **maupun** pada blob `CHANGELOG.md` mana pun di history yang diperiksa. Frasa hanya pernah hidup di `reports/feature-update/HANDOFF.md`.
-- Jejak terakhir: pesan commit `5f18c06` dan `ad937e0` menyebut "owner CHANGELOG.md entry preserved unstaged".
-- **Kesimpulan**: entri tersebut pernah berupa perubahan working tree tidak ter-commit lalu **tidak ada lagi**; penyebab persis kehilangan **belum diketahui**. Isi tidak direkonstruksi tanpa sumber.
+- Frasa entri pemilik `"Pengembangan fitur iteratif via sesi Claude"` **tidak ditemukan** pada `CHANGELOG.md` di working tree **maupun** pada blob `CHANGELOG.md` mana pun di history yang diperiksa. Frasa hanya pernah hidup di berkas `HANDOFF.md` terdahulu.
+- Jejak historis: pesan commit `5f18c06` dan `ad937e0` menyebut "owner CHANGELOG.md entry preserved unstaged".
+- **Kesimpulan**: entri tersebut pernah berupa perubahan working tree tidak ter-commit lalu **tidak ada lagi**; penyebab persis kehilangan **belum diketahui**. Isi tidak direkonstruksi tanpa sumber. Berkas log `console.txt` milik pemilik tetap dipertahankan.

@@ -131,6 +131,17 @@ const submitLogin = async () => {
 //run hook "onMounted"
 onMounted(() => {
     fetchValidate();
+    try {
+        const flash = sessionStorage.getItem('auth_flash_message');
+        if (flash) {
+            sessionStorage.removeItem('auth_flash_message');
+            titleDanger.value = 'Session Expired';
+            fieldDanger.value = flash;
+            visibleStaticBackdropDanger.value = true;
+        }
+    } catch (_) {
+        // ignore storage errors
+    }
 });
 </script>
 
@@ -176,7 +187,7 @@ onMounted(() => {
                     </div>
                     <Button type="submit" label="Sign In" :loading="isSubmitting" :disabled="isSubmitting" class="!w-full !rounded-3xl !bg-surface-950 !border !border-surface-950 !text-white hover:!bg-surface-950/80" />
                 </div>
-                <a class="text-white/80 cursor-pointer hover:text-white/90">Forgot Password?</a>
+                <router-link to="/auth/forgot-password" class="text-white/80 cursor-pointer hover:text-white/90">Forgot Password?</router-link>
             </div>
         </form>
 

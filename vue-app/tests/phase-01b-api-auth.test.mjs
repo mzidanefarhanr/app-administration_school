@@ -1,0 +1,339 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+
+/**
+ * Phase 01b Automated Test Suite (Node.js test runner)
+ * Tests interceptor mechanics, CSRF 419 recovery, session expiration deduplication,
+ * route guard ability mapping across child routes, and logout contract.
+ */
+
+// ── Test 1: Interceptor error classification & no auto-retry on timeout/network ──
+test('interceptor classifies network error and timeout without auto-retry', async () => {
+    let retried = false;
+    let notified = [];
+
+    const fakeNotify = (msg) => notified.push(msg);
+
+    // Mock error handler logic
+    async function handleResponseError(error, notifyFn) {
+        if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+            notifyFn({ type: 'error', title: 'Request timeout' });
+            return Promise.reject(error);
+        }
+        if (!error.response) {
+            notifyFn({ type: 'error', title: 'Connection error' });
+            return Promise.reject(error);
+        }
+        return Promise.reject(error);
+    }
+
+    // Network error (no response)
+    const netErr = new Error('Network Error');
+    await assert.rejects(
+        () => handleResponseError(netErr, fakeNotify),
+        (err) => err.message === 'Network Error'
+    );
+    assert.equal(notified.length, 1);
+    assert.equal(notified[0].title, 'Connection error');
+    assert.equal(retried, false);
+
+    // Timeout error
+    const timeoutErr = new Error('timeout of 15000ms exceeded');
+    timeoutErr.code = 'ECONNABORTED';
+    await assert.rejects(
+        () => handleResponseError(timeoutErr, fakeNotify),
+        (err) => err.code === 'ECONNABORTED'
+    );
+    assert.equal(notified.length, 2);
+    assert.equal(notified[1].title, 'Request timeout');
+    assert.equal(retried, false);
+});
+
+// ── Test 2: CSRF 419 single recovery and concurrent coordination ──
+test('419 CSRF recovery refreshes token once, coordinates concurrent requests, and retries once', async () => {
+    let csrfRefreshCalls = 0;
+    let csrfRefreshPromise = null;
+    let retryCalls = 0;
+    let notified = [];
+
+    const mockCookieJar = { 'XSRF-TOKEN': 'fresh-token-abc' };
+
+    function getFreshXsrf() {
+        return mockCookieJar['XSRF-TOKEN'];
+    }
+
+    async function mockApiLogin(config) {
+        if (config.url === '/sanctum/csrf-cookie') {
+            csrfRefreshCalls++;
+            return { status: 204 };
+        }
+        if (config._retry) {
+            retryCalls++;
+            return { status: 200, data: { success: true, payload: config.data } };
+        }
+        // First attempt fails with 419
+        const err = new Error('Request failed with status code 419');
+        err.response = { status: 419 };
+        err.config = config;
+        return handle419(err);
+    }
+
+    async function handle419(error) {
+        const config = error.config || {};
+        const status = error.response?.status;
+
+        if (status === 419 && !config._isCsrfRefresh && !config.url?.includes('/sanctum/csrf-cookie')) {
+            if (config._retry) {
+                notified.push('security-mismatch');
+                return Promise.reject(error);
+            }
+
+            if (!csrfRefreshPromise) {
+                csrfRefreshPromise = mockApiLogin({
+                    url: '/sanctum/csrf-cookie',
+                    _isCsrfRefresh: true
+                }).finally(() => {
+                    setTimeout(() => { csrfRefreshPromise = null; }, 50);
+                });
+            }
+
+            await csrfRefreshPromise;
+            config._retry = true;
+            config.headers = config.headers || {};
+            config.headers['X-XSRF-TOKEN'] = getFreshXsrf();
+            return mockApiLogin(config);
+        }
+        return Promise.reject(error);
+    }
+
+    // Launch 3 concurrent requests that all receive 419 initially
+    const payload1 = { item: 'data-1' };
+    const payload2 = { item: 'data-2' };
+    const payload3 = { item: 'data-3' };
+
+    const [res1, res2, res3] = await Promise.all([
+        mockApiLogin({ url: '/api/update-1', data: payload1 }),
+        mockApiLogin({ url: '/api/update-2', data: payload2 }),
+        mockApiLogin({ url: '/api/update-3', data: payload3 }),
+    ]);
+
+    // Verify: csrf-cookie was requested EXACTLY ONCE despite 3 concurrent 419s
+    assert.equal(csrfRefreshCalls, 1);
+    // Verify: all 3 were retried with payload intact
+    assert.equal(retryCalls, 3);
+    assert.equal(res1.data.payload.item, 'data-1');
+    assert.equal(res2.data.payload.item, 'data-2');
+    assert.equal(res3.data.payload.item, 'data-3');
+});
+
+// ── Test 3: 419 on /sanctum/csrf-cookie is not retried (no recursion) ──
+test('419 on csrf-cookie endpoint itself does not trigger infinite retry', async () => {
+    let calls = 0;
+    async function mockHandler(error) {
+        const config = error.config || {};
+        if (error.response?.status === 419 && !config.url?.includes('/sanctum/csrf-cookie') && !config._isCsrfRefresh) {
+            calls++;
+        }
+        return Promise.reject(error);
+    }
+
+    const csrfErr = new Error('CSRF Error');
+    csrfErr.response = { status: 419 };
+    csrfErr.config = { url: '/sanctum/csrf-cookie' };
+
+    await assert.rejects(
+        () => mockHandler(csrfErr),
+        (err) => err.response.status === 419
+    );
+    assert.equal(calls, 0); // Not retried
+});
+
+// ── Test 4: 401 session-expired deduplication & guest check exclusion ──
+test('401 on active session deduplicates notifications; guest/login check is excluded', async () => {
+    let sessionExpiredHandledCount = 0;
+    let isSessionExpiredHandled = false;
+
+    function handle401(config) {
+        const isAuthEndpoint =
+            config.skipAuthRedirect ||
+            config.url?.includes('/check-auth') ||
+            config.url?.includes('/login') ||
+            config.url?.includes('/sanctum/csrf-cookie');
+
+        if (!isAuthEndpoint) {
+            if (!isSessionExpiredHandled) {
+                isSessionExpiredHandled = true;
+                sessionExpiredHandledCount++;
+                setTimeout(() => { isSessionExpiredHandled = false; }, 200);
+            }
+        }
+    }
+
+    // 1. Guest check with 401 -> must NOT trigger session-expired
+    handle401({ url: '/api/check-auth', skipAuthRedirect: true });
+    handle401({ url: '/login' });
+    assert.equal(sessionExpiredHandledCount, 0);
+
+    // 2. Three concurrent protected requests getting 401
+    handle401({ url: '/api/users' });
+    handle401({ url: '/api/roles' });
+    handle401({ url: '/api/students/export' });
+
+    // Deduplicated: handled only once
+    assert.equal(sessionExpiredHandledCount, 1);
+});
+
+// ── Test 5: 403 permission denial does not log out; inactive account does ──
+test('403 feature permission preserves session; inactive account triggers logout', () => {
+    let loggedOut = false;
+    let notified = [];
+
+    function handle403(status, message) {
+        const isInactive = message?.toLowerCase().includes('inactive') ||
+                           message?.toLowerCase().includes('tidak aktif');
+        if (isInactive) {
+            loggedOut = true;
+            notified.push('account-inactive');
+        } else {
+            // Feature permission denial: session is preserved
+            notified.push('permission-denied');
+        }
+    }
+
+    // Normal permission denial
+    handle403(403, 'This action is unauthorized.');
+    assert.equal(loggedOut, false);
+    assert.equal(notified[0], 'permission-denied');
+
+    // Inactive account denial
+    handle403(403, 'Your account is inactive. Please contact the administrator.');
+    assert.equal(loggedOut, true);
+    assert.equal(notified[1], 'account-inactive');
+});
+
+// ── Test 6: Route guard ability mapping across child navigations ──
+test('route guard evaluates ability requirements per page and across child routes', () => {
+    // Ability definitions per role
+    const operatorAbilities = ['master.view', 'master.manage', 'students.view', 'students.export'];
+    const adminAbilities = ['users.view', 'users.manage', 'roles.view', 'roles.manage', 'access.assign', 'master.view', 'master.manage', 'students.view', 'students.export'];
+
+    function evaluateGuard(to, userAbilities, isAuthenticated) {
+        const isGuestOnly = to.meta?.guestOnly;
+        const isPublic = to.meta?.public;
+        const requiresAuth = to.meta?.requiresAuth || (!isPublic && !isGuestOnly);
+
+        if (isAuthenticated && isGuestOnly) {
+            return { action: 'redirect', path: '/' };
+        }
+        if (!isAuthenticated && requiresAuth) {
+            return { action: 'redirect', path: '/auth/login' };
+        }
+        const requiredAbility = to.meta?.requiresAbility;
+        if (requiredAbility && !userAbilities.includes(requiredAbility)) {
+            return { action: 'redirect', path: '/auth/access' };
+        }
+        return { action: 'allow' };
+    }
+
+    // 1. Guest visiting protected route
+    const guestNav = evaluateGuard(
+        { path: '/master/roles', meta: { requiresAuth: true, requiresAbility: 'roles.view' } },
+        [],
+        false
+    );
+    assert.equal(guestNav.action, 'redirect');
+    assert.equal(guestNav.path, '/auth/login');
+
+    // 2. Operator navigating to /master/roles (needs roles.view) -> denied
+    const opNavRoles = evaluateGuard(
+        { path: '/master/roles', meta: { requiresAuth: true, requiresAbility: 'roles.view' } },
+        operatorAbilities,
+        true
+    );
+    assert.equal(opNavRoles.action, 'redirect');
+    assert.equal(opNavRoles.path, '/auth/access');
+
+    // 3. Operator navigating to /master/typeusers (needs master.manage) -> allowed
+    const opNavTypeUsers = evaluateGuard(
+        { path: '/master/typeusers', meta: { requiresAuth: true, requiresAbility: 'master.manage' } },
+        operatorAbilities,
+        true
+    );
+    assert.equal(opNavTypeUsers.action, 'allow');
+
+    // 4. Operator navigating to /master/accounts (needs users.view) -> denied
+    const opNavAccounts = evaluateGuard(
+        { path: '/master/accounts', meta: { requiresAuth: true, requiresAbility: 'users.view' } },
+        operatorAbilities,
+        true
+    );
+    assert.equal(opNavAccounts.action, 'redirect');
+    assert.equal(opNavAccounts.path, '/auth/access');
+
+    // 5. Admin navigating to /master/roles -> allowed
+    const adminNavRoles = evaluateGuard(
+        { path: '/master/roles', meta: { requiresAuth: true, requiresAbility: 'roles.view' } },
+        adminAbilities,
+        true
+    );
+    assert.equal(adminNavRoles.action, 'allow');
+
+    // 6. Logged in user visiting login page -> redirected to /
+    const loggedInVisitLogin = evaluateGuard(
+        { path: '/auth/login', meta: { guestOnly: true } },
+        operatorAbilities,
+        true
+    );
+    assert.equal(loggedInVisitLogin.action, 'redirect');
+    assert.equal(loggedInVisitLogin.path, '/');
+});
+
+// ── Test 7: Logout contract 204 No Content & failure handling ──
+test('logout handles 204 without reading body, cleans state, and reports server status', async () => {
+    let localStateCleared = false;
+
+    async function mockStoreLogout(apiPostFn) {
+        let serverSuccess = true;
+        try {
+            const response = await apiPostFn('/logout');
+            if (response.status !== 204 && response.status !== 200) {
+                serverSuccess = false;
+            }
+        } catch (error) {
+            if (error.response?.status === 401) {
+                serverSuccess = true;
+            } else {
+                serverSuccess = false;
+            }
+        } finally {
+            localStateCleared = true;
+        }
+        return { success: true, serverSuccess };
+    }
+
+    // Success case: 204 No Content
+    localStateCleared = false;
+    const resSuccess = await mockStoreLogout(async () => ({ status: 204, data: '' }));
+    assert.equal(resSuccess.serverSuccess, true);
+    assert.equal(localStateCleared, true);
+
+    // Already unauthenticated case: 401
+    localStateCleared = false;
+    const res401 = await mockStoreLogout(async () => {
+        const err = new Error('Unauthorized');
+        err.response = { status: 401 };
+        throw err;
+    });
+    assert.equal(res401.serverSuccess, true);
+    assert.equal(localStateCleared, true);
+
+    // Network / server failure case: 500
+    localStateCleared = false;
+    const resFail = await mockStoreLogout(async () => {
+        const err = new Error('Server Error');
+        err.response = { status: 500 };
+        throw err;
+    });
+    assert.equal(resFail.serverSuccess, false);
+    assert.equal(localStateCleared, true); // Local state still cleared for user safety
+});

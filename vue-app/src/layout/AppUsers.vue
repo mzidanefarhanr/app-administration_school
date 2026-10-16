@@ -28,11 +28,13 @@ function visibleStaticBackdropSuccesss() {
 //function clickLogOt — end session via backend (store clears state)
 function clickLogOt() {
     visibleStaticBackdropWaitings();
-    useAuthStore.logOut().finally(() => {
+    useAuthStore.logOut().then((result) => {
         visibleStaticBackdropWaitings();
         visibleStaticBackdropSuccesss();
         titleSuccess.value = 'Signed out';
-        fieldSuccess.value = 'You have been signed out. Please wait a moment.';
+        fieldSuccess.value = result?.serverSuccess !== false
+            ? 'You have been signed out. Please wait a moment.'
+            : 'Signed out locally. Could not reach server to terminate session.';
         setTimeout(function () {
             visibleStaticBackdropSuccesss();
             router.push({ path: '/auth/login' });
