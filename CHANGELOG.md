@@ -17,6 +17,25 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-16] Fase 01b — Docs: pencatatan persetujuan manual terbatas pemilik (nomor 1–7 dan 9–16)
+- Type: Docs
+- Scope / fase: pencatatan hasil review manual pemilik atas checklist Fase 01b.
+- Files touched:
+  - `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md`
+  - `reports/feature-update/PHASE-01B-API-AUTH.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `reports/feature-update/INDEX.md`
+  - `roadmap/ROADMAP.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Dicatat hasil manual review pemilik pada 16 Oktober 2026 WIB: nomor 1–7 dan 9–16 dinyatakan **APPROVED**.
+  2. Nomor 8 dicatat **REPORTED** (masalah pada link reset password yang dilaporkan masih dapat dibuka kembali setelah digunakan; dalam investigasi apakah form hanya terbuka atau submit reset kedua benar-benar berhasil mengubah password).
+  3. Status keseluruhan Fase 01b disesuaikan menjadi **PARTIAL** menunggu penyelesaian investigasi nomor 8.
+- Why: mencatat persetujuan parsial pemilik secara terpisah dari commit implementasi/perbaikan sesuai aturan repo.
+- Validation: dokumentasi saja.
+- Notes / risks: Nomor 8 dalam proses reproduksi dan investigasi pada lingkungan UAT sintetis; BLK-03 tetap OPEN.
+- Evidence: `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md`.
+
 ## [2026-10-16] Fase 01b — Test & Docs: pelengkapan review bukti pemulihan error autentikasi dan audit akses master
 - Type: Test, Docs, Security
 - Scope / fase: pelengkapan review bukti Fase 01b (skenario pemulihan error auth, audit akses Operator ke `/master/typeusers`, regresi 4 peran browser, dan perapian panduan UAT).

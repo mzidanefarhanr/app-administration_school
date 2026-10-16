@@ -1,6 +1,6 @@
 # Panduan Review Manual Fase 01b (Lingkungan UAT Sintetis)
 
-Status penerimaan manual: **PENDING** (menunggu review mandiri pemilik setelah implementasi).
+Status penerimaan manual: **PARTIAL** (nomor 1–7 dan 9–16 **APPROVED** pada 16 Oktober 2026 WIB; nomor 8 **REPORTED** dan dalam proses investigasi).
 Lingkungan: UAT lokal terisolasi (DB MySQL `school_access_uat`, SPA mode `uat`).
 URL SPA: `http://127.0.0.1:4001` | URL API: `http://127.0.0.1:8001`
 Email Log: `laravel-api/storage/logs/laravel.log` (driver `log`, tanpa pengiriman email nyata).
@@ -54,22 +54,22 @@ Akses aplikasi melalui browser di `http://127.0.0.1:4001`.
 
 | # | Skenario | Langkah Pengujian | Hasil yang Diharapkan | Status |
 |---|---|---|---|---|
-| 1 | **Tautan Forgot Password** | Buka `http://127.0.0.1:4001/auth/login` → klik link "Forgot Password?" | Halaman berpindah ke `/auth/forgot-password` dengan form English yang bersih. | PENDING |
-| 2 | **Permintaan Link Reset (Anti-Enumerasi)** | Di `/auth/forgot-password`, masukkan `uat.operator@uat.local` → klik **Send Reset Link** | Muncul modal konfirmasi: "Check Your Email: If your email address is registered, you will receive a password reset link shortly." Pesan seragam tidak mengungkap apakah email terdaftar. | PENDING |
-| 3 | **Pemeriksaan Email Log UAT** | Jalankan `Get-Content laravel-api/storage/logs/laravel.log -Tail 60` | Ditemukan log email reset password berisi link tujuan `http://127.0.0.1:4001/password-reset/<token>?email=...`. Tidak ada email keluar jaringan. | PENDING |
-| 4 | **Form Reset Password** | Salin URL bertoken dari log lalu buka di browser | Halaman `/password-reset/<token>` termuat; kolom email terisi otomatis; terdapat kolom New Password dan Confirm New Password. | PENDING |
-| 5 | **Validasi Form Reset** | Masukkan password kurang dari 8 karakter atau konfirmasi tidak cocok | Muncul dialog validasi English yang sesuai. Form menolak submit sebelum valid. | PENDING |
-| 6 | **Reset Password Berhasil** | Masukkan password baru pilihan pemilik (min 8 char) dan konfirmasi cocok → klik **Reset Password** | Muncul modal success: "Your password has been reset successfully. Redirecting to sign in...", lalu otomatis diarahkan ke `/auth/login`. | PENDING |
-| 7 | **Verifikasi Kredensial Baru & Lama** | Coba login `uat.operator` dengan password lama → lalu login dengan password baru | Password lama ditolak ("These credentials do not match our records."); password baru berhasil masuk ke Dashboard. | PENDING |
-| 8 | **Token Bekas Pakai Ditolak** | Buka kembali URL bertoken yang sama pada browser dan coba submit reset lagi | Ditolak oleh server dengan status 422: "This password reset token is invalid or has expired." | PENDING |
-| 9 | **Sesi Aktif Kedaluwarsa (401 Redirect)** | Login ke Dashboard → hapus cookie sesi backend via DevTools/logout tab lain → klik navigasi yang memanggil API (mis. `/public/students`) | Otomatis dialihkan ke `/auth/login` dengan modal dialog: "Session Expired: Your session has expired. Please sign in again." Tanpa reload loop. | PENDING |
-| 10 | **Kegagalan Jaringan / Server Offline** | Saat berada di Dashboard, hentikan server API (Ctrl+C di terminal port 8001) → coba picu request API | Muncul notifikasi error merah "Connection error: Could not reach the API server...". Sesi lokal tetap dipertahankan (tidak langsung di-logout). | PENDING |
-| 11 | **Server Logout Gagal (Offline Logout)** | Saat server API port 8001 mati/offline, klik Logout dari profil topbar | State lokal dibersihkan; muncul dialog "Signed out: Signed out locally. Could not reach server to terminate session.", lalu dialihkan ke `/auth/login`. | PENDING |
-| 12 | **Child Navigation Guard (Blokir Tanpa Izin)** | Login sebagai `uat.operator` → saat di Dashboard (`/`), coba navigasi URL ke `/master/roles` atau `/master/accounts` | Guard `router.beforeEach` memblokir transisi child dan mengarahkan ke `/auth/access` (Access Denied). | PENDING |
-| 13 | **Child Navigation Guard (Izinkan Sesuai Izin)** | Di sesi `uat.operator`, buka menu User Type (`/master/typeusers`) | Diizinkan masuk ke halaman Type Users tanpa dialihkan ke Access Denied. | PENDING |
-| 14 | **Penolakan Izin Mempertahankan Sesi (403)** | Sebagai `uat.waka` (tanpa `students.export`), buka `/public/students` | Tombol Export tidak ditampilkan; jika memanggil API ekspor manual di console browser, respons 403 tidak menyebabkan logout. | PENDING |
-| 15 | **Single Logout 204 Bersih** | Saat backend online normal, klik tombol Logout dari dropdown profil | Sesi backend berakhir via `POST /logout` (204 No Content tanpa membaca body); state lokal dibersihkan; kembali ke halaman login. | PENDING |
-| 16 | **Konsistensi UI English** | Periksa layar login, forgot password, reset password, ubah password di `/profile/user`, dan layar logout | Seluruh antarmuka yang disentuh konsisten berbahasa **English**. | PENDING |
+| 1 | **Tautan Forgot Password** | Buka `http://127.0.0.1:4001/auth/login` → klik link "Forgot Password?" | Halaman berpindah ke `/auth/forgot-password` dengan form English yang bersih. | APPROVED (2026-10-16 WIB) |
+| 2 | **Permintaan Link Reset (Anti-Enumerasi)** | Di `/auth/forgot-password`, masukkan `uat.operator@uat.local` → klik **Send Reset Link** | Muncul modal konfirmasi: "Check Your Email: If your email address is registered, you will receive a password reset link shortly." Pesan seragam tidak mengungkap apakah email terdaftar. | APPROVED (2026-10-16 WIB) |
+| 3 | **Pemeriksaan Email Log UAT** | Jalankan `Get-Content laravel-api/storage/logs/laravel.log -Tail 60` | Ditemukan log email reset password berisi link tujuan `http://127.0.0.1:4001/password-reset/<token>?email=...`. Tidak ada email keluar jaringan. | APPROVED (2026-10-16 WIB) |
+| 4 | **Form Reset Password** | Salin URL bertoken dari log lalu buka di browser | Halaman `/password-reset/<token>` termuat; kolom email terisi otomatis; terdapat kolom New Password dan Confirm New Password. | APPROVED (2026-10-16 WIB) |
+| 5 | **Validasi Form Reset** | Masukkan password kurang dari 8 karakter atau konfirmasi tidak cocok | Muncul dialog validasi English yang sesuai. Form menolak submit sebelum valid. | APPROVED (2026-10-16 WIB) |
+| 6 | **Reset Password Berhasil** | Masukkan password baru pilihan pemilik (min 8 char) dan konfirmasi cocok → klik **Reset Password** | Muncul modal success: "Your password has been reset successfully. Redirecting to sign in...", lalu otomatis diarahkan ke `/auth/login`. | APPROVED (2026-10-16 WIB) |
+| 7 | **Verifikasi Kredensial Baru & Lama** | Coba login `uat.operator` dengan password lama → lalu login dengan password baru | Password lama ditolak ("These credentials do not match our records."); password baru berhasil masuk ke Dashboard. | APPROVED (2026-10-16 WIB) |
+| 8 | **Token Bekas Pakai Ditolak** | Buka kembali URL bertoken yang sama pada browser dan coba submit reset lagi | Ditolak oleh server dengan status 422: "This password reset token is invalid or has expired." | REPORTED (dalam investigasi) |
+| 9 | **Sesi Aktif Kedaluwarsa (401 Redirect)** | Login ke Dashboard → hapus cookie sesi backend via DevTools/logout tab lain → klik navigasi yang memanggil API (mis. `/public/students`) | Otomatis dialihkan ke `/auth/login` dengan modal dialog: "Session Expired: Your session has expired. Please sign in again." Tanpa reload loop. | APPROVED (2026-10-16 WIB) |
+| 10 | **Kegagalan Jaringan / Server Offline** | Saat berada di Dashboard, hentikan server API (Ctrl+C di terminal port 8001) → coba picu request API | Muncul notifikasi error merah "Connection error: Could not reach the API server...". Sesi lokal tetap dipertahankan (tidak langsung di-logout). | APPROVED (2026-10-16 WIB) |
+| 11 | **Server Logout Gagal (Offline Logout)** | Saat server API port 8001 mati/offline, klik Logout dari profil topbar | State lokal dibersihkan; muncul dialog "Signed out: Signed out locally. Could not reach server to terminate session.", lalu dialihkan ke `/auth/login`. | APPROVED (2026-10-16 WIB) |
+| 12 | **Child Navigation Guard (Blokir Tanpa Izin)** | Login sebagai `uat.operator` → saat di Dashboard (`/`), coba navigasi URL ke `/master/roles` atau `/master/accounts` | Guard `router.beforeEach` memblokir transisi child dan mengarahkan ke `/auth/access` (Access Denied). | APPROVED (2026-10-16 WIB) |
+| 13 | **Child Navigation Guard (Izinkan Sesuai Izin)** | Di sesi `uat.operator`, buka menu User Type (`/master/typeusers`) | Diizinkan masuk ke halaman Type Users tanpa dialihkan ke Access Denied. | APPROVED (2026-10-16 WIB) |
+| 14 | **Penolakan Izin Mempertahankan Sesi (403)** | Sebagai `uat.waka` (tanpa `students.export`), buka `/public/students` | Tombol Export tidak ditampilkan; jika memanggil API ekspor manual di console browser, respons 403 tidak menyebabkan logout. | APPROVED (2026-10-16 WIB) |
+| 15 | **Single Logout 204 Bersih** | Saat backend online normal, klik tombol Logout dari dropdown profil | Sesi backend berakhir via `POST /logout` (204 No Content tanpa membaca body); state lokal dibersihkan; kembali ke halaman login. | APPROVED (2026-10-16 WIB) |
+| 16 | **Konsistensi UI English** | Periksa layar login, forgot password, reset password, ubah password di `/profile/user`, dan layar logout | Seluruh antarmuka yang disentuh konsisten berbahasa **English**. | APPROVED (2026-10-16 WIB) |
 
 ---
 

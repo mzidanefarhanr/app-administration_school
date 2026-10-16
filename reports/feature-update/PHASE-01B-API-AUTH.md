@@ -6,7 +6,7 @@
 - Branch / baseline SHA: `main` @ `10bf3ed`.
 - Lingkungan: Windows, PHP 8.1.25, Composer 2.8.2, Node 24.18.0, npm 11.4.2, MySQL 3306. UAT: SPA `127.0.0.1:4001`, API `127.0.0.1:8001`, DB `school_access_uat`. DB unit test backend = SQLite in-memory `:memory:`.
 - Status teknis: **IMPLEMENTED & FULLY VERIFIED**.
-- Status penerimaan manual: **PENDING** (menunggu review/persetujuan manual pemilik atas checklist UAT).
+- Status penerimaan manual: **PARTIAL** (nomor 1–7 dan 9–16 **APPROVED** 2026-10-16 WIB; nomor 8 **REPORTED** terkait link reset yang dilaporkan masih dapat dibuka kembali, dalam investigasi).
 
 ---
 
@@ -133,5 +133,5 @@ Pengujian dilakukan menggunakan browser otomatis Playwright pada server UAT nyat
 
 - **DEC-15**: **APPROVED** (2026-10-16 WIB).
 - **Fase 01a**: **DITERIMA pemilik** (2026-10-15 WIB).
-- **Fase 01b**: **SELESAI DIIMPLEMENTASIKAN & DIVERIFIKASI PENUH**; checklist manual di `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md` berstatus **PENDING** menunggu review mandiri pemilik.
+- **Fase 01b**: **SELESAI DIIMPLEMENTASIKAN & DIVERIFIKASI PENUH**; checklist manual di `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md` berstatus **PARTIAL** (nomor 1–7 dan 9–16 APPROVED 2026-10-16 WIB; nomor 8 REPORTED dalam investigasi).
 - **BLK-03**: **TETAP OPEN** (`DatabaseSeeder` berisi identitas nyata; dialokasikan ke Fase 01c). Tidak ada pengujian yang menyentuh atau menjalankan `DatabaseSeeder`.

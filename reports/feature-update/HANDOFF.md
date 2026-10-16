@@ -14,7 +14,7 @@ Catatan perubahan pemilik: entri `CHANGELOG.md` yang disebut laporan lama ("Peng
 - **Fase 01b — Konfigurasi API dan error auth**: **IMPLEMENTED & VERIFIED** (DEC-15 APPROVED 2026-10-16 WIB).
   - Implementasi kode commit `60e951b`.
   - Keputusan Q1–Q3 disetujui dan dicatat pada `DEC-15`.
-  - **Penerimaan manual 01b**: **PENDING** (belum disetujui manual oleh pemilik; instruksi commit/push bukan penerimaan implementasi).
+  - **Penerimaan manual 01b**: **PARTIAL** (nomor 1–7 dan 9–16 **APPROVED** 2026-10-16 WIB; nomor 8 **REPORTED** dan dalam investigasi; status keseluruhan 01b tetap PARTIAL sampai nomor 8 diselesaikan).
   - Laporan implementasi: `reports/feature-update/PHASE-01B-API-AUTH.md`. Panduan manual: `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md`.
 - **Fase 01c dan fase selanjutnya**: NOT STARTED. BLK-03 dialokasikan ke 01c.
 
