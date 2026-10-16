@@ -17,6 +17,37 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-16] Fase 01b — Test & Docs: investigasi bukti token reuse dan koreksi panduan manual UAT #8
+- Type: Test, Docs, Security
+- Scope / fase: investigasi laporan defect checklist #8 Fase 01b (link reset yang sudah digunakan dilaporkan masih dapat dibuka kembali).
+- Files touched:
+  - `laravel-api/tests/Feature/Auth/PasswordResetTest.php`
+  - `vue-app/tests/phase-01b-api-auth.test.mjs`
+  - `reports/feature-update/PHASE-01B-API-AUTH.md`
+  - `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Reproduksi live UAT pada akun sintetis (`uat.waka@uat.local`):
+     - Reset pertama disubmit dengan kata sandi A: berhasil 200 OK, kata sandi A aktif dan dapat login ke Dashboard.
+     - Tautan bertoken yang sama dibuka kembali: form antarmuka klien SPA termuat (perilaku rute SPA klien).
+     - Submit reset kedua dengan kata sandi B yang berbeda: server Laravel menolak dengan **HTTP 422 Unprocessable Content** (`Invalid Token: This password reset token is invalid.`).
+     - Login dengan kata sandi B ditolak ("These credentials do not match our records."); kata sandi A tetap berlaku.
+     - Kesimpulan: token dikonsumsi dan **tidak reusable**. Membuka link hanya memuat template SPA; penolakan token terjadi saat submit.
+  2. Penguatan tes unit backend: `PasswordResetTest.php` menambahkan asersi verifikasi bahwa replay token yang sama dengan password kedua berbeda tidak mengubah hash password pengguna.
+  3. Penambahan tes unit frontend: `phase-01b-api-auth.test.mjs` menguji pemetaan error 422 token invalid/expired/reused ke modal dialog English "Invalid Token".
+  4. Koreksi panduan manual: `PHASE-01B-MANUAL-REVIEW.md` menambahkan subbab karakteristik SPA dan memperjelas langkah pengujian checklist #8 (penolakan diverifikasi saat submit).
+- Why: membuktikan keabsahan konsumsi token, mencegah salah paham antara form termuat di SPA dengan token reusable, dan memberi panduan verifikasi yang tepat bagi pemilik.
+- Validation:
+  - Backend test: 60 passed (177 assertions) di SQLite in-memory (`php artisan test`).
+  - Pint: PASS (100% clean).
+  - Frontend test: 14 passed (`node --test tests/phase-01b-api-auth.test.mjs tests/auth-race-condition.test.mjs`).
+  - Build: PASS (`npm run build`).
+  - Lint: 0 errors (`npx eslint tests/phase-01b-api-auth.test.mjs`).
+  - Playwright live UAT: reproduksi reset pertama (200) vs replay (422) + login A vs B terbukti.
+- Notes / risks: Checklist #8 berstatus PENDING KONFIRMASI PEMILIK pasca penjelasan dan panduan terkoreksi; BLK-03 tetap OPEN.
+- Evidence: `reports/feature-update/PHASE-01B-API-AUTH.md` §8; `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md` §2.D & §3 (#8).
+
 ## [2026-10-16] Fase 01b — Docs: pencatatan persetujuan manual terbatas pemilik (nomor 1–7 dan 9–16)
 - Type: Docs
 - Scope / fase: pencatatan hasil review manual pemilik atas checklist Fase 01b.

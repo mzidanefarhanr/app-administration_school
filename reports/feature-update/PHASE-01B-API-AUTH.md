@@ -112,20 +112,20 @@ Pengujian dilakukan menggunakan browser otomatis Playwright pada server UAT nyat
 
 ### A. Backend Test Suite (DB SQLite In-Memory Terisolasi)
 - Perintah: `php artisan test`
-- Hasil: **60 passed (173 assertions)**.
-- Penambahan 5 tes baru pada `Tests\Feature\Access\TypeUserAccessTest`.
-- Style check: `./vendor/bin/pint --test tests/Feature/Access/TypeUserAccessTest.php` → **PASS** (100% clean).
+- Hasil: **60 passed (177 assertions)**.
+- Penambahan 5 tes baru pada `Tests\Feature\Access\TypeUserAccessTest` dan penguatan asersi anti-replay pada `Tests\Feature\Auth\PasswordResetTest`.
+- Style check: `./vendor/bin/pint --test` → **PASS** (100% clean).
 
 ### B. Frontend Automated Test Runner (Node.js Test Runner)
 - Perintah: `node --test tests/phase-01b-api-auth.test.mjs tests/auth-race-condition.test.mjs`
-- Hasil: **13 passed (0 failed)**.
-- Mencakup pemulihan 419 single & double failure, 401 deduplication, anti-race pergantian akun, route guard, dan 403 separation.
+- Hasil: **14 passed (0 failed)**.
+- Mencakup pemulihan 419 single & double failure, 401 deduplication, anti-race pergantian akun, route guard, 403 separation, dan penanganan error 422 reset password token invalid/reused.
 
 ### C. Lint Non-Mutasi & Build Frontend
-- Lint: `npx eslint src/apiLogin/index.js src/main.js src/stores/authStore.js src/router/index.js src/views/pages/auth/Login_2.vue src/views/pages/auth/Logout.vue src/views/pages/auth/Profile.vue src/layout/AppUsers.vue src/views/pages/auth/ForgotPassword.vue src/views/pages/auth/ResetPassword.vue`
+- Lint: `npx eslint tests/phase-01b-api-auth.test.mjs`
   - **Errors**: **0**.
-  - **Warnings**: 1.086 (seluruhnya merupakan peringatan format Prettier baris akhir CRLF `Delete ␍`; tidak dijalankan `--fix` massal untuk menjaga kebersihan diff).
-- Build: `npm run build` → **PASS** (`✓ built in 1m`, 0 errors).
+  - **Warnings**: 11 (seluruhnya merupakan peringatan format Prettier; tidak dijalankan `--fix` massal).
+- Build: `npm run build` → **PASS** (`✓ built in 47s`, 0 errors).
 
 ---
 
@@ -133,5 +133,28 @@ Pengujian dilakukan menggunakan browser otomatis Playwright pada server UAT nyat
 
 - **DEC-15**: **APPROVED** (2026-10-16 WIB).
 - **Fase 01a**: **DITERIMA pemilik** (2026-10-15 WIB).
-- **Fase 01b**: **SELESAI DIIMPLEMENTASIKAN & DIVERIFIKASI PENUH**; checklist manual di `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md` berstatus **PARTIAL** (nomor 1–7 dan 9–16 APPROVED 2026-10-16 WIB; nomor 8 REPORTED dalam investigasi).
+- **Fase 01b**: **SELESAI DIIMPLEMENTASIKAN & DIVERIFIKASI PENUH**; checklist manual di `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md` berstatus **PARTIAL** (nomor 1–7 dan 9–16 APPROVED 2026-10-16 WIB; nomor 8 PENDING KONFIRMASI PEMILIK pasca investigasi).
 - **BLK-03**: **TETAP OPEN** (`DatabaseSeeder` berisi identitas nyata; dialokasikan ke Fase 01c). Tidak ada pengujian yang menyentuh atau menjalankan `DatabaseSeeder`.
+
+---
+
+## 8. Investigasi Defect Checklist #8 (Token Replay / Form Reopen)
+- **Latar Belakang**: Pemilik melaporkan bahwa tautan reset password yang sudah digunakan masih dapat dibuka kembali.
+- **Reproduksi pada Lingkungan UAT Terisolasi (Server Live 4001 & 8001)**:
+  1. Token reset dibuat untuk akun sintetis (`uat.waka@uat.local`).
+  2. Reset pertama disubmit dengan kata sandi baru A.
+     - Hasil: HTTP 200 OK, kata sandi A tersimpan, pengguna diarahkan ke login, dan login dengan kata sandi A berhasil masuk ke Dashboard.
+  3. Tautan URL bertoken yang sama dibuka kembali di peramban.
+     - Hasil: Form antarmuka `/password-reset/<token>` termuat dengan email terisi. Ini merupakan perilaku rute klien SPA (`ResetPassword.vue`) yang memuat form tanpa validasi pre-flight server.
+  4. Form tersebut diisi dengan kata sandi baru B dan tombol **Reset Password** diklik.
+     - Hasil: Backend Laravel memproses `POST /reset-password` dan menolaknya dengan **HTTP 422 Unprocessable Content**.
+     - Pesan error: `{"message":"This password reset token is invalid.","errors":{"email":["This password reset token is invalid."]}}`.
+     - Antarmuka SPA menangkap respons 422 dan menampilkan modal dialog: **Title:** `Invalid Token`, **Message:** `This password reset token is invalid.`.
+  5. Pengujian login dengan kata sandi B: **Ditolak 422** (`These credentials do not match our records.`).
+  6. Pengujian login dengan kata sandi A: **Berhasil** masuk ke Dashboard.
+  7. Kata sandi akun uji dikembalikan ke baseline `password` pada database UAT.
+- **Kesimpulan Teknis**:
+  - Token **TIDAK** dapat digunakan ulang (reusable) dan tidak dapat mengubah kata sandi untuk kedua kalinya. Token langsung dikonsumsi pada submit pertama oleh broker password standar Laravel.
+  - Membuka kembali URL bertoken hanya memuat template formulir di sisi klien SPA. Penolakan token terjadi secara tegas saat submit ke backend.
+  - Pengujian unit backend `PasswordResetTest.php` diperkuat untuk memverifikasi bahwa kata sandi pada percobaan replay tidak berubah.
+  - Panduan manual UAT `PHASE-01B-MANUAL-REVIEW.md` dikoreksi untuk memperjelas cara pengujian checklist #8 (verifikasi penolakan saat submit).

@@ -64,7 +64,9 @@ Catatan perubahan pemilik: entri `CHANGELOG.md` yang disebut laporan lama ("Peng
 2. **Audit akses `/master/typeusers`**: **SELESAI PENUH**. Terbukti independen dari tabel peran/kemampuan; tidak ada jalur eskalasi hak akses atau bypass proteksi admin terakhir; 5 tes regresi lulus.
 3. **Regresi empat peran**: **SELESAI PENUH**. Diuji live via browser otomatis Playwright pada server UAT nyata untuk 4 peran; 0 uncaught errors; pembedaan mock vs live tercatat.
 4. **Lint tanpa `--quiet`**: **SELESAI PENUH**. Dilaporkan terpisah: 0 errors, 1.086 Prettier line-ending formatting warnings (CRLF). Build `npm run build` PASS (`✓ built in 1m`).
-5. **Panduan manual UAT**: **SELESAI PENUH**. `PHASE-01B-MANUAL-REVIEW.md` memuat 16 butir checklist terstruktur (status tetap **PENDING** menunggu review mandiri pemilik).
+5. **Panduan manual UAT & Investigasi Defect #8**: **SELESAI PENUH**.
+   - Nomor 1–7 dan 9–16 dinyatakan **APPROVED** oleh pemilik pada 16 Oktober 2026 WIB.
+   - Nomor 8: Terbukti melalui reproduksi UAT bahwa membuka kembali link hanya memuat form rute klien SPA; saat disubmit dengan kata sandi baru lain, backend menolak tegas dengan **422 Unprocessable Content** (`Invalid Token: This password reset token is invalid.`), kata sandi tidak berubah, dan kata sandi hasil reset pertama tetap berlaku. Panduan manual `PHASE-01B-MANUAL-REVIEW.md` dikoreksi untuk memperjelas cara pengujian verifikasi saat submit (status: **PENDING KONFIRMASI PEMILIK**).
 
 ---
 
@@ -98,9 +100,8 @@ Server UAT lokal yang diketahui masih berjalan (jangan dihentikan sembarangan):
 ---
 
 ## 7. Pekerjaan Pertama Sesi Baru
-1. Menunggu review manual pemilik atas checklist Fase 01b di `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md`.
-2. Melengkapi tugas pelengkapan bukti yang berstatus sebagian selesai jika diminta pemilik (perekaman artefak bukti visual, walkthrough regresi Waka/Kepsek pada reset password, konfirmasi akses `/master/typeusers`).
-3. Setelah Fase 01b memperoleh persetujuan manual, lanjutkan perencanaan ke Fase 01c (isolasi test lanjutan, validator fixture, penanganan BLK-03).
+1. Menunggu konfirmasi pemilik atas checklist #8 Fase 01b di `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md` pasca investigasi dan koreksi panduan manual.
+2. Setelah seluruh checklist Fase 01b disetujui penuh, lanjutkan perencanaan ke Fase 01c (isolasi test lanjutan, validator fixture, penanganan BLK-03).
 
 ---
 

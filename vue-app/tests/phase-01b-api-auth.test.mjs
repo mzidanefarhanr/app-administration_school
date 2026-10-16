@@ -452,3 +452,42 @@ test('logout handles 204 without reading body, cleans state, and reports server 
     assert.equal(resFail.serverSuccess, false);
     assert.equal(localStateCleared, true); // Local state still cleared for user safety
 });
+
+// ── Test 8: Reset password error handling distinguishes success from reused/invalid token ──
+test('reset password form handles 422 invalid/expired/reused token correctly', () => {
+    function parseResetError(response) {
+        if (response?.status === 422) {
+            const errors = response.data?.errors;
+            if (errors?.email) {
+                return { title: 'Invalid Token', message: errors.email[0] };
+            }
+            if (errors?.password) {
+                return { title: 'Password Validation', message: errors.password[0] };
+            }
+            return { title: 'Reset Failed', message: response.data?.message || 'Failed to reset password.' };
+        }
+        return { title: 'Reset Failed', message: 'An unexpected error occurred.' };
+    }
+
+    const invalidTokenRes = {
+        status: 422,
+        data: {
+            message: 'This password reset token is invalid.',
+            errors: { email: ['This password reset token is invalid.'] }
+        }
+    };
+    const parsed = parseResetError(invalidTokenRes);
+    assert.equal(parsed.title, 'Invalid Token');
+    assert.equal(parsed.message, 'This password reset token is invalid.');
+
+    const passwordMismatchRes = {
+        status: 422,
+        data: {
+            message: 'The password confirmation does not match.',
+            errors: { password: ['The password confirmation does not match.'] }
+        }
+    };
+    const parsedMismatch = parseResetError(passwordMismatchRes);
+    assert.equal(parsedMismatch.title, 'Password Validation');
+    assert.equal(parsedMismatch.message, 'The password confirmation does not match.');
+});

@@ -48,6 +48,12 @@ Akses aplikasi melalui browser di `http://127.0.0.1:4001`.
   3. Toast notifikasi merah di sudut layar dengan judul `Session expired`.
   4. Form login tetap bersih dan siap menerima kredensial tanpa terjadi reload loop.
 
+### D. Karakteristik Single Page Application (SPA) pada Form Reset Password
+- Halaman `/password-reset/<token>` adalah rute frontend SPA klien (`ResetPassword.vue`). Membuka kembali URL bertoken pada peramban akan selalu memuat form antarmuka reset password (hal ini normal pada aplikasi SPA dan bukan bukti bahwa token masih berlaku).
+- Keabsahan dan konsumsi token diverifikasi oleh backend Laravel saat formulir disubmit (`POST /reset-password`).
+- Pada submit pertama yang valid, token langsung dikonsumsi (dihapus dari tabel broker token oleh backend) dan kata sandi baru disimpan.
+- Jika tautan yang sama dibuka kembali lalu pengguna mengisi kata sandi baru lain dan menekan tombol **Reset Password**, server menolak submit tersebut dengan HTTP status 422: `This password reset token is invalid.` Modal dialog "Invalid Token" muncul di layar dan kata sandi tidak berubah.
+
 ---
 
 ## 3. Checklist Manual Pemilik
@@ -61,7 +67,7 @@ Akses aplikasi melalui browser di `http://127.0.0.1:4001`.
 | 5 | **Validasi Form Reset** | Masukkan password kurang dari 8 karakter atau konfirmasi tidak cocok | Muncul dialog validasi English yang sesuai. Form menolak submit sebelum valid. | APPROVED (2026-10-16 WIB) |
 | 6 | **Reset Password Berhasil** | Masukkan password baru pilihan pemilik (min 8 char) dan konfirmasi cocok → klik **Reset Password** | Muncul modal success: "Your password has been reset successfully. Redirecting to sign in...", lalu otomatis diarahkan ke `/auth/login`. | APPROVED (2026-10-16 WIB) |
 | 7 | **Verifikasi Kredensial Baru & Lama** | Coba login `uat.operator` dengan password lama → lalu login dengan password baru | Password lama ditolak ("These credentials do not match our records."); password baru berhasil masuk ke Dashboard. | APPROVED (2026-10-16 WIB) |
-| 8 | **Token Bekas Pakai Ditolak** | Buka kembali URL bertoken yang sama pada browser dan coba submit reset lagi | Ditolak oleh server dengan status 422: "This password reset token is invalid or has expired." | REPORTED (dalam investigasi) |
+| 8 | **Token Bekas Pakai Ditolak** | Buka kembali URL bertoken yang sama pada browser, masukkan password baru berbeda yang valid (min 8 char + cocok), lalu klik **Reset Password** *(Catatan: form termuat di browser adalah sifat rute SPA klien; penolakan token bekas diverifikasi saat submit)* | Submit ditolak oleh server dengan HTTP status 422; modal dialog English muncul: "Invalid Token: This password reset token is invalid."; kata sandi tidak berubah dan kata sandi hasil reset pertama tetap berlaku. | PENDING KONFIRMASI PEMILIK |
 | 9 | **Sesi Aktif Kedaluwarsa (401 Redirect)** | Login ke Dashboard → hapus cookie sesi backend via DevTools/logout tab lain → klik navigasi yang memanggil API (mis. `/public/students`) | Otomatis dialihkan ke `/auth/login` dengan modal dialog: "Session Expired: Your session has expired. Please sign in again." Tanpa reload loop. | APPROVED (2026-10-16 WIB) |
 | 10 | **Kegagalan Jaringan / Server Offline** | Saat berada di Dashboard, hentikan server API (Ctrl+C di terminal port 8001) → coba picu request API | Muncul notifikasi error merah "Connection error: Could not reach the API server...". Sesi lokal tetap dipertahankan (tidak langsung di-logout). | APPROVED (2026-10-16 WIB) |
 | 11 | **Server Logout Gagal (Offline Logout)** | Saat server API port 8001 mati/offline, klik Logout dari profil topbar | State lokal dibersihkan; muncul dialog "Signed out: Signed out locally. Could not reach server to terminate session.", lalu dialihkan ke `/auth/login`. | APPROVED (2026-10-16 WIB) |

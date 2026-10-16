@@ -81,26 +81,35 @@ test('password cannot be reset with expired token', function () {
 });
 
 test('password cannot be reset twice with same token (reused token)', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'status_active' => true,
+        'password' => Hash::make('initial-password-000'),
+    ]);
     $token = Password::broker()->createToken($user);
 
     $response1 = $this->postJson('/reset-password', [
         'token' => $token,
         'email' => $user->email,
-        'password' => 'new-password-123',
-        'password_confirmation' => 'new-password-123',
+        'password' => 'first-reset-password-123',
+        'password_confirmation' => 'first-reset-password-123',
     ]);
     $response1->assertStatus(200);
+    expect(Hash::check('first-reset-password-123', $user->fresh()->password))->toBeTrue();
 
-    // Reusing the same token
+    // Reusing the same token with a different second password
     $response2 = $this->postJson('/reset-password', [
         'token' => $token,
         'email' => $user->email,
-        'password' => 'another-password-456',
-        'password_confirmation' => 'another-password-456',
+        'password' => 'second-replay-password-456',
+        'password_confirmation' => 'second-replay-password-456',
     ]);
     $response2->assertStatus(422);
     $response2->assertJsonValidationErrors(['email']);
+
+    // Replay was rejected: second password was not set, first reset password remains active
+    expect(Hash::check('first-reset-password-123', $user->fresh()->password))->toBeTrue();
+    expect(Hash::check('second-replay-password-456', $user->fresh()->password))->toBeFalse();
+    expect(Hash::check('initial-password-000', $user->fresh()->password))->toBeFalse();
 });
 
 test('password reset rejects confirmation mismatch and short password', function () {
