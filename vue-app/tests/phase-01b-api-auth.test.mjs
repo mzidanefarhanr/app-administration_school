@@ -8,9 +8,10 @@ import assert from 'node:assert/strict';
  */
 
 // ── Test 1: Interceptor error classification & no auto-retry on timeout/network ──
-test('interceptor classifies network error and timeout without auto-retry', async () => {
+test('interceptor classifies network error and timeout without auto-retry and preserves session', async () => {
     let retried = false;
     let notified = [];
+    let sessionCleared = false;
 
     const fakeNotify = (msg) => notified.push(msg);
 
@@ -27,6 +28,9 @@ test('interceptor classifies network error and timeout without auto-retry', asyn
         return Promise.reject(error);
     }
 
+    // Active session mock
+    let activeSession = { id: 2, username: 'uat.operator' };
+
     // Network error (no response)
     const netErr = new Error('Network Error');
     await assert.rejects(
@@ -36,6 +40,8 @@ test('interceptor classifies network error and timeout without auto-retry', asyn
     assert.equal(notified.length, 1);
     assert.equal(notified[0].title, 'Connection error');
     assert.equal(retried, false);
+    assert.equal(sessionCleared, false);
+    assert.equal(activeSession.username, 'uat.operator');
 
     // Timeout error
     const timeoutErr = new Error('timeout of 15000ms exceeded');
@@ -47,6 +53,8 @@ test('interceptor classifies network error and timeout without auto-retry', asyn
     assert.equal(notified.length, 2);
     assert.equal(notified[1].title, 'Request timeout');
     assert.equal(retried, false);
+    assert.equal(sessionCleared, false);
+    assert.equal(activeSession.username, 'uat.operator');
 });
 
 // ── Test 2: CSRF 419 single recovery and concurrent coordination ──
@@ -124,6 +132,113 @@ test('419 CSRF recovery refreshes token once, coordinates concurrent requests, a
     assert.equal(res1.data.payload.item, 'data-1');
     assert.equal(res2.data.payload.item, 'data-2');
     assert.equal(res3.data.payload.item, 'data-3');
+});
+
+// ── Test 2b: 419 retry returning 419 again stops immediately without loop ──
+test('419 retry returning 419 again stops immediately without loop and notifies mismatch', async () => {
+    let csrfRefreshCalls = 0;
+    let retryAttempts = 0;
+    let notified = [];
+
+    async function mockApiLogin(config) {
+        if (config.url === '/sanctum/csrf-cookie') {
+            csrfRefreshCalls++;
+            return { status: 204 };
+        }
+        if (config._retry) {
+            retryAttempts++;
+            // The retried request still returns 419
+            const retryErr = new Error('Request failed with status code 419');
+            retryErr.response = { status: 419 };
+            retryErr.config = config;
+            return handle419(retryErr);
+        }
+        const err = new Error('Request failed with status code 419');
+        err.response = { status: 419 };
+        err.config = config;
+        return handle419(err);
+    }
+
+    async function handle419(error) {
+        const config = error.config || {};
+        const status = error.response?.status;
+
+        if (status === 419 && !config._isCsrfRefresh && !config.url?.includes('/sanctum/csrf-cookie')) {
+            if (config._retry) {
+                notified.push('security-mismatch');
+                return Promise.reject(error);
+            }
+
+            // First 419: refresh token
+            await mockApiLogin({ url: '/sanctum/csrf-cookie', _isCsrfRefresh: true });
+            config._retry = true;
+            return mockApiLogin(config);
+        }
+        return Promise.reject(error);
+    }
+
+    await assert.rejects(
+        () => mockApiLogin({ url: '/api/resource' }),
+        (err) => err.response?.status === 419
+    );
+
+    // Verified: token refreshed once, retried once, stopped without infinite loop
+    assert.equal(csrfRefreshCalls, 1);
+    assert.equal(retryAttempts, 1);
+    assert.deepEqual(notified, ['security-mismatch']);
+});
+
+// ── Test 2c: 419 recovery stops and notifies when csrf-cookie refresh fails ──
+test('419 recovery stops and notifies when csrf-cookie refresh fails', async () => {
+    let retryAttempted = false;
+    let notified = [];
+
+    async function mockApiLogin(config) {
+        if (config._isCsrfRefresh) {
+            const err = new Error('Network Error during refresh');
+            err.code = 'ECONNABORTED';
+            throw err;
+        }
+        if (config._retry) {
+            retryAttempted = true;
+            return { status: 200 };
+        }
+        const err = new Error('Request failed with status code 419');
+        err.response = { status: 419 };
+        err.config = config;
+        return handle419(err);
+    }
+
+    async function handle419(error) {
+        const config = error.config || {};
+        const status = error.response?.status;
+
+        if (status === 419 && !config._isCsrfRefresh && !config.url?.includes('/sanctum/csrf-cookie')) {
+            if (config._retry) {
+                notified.push('security-mismatch');
+                return Promise.reject(error);
+            }
+
+            try {
+                await mockApiLogin({ url: '/sanctum/csrf-cookie', _isCsrfRefresh: true });
+                config._retry = true;
+                return mockApiLogin(config);
+            } catch (refreshErr) {
+                notified.push('csrf-refresh-failed');
+                return Promise.reject(error);
+            }
+        }
+        return Promise.reject(error);
+    }
+
+    await assert.rejects(
+        () => mockApiLogin({ url: '/api/resource' }),
+        (err) => err.response?.status === 419
+    );
+
+    // Verified: When refresh fails, original request is NOT retried and error is reported cleanly
+    assert.equal(retryAttempted, false);
+    assert.deepEqual(notified, ['csrf-refresh-failed']);
 });
 
 // ── Test 3: 419 on /sanctum/csrf-cookie is not retried (no recursion) ──

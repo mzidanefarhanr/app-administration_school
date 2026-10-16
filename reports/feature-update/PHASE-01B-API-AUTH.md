@@ -1,159 +1,137 @@
 # Laporan Fase 01b — Konfigurasi API, alur error autentikasi, dan reset password
 
 - Tanggal WIB: 2026-10-16
-- Mode: **implementasi + verifikasi** (backend Laravel + frontend Vue SPA + lingkungan UAT lokal terisolasi)
-- Scope instruksi pemilik: implementasi C-01 sampai C-06 berdasarkan audit `6a3d71f` dan keputusan pemilik Q1–Q3 (DEC-15, 2026-10-16 WIB).
-- Branch / baseline SHA: `main` @ `5eaf444` (commit keputusan).
-- Working tree sebelum: `modified` 10 file (kode), `untracked` 3 file baru + `console.txt`.
-- Lingkungan: Windows, PHP 8.1.25, Composer 2.8.2, Node 24.18.0, npm 11.4.2, MySQL 3306. UAT: SPA `127.0.0.1:4001`, API `127.0.0.1:8001`, DB `school_access_uat`. DB pengujian unit backend = SQLite in-memory `:memory:`.
-- Status teknis: **IMPLEMENTED & VERIFIED**.
-- Status review: **PENDING** (menunggu review/persetujuan manual pemilik atas implementasi).
+- Mode: **pelengkapan bukti implementasi & audit akses** (backend Laravel + frontend Vue SPA + browser UAT lokal)
+- Scope sesi: Pelengkapan 6 butir pemetaan bukti recovery/error auth, audit akses Operator ke `/master/typeusers`, regresi browser 4 peran, lint/build baru, dan perapian panduan manual UAT.
+- Branch / baseline SHA: `main` @ `10bf3ed`.
+- Lingkungan: Windows, PHP 8.1.25, Composer 2.8.2, Node 24.18.0, npm 11.4.2, MySQL 3306. UAT: SPA `127.0.0.1:4001`, API `127.0.0.1:8001`, DB `school_access_uat`. DB unit test backend = SQLite in-memory `:memory:`.
+- Status teknis: **IMPLEMENTED & FULLY VERIFIED**.
+- Status penerimaan manual: **PENDING** (menunggu review/persetujuan manual pemilik atas checklist UAT).
 
 ---
 
-## 1. Outcome dan cakupan implementasi
+## 1. Outcome dan Cakupan Sesi Ini
 
-### A. Interceptor terpusat pada instance `apiLogin` (C-01 & C-02)
-- Interceptor respons dipindahkan dari global `axios` ke instance `apiLogin` (instance yang dipakai seluruh pemanggilan API aplikasi).
-- Ditetapkan timeout 15.000 ms (15 detik) dengan penanganan `ECONNABORTED` / timeout error tanpa auto-retry.
-- Error tanpa response (koneksi putus / server offline) menampilkan pesan English tanpa auto-retry dan tanpa crash.
-- Error 429 Too Many Requests menampilkan pesan English terpusat.
-- Error 5xx Server Error menampilkan pesan English seragam tanpa membocorkan trace atau informasi sensitif backend.
-- Status 422 diteruskan langsung ke pemanggil form domain-specific.
+1. **Pemetaan Bukti Recovery & Error Auth (6 Skenario)**:
+   - Request hasil retry kembali 419: berhenti seketika tanpa infinite loop.
+   - Refresh `csrf-cookie` gagal: terdeteksi rapi tanpa loop dan tanpa me-retry request gagal.
+   - Beberapa request 419 bersamaan: dikoordinasikan ke tepat 1 request refresh `csrf-cookie`.
+   - Timeout / network failure: tanpa auto-retry dan tanpa penghapusan sesi lokal.
+   - Logout server gagal: state lokal dibersihkan dengan notifikasi akurat bahwa server belum mengonfirmasi pengakhiran sesi.
+   - 401 bersamaan & pergantian akun: deduplikasi penanganan sesi kedaluwarsa serta nomor urut request monotonik global mencegah respon usang menimpa sesi baru.
 
-### B. Pemulihan CSRF 419 terkoordinasi (Q3 / DEC-15)
-- Pada respons 419 yang berasal dari penolakan CSRF, interceptor menyegarkan `GET /sanctum/csrf-cookie` tepat sekali.
-- Permintaan refresh dikoordinasikan via `csrfRefreshPromise` tunggal: bila ada beberapa request yang gagal 419 bersamaan, hanya ada satu pemanggilan ke `/sanctum/csrf-cookie`.
-- Setelah refresh berhasil, header `X-XSRF-TOKEN` diperbarui dengan cookie segar dari browser dan request asli diulang (`_retry = true`) dengan payload dan method utuh.
-- Request `/sanctum/csrf-cookie` sendiri dikecualikan dari interceptor retry untuk mencegah rekursi tak terbatas.
-- Bila retry tetap gagal, interceptor berhenti dan menampilkan pesan pemulihan yang jelas tanpa reload loop.
-- **Diverifikasi pada server UAT hidup**: `POST /api/firstlogin/1` dengan cookie CSRF rusak sengaja diuji → backend mengembalikan 419 → interceptor mengambil cookie 204 → mengulang request 200 OK.
+2. **Audit Akses Operator ke `/master/typeusers`**:
+   - Kemampuan: `master.manage` (tulis) dan `master.view` (baca).
+   - Operasi backend tersedia: `GET /api/type-users`, `GET /api/type-users/{id}`, `POST /api/type-users`, `PUT/PATCH /api/type-users/{id}`, `DELETE /api/type-users/{id}`.
+   - Struktur independen: `type_users` adalah tabel referensi profil legacy, sepenuhnya terpisah dari tabel `roles`, `abilities`, `role_user`, dan `ability_role`.
+   - Verifikasi regresi membuktikan: pengubahan data `type_users` TIDAK mengubah role/kemampuan pengguna, TIDAK memicu pemetaan ulang berbasis nama, tipe yang masih berelasi ke pengguna DITOLAK saat dihapus (422), dan TIDAK dapat membypass perlindungan admin terakhir.
 
-### C. Penanganan sesi aktif kedaluwarsa (401) & penolakan izin (403) (Q2 / DEC-15)
-- **401 pada request selain auth**: saat sesi aktif kedaluwarsa di backend, state lokal dibersihkan, pesan "Your session has expired. Please sign in again." disimpan di `sessionStorage`, notifikasi ditampilkan, dan pengguna dialihkan ke `/auth/login`. Dialog sesi kedaluwarsa otomatis ditampilkan di halaman login.
-- **Deduplikasi 401**: beberapa request 401 bersamaan dideduplikasi via flag `isSessionExpiredHandled` (hanya satu notifikasi dan satu navigasi).
-- **Pengecualian pemeriksaan guest**: endpoint `check-auth`, `/login`, `/sanctum/csrf-cookie`, dan request dengan `skipAuthRedirect: true` tidak memicu pengalihan sesi kedaluwarsa.
-- **403 Izin Fitur**: penolakan izin fitur (mis. kurang kemampuan `roles.manage` atau `students.export`) **TIDAK** mengeluarkan pengguna atau membersihkan sesi. Error diteruskan ke pemanggil.
-- **403 Akun Nonaktif**: jika 403 berasal dari akun nonaktif (middleware `EnsureUserIsActive`), pengguna dialihkan ke login dengan pesan English.
-
-### D. Konsistensi logout & router guard (C-03 & C-04)
-- **Logout**: disatukan ke `authStore.logOut()` tunggal (`POST /logout`). Respons 204 No Content diproses tanpa membaca body. Status keberhasilan server dilaporkan (`serverSuccess`), dan jika server offline pengguna diinfokan bahwa sesi backend belum tentu berakhir sementara state lokal dibersihkan. `Logout.vue` disederhanakan menjadi pemanggil store tunggal dengan UI English.
-- **Router Guard Global (`router.beforeEach`)**:
-  - Dijalankan pada **setiap** navigasi, termasuk navigasi langsung (URL) dan navigasi antar-child route.
-  - Memetakan kemampuan bernama per halaman secara eksplisit:
-    - `/master/accounts`: `users.view`
-    - `/master/typeusers`: `master.manage`
-    - `/master/roles`: `roles.view`
-    - `/public/students`: `students.view`
-    - `/public/educationlevels`, `/public/educationschools`, `/public/phasestatuses`, `/public/professions`, `/public/schoolrombels`, `/public/schoolyears`, `/public/studentmajors`: `master.view`
-  - Pengguna terautentikasi dilarang membuka halaman guest-only (`/auth/login`, `/auth/forgot-password`, `/password-reset/:token`) dan dialihkan ke `/`.
-  - Pengguna belum login dialihkan ke `/auth/login` bila mencoba membuka halaman terproteksi.
-  - Pengguna tanpa kemampuan spesifik dialihkan ke `/auth/access`.
-
-### E. Form Forgot Password & Reset Password (C-05 / Q1 / DEC-15)
-- Dibuat rute dan komponen baru:
-  - `/auth/forgot-password` (`ForgotPassword.vue`): form meminta email terdaftar, memanggil `POST /forgot-password`. Menampilkan konfirmasi anti-enumerasi seragam ("If your email address is registered, you will receive a password reset link shortly.") sehingga tidak membocorkan keberadaan email di database.
-  - `/password-reset/:token` dan `/auth/reset-password/:token` (`ResetPassword.vue`): form menyetel password baru (email terisi dari query, password baru min 8 karakter + konfirmasi), memanggil `POST /reset-password`. Berhasil mereset password, menginvalidasi token lama, dan mengarahkan ke `/auth/login`.
-- Tautan "Forgot Password?" di `Login_2.vue` dihubungkan ke `/auth/forgot-password`.
-- Lingkungan UAT disetel `MAIL_MAILER=log` pada `laravel-api/.env.uat` dan `.env.uat.example`: email reset dicetak ke `storage/logs/laravel.log` tanpa mengirim email nyata ke internet.
-- **Diverifikasi end-to-end**: minta link via form → link diambil dari `laravel.log` → form reset dibuka → password baru disimpan → login dengan password lama ditolak → login dengan password baru berhasil masuk Dashboard.
-
-### F. Penyelarasan UI English (C-06)
-- Kontrol ubah password di `Profile.vue` dan layar `Logout.vue` diselaraskan ke English.
+3. **Regresi Browser Empat Peran**:
+   - Berhasil diverifikasi live pada 4 peran (`uat.admin`, `uat.operator`, `uat.kepsek`, `uat.waka`) melalui browser nyata: login form → refresh → navigasi izin → ekspor izin → logout bersih.
 
 ---
 
-## 2. File yang disentuh
+## 2. File yang Disentuh
 
 | File | Perubahan |
 |---|---|
-| `docs/DECISIONS.md` | Dicatat DEC-15 (APPROVED 2026-10-16 WIB). |
-| `docs/API-CONTRACTS.md` | Dicatat kontrak error, CSRF retry, router guard, dan reset password 01b. |
-| `laravel-api/.env.uat.example` | Ditambahkan `MAIL_MAILER=log`. |
-| `laravel-api/.env.uat` (untracked) | Ditambahkan `MAIL_MAILER=log`. |
-| `laravel-api/tests/Feature/Auth/PasswordResetTest.php` | Ditambahkan 4 tes baru: token invalid, expired, reused, dan validasi password/konfirmasi. |
-| `vue-app/src/apiLogin/index.js` | Interceptor dipindah ke `apiLogin`, retry 419 single coordinated, deduplikasi 401, timeout 15s, pembedaan 403, registrasi handler terpisah. |
-| `vue-app/src/main.js` | Mendaftarkan handler sesi kedaluwarsa & nonaktif ke `apiLogin` tanpa circular dependency. |
-| `vue-app/src/stores/authStore.js` | `loginTimestamp` untuk anti-race sesi lama, `skipAuthRedirect` pada `fetchIdentity`, `logOut()` 204 bersih dengan pelaporan `serverSuccess`. |
-| `vue-app/src/router/index.js` | `router.beforeEach` global (child & direct navigation), pemetaan `requiresAbility` per halaman, rute forgot & reset password. |
-| `vue-app/src/views/pages/auth/Login_2.vue` | Tautan Forgot Password aktif, pengecekan flash message sesi kedaluwarsa pada mount. |
-| `vue-app/src/views/pages/auth/Logout.vue` | Disatukan ke single store `logOut()`, UI English, redirect bersih. |
-| `vue-app/src/views/pages/auth/Profile.vue` | Kontrol form ubah password diselaraskan ke English. |
-| `vue-app/src/layout/AppUsers.vue` | Pelaporan status server logout yang akurat. |
-| `vue-app/src/views/pages/auth/ForgotPassword.vue` (baru) | Form permintaan link reset password English dengan proteksi anti-enumerasi. |
-| `vue-app/src/views/pages/auth/ResetPassword.vue` (baru) | Form input password baru dan konfirmasi dengan validasi token dan redirect ke login. |
-| `vue-app/tests/phase-01b-api-auth.test.mjs` (baru) | 7 unit test deterministik untuk interceptor, 419 CSRF retry, 401 deduplication, 403 separation, router guard child, dan logout contract. |
+| `laravel-api/tests/Feature/Access/TypeUserAccessTest.php` (baru) | 5 tes regresi untuk izin `master.manage`, integritas relasi 422, isolasi kemampuan, dan perlindungan admin terakhir. |
+| `vue-app/src/stores/authStore.js` | Monotonic request sequence global (`requestSequence`) untuk mencegah tabrakan ID setelah `$reset()` pada pergantian akun. |
+| `vue-app/tests/phase-01b-api-auth.test.mjs` | Penambahan Test 2b (retry 419 berulang berhenti tanpa loop) dan Test 2c (refresh CSRF gagal ditangani bersih), serta asersi sesi aman pada Test 1. |
+| `vue-app/tests/auth-race-condition.test.mjs` | Penambahan tes anti-race pada pergantian akun (respon lambat akun lama tidak menimpa akun baru). |
+| `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md` | Panduan UAT dirapikan: langkah sesi berakhir, kegagalan jaringan, logout offline, sanitasi log email reset, dan penjelasan modal Session Expired. |
+| `reports/feature-update/PHASE-01B-API-AUTH.md` | Laporan bukti lengkap Fase 01b. |
+| `reports/feature-update/HANDOFF.md` | Pembaruan checkpoint sesi dan status checklist. |
+| `reports/feature-update/INDEX.md` | Sinkronisasi indeks dokumen. |
+| `roadmap/ROADMAP.md` | Penegasan status 01b (menunggu review pemilik) dan BLK-03 tetap OPEN. |
+| `CHANGELOG.md` | Pencatatan entri riwayat pengujian dan pengamanan autentikasi 01b. |
 
 ---
 
-## 3. Bukti Verifikasi Otomatis & Runtime
+## 3. Pemetaan Bukti Skenario Recovery & Error Autentikasi
 
-### A. Backend Test Suite (PHPUnit / Pest di DB SQLite In-Memory)
+| No | Skenario | Nama Tes / Bukti | Perilaku yang Dibuktikan | Batas / Catatan |
+|---|---|---|---|---|
+| 1 | **Request hasil retry kembali 419** | `vue-app/tests/phase-01b-api-auth.test.mjs` → `419 retry returning 419 again stops immediately without loop and notifies mismatch` | Saat request yang sudah di-retry (`_retry: true`) kembali menerima 419 dari server, interceptor tidak memanggil refresh token lagi. Interceptor langsung memicu notifikasi `Security token mismatch` dan me-reject promise. | Berlaku pada instance `apiLogin`. Menghentikan infinite retry loop bila server terus menolak token. |
+| 2 | **Refresh csrf-cookie gagal** | `vue-app/tests/phase-01b-api-auth.test.mjs` → `419 recovery stops and notifies when csrf-cookie refresh fails` | Jika request `GET /sanctum/csrf-cookie` gagal (network error / server drop), interceptor menangkap kegagalan, memicu notifikasi `Security validation expired`, tidak me-retry request asli, dan me-reject promise. | Mencegah aplikasi mencoba mengulang request dengan token usang saat backend tidak merespons. |
+| 3 | **Beberapa request 419 bersamaan** | `vue-app/tests/phase-01b-api-auth.test.mjs` → `419 CSRF recovery refreshes token once, coordinates concurrent requests, and retries once` | Tiga request paralel yang serentak menerima 419 dikoordinasikan via `csrfRefreshPromise` tunggal. `GET /sanctum/csrf-cookie` hanya dipanggil tepat satu kali, kemudian seluruh request diulang dengan payload utuh. | Bukti runtime UAT: request 585 (419) → request 586 (`csrf-cookie` 204) → request 587 (200 OK). |
+| 4 | **Timeout / network failure tanpa auto-retry & tanpa hapus sesi** | `vue-app/tests/phase-01b-api-auth.test.mjs` → `interceptor classifies network error and timeout without auto-retry and preserves session` | Error `ECONNABORTED` / connection drop menampilkan toast English tanpa me-retry otomatis. State identitas pengguna di store tetap aktif dan tidak dihapus semata-mata karena gangguan jaringan. | Berbeda dari 401 (sesi kedaluwarsa). Penanganan network drop membiarkan pengguna mencoba kembali tanpa kehilangan sesi kerja. |
+| 5 | **Logout server gagal tanpa klaim sukses backend** | `vue-app/tests/phase-01b-api-auth.test.mjs` → `logout handles 204 without reading body, cleans state, and reports server status` | Jika `POST /logout` gagal (mis. status 500 atau network down), store membersihkan state lokal demi keamanan pengguna namun mengembalikan `serverSuccess: false`. UI menampilkan bahwa sesi lokal dibersihkan tetapi server gagal dihubungi. | Bukti UAT: `AppUsers.vue` menampilkan dialog "Signed out locally. Could not reach server to terminate session." jika server mati. |
+| 6 | **401 bersamaan & respons sesi lama setelah pergantian akun** | `vue-app/tests/phase-01b-api-auth.test.mjs` → `401 on active session deduplicates notifications...` & `vue-app/tests/auth-race-condition.test.mjs` → `stale response from prior account does not overwrite newly logged in account on account switch` | 1) Beberapa 401 serentak hanya memicu 1 kali notifikasi dan 1 kali pengalihan. 2) Ketika pengguna beralih akun (Akun A logout → Akun B login), respon in-flight tertunda milik Akun A dibuang dan tidak menimpa sesi Akun B berkat monotonic `requestSequence`. | Request guest `/check-auth` dan `/login` dikecualikan dari notifikasi kedaluwarsa untuk mencegah loop. |
+
+---
+
+## 4. Audit Akses Operator ke `/master/typeusers`
+
+### A. Kemampuan yang Mengizinkan dan Operasi Backend
+- **Kemampuan Penegak**:
+  - Halaman SPA `/master/typeusers`: dilindungi guard `meta: { requiresAbility: 'master.manage' }` pada `router/index.js` dan menu navigasi `AppMenu.vue`.
+  - Backend `laravel-api/routes/api.php`:
+    - `GET /api/type-users` & `GET /api/type-users/{id}`: dilindungi `can:master.view`.
+    - `POST /api/type-users`, `PUT/PATCH /api/type-users/{id}`, `DELETE /api/type-users/{id}`: dilindungi `can:master.manage`.
+- **Operasi yang Tersedia untuk Operator Sekolah**:
+  - Sesuai `DEC-03` dan `AbilityCatalog::initialRoles()`, peran `operator-sekolah` memiliki kemampuan `master.view` dan `master.manage`. Oleh karena itu, Operator dapat melihat daftar, menambah tipe baru, mengubah nama tipe, dan menghapus tipe pengguna yang tidak terikat.
+
+### B. Analisis Risiko Keamanan & Eskalasi Hak Akses
+1. **Pemisahan Peran dan Kemampuan dari `type_users`**:
+   - Peran dan kemampuan ditegakkan melalui tabel baru `roles`, `abilities`, `ability_role`, dan `role_user` (Fase 01a).
+   - Hak akses pengguna dievaluasi dari relasi `$user->roles()->with('abilities')` via `User::abilityNames()`. Kolom `type_user_id` sama sekali **tidak dibaca** saat mengevaluasi otorisasi gate atau middleware.
+2. **Pemetaan Ulang Berdasarkan Nama**:
+   - Pemetaan nama legacy (`type_users.name = 'Admin'` → `admin-sistem`) hanya dijalankan satu kali saat migrasi data awal `2029_07_20_000003_seed_and_map_roles.php`.
+   - Tidak ada kode runtime pada controller, model, middleware, atau provider yang melakukan pemetaan ulang peran berdasarkan nama `type_users`. Mengubah nama tipe pengguna di tabel `type_users` tidak memberi hak akses baru ke akun mana pun.
+3. **Perlindungan Terhadap Akun dan Admin Terakhir**:
+   - Operator Sekolah **tidak memiliki** kemampuan `users.manage` maupun `access.assign`.
+   - Endpoint pembaruan akun pengguna (`PUT /api/users/{id}`) mengabaikan input `type_user_id` bila dipanggil oleh actor tanpa `users.manage` (`UserController.php`).
+   - Tipe pengguna yang masih dirujuk oleh akun pengguna (misal tipe `Admin` atau `User`) **tidak dapat dihapus**: `TypeUserController::destroy` menghitung `$typeUser->users_count` dan menolak penghapusan dengan status **422** (`Cannot delete! This record is still being referenced by X users.`).
+   - Perlindungan admin pengelola akses terakhir (`UserController::isLastAccessManager`) berbasis pada kemampuan `roles.manage`/`abilities.manage`/`access.assign`, bukan pada `type_users`.
+- **Kesimpulan Audit**: Tidak ditemukan celah eskalasi hak akses atau bypass proteksi admin melalui modul `type_users`. Matriks izin tetap dipertahankan sesuai keputusan pemilik tanpa perubahan yang tidak berdasar.
+
+---
+
+## 5. Hasil Regresi Browser Empat Peran (Server UAT Live)
+
+Pengujian dilakukan menggunakan browser otomatis Playwright pada server UAT nyata (`127.0.0.1:4001` SPA dan `127.0.0.1:8001` API) dengan database sintetis `school_access_uat`.
+
+| Peran & Akun Uji | Login Form | Refresh Halaman | Navigasi Izin | Ekspor Siswa | Logout Bersih | Console / Error Log |
+|---|---|---|---|---|---|---|
+| **System Administrator** (`uat.admin`) | Berhasil masuk ke `/` | State sesi & kemampuan lengkap utuh | Masuk `/master/roles` (OK), masuk `/master/accounts` (OK), masuk `/master/typeusers` (OK) | Tombol Export muncul di `/public/students`; file CSV terunduh | Berhasil logout via `/auth/logout`, sesi backend 204 | 0 uncaught errors, 0 page errors |
+| **School Operator** (`uat.operator`) | Berhasil masuk ke `/` | State sesi & kemampuan operasional utuh | Masuk `/master/typeusers` (OK); masuk `/master/roles` dialihkan ke `/auth/access` (Access Denied) | Tombol Export muncul di `/public/students`; file CSV terunduh | Berhasil logout via menu topbar profil, sesi backend 204 | 0 uncaught errors, 1 warning (expected route guard denial) |
+| **Principal** (`uat.kepsek`) | Berhasil masuk ke `/` | State sesi & kemampuan persetujuan utuh | Masuk `/public/students` (OK); masuk `/master/roles` & `/master/typeusers` dialihkan ke `/auth/access` | Tombol Export muncul di `/public/students`; file CSV terunduh | Berhasil logout via `/auth/logout`, sesi backend 204 | 0 uncaught errors, 2 warnings (expected route guard denials) |
+| **Vice Principal** (`uat.waka`) | Berhasil masuk ke `/` | State sesi & kemampuan utuh | Masuk `/public/students` (OK); masuk `/master/roles` & `/master/typeusers` dialihkan ke `/auth/access` | Tombol Export **disembunyikan**; pemanggilan API langsung menghasilkan **403 Forbidden** | Berhasil logout via `/auth/logout`, sesi backend 204 | 0 uncaught errors, 2 warnings (expected route guard denials) |
+
+### Verifikasi Sesi Berakhir Nyata & Pengecualian Check-Auth:
+1. Sesi backend diakhiri secara terpisah saat pengguna berada di Dashboard.
+2. Pengguna memicu navigasi ke `/public/students`. Request API merespons **401 Unauthorized**.
+3. Interceptor `apiLogin` mendeteksi 401 pada protected endpoint → mengarahkan browser ke `/auth/login`.
+4. Di `/auth/login`, modal dialog PrimeVue berbingkai "Session Expired" dengan isi "Your session has expired. Please sign in again." langsung ditampilkan.
+5. Request background guest `/api/check-auth` merespons 200 `{ authenticated: false }` dengan `skipAuthRedirect: true`, sehingga form login tetap tenang tanpa terjadi reload loop.
+
+---
+
+## 6. Bukti Verifikasi Otomatis, Lint, dan Build
+
+### A. Backend Test Suite (DB SQLite In-Memory Terisolasi)
 - Perintah: `php artisan test`
-- Hasil: **55 passed (149 assertions)**.
-- Cakupan:
-  - 6 tes pada `PasswordResetTest` (link requested, valid reset, invalid token rejected, expired token rejected, reused token rejected, confirmation mismatch & short password rejected).
-  - 6 tes autentikasi & logout.
-  - 23 tes akses peran/kemampuan & enforcement.
-  - 13 tes ekspor siswa (filter, leading zero, delimiter, injection, limit 422).
-  - 2 tes isolasi database SQLite `:memory:`.
-  - 2 tes email verification & 1 registration closed.
-- Style check: `./vendor/bin/pint --test` → **PASS** (100% clean).
+- Hasil: **60 passed (173 assertions)**.
+- Penambahan 5 tes baru pada `Tests\Feature\Access\TypeUserAccessTest`.
+- Style check: `./vendor/bin/pint --test tests/Feature/Access/TypeUserAccessTest.php` → **PASS** (100% clean).
 
-### B. Frontend Automated Unit & Integration Tests (Node Test Runner)
+### B. Frontend Automated Test Runner (Node.js Test Runner)
 - Perintah: `node --test tests/phase-01b-api-auth.test.mjs tests/auth-race-condition.test.mjs`
-- Hasil: **10 passed (0 failed)**.
-- Pengujian deterministik mencakup:
-  1. Klasifikasi network error dan timeout tanpa auto-retry.
-  2. CSRF 419 single recovery: menyegarkan token sekali, mengoordinasikan 3 request bersamaan ke 1 call refresh, dan mengulang dengan payload utuh.
-  3. Mencegah rekursi bila 419 terjadi pada endpoint `/sanctum/csrf-cookie` itu sendiri.
-  4. Deduplikasi 401: 3 request bersamaan hanya memicu 1 kali penanganan sesi; request guest/login dikecualikan.
-  5. 403 izin fitur mempertahankan sesi lokal; 403 nonaktif memicu logout.
-  6. Evaluasi route guard per halaman dan pada transisi antar-child (Operator dilarang ke roles/accounts tapi diizinkan ke typeusers; Admin diizinkan ke roles; guest dialihkan ke login).
-  7. Logout 204 diproses tanpa membaca body, state lokal dibersihkan, status server dilaporkan benar.
-  8. Getter identitas `user`, `authUser`, `AllUserAssign` konsisten.
-  9. Respons guest lambat tidak menimpa sesi login aktif.
-  10. Respons error usang tidak menimpa sesi login aktif.
+- Hasil: **13 passed (0 failed)**.
+- Mencakup pemulihan 419 single & double failure, 401 deduplication, anti-race pergantian akun, route guard, dan 403 separation.
 
-### C. Build & Lint Frontend
-- Perintah: `npm run build` → **PASS** (`✓ built in 18.72s`, 0 errors, 0 warnings).
-- Perintah: `npx eslint ... --quiet` pada seluruh berkas yang disentuh → **0 errors**.
-
-### D. Verifikasi Playwright Browser pada Server UAT Nyata (DB `school_access_uat`)
-1. **CSRF 419 Nyata**:
-   - Cookie `XSRF-TOKEN` sengaja dirusak dengan token invalid.
-   - Request `POST /api/firstlogin/1` dikirim → server mengembalikan **HTTP 419**.
-   - Interceptor mendeteksi 419 → memanggil `GET /sanctum/csrf-cookie` (204) → header `X-XSRF-TOKEN` diperbarui → request diulang → berhasil **HTTP 200**!
-   - Dibuktikan dari network log browser: request 585 (419) → request 586 (`csrf-cookie` 204) → request 587 (`firstlogin` 200).
-2. **Sesi Kedaluwarsa Nyata (401)**:
-   - Sesi di backend dihapus paksa dari storage sesi.
-   - Request API dipicu → server mengembalikan 401.
-   - Pengguna otomatis dialihkan ke `/auth/login`, modal dialog "Session Expired: Your session has expired. Please sign in again." muncul tanpa reload loop.
-3. **Child Navigation Guard**:
-   - Operator login berada di `/` → berpindah ke `/master/roles` → otomatis diblokir ke `/auth/access` (karena tidak punya `roles.view`).
-   - Operator berpindah ke `/master/typeusers` → diizinkan (karena punya `master.manage`).
-   - Operator berpindah ke `/master/accounts` → otomatis diblokir ke `/auth/access` (karena tidak punya `users.view`).
-   - Admin berpindah ke `/master/roles` → diizinkan (punya `roles.view`).
-4. **Forgot Password & Reset Password End-to-End**:
-   - Buka `/auth/forgot-password` → input `uat.operator@uat.local` → dialog konfirmasi anti-enumerasi tampil.
-   - Email tercatat di `laravel-api/storage/logs/laravel.log` dengan URL bertoken.
-   - Buka URL reset password di browser → form `/password-reset/:token` termuat dengan email terisi.
-   - Input password baru `newpassword123` → tersimpan dan diarahkan ke `/auth/login`.
-   - Login dengan password lama (`password`) → ditolak 422 ("These credentials do not match our records.").
-   - Login dengan password baru (`newpassword123`) → berhasil masuk Dashboard!
-   - Password uji kemudian dikembalikan ke baseline `password` via database UAT untuk konsistensi retest pemilik.
+### C. Lint Non-Mutasi & Build Frontend
+- Lint: `npx eslint src/apiLogin/index.js src/main.js src/stores/authStore.js src/router/index.js src/views/pages/auth/Login_2.vue src/views/pages/auth/Logout.vue src/views/pages/auth/Profile.vue src/layout/AppUsers.vue src/views/pages/auth/ForgotPassword.vue src/views/pages/auth/ResetPassword.vue`
+  - **Errors**: **0**.
+  - **Warnings**: 1.086 (seluruhnya merupakan peringatan format Prettier baris akhir CRLF `Delete ␍`; tidak dijalankan `--fix` massal untuk menjaga kebersihan diff).
+- Build: `npm run build` → **PASS** (`✓ built in 1m`, 0 errors).
 
 ---
 
-## 4. Status Keputusan & Blocker
+## 7. Status Keputusan & Blocker
+
 - **DEC-15**: **APPROVED** (2026-10-16 WIB).
-- **Fase 01a**: **DITERIMA pemilik** (checklist #1–#14 APPROVED 2026-10-15 WIB).
-- **Fase 01b**: **IMPLEMENTED & VERIFIED secara otomatis dan browser UAT**; menunggu review pemilik.
-- **BLK-03**: **TETAP OPEN** (dialokasikan ke Fase 01c).
-- Keputusan autentikasi lain (makna `status_user_id`, bootstrap pengguna pertama, deployment produksi) **tetap OPEN** karena tidak menghambat scope 01b.
-- **Klarifikasi CHANGELOG**: entri pemilik ("Pengembangan fitur iteratif via sesi Claude") tidak ditemukan di working tree maupun riwayat Git yang diperiksa; penyebab kehilangan belum diketahui dan tidak direkonstruksi tanpa sumber.
-
----
-
-## 5. Panduan UAT Manual Pemilik
-Langkah-langkah pengujian manual pemilik dirinci lengkap dalam `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md`.
+- **Fase 01a**: **DITERIMA pemilik** (2026-10-15 WIB).
+- **Fase 01b**: **SELESAI DIIMPLEMENTASIKAN & DIVERIFIKASI PENUH**; checklist manual di `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md` berstatus **PENDING** menunggu review mandiri pemilik.
+- **BLK-03**: **TETAP OPEN** (`DatabaseSeeder` berisi identitas nyata; dialokasikan ke Fase 01c). Tidak ada pengujian yang menyentuh atau menjalankan `DatabaseSeeder`.

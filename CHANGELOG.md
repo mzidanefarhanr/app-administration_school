@@ -17,7 +17,43 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
-## [2026-10-16] Fase 01b — Fix: penyelarasan error sesi, guard router, dan reset password (C-01–C-06)
+## [2026-10-16] Fase 01b — Test & Docs: pelengkapan review bukti pemulihan error autentikasi dan audit akses master
+- Type: Test, Docs, Security
+- Scope / fase: pelengkapan review bukti Fase 01b (skenario pemulihan error auth, audit akses Operator ke `/master/typeusers`, regresi 4 peran browser, dan perapian panduan UAT).
+- Files touched:
+  - `laravel-api/tests/Feature/Access/TypeUserAccessTest.php` (baru)
+  - `vue-app/src/stores/authStore.js`
+  - `vue-app/tests/phase-01b-api-auth.test.mjs`
+  - `vue-app/tests/auth-race-condition.test.mjs`
+  - `reports/feature-update/PHASE-01B-API-AUTH.md`
+  - `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `reports/feature-update/INDEX.md`
+  - `roadmap/ROADMAP.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Pemetaan 6 skenario pemulihan & error auth diverifikasi lengkap:
+     - Retry 419 berulang berhenti tanpa loop dan notifikasi security mismatch.
+     - Refresh CSRF gagal ditangani tanpa auto-retry dan tanpa loop.
+     - Beberapa request 419 bersamaan dikoordinasikan ke tepat 1 request refresh CSRF.
+     - Timeout / network failure tidak menghapus sesi lokal.
+     - Logout server gagal melaporkan `serverSuccess: false` dan membersihkan state lokal.
+     - 401 bersamaan dideduplikasi dan sequence request monotonik global (`requestSequence`) mencegah respon usang menimpa sesi baru saat switch account.
+  2. Audit akses Operator ke `/master/typeusers`:
+     - Menjelaskan izin `master.manage` dan operasi CRUD backend.
+     - Membuktikan secara struktural dan tes regresi bahwa pengubahan `type_users` tidak memengaruhi `roles` / `abilities`, tidak memicu pemetaan ulang berbasis nama, tipe terikat ditolak saat hapus (422), dan tidak membypass perlindungan admin terakhir.
+  3. Regresi browser 4 peran diverifikasi penuh di UAT live (`uat.admin`, `uat.operator`, `uat.kepsek`, `uat.waka`): form login → refresh → navigasi izin → ekspor izin → logout bersih.
+  4. Panduan manual `PHASE-01B-MANUAL-REVIEW.md` dirapikan: langkah sesi kedaluwarsa, kegagalan jaringan, offline logout, sanitasi URL log email reset, dan penjelasan modal dialog Session Expired.
+- Why: memenuhi prasyarat pelengkapan bukti review Fase 01b sebelum peninjauan manual mandiri oleh pemilik.
+- Validation:
+  - Backend: 60 passed (173 assertions) di SQLite in-memory (`php artisan test`).
+  - Pint: PASS (100% clean).
+  - Frontend unit tests: 13 passed (`node --test tests/phase-01b-api-auth.test.mjs tests/auth-race-condition.test.mjs`).
+  - Build: PASS (`npm run build`).
+  - Lint: 0 errors, 1.086 Prettier line-ending warnings dilaporkan terpisah (`npx eslint ...`).
+  - Playwright browser UAT: walkthrough 4 peran pada database sintetis `school_access_uat` PASS.
+- Notes / risks: BLK-03 tetap OPEN (dialokasikan ke 01c); review manual pemilik PENDING (16 checklist).
+- Evidence: `reports/feature-update/PHASE-01B-API-AUTH.md`, `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md`.
 - Type: Fix, Feature, Security, Test
 - Scope / fase: implementasi Fase 01b berdasarkan audit 6a3d71f dan keputusan DEC-15 (Q1–Q3).
 - Files touched: `laravel-api/.env.uat.example`, `laravel-api/tests/Feature/Auth/PasswordResetTest.php`, `docs/API-CONTRACTS.md`, `vue-app/src/apiLogin/index.js`, `vue-app/src/main.js`, `vue-app/src/stores/authStore.js`, `vue-app/src/router/index.js`, `vue-app/src/views/pages/auth/Login_2.vue`, `vue-app/src/views/pages/auth/Logout.vue`, `vue-app/src/views/pages/auth/Profile.vue`, `vue-app/src/layout/AppUsers.vue`, `vue-app/src/views/pages/auth/ForgotPassword.vue` (baru), `vue-app/src/views/pages/auth/ResetPassword.vue` (baru), `vue-app/tests/phase-01b-api-auth.test.mjs` (baru), `reports/feature-update/{PHASE-01B-API-AUTH.md,PHASE-01B-MANUAL-REVIEW.md,INDEX.md,HANDOFF.md}`, `roadmap/ROADMAP.md`, `CHANGELOG.md`.

@@ -20,69 +20,51 @@ Catatan perubahan pemilik: entri `CHANGELOG.md` yang disebut laporan lama ("Peng
 
 ---
 
-## 2. Pemeriksaan yang Dijalankan & Hasil (Fase 01b)
+## 2. Pemeriksaan yang Dijalankan & Hasil (Fase 01b Pelengkapan Bukti)
 1. **Automated Backend**:
    - Perintah: `php artisan test` pada database SQLite in-memory `:memory:` terisolasi.
-   - Hasil: **55 passed (149 assertions)**, termasuk 6 tes password reset (requested, valid, invalid token 422, expired token 422, reused token 422, mismatch & short password 422).
+   - Hasil: **60 passed (173 assertions)**, bertambah 5 tes baru pada `TypeUserAccessTest` (CRUD via `master.manage`, integritas relasi 422, isolasi kemampuan, dan proteksi admin terakhir).
    - Style check: `./vendor/bin/pint --test` → **PASS** (100% clean).
 2. **Automated Frontend**:
    - Perintah: `node --test tests/phase-01b-api-auth.test.mjs tests/auth-race-condition.test.mjs`.
-   - Hasil: **10 passed (0 failed)**. Menguji interceptor timeout/network, 419 single coordinated recovery, 401 session expiry deduplication, 403 permission vs inactive separation, router guard child ability evaluation, dan logout 204.
-   - Build: `npm run build` → **PASS** (`✓ built in 18s`, 0 errors, 0 warnings).
-   - Lint: `npx eslint ... --quiet` pada seluruh berkas yang disentuh → **0 errors**.
-3. **Verifikasi Browser/HTTP Nyata (UAT 127.0.0.1:4001 & 127.0.0.1:8001)**:
-   - CSRF 419 nyata: cookie dirusak → server merespons 419 → interceptor mengambil `csrf-cookie` (204) → request diulang otomatis (200 OK).
-   - Sesi aktif 401 nyata: sesi backend dihapus → request API → otomatis redirect ke `/auth/login` dengan modal dialog "Session Expired: Your session has expired. Please sign in again."
-   - Child navigation guard: Operator di `/` klik `/master/roles` atau `/master/accounts` → dialihkan ke `/auth/access`; Operator ke `/master/typeusers` → diizinkan; Admin ke `/master/roles` → diizinkan.
-   - Forgot & reset password end-to-end: input email di form → ambil link dari `laravel.log` (driver `log`, tanpa email nyata) → buka form reset → simpan password baru → password lama ditolak 422 → password baru berhasil login ke Dashboard → token bekas pakai ditolak 422. Password operator dikembalikan ke `password`.
-   - Single logout 204: sesi backend berakhir bersih (`serverSuccess: true`).
+   - Hasil: **13 passed (0 failed)**. Menguji interceptor timeout/network error tanpa auto-retry dan tanpa hapus sesi, CSRF 419 single retry terkoordinasi, penanganan kegagalan refresh CSRF, retry 419 berulang berhenti tanpa loop, deduplikasi 401, pemisahan 403, router child guard, monotonic request sequence anti-race saat pergantian akun, dan single logout 204.
+   - Build: `npm run build` → **PASS** (`✓ built in 1m`, 0 errors).
+   - Lint: `npx eslint ...` tanpa `--quiet` pada seluruh berkas yang disentuh → **0 errors**, 1.086 warnings format Prettier CRLF (tidak di-fix massal agar diff tetap bersih).
+3. **Verifikasi Browser Nyata (UAT Live 127.0.0.1:4001 & 127.0.0.1:8001)**:
+   - Walkthrough regresi penuh pada 4 peran (`uat.admin`, `uat.operator`, `uat.kepsek`, `uat.waka`):
+     - Login melalui form: seluruh 4 peran berhasil masuk Dashboard.
+     - Refresh halaman: state sesi dan kemampuan masing-masing peran tetap utuh.
+     - Navigasi sesuai izin: Admin (`roles.view`, `users.view`) diizinkan; Operator (`master.manage`) diizinkan ke `typeusers` dan diblokir dari `roles`; Kepsek & Waka diblokir dari `roles` & `typeusers` ke `/auth/access` (Access Denied).
+     - Ekspor sesuai izin: Admin, Operator, dan Kepsek memiliki tombol Export dan berhasil mengunduh CSV; Waka tidak memiliki tombol Export dan pemanggilan API langsung menghasilkan **403 Forbidden**.
+     - Logout bersih: sesi berakhir via `POST /logout` (204), state lokal dibersihkan, dialihkan kembali ke `/auth/login`.
+   - Sesi berakhir (401 nyata): sesi backend dibatalkan → request API merespons 401 → otomatis redirect ke `/auth/login` dengan modal dialog PrimeVue berbingkai "Session Expired: Your session has expired. Please sign in again." dan form login siap tanpa loop.
+   - Pengecualian guest: request `check-auth` untuk guest merespons 200 `{ authenticated: false }` dengan `skipAuthRedirect: true`, tidak memicu modal sesi kedaluwarsa berulang atau loop.
 4. **Lingkungan & Keamanan**:
    - Seluruh tes hanya menggunakan database sintetis (`school_access_uat` dan SQLite `:memory:`) dan akun uji. Tidak ada data operasional yang disentuh.
    - Bahasa antarmuka dalam scope implementasi tetap **English**.
 
 ---
 
-## 3. Berkas yang Berubah pada Fase 01b (`60e951b`)
+## 3. Berkas yang Berubah pada Pelengkapan Bukti Fase 01b
 - Backend:
-  - `laravel-api/.env.uat.example`: ditambahkan `MAIL_MAILER=log`.
-  - `laravel-api/tests/Feature/Auth/PasswordResetTest.php`: 4 tes baru untuk invalid/expired/reused token dan validasi.
+  - `laravel-api/tests/Feature/Access/TypeUserAccessTest.php` (baru): 5 tes regresi untuk verifikasi izin Operator terhadap `type-users`, integritas relasi 422, dan isolasi role/kemampuan.
 - Frontend:
-  - `vue-app/src/apiLogin/index.js`: interceptor aktif pada instance, 419 single retry, 401 deduplikasi + flash banner, timeout 15s, pemisahan 403.
-  - `vue-app/src/main.js`: pendaftaran auth error handlers tanpa circular imports.
-  - `vue-app/src/stores/authStore.js`: anti-race sesi lama, `skipAuthRedirect`, `logOut()` 204 dengan `serverSuccess`.
-  - `vue-app/src/router/index.js`: `router.beforeEach` global (child & direct navigation), pemetaan ability per halaman, rute forgot/reset password.
-  - `vue-app/src/views/pages/auth/Login_2.vue`: link forgot password aktif, pengecekan flash message sesi kedaluwarsa.
-  - `vue-app/src/views/pages/auth/Logout.vue`: pemanggil single store logout, UI English.
-  - `vue-app/src/views/pages/auth/Profile.vue`: kontrol ubah password English.
-  - `vue-app/src/layout/AppUsers.vue`: pelaporan status server logout yang akurat.
-  - `vue-app/src/views/pages/auth/ForgotPassword.vue` (baru): form permintaan link reset dengan anti-enumerasi.
-  - `vue-app/src/views/pages/auth/ResetPassword.vue` (baru): form reset password dengan validasi min 8 char & konfirmasi.
-  - `vue-app/tests/phase-01b-api-auth.test.mjs` (baru): unit test deterministik untuk interceptor, 419, 401, 403, guard, logout.
-- Dokumentasi & Kontrak:
-  - `docs/DECISIONS.md`: DEC-15 APPROVED (Q1–Q3).
-  - `docs/API-CONTRACTS.md`: kontrak error, 419 retry, router guard, reset password.
-  - `reports/feature-update/PHASE-01B-API-AUTH.md`: laporan implementasi 01b lengkap.
-  - `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md`: panduan manual UAT 01b (16 checklist).
-  - `reports/feature-update/INDEX.md`, `roadmap/ROADMAP.md`, `CHANGELOG.md`: sinkronisasi status.
+  - `vue-app/src/stores/authStore.js`: nomor urut request monotonik global (`requestSequence`) untuk mencegah tabrakan sequence ID pasca `$reset()` pada pergantian akun.
+  - `vue-app/tests/phase-01b-api-auth.test.mjs`: Test 2b (retry 419 gagal berhenti tanpa loop), Test 2c (refresh CSRF gagal ditangani bersih), dan asersi sesi aman pada Test 1.
+  - `vue-app/tests/auth-race-condition.test.mjs`: tes anti-race pada pergantian akun.
+- Dokumentasi & Laporan:
+  - `reports/feature-update/PHASE-01B-API-AUTH.md`: laporan bukti lengkap Fase 01b diperbarui (tabel 6 skenario recovery, audit akses typeusers, tabel regresi 4 peran, hasil lint/test/build).
+  - `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md`: panduan manual UAT dirapikan (prosedur sesi berakhir, kegagalan jaringan, offline logout, sanitasi log email reset, dan penjelasan modal Session Expired).
+  - `reports/feature-update/INDEX.md`, `roadmap/ROADMAP.md`, `CHANGELOG.md`: sinkronisasi checkpoint dan pencatatan riwayat perubahan.
 
 ---
 
-## 4. Status Tugas Pelengkapan Bukti (Rencana Sesi Baru)
-Berdasarkan diff dan bukti aktual pada repository:
-1. **Bukti recovery / error auth**: **SEBAGIAN SELESAI**.
-   - Sudah diverifikasi via automated test (10 passed) dan Playwright runtime (live 419 recovery, 401 redirect dengan persistent banner, network error notification).
-   - Belum dilakukan: perekaman tangkapan layar/artefak visual formal jika pemilik menghendaki lampiran gambar di dokumen.
-2. **Audit akses `/master/typeusers`**: **SEBAGIAN SELESAI**.
-   - Guard `master.manage` pada router sudah terpasang dan diuji.
-   - Belum dikonfirmasi: keputusan bisnis pemilik apakah Operator Sekolah memang dimaksudkan dapat mengelola tipe pengguna (`master.manage` mencakup type_users di baseline seeder), atau perlu kemampuan terpisah di masa mendatang.
-3. **Regresi empat peran**: **SEBAGIAN SELESAI**.
-   - Operator dan Admin telah diuji langsung pada alur 01b (login, child guard, reset password).
-   - Belum dilakukan: walkthrough manual menyeluruh untuk Principal (`uat.kepsek`) dan Waka (`uat.waka`) khusus untuk fitur-fitur baru 01b (mis. link reset password untuk masing-masing peran).
-4. **Lint tanpa `--quiet`**: **SEBAGIAN SELESAI**.
-   - `npx eslint ... --quiet` menghasilkan **0 errors** pada seluruh berkas yang disentuh.
-   - Peringatan Prettier (CRLF/LF line endings & trailing whitespace) dibiarkan tanpa `--fix` otomatis sesuai aturan AGENTS.md agar tidak melakukan mutasi format massal di luar scope.
-5. **Panduan manual UAT**: **SELESAI**.
-   - Berkas `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md` sudah memuat 16 butir checklist terstruktur siap uji.
+## 4. Status Tugas Pelengkapan Bukti Sesi Ini
+1. **Bukti recovery / error auth**: **SELESAI PENUH**. 6 skenario dipetakan dengan nama tes, perilaku yang dibuktikan, dan batasnya pada `PHASE-01B-API-AUTH.md` §3.
+2. **Audit akses `/master/typeusers`**: **SELESAI PENUH**. Terbukti independen dari tabel peran/kemampuan; tidak ada jalur eskalasi hak akses atau bypass proteksi admin terakhir; 5 tes regresi lulus.
+3. **Regresi empat peran**: **SELESAI PENUH**. Diuji live via browser otomatis Playwright pada server UAT nyata untuk 4 peran; 0 uncaught errors; pembedaan mock vs live tercatat.
+4. **Lint tanpa `--quiet`**: **SELESAI PENUH**. Dilaporkan terpisah: 0 errors, 1.086 Prettier line-ending formatting warnings (CRLF). Build `npm run build` PASS (`✓ built in 1m`).
+5. **Panduan manual UAT**: **SELESAI PENUH**. `PHASE-01B-MANUAL-REVIEW.md` memuat 16 butir checklist terstruktur (status tetap **PENDING** menunggu review mandiri pemilik).
 
 ---
 
