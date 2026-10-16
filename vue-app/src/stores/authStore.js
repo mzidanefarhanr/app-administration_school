@@ -11,6 +11,8 @@ import apiLogin from '../apiLogin';
  * Daftar akun (`AllUsers`) hanya dimuat bila pengguna memang punya kemampuan
  * `users.view` (widget/administrasi), dan kegagalannya tidak menghapus identitas.
  */
+let requestSequence = 0;
+
 export const authStore = defineStore('auth', {
     state: () => ({
         // Request sequence ID untuk mencegah response lama menimpa state terbaru (race condition)
@@ -54,13 +56,14 @@ export const authStore = defineStore('auth', {
          * Mengembalikan data user atau null.
          */
         async fetchIdentity() {
-            const currentRequestId = ++this._requestId;
+            const currentRequestId = ++requestSequence;
+            this._requestId = currentRequestId;
             try {
                 const response = await apiLogin.get('/api/check-auth', { skipAuthRedirect: true });
 
                 // Jika ada request identitas yang lebih baru (mis. login baru dimulai),
                 // abaikan response usang ini agar tidak menimpa state terbaru.
-                if (currentRequestId !== this._requestId) {
+                if (currentRequestId !== requestSequence) {
                     return this.identity;
                 }
 
@@ -77,7 +80,7 @@ export const authStore = defineStore('auth', {
                     return null;
                 }
             } catch (error) {
-                if (currentRequestId !== this._requestId) {
+                if (currentRequestId !== requestSequence) {
                     return this.identity;
                 }
 

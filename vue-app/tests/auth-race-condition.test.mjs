@@ -6,6 +6,8 @@ import assert from 'node:assert/strict';
  * Validates that an in-flight guest check resolving late CANNOT overwrite
  * an authenticated session established by a newer login action.
  */
+let requestSequence = 0;
+
 class MockAuthStore {
     constructor() {
         this._requestId = 0;
@@ -42,12 +44,13 @@ class MockAuthStore {
     }
 
     async fetchIdentity(apiCall) {
-        const currentRequestId = ++this._requestId;
+        const currentRequestId = ++requestSequence;
+        this._requestId = currentRequestId;
         try {
             const response = await apiCall();
 
             // Discard stale in-flight response
-            if (currentRequestId !== this._requestId) {
+            if (currentRequestId !== requestSequence) {
                 return this.identity;
             }
 
@@ -62,7 +65,7 @@ class MockAuthStore {
                 return null;
             }
         } catch (error) {
-            if (currentRequestId !== this._requestId) {
+            if (currentRequestId !== requestSequence) {
                 return this.identity;
             }
             if (error.response?.status === 401) {
@@ -178,4 +181,45 @@ test('stale error response does not overwrite active session', async () => {
     // Identity is preserved
     assert.equal(store.hasLogin, true);
     assert.equal(store.identity?.username, 'uat.admin');
+});
+
+test('stale response from prior account does not overwrite newly logged in account on account switch', async () => {
+    const store = new MockAuthStore();
+
+    let resolvePriorAccount;
+    const priorAccountPromise = new Promise((resolve) => {
+        resolvePriorAccount = resolve;
+    });
+
+    // 1. Account A (uat.operator) starts an identity fetch that is slow / hung
+    const reqAccountA = store.fetchIdentity(() => priorAccountPromise);
+
+    // 2. User logs out and logs in as Account B (uat.admin)
+    store.$reset();
+    const accountBData = {
+        data: {
+            authenticated: true,
+            user: { id: 1, username: 'uat.admin', abilities: ['roles.view'] }
+        }
+    };
+    const reqAccountB = store.fetchIdentity(async () => accountBData);
+
+    await reqAccountB;
+    assert.equal(store.hasLogin, true);
+    assert.equal(store.identity?.username, 'uat.admin');
+
+    // 3. The delayed response from Account A finally arrives
+    resolvePriorAccount({
+        data: {
+            authenticated: true,
+            user: { id: 2, username: 'uat.operator', abilities: ['students.export'] }
+        }
+    });
+
+    await reqAccountA;
+
+    // Verify: Stale Account A data was safely discarded; Account B identity is preserved
+    assert.equal(store.hasLogin, true);
+    assert.equal(store.identity?.username, 'uat.admin');
+    assert.equal(store.identity?.id, 1);
 });
