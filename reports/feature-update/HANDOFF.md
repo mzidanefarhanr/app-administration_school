@@ -1,6 +1,6 @@
 # Handoff pengembangan aplikasi sekolah
 
-Checkpoint terbaru: 2026-10-16 (WIB). Branch `main`.
+Checkpoint terbaru: 2026-10-17 (WIB). Branch `main`.
 Implementasi 01b terakhir: `60e951b` ("fix(phase-01b): unify session errors, route guards, and password reset").
 Kebijakan commit/push: commit dan push per fase/koreksi ke branch kerja aktif telah **diotorisasi**; merge, force-push, rewrite history, dan deploy manual **tetap tidak diotorisasi**.
 
@@ -11,10 +11,9 @@ Catatan perubahan pemilik: entri `CHANGELOG.md` yang disebut laporan lama ("Peng
 ## 1. Status Fase
 - **Fase 00 — Audit baseline**: PARTIAL (source & environment audit selesai; browser NOT RUN).
 - **Fase 01a — Authorization backend**: **IMPLEMENTED + DITERIMA pemilik** (checklist #1–#14 APPROVED 2026-10-15 WIB).
-- **Fase 01b — Konfigurasi API dan error auth**: **IMPLEMENTED & VERIFIED** (DEC-15 APPROVED 2026-10-16 WIB).
+- **Fase 01b — Konfigurasi API dan error auth**: **IMPLEMENTED + DITERIMA pemilik** (seluruh checklist manual #1–#16 APPROVED: nomor 1–7 dan 9–16 pada 16 Oktober 2026 WIB; nomor 8 retest berhasil pada 17 Oktober 2026 WIB).
   - Implementasi kode commit `60e951b`.
   - Keputusan Q1–Q3 disetujui dan dicatat pada `DEC-15`.
-  - **Penerimaan manual 01b**: **PARTIAL** (nomor 1–7 dan 9–16 **APPROVED** 2026-10-16 WIB; nomor 8 **REPORTED** dan dalam investigasi; status keseluruhan 01b tetap PARTIAL sampai nomor 8 diselesaikan).
   - Laporan implementasi: `reports/feature-update/PHASE-01B-API-AUTH.md`. Panduan manual: `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md`.
 - **Fase 01c dan fase selanjutnya**: NOT STARTED. BLK-03 dialokasikan ke 01c.
 
@@ -64,9 +63,9 @@ Catatan perubahan pemilik: entri `CHANGELOG.md` yang disebut laporan lama ("Peng
 2. **Audit akses `/master/typeusers`**: **SELESAI PENUH**. Terbukti independen dari tabel peran/kemampuan; tidak ada jalur eskalasi hak akses atau bypass proteksi admin terakhir; 5 tes regresi lulus.
 3. **Regresi empat peran**: **SELESAI PENUH**. Diuji live via browser otomatis Playwright pada server UAT nyata untuk 4 peran; 0 uncaught errors; pembedaan mock vs live tercatat.
 4. **Lint tanpa `--quiet`**: **SELESAI PENUH**. Dilaporkan terpisah: 0 errors, 1.086 Prettier line-ending formatting warnings (CRLF). Build `npm run build` PASS (`✓ built in 1m`).
-5. **Panduan manual UAT & Investigasi Defect #8**: **SELESAI PENUH**.
-   - Nomor 1–7 dan 9–16 dinyatakan **APPROVED** oleh pemilik pada 16 Oktober 2026 WIB.
-   - Nomor 8: Terbukti melalui reproduksi UAT bahwa membuka kembali link hanya memuat form rute klien SPA; saat disubmit dengan kata sandi baru lain, backend menolak tegas dengan **422 Unprocessable Content** (`Invalid Token: This password reset token is invalid.`), kata sandi tidak berubah, dan kata sandi hasil reset pertama tetap berlaku. Panduan manual `PHASE-01B-MANUAL-REVIEW.md` dikoreksi untuk memperjelas cara pengujian verifikasi saat submit (status: **PENDING KONFIRMASI PEMILIK**).
+5. **Panduan manual UAT & Penerimaan Lengkap**: **SELESAI PENUH & APPROVED**.
+   - Seluruh checklist nomor 1–16 telah disetujui manual oleh pemilik: nomor 1–7 dan 9–16 APPROVED pada 16 Oktober 2026 WIB; nomor 8 retest mandiri berhasil dan APPROVED pada 17 Oktober 2026 WIB (terbukti token dikonsumsi dan submit replay ditolak 422).
+   - Status penerimaan manual Fase 01b: **DITERIMA PEMILIK**.
 
 ---
 
@@ -100,8 +99,8 @@ Server UAT lokal yang diketahui masih berjalan (jangan dihentikan sembarangan):
 ---
 
 ## 7. Pekerjaan Pertama Sesi Baru
-1. Menunggu konfirmasi pemilik atas checklist #8 Fase 01b di `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md` pasca investigasi dan koreksi panduan manual.
-2. Setelah seluruh checklist Fase 01b disetujui penuh, lanjutkan perencanaan ke Fase 01c (isolasi test lanjutan, validator fixture, penanganan BLK-03).
+1. Fase 01a dan 01b telah **DITERIMA LENGKAP** oleh pemilik. Lanjutkan perencanaan ke Fase 01c (isolasi test lanjutan, pemisahan fixture sintetis, validator fixture, dan penanganan BLK-03).
+2. Menunggu konfirmasi pemilik atas rencana kerja Fase 01c sebelum memulai penulisan kode atau perubahan file.
 
 ---
 

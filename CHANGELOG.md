@@ -17,6 +17,29 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-17] Fase 01b — Docs: penerimaan manual lengkap pemilik atas seluruh checklist 1–16
+- Type: Docs
+- Scope / fase: pencatatan penerimaan manual lengkap pemilik atas seluruh checklist UAT Fase 01b.
+- Files touched:
+  - `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md`
+  - `reports/feature-update/PHASE-01B-API-AUTH.md`
+  - `reports/feature-update/INDEX.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `roadmap/ROADMAP.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Dicatat hasil penerimaan manual pemilik:
+     - Nomor 1–7 dan 9–16: APPROVED pada 16 Oktober 2026 WIB.
+     - Nomor 8: retest mandiri berhasil dan APPROVED pada 17 Oktober 2026 WIB (berdasarkan pembuktian bahwa membuka form SPA bukan bukti token reusable; token dikonsumsi dan replay submit ditolak server dengan status 422).
+     - Dengan demikian, checklist nomor 1–16 seluruhnya **APPROVED**.
+  2. Fase 01b ditandai **DITERIMA PEMILIK** dalam scope checklist.
+  3. Fase 01a tetap berstatus **DITERIMA**. Seluruh Fase 01 belum ditandai selesai karena subfase 01c belum dikerjakan.
+  4. Penegasan batasan: BLK-03 dan keputusan autentikasi terbuka lain tetap **OPEN**; penerimaan ini bukan izin deployment atau penerimaan modul yang belum tersedia.
+- Why: mendokumentasikan penerimaan manual penuh Fase 01b sesuai pernyataan pemilik sebagai sumber bukti resmi sebelum merencanakan subfase berikutnya.
+- Validation: dokumentasi saja (pernyataan manual pemilik).
+- Notes / risks: BLK-03 tetap OPEN (dialokasikan ke 01c); Fase 01c NOT STARTED.
+- Evidence: `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md`, `reports/feature-update/PHASE-01B-API-AUTH.md` §8.
+
 ## [2026-10-16] Fase 01b — Test & Docs: investigasi bukti token reuse dan koreksi panduan manual UAT #8
 - Type: Test, Docs, Security
 - Scope / fase: investigasi laporan defect checklist #8 Fase 01b (link reset yang sudah digunakan dilaporkan masih dapat dibuka kembali).

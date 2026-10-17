@@ -56,7 +56,6 @@ Baca [prompt OpenCode](../docs/OPENCODE-WORKFLOW.md), jalankan 00a–00b audit s
 - [x] Fase 01a — authorization backend: peran/kemampuan + enforcement (IMPLEMENTED; test PASS; verifikasi UAT browser/HTTP PASS pada data sintetis; laporan PHASE-01A-ACCESS.md).
 - [x] Keputusan DEC-14 (register/nonaktif/ekspor/legacy/Bahasa UI) APPROVED 2026-10-14 WIB; penyelesaian ekspor siswa (endpoint CSV terlindungi), UI English, koreksi pemetaan legacy.
 - [x] Penerimaan manual pemilik Fase 01a (checklist #1–#14 APPROVED 2026-10-15 WIB; laporan PHASE-01A-ACCESS.md §21–§22).
-- [x] Fase 01b — implementasi konfigurasi API, alur error autentikasi, dan reset password (DEC-15 APPROVED; laporan PHASE-01B-API-AUTH.md; 60 test backend PASS, 13 unit test frontend PASS; review pemilik PARTIAL: checklist #1–#7 dan #9–#16 APPROVED 2026-10-16 WIB, #8 REPORTED dalam investigasi).
-- [ ] Konfirmasi pemilik: makna status_user_id; keputusan autentikasi terbuka lain (bootstrap pengguna pertama, CORS/Sanctum produksi, strategi cabut token).
-- [ ] Subfase 01c (isolasi test lanjutan, validator fixture; termasuk BLK-03).
+- [x] Fase 01b — implementasi konfigurasi API, alur error autentikasi, dan reset password (DEC-15 APPROVED; laporan PHASE-01B-API-AUTH.md; 60 test backend PASS, 14 unit test frontend PASS; penerimaan manual pemilik: seluruh checklist #1–#16 APPROVED: #1–#7 dan #9–#16 pada 2026-10-16 WIB, #8 retest berhasil pada 2026-10-17 WIB).
+- [ ] Subfase 01c — isolasi test lanjutan, pemisahan fixture sintetis, validator fixture, dan penanganan BLK-03 (perencanaan siap review).
 - [ ] Implementasi dan UAT fase terpilih.
