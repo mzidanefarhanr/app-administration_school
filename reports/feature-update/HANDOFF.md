@@ -15,7 +15,7 @@ Catatan perubahan pemilik: entri `CHANGELOG.md` yang disebut laporan lama ("Peng
   - Implementasi kode commit `60e951b`.
   - Keputusan Q1–Q3 disetujui dan dicatat pada `DEC-15`.
   - Laporan implementasi: `reports/feature-update/PHASE-01B-API-AUTH.md`. Panduan manual: `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md`.
-- **Fase 01c dan fase selanjutnya**: NOT STARTED. BLK-03 dialokasikan ke 01c.
+- **Fase 01c dan fase selanjutnya**: NOT STARTED (rencana Fase 01c disusun di `reports/feature-update/PHASE-01C-PLAN.md`, menunggu review pemilik; BLK-03 dialokasikan ke 01c).
 
 ---
 
@@ -99,8 +99,8 @@ Server UAT lokal yang diketahui masih berjalan (jangan dihentikan sembarangan):
 ---
 
 ## 7. Pekerjaan Pertama Sesi Baru
-1. Fase 01a dan 01b telah **DITERIMA LENGKAP** oleh pemilik. Lanjutkan perencanaan ke Fase 01c (isolasi test lanjutan, pemisahan fixture sintetis, validator fixture, dan penanganan BLK-03).
-2. Menunggu konfirmasi pemilik atas rencana kerja Fase 01c sebelum memulai penulisan kode atau perubahan file.
+1. Menunggu review dan konfirmasi pemilik atas rencana kerja Fase 01c di `reports/feature-update/PHASE-01C-PLAN.md` (termasuk konfirmasi keputusan Q-01c-1 sampai Q-01c-3).
+2. Setelah rencana dan keputusan disetujui pemilik, laksanakan implementasi subfase 01c (pemisahan seeder, perbaikan BLK-03, validator akun, dan fail-safe storage test).
 
 ---
 

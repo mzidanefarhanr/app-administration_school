@@ -17,6 +17,26 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-17] Fase 01c — Docs: perencanaan isolasi pengujian, pemisahan fixture sintetis, dan penanganan BLK-03
+- Type: Docs
+- Scope / fase: perencanaan Fase 01c (isolasi test dan fixture sintetis) berdasarkan roadmap aktual.
+- Files touched:
+  - `reports/feature-update/PHASE-01C-PLAN.md` (baru)
+  - `reports/feature-update/INDEX.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `roadmap/ROADMAP.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Audit proteksi DB/storage pengujian dan fixture sintetis: memetakan apa yang sudah ada (fail-safe SQLite in-memory, `DatabaseIsolationTest`, `CreatesAccessFixtures`, `UatSeeder`) dan gap yang tersisa (isolasi storage pengujian, factory scaffold kosong).
+  2. Pemetaan penanganan BLK-03: pembersihan akun riil dari `DatabaseSeeder.php` dan data siswa riil dari seeder aktif pada commit aktif tanpa melakukan rewrite riwayat Git.
+  3. Usulan arsitektur seeder: pemisahan seeder referensi murni (`ReferenceDataSeeder`), data dummy sintetis (`SyntheticDataSeeder`), dan mekanisme bootstrap akun administrator pertama tanpa kredensial bawaan hardcoded di Git.
+  4. Pemetaan validator akun sesuai roadmap: penghapusan aturan unique pada `name` di `UserController.php` (karena nama tidak wajib unik), validasi NIK string 16 digit angka, standarisasi password dan validasi relasi foreign key.
+  5. Perumusan kriteria penerimaan, metode verifikasi, dan identifikasi 3 keputusan pemilik yang diperlukan (Q-01c-1 s/d Q-01c-3).
+- Why: menyusun rencana teknis menyeluruh sebelum pelaksanaan subfase 01c sesuai aturan roadmap.
+- Validation: source review statis (tanpa eksekusi seeder atau perubahan kode runtime).
+- Notes / risks: Implementasi 01c belum dimulai (menunggu review pemilik); BLK-03 tetap OPEN sampai 01c diimplementasikan.
+- Evidence: `reports/feature-update/PHASE-01C-PLAN.md`.
+
 ## [2026-10-17] Fase 01b — Docs: penerimaan manual lengkap pemilik atas seluruh checklist 1–16
 - Type: Docs
 - Scope / fase: pencatatan penerimaan manual lengkap pemilik atas seluruh checklist UAT Fase 01b.
