@@ -17,6 +17,27 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-17] Fase 01 — Docs: penerimaan manual lengkap Fase 01c dan penutupan Fase 01
+- Type: Docs
+- Scope / fase: pencatatan penerimaan manual pemilik atas checklist Fase 01c (#1–#8) dan penutupan resmi Fase 01.
+- Files touched:
+  - `reports/feature-update/PHASE-01C-ISOLATION-FIXTURES.md`
+  - `reports/feature-update/PHASE-01C-MANUAL-REVIEW.md`
+  - `reports/feature-update/INDEX.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `roadmap/ROADMAP.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Dicatat hasil penerimaan manual pemilik pada 17 Oktober 2026 WIB mengacu baseline `844883e`: checklist #1–#8 Fase 01c seluruhnya dinyatakan **APPROVED**.
+  2. Fase 01 ditutup lengkap sesuai cakupan roadmap karena seluruh subfase 01a (authorization backend), 01b (konfigurasi API & error auth), dan 01c (isolasi fixture & bootstrap) telah diterima penuh oleh pemilik.
+  3. Status penutupan BLK-03 ditegaskan: CLOSED sebatas source code aktif (akun dan data siswa riil dibersihkan dari seeder aktif; data pada riwayat commit Git historis masa lalu tidak di-rewrite/belum dihapus).
+  4. Keputusan yang masih OPEN tetap dicatat: makna `status_user_id` (tidak disamakan dengan `status_active`), deployment CORS/Sanctum produksi, strategi pencabutan token dibanding sesi.
+  5. Penegasan batasan: penerimaan manual ini bukan izin deployment ke produksi dan bukan penerimaan modul yang belum tersedia.
+- Why: mendokumentasikan penerimaan manual penuh Fase 01c dan penutupan resmi Fase 01 sesuai instruksi pemilik.
+- Validation: dokumentasi saja (pernyataan manual pemilik).
+- Notes / risks: Fase 01 DITUTUP LENGKAP; Fase 02 NOT STARTED.
+- Evidence: `reports/feature-update/PHASE-01C-MANUAL-REVIEW.md`, `reports/feature-update/PHASE-01C-ISOLATION-FIXTURES.md`.
+
 ## [2026-10-17] Fase 01c — Docs: penyempurnaan panduan manual review dan konfigurasi lingkungan bootstrap disposable
 - Type: Docs
 - Scope / fase: penyempurnaan panduan pengujian manual UAT Fase 01c dan template konfigurasi database disposable khusus bootstrap.

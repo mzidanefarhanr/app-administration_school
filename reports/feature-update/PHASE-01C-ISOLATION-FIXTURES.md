@@ -6,7 +6,8 @@
 - Branch / baseline SHA: `main` @ `9de8f6d` / `bc53877`.
 - Lingkungan: Windows, PHP 8.1.25, Composer 2.8.2, Node 24.18.0, npm 11.4.2, MySQL 3306. UAT: SPA `127.0.0.1:4001`, API `127.0.0.1:8001`, DB `school_access_uat`. DB unit test backend = SQLite in-memory `:memory:`.
 - Status teknis: **IMPLEMENTED & FULLY VERIFIED**.
-- Status review: **PENDING** (menunggu review/persetujuan manual pemilik atas checklist UAT Fase 01c).
+- Status penerimaan manual: **DITERIMA PEMILIK (seluruh checklist #1–#8 APPROVED pada 17 Oktober 2026 WIB mengacu baseline 844883e)**.
+- Status Fase 01: **DITUTUP LENGKAP** (Fase 01a, 01b, dan 01c seluruhnya DITERIMA PEMILIK).
 
 ---
 
@@ -160,10 +161,14 @@
 
 ## 4. Status Blocker dan Keputusan
 
-- **BLK-03**: **CLOSED (pada source aktif)**. Seluruh data akun riil pada `DatabaseSeeder.php` dan ribuan baris data siswa riil pada `StudentSeeder.php` serta `StudentRombelSeeder.php` telah dibersihkan dari source aktif dan digantikan oleh seeder referensi murni serta fixture sintetis terukur. Sesuai kebijakan keamanan, riwayat commit Git historis masa lalu tidak diubah.
+- **BLK-03**: **CLOSED (pada source aktif)**. Seluruh data akun riil pada `DatabaseSeeder.php` dan ribuan baris data siswa riil pada `StudentSeeder.php` serta `StudentRombelSeeder.php` telah dibersihkan dari source aktif dan digantikan oleh seeder referensi murni serta fixture sintetis terukur. Sesuai kebijakan keamanan, riwayat commit Git historis masa lalu tidak diubah (data pada commit historis belum dihapus).
 - **DEC-16**: **APPROVED** (2026-10-17 WIB).
 - **Fase 01a**: **DITERIMA pemilik** (2026-10-15 WIB).
 - **Fase 01b**: **DITERIMA pemilik** (2026-10-17 WIB).
-- **Fase 01c**: **IMPLEMENTED & FULLY VERIFIED**; menunggu review manual pemilik.
-- **Fase 01 Secara Keseluruhan**: Belum ditutup penuh sampai review manual Fase 01c disetujui pemilik.
-- **Keputusan Terbuka yang Belum Menghambat**: Makna `status_user_id` (tetap OPEN, tidak disamakan dengan `status_active`), deployment CORS/Sanctum produksi, dan strategi pencabutan token vs sesi.
+- **Fase 01c**: **DITERIMA pemilik** (seluruh checklist manual #1–#8 APPROVED pada 17 Oktober 2026 WIB mengacu baseline `844883e`).
+- **Fase 01 Secara Keseluruhan**: **DITUTUP LENGKAP** sesuai cakupan roadmap karena seluruh subfase 01a, 01b, dan 01c telah diterima penuh oleh pemilik.
+- **Keputusan yang Masih OPEN (belum menghambat)**:
+  1. Makna `status_user_id` (jangan disamakan dengan `status_active`).
+  2. Deployment CORS/Sanctum produksi.
+  3. Strategi pencabutan token dibanding sesi.
+- **Batasan**: Persetujuan manual ini adalah penerimaan hasil pengembangan subfase, **bukan izin deployment ke produksi** dan bukan penerimaan modul yang belum tersedia.

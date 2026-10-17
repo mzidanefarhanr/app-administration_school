@@ -1,11 +1,12 @@
 # Panduan Review Manual Fase 01c (Lingkungan UAT Sintetis & Disposable Bootstrap)
 
-Status penerimaan manual: **PENDING** (menunggu review mandiri pemilik setelah implementasi).
+Status penerimaan manual: **APPROVED** (seluruh checklist nomor 1–8 telah diuji manual dan dinyatakan **APPROVED** oleh pemilik pada 17 Oktober 2026 WIB mengacu baseline `844883e`).
 Status subfase sebelumnya:
 - **Fase 01a (Authorization Backend)**: **DITERIMA PEMILIK** (seluruh checklist #1–#14 APPROVED pada 15 Oktober 2026 WIB).
 - **Fase 01b (Konfigurasi API & Error Auth)**: **DITERIMA PEMILIK** (seluruh checklist #1–#16 APPROVED pada 16–17 Oktober 2026 WIB).
-- **Fase 01c (Isolasi Fixture & Bootstrap)**: **IMPLEMENTED & FULLY VERIFIED / MANUAL ACCEPTANCE PENDING**.
-- **Fase 02 dan selanjutnya**: **NOT STARTED** (tidak dilanjutkan sebelum Fase 01c disetujui penuh).
+- **Fase 01c (Isolasi Fixture & Bootstrap)**: **DITERIMA PEMILIK** (seluruh checklist #1–#8 APPROVED pada 17 Oktober 2026 WIB).
+- **Fase 01 Secara Keseluruhan**: **DITUTUP LENGKAP** dalam cakupan roadmap (01a, 01b, dan 01c seluruhnya DITERIMA PEMILIK).
+- **Fase 02 dan selanjutnya**: **NOT STARTED** (rencana Fase 02 disiapkan terpisah untuk ditinjau pemilik).
 
 ---
 
@@ -133,14 +134,14 @@ Setelah Skenario 3 dan 4 selesai diuji:
 
 | # | Skenario | Langkah Pengujian | Hasil yang Diharapkan | Status |
 |---|---|---|---|---|
-| 1 | **DatabaseSeeder Bersih dari Akun Bawaan** | Periksa isi `DatabaseSeeder.php` atau jalankan `php artisan db:seed --class=DatabaseSeeder --env=bootstrap` pada database kosong | Seeder hanya memanggil `ReferenceDataSeeder`; tidak ada akun pengguna atau kata sandi default yang dibuat (`User::count() === 0`). | PENDING |
-| 2 | **Pembersihan Data Siswa Riil Seeder (BLK-03)** | Periksa berkas `StudentSeeder.php` dan `StudentRombelSeeder.php` di repositori | Berkas bersih dari ribuan baris data siswa dan NIK riil; `StudentSeeder` kini hanya memanggil `SyntheticDataSeeder` (khusus lingkungan non-produksi). | PENDING |
-| 3 | **Bootstrap Admin Interaktif via CLI (Berhasil)** | Di terminal `laravel-api`, jalankan `php artisan app:bootstrap-admin --env=bootstrap` pada database disposable kosong (ikuti Prosedur §3.B) | Menanyakan nama, username, email, NIK (16 digit), dan password diketik tersembunyi (secret prompt); menampilkan target database dan konfirmasi; berhasil membuat administrator aktif (exit code 0). | PENDING |
-| 4 | **Bootstrap Admin Ditolak Bila Pengelola Akses Ada** | Di terminal `laravel-api`, ulangi `php artisan app:bootstrap-admin --env=bootstrap` pada database yang sama (ikuti Prosedur §3.C) | Langsung dibatalkan dengan error: *"An active user with access management capabilities already exists. Bootstrap aborted."* (exit code 1). Tidak ada perubahan akun. | PENDING |
-| 5 | **Validasi Akun: Nama Boleh Sama (Homonim)** | Login sebagai `uat.admin` di `http://127.0.0.1:4001` → buka menu Accounts (`/master/accounts`) → buat akun baru dengan Name sama persis akun yang sudah ada (misal "UAT Operator Sekolah"), email & username berbeda | Akun baru berhasil disimpan tanpa penolakan keunikan nama. | PENDING |
-| 6 | **Validasi Akun: NIK Tepat 16 Digit** | Di menu Accounts (`/master/accounts`), coba masukkan NIK dengan 15 digit atau memuat huruf | Muncul pesan peringatan kuning *"NIK must be exactly 16 digits."* dan form menolak penyimpanan sebelum NIK tepat 16 digit. | PENDING |
-| 7 | **Standar Password Akun Baru: Min 12 Karakter** | Di dialog New Account (`/master/accounts`), ketik password kurang dari 12 karakter | Muncul pesan peringatan kuning *"Password must be at least 12 characters."* Form menolak submit jika password < 12 karakter. | PENDING |
-| 8 | **Standar Password Ubah & Reset: Min 12 Karakter** | Buka form Ubah Password di `/profile/user` atau form Reset Password di `/password-reset/:token` | Teks label memuat *"New Password (min 12 chars)"*; pengisian kata sandi kurang dari 12 karakter ditolak oleh validasi antarmuka klien dan backend. | PENDING |
+| 1 | **DatabaseSeeder Bersih dari Akun Bawaan** | Periksa isi `DatabaseSeeder.php` atau jalankan `php artisan db:seed --class=DatabaseSeeder --env=bootstrap` pada database kosong | Seeder hanya memanggil `ReferenceDataSeeder`; tidak ada akun pengguna atau kata sandi default yang dibuat (`User::count() === 0`). | APPROVED (2026-10-17 WIB) |
+| 2 | **Pembersihan Data Siswa Riil Seeder (BLK-03)** | Periksa berkas `StudentSeeder.php` dan `StudentRombelSeeder.php` di repositori | Berkas bersih dari ribuan baris data siswa dan NIK riil; `StudentSeeder` kini hanya memanggil `SyntheticDataSeeder` (khusus lingkungan non-produksi). | APPROVED (2026-10-17 WIB) |
+| 3 | **Bootstrap Admin Interaktif via CLI (Berhasil)** | Di terminal `laravel-api`, jalankan `php artisan app:bootstrap-admin --env=bootstrap` pada database disposable kosong (ikuti Prosedur §3.B) | Menanyakan nama, username, email, NIK (16 digit), dan password diketik tersembunyi (secret prompt); menampilkan target database dan konfirmasi; berhasil membuat administrator aktif (exit code 0). | APPROVED (2026-10-17 WIB) |
+| 4 | **Bootstrap Admin Ditolak Bila Pengelola Akses Ada** | Di terminal `laravel-api`, ulangi `php artisan app:bootstrap-admin --env=bootstrap` pada database yang sama (ikuti Prosedur §3.C) | Langsung dibatalkan dengan error: *"An active user with access management capabilities already exists. Bootstrap aborted."* (exit code 1). Tidak ada perubahan akun. | APPROVED (2026-10-17 WIB) |
+| 5 | **Validasi Akun: Nama Boleh Sama (Homonim)** | Login sebagai `uat.admin` di `http://127.0.0.1:4001` → buka menu Accounts (`/master/accounts`) → buat akun baru dengan Name sama persis akun yang sudah ada (misal "UAT Operator Sekolah"), email & username berbeda | Akun baru berhasil disimpan tanpa penolakan keunikan nama. | APPROVED (2026-10-17 WIB) |
+| 6 | **Validasi Akun: NIK Tepat 16 Digit** | Di menu Accounts (`/master/accounts`), coba masukkan NIK dengan 15 digit atau memuat huruf | Muncul pesan peringatan kuning *"NIK must be exactly 16 digits."* dan form menolak penyimpanan sebelum NIK tepat 16 digit. | APPROVED (2026-10-17 WIB) |
+| 7 | **Standar Password Akun Baru: Min 12 Karakter** | Di dialog New Account (`/master/accounts`), ketik password kurang dari 12 karakter | Muncul pesan peringatan kuning *"Password must be at least 12 characters."* Form menolak submit jika password < 12 karakter. | APPROVED (2026-10-17 WIB) |
+| 8 | **Standar Password Ubah & Reset: Min 12 Karakter** | Buka form Ubah Password di `/profile/user` atau form Reset Password di `/password-reset/:token` | Teks label memuat *"New Password (min 12 chars)"*; pengisian kata sandi kurang dari 12 karakter ditolak oleh validasi antarmuka klien dan backend. | APPROVED (2026-10-17 WIB) |
 
 ---
 

@@ -10,7 +10,7 @@ Fondasi keamanan + backup dahulu; penyelesaian pendataan; pengolahan massal dan 
 | Fase | Scope | Dependensi | Status teknis | Review |
 |---|---|---|---|---|
 | 00 | [Audit baseline dan kesiapan lingkungan](phases/PHASE-00-BASELINE.md) | Tidak ada | PARTIAL (source+env audit; test/build/browser NOT RUN) | PENDING |
-| 01 | [Hak akses, autentikasi dan lingkungan aman](phases/PHASE-01-ACCESS.md) | 00; DEC-03 untuk 01a | 01a IMPLEMENTED (penerimaan manual checklist #1–#14 APPROVED 2026-10-15 WIB). 01b **IMPLEMENTED & VERIFIED** (interceptor apiLogin, retry 419, guard child, single logout 204, reset password form & mail log, UI English; 55 test backend PASS; 10 unit test frontend PASS; UAT browser PASS; review PENDING). 01c NOT STARTED | 01a APPROVED; 01b review PENDING; 01c PENDING |
+| 01 | [Hak akses, autentikasi dan lingkungan aman](phases/PHASE-01-ACCESS.md) | 00; DEC-03 untuk 01a | **IMPLEMENTED & VERIFIED** (01a, 01b, 01c selesai; 82 test backend PASS; 15 unit test frontend PASS; UAT browser PASS) | **DITERIMA LENGKAP & DITUTUP** (01a APPROVED 2026-10-15; 01b APPROVED 2026-10-16/17; 01c APPROVED 2026-10-17 WIB) |
 | 02 | [Audit terpercaya dan backup yang dapat dipulihkan](phases/PHASE-02-BACKUP-AUDIT.md) | 01; DEC-02 dan DEC-09 untuk backup | NOT STARTED | PENDING |
 | 03 | [Pendataan siswa lengkap dan aman](phases/PHASE-03-STUDENTS.md) | 01; 02 sebelum data operasional; DEC-05 | NOT STARTED | PENDING |
 | 04 | [Guru dan pegawai](phases/PHASE-04-EMPLOYEES.md) | 01; 02; DEC-04 | NOT STARTED | PENDING |
@@ -57,7 +57,8 @@ Baca [prompt OpenCode](../docs/OPENCODE-WORKFLOW.md), jalankan 00a–00b audit s
 - [x] Keputusan DEC-14 (register/nonaktif/ekspor/legacy/Bahasa UI) APPROVED 2026-10-14 WIB; penyelesaian ekspor siswa (endpoint CSV terlindungi), UI English, koreksi pemetaan legacy.
 - [x] Penerimaan manual pemilik Fase 01a (checklist #1–#14 APPROVED 2026-10-15 WIB; laporan PHASE-01A-ACCESS.md §21–§22).
 - [x] Fase 01b — implementasi konfigurasi API, alur error autentikasi, dan reset password (DEC-15 APPROVED; laporan PHASE-01B-API-AUTH.md; 60 test backend PASS, 14 unit test frontend PASS; penerimaan manual pemilik: seluruh checklist #1–#16 APPROVED: #1–#7 dan #9–#16 pada 2026-10-16 WIB, #8 retest berhasil pada 2026-10-17 WIB).
-- [x] Subfase 01c — isolasi test lanjutan, pemisahan fixture sintetis, validator fixture, dan penanganan BLK-03 (DEC-16 APPROVED; laporan PHASE-01C-ISOLATION-FIXTURES.md; 82 test backend PASS, 15 unit test frontend PASS; review manual pemilik PENDING).
-- [ ] Penerimaan manual pemilik Fase 01c (checklist #1–#8 di PHASE-01C-MANUAL-REVIEW.md).
-- [ ] Fase 02 — Integritas Operasional (audit log, soft delete, backup & restore).
+- [x] Subfase 01c — isolasi test lanjutan, pemisahan fixture sintetis, validator fixture, dan penanganan BLK-03 (DEC-16 APPROVED; laporan PHASE-01C-ISOLATION-FIXTURES.md; 82 test backend PASS, 15 unit test frontend PASS).
+- [x] Penerimaan manual pemilik Fase 01c (checklist #1–#8 di PHASE-01C-MANUAL-REVIEW.md APPROVED 2026-10-17 WIB mengacu baseline 844883e).
+- [x] **Fase 01 — Hak akses, autentikasi dan lingkungan aman**: DITUTUP LENGKAP sesuai cakupan roadmap (01a, 01b, 01c seluruhnya DITERIMA PEMILIK).
+- [ ] Rencana Fase 02 — Audit terpercaya dan backup yang dapat dipulihkan (PHASE-02-PLAN.md siap review).
 - [ ] Implementasi dan UAT fase terpilih.

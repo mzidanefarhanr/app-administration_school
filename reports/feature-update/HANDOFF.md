@@ -10,11 +10,14 @@ Catatan perubahan pemilik: entri `CHANGELOG.md` yang disebut laporan lama ("Peng
 
 ## 1. Status Fase
 - **Fase 00 — Audit baseline**: PARTIAL (source & environment audit selesai; browser NOT RUN).
-- **Fase 01a — Authorization backend**: **IMPLEMENTED + DITERIMA pemilik** (checklist #1–#14 APPROVED 2026-10-15 WIB).
-- **Fase 01b — Konfigurasi API dan error auth**: **IMPLEMENTED + DITERIMA pemilik** (seluruh checklist manual #1–#16 APPROVED: nomor 1–7 dan 9–16 pada 16 Oktober 2026 WIB; nomor 8 retest berhasil pada 17 Oktober 2026 WIB).
-- **Fase 01c — Isolasi pengujian dan fixture**: **IMPLEMENTED & FULLY VERIFIED** (DEC-16 APPROVED 2026-10-17 WIB; laporan `PHASE-01C-ISOLATION-FIXTURES.md`, panduan manual `PHASE-01C-MANUAL-REVIEW.md`; review pemilik **PENDING**).
-- **BLK-03**: **CLOSED pada source aktif** (seluruh akun pengguna riil dan data siswa riil telah dibersihkan dari seeder aktif; riwayat Git masa lalu tidak diubah).
-- **Fase 02 dan fase selanjutnya**: NOT STARTED.
+- **Fase 01 — Hak akses, autentikasi dan lingkungan aman**: **DITERIMA LENGKAP & DITUTUP** (Fase 01a, 01b, dan 01c seluruhnya telah DITERIMA PEMILIK):
+  - **Fase 01a (Authorization Backend)**: DITERIMA pemilik (checklist #1–#14 APPROVED 2026-10-15 WIB).
+  - **Fase 01b (Konfigurasi API & Error Auth)**: DITERIMA pemilik (checklist #1–#16 APPROVED 2026-10-16/17 WIB).
+  - **Fase 01c (Isolasi Fixture & Bootstrap)**: DITERIMA pemilik (checklist #1–#8 APPROVED 2026-10-17 WIB mengacu baseline `844883e`).
+- **BLK-03**: **CLOSED pada source aktif** (seluruh akun pengguna riil dan data siswa riil telah dibersihkan dari seeder aktif; data pada riwayat commit Git historis belum dihapus).
+- **Keputusan Terbuka (belum menghambat)**: makna `status_user_id` (jangan disamakan dengan `status_active`), deployment CORS/Sanctum produksi, strategi pencabutan token vs sesi.
+- **Batasan**: Penerimaan manual ini adalah penerimaan hasil pengembangan subfase, **bukan izin deployment ke produksi** dan bukan penerimaan modul yang belum tersedia.
+- **Fase 02 — Integritas Operasional**: **NOT STARTED** (rencana Fase 02 siap ditinjau pemilik).
 
 ---
 
@@ -69,12 +72,13 @@ Catatan perubahan pemilik: entri `CHANGELOG.md` yang disebut laporan lama ("Peng
 
 ---
 
-## 4. Status Tugas Fase 01c
-1. **Isolasi Database & Storage**: **SELESAI PENUH**. SQLite in-memory guard aktif, storage testing disk fail-safe aktif.
-2. **Pembersihan BLK-03 (PII Seeder)**: **SELESAI PENUH PADA SOURCE AKTIF**. Akun riil dan data siswa riil dibersihkan; riwayat Git masa lalu tidak diubah.
-3. **Pemisahan Seeder & Bootstrap Admin**: **SELESAI PENUH**. `ReferenceDataSeeder` referensi murni; `SyntheticDataSeeder` dummy aman; `app:bootstrap-admin` CLI interaktif dengan secret prompt.
-4. **Validasi Akun & Standar Password 12 Karakter**: **SELESAI PENUH**. Nama boleh sama, NIK string 16 digit, password min 12 karakter di seluruh alur.
-5. **Panduan Manual UAT 01c**: **SELESAI PENUH**. 8 butir checklist siap diuji pemilik pada `reports/feature-update/PHASE-01C-MANUAL-REVIEW.md` (mencakup prosedur keselamatan pre-flight verifikasi database koneksi efektif dan pengujian bootstrap berhasil vs ditolak pada DB disposable khusus tanpa menyentuh `school_access_uat` atau database operasional).
+## 4. Status Tugas Fase 01c & Penutupan Fase 01
+1. **Isolasi Database & Storage**: **SELESAI & DITERIMA**. SQLite in-memory guard aktif, storage testing disk fail-safe aktif.
+2. **Pembersihan BLK-03 (PII Seeder)**: **CLOSED PADA SOURCE AKTIF**. Akun riil dan data siswa riil dibersihkan; riwayat Git historis masa lalu tidak diubah.
+3. **Pemisahan Seeder & Bootstrap Admin**: **SELESAI & DITERIMA**. `ReferenceDataSeeder` referensi murni; `SyntheticDataSeeder` dummy aman; `app:bootstrap-admin` CLI interaktif dengan secret prompt.
+4. **Validasi Akun & Standar Password 12 Karakter**: **SELESAI & DITERIMA**. Nama boleh sama, NIK string 16 digit, password min 12 karakter di seluruh alur.
+5. **Penerimaan Manual Pemilik Fase 01c**: **DITERIMA LENGKAP**. Seluruh checklist nomor #1–#8 dinyatakan **APPROVED** oleh pemilik pada 17 Oktober 2026 WIB mengacu baseline `844883e`.
+6. **Penutupan Fase 01**: **FASE 01 DITUTUP LENGKAP** dalam roadmap (01a, 01b, dan 01c seluruhnya DITERIMA).
 
 ---
 
@@ -83,9 +87,13 @@ Catatan perubahan pemilik: entri `CHANGELOG.md` yang disebut laporan lama ("Peng
 - **DEC-14** (register publik ditutup, status_active ditolak, ekspor via students.export, legacy mapping per nama, UI English): **APPROVED** (2026-10-14 WIB).
 - **DEC-15** (alur error auth, CSRF 419 single retry, reset password scope 01b via mail log): **APPROVED** (2026-10-16 WIB).
 - **DEC-16** (isolasi fixture, bootstrap admin CLI, standar password 12 karakter): **APPROVED** (2026-10-17 WIB).
-- **BLK-03**: **CLOSED pada source aktif** (data riil dibersihkan dari seeder aktif; riwayat Git historis tidak di-rewrite).
-- **Keputusan autentikasi lain yang masih OPEN**: makna `status_user_id` (jangan disamakan dengan `status_active`), deployment CORS/Sanctum produksi, strategi pencabutan token vs sesi (tidak menghambat 01c).
+- **BLK-03**: **CLOSED pada source aktif** (data riil dibersihkan dari seeder aktif; riwayat Git historis belum dihapus).
+- **Keputusan autentikasi yang masih OPEN**:
+  1. Makna `status_user_id` (jangan disamakan dengan `status_active`).
+  2. Deployment CORS/Sanctum produksi.
+  3. Strategi pencabutan token dibanding sesi.
 - **UI Language**: Seluruh antarmuka dalam scope tetap **English**.
+- **Batasan**: Persetujuan manual ini **bukan izin deployment ke produksi**.
 
 ---
 
@@ -99,8 +107,8 @@ Server UAT lokal yang diketahui masih berjalan (jangan dihentikan sembarangan):
 ---
 
 ## 7. Pekerjaan Pertama Sesi Baru
-1. Menunggu review manual pemilik atas checklist Fase 01c di `reports/feature-update/PHASE-01C-MANUAL-REVIEW.md`.
-2. Setelah seluruh checklist Fase 01c disetujui pemilik, tandai Fase 01 secara keseluruhan selesai dan lanjutkan perencanaan ke Fase 02 (Integritas Operasional: audit log, soft delete, backup & restore).
+1. Menunggu review pemilik atas rencana Fase 02 di `reports/feature-update/PHASE-02-PLAN.md` (Audit Server, Rollback Terbatas, dan Backup/Restore Drill).
+2. Jangan memulai implementasi Fase 02 sebelum rencana dan keputusan pemilik disetujui.
 
 ---
 
