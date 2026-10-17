@@ -61,6 +61,7 @@ export function useResourceManager(config) {
         fieldLabels      = {},
         uniqueFields     = [],
         uniqueMinLengths = [3, 3, 3, 3],
+        requiredFields   = [],
         fkFields = [],
     } = config;
 
@@ -124,7 +125,7 @@ export function useResourceManager(config) {
 
     // In the return block — spread all isAlreadyUsed refs dynamically
     const catUsedRefs = Object.fromEntries(
-        _validators.map(({ field, isAlreadyUsed }, i) => [`isCat${i + 1}Used`, isAlreadyUsed])
+        _validators.map(({ isAlreadyUsed }, i) => [`isCat${i + 1}Used`, isAlreadyUsed])
     );
 
     const validFieldCount = computed(() =>
@@ -252,7 +253,7 @@ export function useResourceManager(config) {
     const saveSingleData = async () => {
         submitted.value = true;
 
-        const textFieldsValid = uniqueFields.every(f => singleData.value[f]?.trim());
+        const textFieldsValid = [...uniqueFields, ...requiredFields].every(f => singleData.value[f]?.trim());
 
         // Replace the two hardcoded checks:
         const fkFieldsValid = fkFields.every(({ fk }) => singleData.value[fk]?.id);
@@ -348,7 +349,7 @@ export function useResourceManager(config) {
 
             waitingDialogRender();
             try {
-                const { data: newData } = await apiLogin.post(`/api/${endpoint}`, singleData.value);
+                await apiLogin.post(`/api/${endpoint}`, singleData.value);
                 // await apiLogin.post('/api/activities', {
                 //     before:      null,
                 //     after:       null,

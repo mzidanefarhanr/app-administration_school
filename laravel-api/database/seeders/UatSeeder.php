@@ -31,6 +31,8 @@ class UatSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->guardEnvironment();
+
         // 1. Data referensi minimum.
         TypeUser::firstOrCreate(['name' => 'Admin']);
         TypeUser::firstOrCreate(['name' => 'User']);
@@ -44,7 +46,7 @@ class UatSeeder extends Seeder
         $password = getenv('UAT_SEED_PASSWORD');
         $generated = false;
         if (! $password) {
-            $password = 'uat-'.bin2hex(random_bytes(6));
+            $password = 'uat-'.bin2hex(random_bytes(8)); // min 12 karakter
             $generated = true;
         }
 
@@ -136,5 +138,33 @@ class UatSeeder extends Seeder
         }
 
         $this->command->info('UatSeeder: data siswa sintetis dibuat untuk tahun ajaran 2026/2027.');
+    }
+
+    /**
+     * Fail-safe: menolak seeding UAT pada lingkungan produksi atau database operasional.
+     */
+    protected function guardEnvironment(): void
+    {
+        if (app()->environment('production')) {
+            throw new \RuntimeException('UAT seeding is strictly prohibited in production environment.');
+        }
+
+        $connection = config('database.default');
+        $database = config("database.connections.{$connection}.database");
+
+        $isMemory = ($connection === 'sqlite' && $database === ':memory:');
+        $isAllowedUat = in_array(app()->environment(), ['testing', 'uat', 'local']) && (
+            str_contains(strtolower((string) $database), 'uat') ||
+            str_contains(strtolower((string) $database), 'test') ||
+            $isMemory
+        );
+
+        if (! $isMemory && ! $isAllowedUat) {
+            throw new \RuntimeException(sprintf(
+                'UAT seeding refused for connection "%s" and database "%s". Only isolated test/UAT databases are permitted.',
+                (string) $connection,
+                (string) $database
+            ));
+        }
     }
 }

@@ -1,0 +1,108 @@
+<?php
+
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Tests\Support\CreatesAccessFixtures;
+
+uses(CreatesAccessFixtures::class);
+
+test('bootstrap admin command fails if active access manager already exists', function () {
+    $this->seedAccessReferenceData();
+
+    // Create an existing active administrator who can manage access
+    $this->makeUserWithRole('admin-sistem');
+
+    $this->artisan('app:bootstrap-admin')
+        ->expectsOutput('An active user with access management capabilities already exists. Bootstrap aborted.')
+        ->assertExitCode(1);
+});
+
+test('bootstrap admin command validates short password and confirmation mismatch', function () {
+    $this->seedAccessReferenceData();
+
+    // Short password (< 12 chars)
+    $this->artisan('app:bootstrap-admin', [
+        '--name' => 'Initial Admin',
+        '--username' => 'init.admin',
+        '--email' => 'admin@school.test',
+        '--nik' => '0123456789012345',
+    ])
+        ->expectsQuestion('Enter password (min 12 characters)', 'short-pass')
+        ->expectsQuestion('Confirm password', 'short-pass')
+        ->assertExitCode(1);
+
+    // Password confirmation mismatch
+    $this->artisan('app:bootstrap-admin', [
+        '--name' => 'Initial Admin',
+        '--username' => 'init.admin',
+        '--email' => 'admin@school.test',
+        '--nik' => '0123456789012345',
+    ])
+        ->expectsQuestion('Enter password (min 12 characters)', 'secure-password-123')
+        ->expectsQuestion('Confirm password', 'mismatched-password-456')
+        ->assertExitCode(1);
+
+    expect(User::where('username', 'init.admin')->exists())->toBeFalse();
+});
+
+test('bootstrap admin command validates nik format', function () {
+    $this->seedAccessReferenceData();
+
+    // Invalid NIK (15 digits)
+    $this->artisan('app:bootstrap-admin', [
+        '--name' => 'Initial Admin',
+        '--username' => 'init.admin',
+        '--email' => 'admin@school.test',
+        '--nik' => '123456789012345', // 15 digits
+    ])
+        ->expectsQuestion('Enter password (min 12 characters)', 'secure-password-123')
+        ->expectsQuestion('Confirm password', 'secure-password-123')
+        ->assertExitCode(1);
+
+    expect(User::where('username', 'init.admin')->exists())->toBeFalse();
+});
+
+test('bootstrap admin command successfully creates system administrator on empty database', function () {
+    $this->seedAccessReferenceData();
+
+    $this->artisan('app:bootstrap-admin', [
+        '--name' => 'First Administrator',
+        '--username' => 'super.admin',
+        '--email' => 'super.admin@school.test',
+        '--nik' => '0987654321098765',
+    ])
+        ->expectsQuestion('Enter password (min 12 characters)', 'secure-super-admin-pass-2026')
+        ->expectsQuestion('Confirm password', 'secure-super-admin-pass-2026')
+        ->expectsConfirmation('Proceed with creating the administrator account?', 'yes')
+        ->expectsOutput("System administrator account 'super.admin' successfully created.")
+        ->assertExitCode(0);
+
+    $admin = User::where('username', 'super.admin')->first();
+    expect($admin)->not->toBeNull();
+    expect($admin->name)->toBe('First Administrator');
+    expect($admin->email)->toBe('super.admin@school.test');
+    expect($admin->nik)->toBe('0987654321098765');
+    expect(str_starts_with($admin->nik, '0'))->toBeTrue();
+    expect($admin->status_active)->toBeTrue();
+    expect(Hash::check('secure-super-admin-pass-2026', $admin->password))->toBeTrue();
+    expect($admin->canManageAccess())->toBeTrue();
+    expect($admin->roles()->where('slug', 'admin-sistem')->exists())->toBeTrue();
+});
+
+test('bootstrap admin command cancels cleanly when confirmation is denied', function () {
+    $this->seedAccessReferenceData();
+
+    $this->artisan('app:bootstrap-admin', [
+        '--name' => 'Cancelled Admin',
+        '--username' => 'cancelled.admin',
+        '--email' => 'cancelled@school.test',
+        '--nik' => '0987654321098765',
+    ])
+        ->expectsQuestion('Enter password (min 12 characters)', 'secure-super-admin-pass-2026')
+        ->expectsQuestion('Confirm password', 'secure-super-admin-pass-2026')
+        ->expectsConfirmation('Proceed with creating the administrator account?', 'no')
+        ->expectsOutput('Bootstrap cancelled by operator.')
+        ->assertExitCode(0);
+
+    expect(User::where('username', 'cancelled.admin')->exists())->toBeFalse();
+});

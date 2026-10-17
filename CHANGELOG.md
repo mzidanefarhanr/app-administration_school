@@ -17,6 +17,47 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-17] Fase 01c — Fix: isolasi fixture, pembersihan data riil seeder, bootstrap admin CLI, dan validator akun
+- Type: Fix, Security, Feature, Test, Docs
+- Scope / fase: implementasi Fase 01c berdasarkan rencana `PHASE-01C-PLAN.md` dan keputusan pemilik `DEC-16` (Q-01c-1 s/d Q-01c-3).
+- Files touched:
+  - `laravel-api/config/filesystems.php`
+  - `laravel-api/phpunit.xml`
+  - `laravel-api/tests/CreatesApplication.php`
+  - `laravel-api/app/Providers/AppServiceProvider.php`
+  - `laravel-api/app/Http/Controllers/UserController.php`
+  - `laravel-api/app/Console/Commands/BootstrapAdminCommand.php` (baru)
+  - `laravel-api/database/factories/{StudentFactory.php, EmployeeFactory.php, UserFactory.php}`
+  - `laravel-api/database/seeders/{ReferenceDataSeeder.php (baru), SyntheticDataSeeder.php (baru), DatabaseSeeder.php, StudentSeeder.php, StudentRombelSeeder.php, SchoolRombelSeeder.php, SchoolProfileSeeder.php, AccessControlSeeder.php, SchoolYearSeeder.php, SemesterSeeder.php, StatusUserSeeder.php, TypeUserSeeder.php, UatSeeder.php}`
+  - `laravel-api/tests/Feature/Access/{StorageIsolationTest.php, FactoryIntegrityTest.php, BootstrapAdminTest.php, UserValidationTest.php, SeederIsolationTest.php}` (baru)
+  - `vue-app/src/utils/useResourceManager.js`
+  - `vue-app/src/views/pages/master/Accounts.vue`
+  - `vue-app/src/views/pages/auth/Profile.vue`
+  - `vue-app/src/views/pages/auth/ResetPassword.vue`
+  - `vue-app/tests/phase-01b-api-auth.test.mjs`
+  - `docs/{DATABASE.md, API-CONTRACTS.md}`
+  - `reports/feature-update/{PHASE-01C-ISOLATION-FIXTURES.md (baru), PHASE-01C-MANUAL-REVIEW.md (baru), INDEX.md, HANDOFF.md}`
+  - `roadmap/ROADMAP.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Isolasi pengujian dan storage: fail-safe SQLite in-memory dipertahankan; ditambahkan disk testing terisolasi `storage/framework/testing/disks/testing` dan fail-safe `guardAgainstUnsafeStorage` yang membatalkan test bila mengarah ke storage operasional/publik.
+  2. Factory terisi data sintetis valid: `StudentFactory` dan `EmployeeFactory` menghasilkan record dan relasi FK valid, NIK 16 digit string, dan nol awal dipertahankan.
+  3. Pembersihan PII seeder (BLK-03 ditutup pada source aktif): akun riil dibersihkan dari `DatabaseSeeder.php`; ribuan baris data siswa dan NIK riil dibersihkan dari `StudentSeeder.php` dan `StudentRombelSeeder.php`. Riwayat commit Git historis masa lalu tidak diubah.
+  4. Pemisahan seeder: `ReferenceDataSeeder` referensi murni tanpa akun/password bawaan, idempotent, dan tidak mereset izin admin; `SyntheticDataSeeder` menghasilkan 15 siswa dummy dengan fail-safe `guardEnvironment()` yang menolak production dan database operasional; `UatSeeder` memuat fail-safe dan password sintetis min 12 karakter.
+  5. Perintah CLI bootstrap admin: `php artisan app:bootstrap-admin` interaktif dengan password diketik tersembunyi via secret prompt (`$this->secret()`) dan konfirmasi; menolak eksekusi bila pengelola akses aktif sudah ada; membuat akun dan menautkan peran `admin-sistem` secara atomik.
+  6. Validasi akun: aturan keunikan `name` dihapus (nama boleh sama/homonim); NIK divalidasi tepat 16 digit string angka (`digits:16`); relasi FK divalidasi `exists`; format error 422 distandarisasi.
+  7. Standar password 12 karakter: `Password::defaults()` disetel min 12 karakter pada `AppServiceProvider.php`; diterapkan konsisten pada pembuatan akun, bootstrap, form ubah password (`Profile.vue`), dan form reset password (`ResetPassword.vue`); akun lama tidak dipaksa mengubah kata sandi.
+- Why: menutup risiko kebocoran data pribadi pada seeder, menyediakan mekanisme inisialisasi administrator aman, memperkuat isolasi test dan storage, dan menyelaraskan validasi akun sekolah sesuai roadmap dan keputusan pemilik.
+- Validation:
+  - Backend: 82 passed (346 assertions) di SQLite `:memory:` (`php artisan test`).
+  - Pint: PASS (100% clean, 26 files).
+  - Frontend test: 15 passed (0 failed) (`node --test tests/phase-01b-api-auth.test.mjs tests/auth-race-condition.test.mjs`).
+  - Lint: 0 errors (`npx eslint ... --quiet`).
+  - Build: PASS (`npm run build`).
+  - Live Browser UAT: Dialog New Account (NIK 16 digit, password min 12 char, homonim nama diterima), form Profile ubah password min 12 char, form Reset Password min 12 char.
+- Notes / risks: BLK-03 CLOSED pada source aktif; review manual pemilik Fase 01c PENDING (8 checklist); Fase 01a & 01b DITERIMA; seluruh Fase 01 menunggu penerimaan 01c.
+- Evidence: `reports/feature-update/PHASE-01C-ISOLATION-FIXTURES.md`, `reports/feature-update/PHASE-01C-MANUAL-REVIEW.md`.
+
 ## [2026-10-17] Fase 01c — Docs: perencanaan isolasi pengujian, pemisahan fixture sintetis, dan penanganan BLK-03
 - Type: Docs
 - Scope / fase: perencanaan Fase 01c (isolasi test dan fixture sintetis) berdasarkan roadmap aktual.

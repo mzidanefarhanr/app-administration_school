@@ -2,7 +2,8 @@
 
 ## Status
 Source review migration/model, bukan inspeksi database hidup. Baseline b02a87f; HEAD audit b699fec (kode identik). MySQL pada contoh environment; schema aktual instalasi pemilik harus diperiksa Fase 00.
-**Isolasi uji (Fase 01a):** tes otomatis berjalan pada SQLite in-memory via `laravel-api/.env.testing` + `phpunit.xml` (`DB_CONNECTION=sqlite`, `DB_DATABASE=:memory:`, `force="true"`) dengan fail-safe di `tests/CreatesApplication.php` yang membatalkan suite bila koneksi bukan sqlite in-memory. Database operasional `backdata_administrations` TIDAK dipakai untuk tes. Koneksi port 3306 terbuka bukan bukti koneksi Laravel/DB.
+**Isolasi uji (Fase 01a/01c):** tes otomatis berjalan pada SQLite in-memory via `laravel-api/.env.testing` + `phpunit.xml` (`DB_CONNECTION=sqlite`, `DB_DATABASE=:memory:`, `force="true"`) dan disk storage pengujian terisolasi (`FILESYSTEM_DISK=testing` mengarah ke `storage/framework/testing/disks/testing`) dengan fail-safe di `tests/CreatesApplication.php` (`guardAgainstUnsafeTestDatabase` dan `guardAgainstUnsafeStorage`) yang membatalkan suite bila koneksi bukan sqlite in-memory atau disk storage mengarah ke storage operasional/publik. Database operasional `backdata_administrations` dan storage publik TIDAK dipakai untuk tes. Koneksi port 3306 terbuka bukan bukti koneksi Laravel/DB.
+Pada Fase 01c, validasi keunikan `name` pada pembuatan akun dihapus dari application layer (nama boleh sama/homonim), NIK divalidasi tepat 16 digit string, dan password minimal 12 karakter (DEC-16).
 Nama tahun pada migration mencapai 2029; Laravel menentukan urutan dari nama file, bukan tanggal bisnis. Migration baru Fase 01a memakai prefix `2029_07_20_*` agar berurutan setelah migration 2029 yang ada.
 
 ## Tabel domain aktual

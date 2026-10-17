@@ -30,6 +30,12 @@ return [
 
     'disks' => [
 
+        'testing' => [
+            'driver' => 'local',
+            'root' => storage_path('framework/testing/disks/testing'),
+            'throw' => false,
+        ],
+
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app'),

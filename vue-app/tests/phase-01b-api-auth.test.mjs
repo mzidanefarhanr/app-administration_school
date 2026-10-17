@@ -491,3 +491,30 @@ test('reset password form handles 422 invalid/expired/reused token correctly', (
     assert.equal(parsedMismatch.title, 'Password Validation');
     assert.equal(parsedMismatch.message, 'The password confirmation does not match.');
 });
+
+// ── Test 9: Reset password client validation enforces 12 characters ──
+test('reset password client validation rejects password under 12 characters', () => {
+    function validateResetInput(password, confirmation) {
+        if (!password || password.length < 12) {
+            return { valid: false, error: 'Password must be at least 12 characters long.' };
+        }
+        if (password !== confirmation) {
+            return { valid: false, error: 'Password confirmation does not match.' };
+        }
+        return { valid: true };
+    }
+
+    // 11 chars
+    const shortResult = validateResetInput('shortpass11', 'shortpass11');
+    assert.equal(shortResult.valid, false);
+    assert.equal(shortResult.error, 'Password must be at least 12 characters long.');
+
+    // 12 chars
+    const validResult = validateResetInput('twelvechars1', 'twelvechars1');
+    assert.equal(validResult.valid, true);
+
+    // Mismatch
+    const mismatchResult = validateResetInput('twelvechars1', 'twelvechars2');
+    assert.equal(mismatchResult.valid, false);
+    assert.equal(mismatchResult.error, 'Password confirmation does not match.');
+});

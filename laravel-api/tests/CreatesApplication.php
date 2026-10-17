@@ -18,6 +18,7 @@ trait CreatesApplication
         $app->make(Kernel::class)->bootstrap();
 
         $this->guardAgainstUnsafeTestDatabase($app);
+        $this->guardAgainstUnsafeStorage($app);
 
         return $app;
     }
@@ -50,6 +51,32 @@ trait CreatesApplication
                 'Never point tests at the operational database.',
                 (string) $driver,
                 (string) $database
+            ));
+        }
+    }
+
+    /**
+     * Fail-safe: batalkan suite jika disk storage uji mengarah ke storage
+     * operasional atau direktori di luar framework/testing.
+     */
+    protected function guardAgainstUnsafeStorage(Application $app): void
+    {
+        if ($app->environment() !== 'testing') {
+            return;
+        }
+
+        $defaultDisk = $app['config']->get('filesystems.default');
+        $root = $app['config']->get("filesystems.disks.{$defaultDisk}.root");
+        $safePrefix = str_replace('\\', '/', storage_path('framework/testing'));
+
+        if ($defaultDisk !== 'testing' && (! $root || ! str_starts_with(str_replace('\\', '/', $root), $safePrefix))) {
+            throw new RuntimeException(sprintf(
+                'Refused to run tests against an unsafe storage disk. '.
+                'Expected filesystems.default="testing" with root under "%s", got disk="%s" root="%s". '.
+                'Never point tests at operational or public storage.',
+                $safePrefix,
+                (string) $defaultDisk,
+                (string) $root
             ));
         }
     }

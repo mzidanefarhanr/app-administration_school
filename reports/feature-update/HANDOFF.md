@@ -12,60 +12,67 @@ Catatan perubahan pemilik: entri `CHANGELOG.md` yang disebut laporan lama ("Peng
 - **Fase 00 — Audit baseline**: PARTIAL (source & environment audit selesai; browser NOT RUN).
 - **Fase 01a — Authorization backend**: **IMPLEMENTED + DITERIMA pemilik** (checklist #1–#14 APPROVED 2026-10-15 WIB).
 - **Fase 01b — Konfigurasi API dan error auth**: **IMPLEMENTED + DITERIMA pemilik** (seluruh checklist manual #1–#16 APPROVED: nomor 1–7 dan 9–16 pada 16 Oktober 2026 WIB; nomor 8 retest berhasil pada 17 Oktober 2026 WIB).
-  - Implementasi kode commit `60e951b`.
-  - Keputusan Q1–Q3 disetujui dan dicatat pada `DEC-15`.
-  - Laporan implementasi: `reports/feature-update/PHASE-01B-API-AUTH.md`. Panduan manual: `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md`.
-- **Fase 01c dan fase selanjutnya**: NOT STARTED (rencana Fase 01c disusun di `reports/feature-update/PHASE-01C-PLAN.md`, menunggu review pemilik; BLK-03 dialokasikan ke 01c).
+- **Fase 01c — Isolasi pengujian dan fixture**: **IMPLEMENTED & FULLY VERIFIED** (DEC-16 APPROVED 2026-10-17 WIB; laporan `PHASE-01C-ISOLATION-FIXTURES.md`, panduan manual `PHASE-01C-MANUAL-REVIEW.md`; review pemilik **PENDING**).
+- **BLK-03**: **CLOSED pada source aktif** (seluruh akun pengguna riil dan data siswa riil telah dibersihkan dari seeder aktif; riwayat Git masa lalu tidak diubah).
+- **Fase 02 dan fase selanjutnya**: NOT STARTED.
 
 ---
 
-## 2. Pemeriksaan yang Dijalankan & Hasil (Fase 01b Pelengkapan Bukti)
+## 2. Pemeriksaan yang Dijalankan & Hasil (Fase 01c)
 1. **Automated Backend**:
    - Perintah: `php artisan test` pada database SQLite in-memory `:memory:` terisolasi.
-   - Hasil: **60 passed (173 assertions)**, bertambah 5 tes baru pada `TypeUserAccessTest` (CRUD via `master.manage`, integritas relasi 422, isolasi kemampuan, dan proteksi admin terakhir).
-   - Style check: `./vendor/bin/pint --test` → **PASS** (100% clean).
+   - Hasil: **82 passed (346 assertions)**, bertambah 22 tes baru (`BootstrapAdminTest` 5 passed, `StorageIsolationTest` 3 passed, `FactoryIntegrityTest` 3 passed, `UserValidationTest` 5 passed, `SeederIsolationTest` 6 passed).
+   - Style check: `./vendor/bin/pint --test ...` (26 files) → **PASS** (100% clean).
 2. **Automated Frontend**:
    - Perintah: `node --test tests/phase-01b-api-auth.test.mjs tests/auth-race-condition.test.mjs`.
-   - Hasil: **13 passed (0 failed)**. Menguji interceptor timeout/network error tanpa auto-retry dan tanpa hapus sesi, CSRF 419 single retry terkoordinasi, penanganan kegagalan refresh CSRF, retry 419 berulang berhenti tanpa loop, deduplikasi 401, pemisahan 403, router child guard, monotonic request sequence anti-race saat pergantian akun, dan single logout 204.
-   - Build: `npm run build` → **PASS** (`✓ built in 1m`, 0 errors).
-   - Lint: `npx eslint ...` tanpa `--quiet` pada seluruh berkas yang disentuh → **0 errors**, 1.086 warnings format Prettier CRLF (tidak di-fix massal agar diff tetap bersih).
+   - Hasil: **15 passed (0 failed)**.
+   - Build: `npm run build` → **PASS** (`✓ built in 47s`, 0 errors).
+   - Lint: `npx eslint ... --quiet` pada seluruh berkas yang disentuh → **0 errors**.
 3. **Verifikasi Browser Nyata (UAT Live 127.0.0.1:4001 & 127.0.0.1:8001)**:
-   - Walkthrough regresi penuh pada 4 peran (`uat.admin`, `uat.operator`, `uat.kepsek`, `uat.waka`):
-     - Login melalui form: seluruh 4 peran berhasil masuk Dashboard.
-     - Refresh halaman: state sesi dan kemampuan masing-masing peran tetap utuh.
-     - Navigasi sesuai izin: Admin (`roles.view`, `users.view`) diizinkan; Operator (`master.manage`) diizinkan ke `typeusers` dan diblokir dari `roles`; Kepsek & Waka diblokir dari `roles` & `typeusers` ke `/auth/access` (Access Denied).
-     - Ekspor sesuai izin: Admin, Operator, dan Kepsek memiliki tombol Export dan berhasil mengunduh CSV; Waka tidak memiliki tombol Export dan pemanggilan API langsung menghasilkan **403 Forbidden**.
-     - Logout bersih: sesi berakhir via `POST /logout` (204), state lokal dibersihkan, dialihkan kembali ke `/auth/login`.
-   - Sesi berakhir (401 nyata): sesi backend dibatalkan → request API merespons 401 → otomatis redirect ke `/auth/login` dengan modal dialog PrimeVue berbingkai "Session Expired: Your session has expired. Please sign in again." dan form login siap tanpa loop.
-   - Pengecualian guest: request `check-auth` untuk guest merespons 200 `{ authenticated: false }` dengan `skipAuthRedirect: true`, tidak memicu modal sesi kedaluwarsa berulang atau loop.
+   - Dialog New Account (`/master/accounts`): NIK divalidasi tepat 16 digit string, password divalidasi minimal 12 karakter, kolom Name tidak lagi memblokir nama homonim.
+   - Form Ubah Password Profil (`/profile/user`): Label "New Password (min 12 chars)", input kurang dari 12 karakter ditolak validasi.
+   - Form Reset Password (`/password-reset/:token`): Label "New Password (min 12 chars)", input kurang dari 12 karakter memunculkan modal dialog "Validation Error: Password must be at least 12 characters long.".
 4. **Lingkungan & Keamanan**:
    - Seluruh tes hanya menggunakan database sintetis (`school_access_uat` dan SQLite `:memory:`) dan akun uji. Tidak ada data operasional yang disentuh.
-   - Bahasa antarmuka dalam scope implementasi tetap **English**.
+   - Sumber aktif bersih dari data identitas pribadi (PII).
 
 ---
 
-## 3. Berkas yang Berubah pada Pelengkapan Bukti Fase 01b
+## 3. Berkas yang Berubah pada Fase 01c
 - Backend:
-  - `laravel-api/tests/Feature/Access/TypeUserAccessTest.php` (baru): 5 tes regresi untuk verifikasi izin Operator terhadap `type-users`, integritas relasi 422, dan isolasi role/kemampuan.
+  - `laravel-api/config/filesystems.php`: disk storage `testing` di bawah `storage/framework/testing/disks/testing`.
+  - `laravel-api/phpunit.xml`: `FILESYSTEM_DISK=testing force="true"`.
+  - `laravel-api/tests/CreatesApplication.php`: fail-safe `guardAgainstUnsafeStorage()`.
+  - `laravel-api/app/Providers/AppServiceProvider.php`: `Password::defaults(fn () => Password::min(12))`.
+  - `laravel-api/app/Http/Controllers/UserController.php`: hapus unique `name`, validasi NIK `digits:16`, password `Password::defaults()`, format error 422 standar.
+  - `laravel-api/app/Console/Commands/BootstrapAdminCommand.php` (baru): CLI interaktif `app:bootstrap-admin` dengan password tersembunyi via secret prompt.
+  - `laravel-api/database/factories/{StudentFactory.php, EmployeeFactory.php, UserFactory.php}`: definisi factory terisi lengkap dengan relasi FK valid dan NIK string 16 digit.
+  - `laravel-api/database/seeders/ReferenceDataSeeder.php` (baru): seeder referensi murni bebas PII, idempotent, tidak mereset izin admin.
+  - `laravel-api/database/seeders/SyntheticDataSeeder.php` (baru): 15 siswa dummy untuk dev/testing dengan fail-safe `guardEnvironment()`.
+  - `laravel-api/database/seeders/DatabaseSeeder.php`: bersih dari akun riil; hanya memanggil `ReferenceDataSeeder`.
+  - `laravel-api/database/seeders/{StudentSeeder.php, StudentRombelSeeder.php, SchoolProfileSeeder.php, SchoolRombelSeeder.php, AccessControlSeeder.php, SchoolYearSeeder.php, SemesterSeeder.php, StatusUserSeeder.php, TypeUserSeeder.php, UatSeeder.php}`: pembersihan PII dan perbaikan idempotensi.
+  - `laravel-api/tests/Feature/Access/{StorageIsolationTest.php, FactoryIntegrityTest.php, BootstrapAdminTest.php, UserValidationTest.php, SeederIsolationTest.php}` (baru): 22 tes pengujian isolasi storage, factory, bootstrap, validasi, dan seeder.
 - Frontend:
-  - `vue-app/src/stores/authStore.js`: nomor urut request monotonik global (`requestSequence`) untuk mencegah tabrakan sequence ID pasca `$reset()` pada pergantian akun.
-  - `vue-app/tests/phase-01b-api-auth.test.mjs`: Test 2b (retry 419 gagal berhenti tanpa loop), Test 2c (refresh CSRF gagal ditangani bersih), dan asersi sesi aman pada Test 1.
-  - `vue-app/tests/auth-race-condition.test.mjs`: tes anti-race pada pergantian akun.
-- Dokumentasi & Laporan:
-  - `reports/feature-update/PHASE-01B-API-AUTH.md`: laporan bukti lengkap Fase 01b diperbarui (tabel 6 skenario recovery, audit akses typeusers, tabel regresi 4 peran, hasil lint/test/build).
-  - `reports/feature-update/PHASE-01B-MANUAL-REVIEW.md`: panduan manual UAT dirapikan (prosedur sesi berakhir, kegagalan jaringan, offline logout, sanitasi log email reset, dan penjelasan modal Session Expired).
-  - `reports/feature-update/INDEX.md`, `roadmap/ROADMAP.md`, `CHANGELOG.md`: sinkronisasi checkpoint dan pencatatan riwayat perubahan.
+  - `vue-app/src/utils/useResourceManager.js`: dukungan `requiredFields` terpisah dari `uniqueFields`.
+  - `vue-app/src/views/pages/master/Accounts.vue`: penghapusan keunikan `name`, validasi NIK 16 digit, pesan password min 12 karakter.
+  - `vue-app/src/views/pages/auth/Profile.vue`: validasi form ubah password min 12 karakter.
+  - `vue-app/src/views/pages/auth/ResetPassword.vue`: validasi form reset password min 12 karakter.
+  - `vue-app/tests/phase-01b-api-auth.test.mjs`: Test 9 validasi klien password min 12 karakter.
+- Dokumentasi & Kontrak:
+  - `docs/DECISIONS.md`: dicatat DEC-16 APPROVED (Q-01c-1 s/d Q-01c-3).
+  - `docs/DATABASE.md` & `docs/API-CONTRACTS.md`: pembaruan kontrak validasi dan isolasi storage.
+  - `reports/feature-update/PHASE-01C-ISOLATION-FIXTURES.md` (baru): laporan implementasi Fase 01c lengkap.
+  - `reports/feature-update/PHASE-01C-MANUAL-REVIEW.md` (baru): panduan manual UAT 01c (8 checklist).
+  - `reports/feature-update/INDEX.md`, `roadmap/ROADMAP.md`, `CHANGELOG.md`: sinkronisasi status.
 
 ---
 
-## 4. Status Tugas Pelengkapan Bukti Sesi Ini
-1. **Bukti recovery / error auth**: **SELESAI PENUH**. 6 skenario dipetakan dengan nama tes, perilaku yang dibuktikan, dan batasnya pada `PHASE-01B-API-AUTH.md` §3.
-2. **Audit akses `/master/typeusers`**: **SELESAI PENUH**. Terbukti independen dari tabel peran/kemampuan; tidak ada jalur eskalasi hak akses atau bypass proteksi admin terakhir; 5 tes regresi lulus.
-3. **Regresi empat peran**: **SELESAI PENUH**. Diuji live via browser otomatis Playwright pada server UAT nyata untuk 4 peran; 0 uncaught errors; pembedaan mock vs live tercatat.
-4. **Lint tanpa `--quiet`**: **SELESAI PENUH**. Dilaporkan terpisah: 0 errors, 1.086 Prettier line-ending formatting warnings (CRLF). Build `npm run build` PASS (`✓ built in 1m`).
-5. **Panduan manual UAT & Penerimaan Lengkap**: **SELESAI PENUH & APPROVED**.
-   - Seluruh checklist nomor 1–16 telah disetujui manual oleh pemilik: nomor 1–7 dan 9–16 APPROVED pada 16 Oktober 2026 WIB; nomor 8 retest mandiri berhasil dan APPROVED pada 17 Oktober 2026 WIB (terbukti token dikonsumsi dan submit replay ditolak 422).
-   - Status penerimaan manual Fase 01b: **DITERIMA PEMILIK**.
+## 4. Status Tugas Fase 01c
+1. **Isolasi Database & Storage**: **SELESAI PENUH**. SQLite in-memory guard aktif, storage testing disk fail-safe aktif.
+2. **Pembersihan BLK-03 (PII Seeder)**: **SELESAI PENUH PADA SOURCE AKTIF**. Akun riil dan data siswa riil dibersihkan; riwayat Git masa lalu tidak diubah.
+3. **Pemisahan Seeder & Bootstrap Admin**: **SELESAI PENUH**. `ReferenceDataSeeder` referensi murni; `SyntheticDataSeeder` dummy aman; `app:bootstrap-admin` CLI interaktif dengan secret prompt.
+4. **Validasi Akun & Standar Password 12 Karakter**: **SELESAI PENUH**. Nama boleh sama, NIK string 16 digit, password min 12 karakter di seluruh alur.
+5. **Panduan Manual UAT 01c**: **SELESAI PENUH**. 8 butir checklist siap diuji pemilik pada `reports/feature-update/PHASE-01C-MANUAL-REVIEW.md`.
 
 ---
 
@@ -73,8 +80,9 @@ Catatan perubahan pemilik: entri `CHANGELOG.md` yang disebut laporan lama ("Peng
 - **DEC-03** (peran & kemampuan): **APPROVED** (2026-10-15).
 - **DEC-14** (register publik ditutup, status_active ditolak, ekspor via students.export, legacy mapping per nama, UI English): **APPROVED** (2026-10-14 WIB).
 - **DEC-15** (alur error auth, CSRF 419 single retry, reset password scope 01b via mail log): **APPROVED** (2026-10-16 WIB).
-- **BLK-03**: **OPEN** (`DatabaseSeeder` masih memuat identitas asli; dilarang dijalankan untuk pengujian; dialokasikan ke 01c).
-- **Keputusan autentikasi lain**: makna `status_user_id` (jangan disamakan dengan `status_active`), bootstrap pengguna pertama, deployment CORS/Sanctum produksi, strategi pencabutan token vs sesi: **OPEN** (tidak menghambat 01b).
+- **DEC-16** (isolasi fixture, bootstrap admin CLI, standar password 12 karakter): **APPROVED** (2026-10-17 WIB).
+- **BLK-03**: **CLOSED pada source aktif** (data riil dibersihkan dari seeder aktif; riwayat Git historis tidak di-rewrite).
+- **Keputusan autentikasi lain yang masih OPEN**: makna `status_user_id` (jangan disamakan dengan `status_active`), deployment CORS/Sanctum produksi, strategi pencabutan token vs sesi (tidak menghambat 01c).
 - **UI Language**: Seluruh antarmuka dalam scope tetap **English**.
 
 ---
@@ -82,25 +90,15 @@ Catatan perubahan pemilik: entri `CHANGELOG.md` yang disebut laporan lama ("Peng
 ## 6. Server & Lingkungan Aktif
 Server UAT lokal yang diketahui masih berjalan (jangan dihentikan sembarangan):
 - **API UAT**: port `8001` (PID 12720, `php artisan serve --host=127.0.0.1 --port=8001 --env=uat`)
-- **SPA UAT**: port `4001` (PID 21372, `vite --mode uat --host 127.0.0.1 --port 4001`)
+- **SPA UAT**: port `4001` (PID 16624, `vite --mode uat --host 127.0.0.1 --port 4001`)
 - **Database UAT**: MySQL `school_access_uat` (disposable, terpisah dari `backdata_administrations`)
 - Server operasional pada port `8000` dibiarkan utuh.
-
-**Cara melanjutkan di sesi baru**:
-- Jika kedua proses masih hidup, langsung akses `http://127.0.0.1:4001`.
-- Jika server perlu dimulai ulang:
-  ```powershell
-  # Terminal 1 — API
-  php artisan serve --host=127.0.0.1 --port=8001 --env=uat
-  # Terminal 2 — SPA
-  npm run dev:uat
-  ```
 
 ---
 
 ## 7. Pekerjaan Pertama Sesi Baru
-1. Menunggu review dan konfirmasi pemilik atas rencana kerja Fase 01c di `reports/feature-update/PHASE-01C-PLAN.md` (termasuk konfirmasi keputusan Q-01c-1 sampai Q-01c-3).
-2. Setelah rencana dan keputusan disetujui pemilik, laksanakan implementasi subfase 01c (pemisahan seeder, perbaikan BLK-03, validator akun, dan fail-safe storage test).
+1. Menunggu review manual pemilik atas checklist Fase 01c di `reports/feature-update/PHASE-01C-MANUAL-REVIEW.md`.
+2. Setelah seluruh checklist Fase 01c disetujui pemilik, tandai Fase 01 secara keseluruhan selesai dan lanjutkan perencanaan ke Fase 02 (Integritas Operasional: audit log, soft delete, backup & restore).
 
 ---
 

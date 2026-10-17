@@ -46,8 +46,12 @@ class AccessControlSeeder extends Seeder
                 ]
             );
 
-            $abilityIds = Ability::whereIn('name', $roleDef['abilities'])->pluck('id')->all();
-            $role->abilities()->sync($abilityIds);
+            // Hanya sinkronkan kemampuan awal jika peran belum memiliki kemampuan
+            // (mencegah mereset konfigurasi kemampuan yang telah disesuaikan oleh admin)
+            if ($role->abilities()->count() === 0) {
+                $abilityIds = Ability::whereIn('name', $roleDef['abilities'])->pluck('id')->all();
+                $role->abilities()->sync($abilityIds);
+            }
         }
     }
 }

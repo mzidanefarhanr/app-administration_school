@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\SchoolProfile;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class SchoolProfileSeeder extends Seeder
@@ -13,22 +13,30 @@ class SchoolProfileSeeder extends Seeder
      */
     public function run(): void
     {
-        //
-        SchoolProfile::create([
-            'education_school_npsn' => '20107400',
-            'principal_id' => '6',
-            'school_year_id' => '7',
-            'status_principal_id' => '1',
-            'nds' => 'A. 02034002',
-            'nss' => '302016104047',
-            'nis' => '30030',
-            'nrks' => '19023L0680164241130595',
-            'tmt_principal' => '2017-09-06',
-            'official_number' => '0214300653',
-            'email' => 'smayappendaunggul@gmail.com',
-            'website' => 'www.smayappenda.sch.id',
-            'school_committee_name' => 'Dra. Lulus Purwandari',
-            'school_committee_number' => '081213892665',
-        ]);
+        $principal = User::first();
+        if (! $principal) {
+            // School profile requires a principal user referencing the users table.
+            // When seeding reference data on a clean database without accounts, skip until an account exists.
+            return;
+        }
+
+        SchoolProfile::firstOrCreate(
+            ['education_school_npsn' => '20107400'],
+            [
+                'principal_id' => $principal->id,
+                'school_year_id' => '1',
+                'status_principal_id' => '1',
+                'nds' => 'A. 02034002',
+                'nss' => '302016104047',
+                'nis' => '30030',
+                'nrks' => '19023L0680164241130595',
+                'tmt_principal' => '2017-09-06',
+                'official_number' => '0210000000',
+                'email' => 'info@school.test',
+                'website' => 'www.school.test',
+                'school_committee_name' => 'School Committee',
+                'school_committee_number' => '080000000000',
+            ]
+        );
     }
 }

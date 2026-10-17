@@ -121,6 +121,10 @@ const submitNewPassword = async () => {
         titleDanger.value = 'Failed';
         fieldDanger.value = 'All password fields are required.';
         visibleStaticBackdropDangers();
+    } else if (form.password_new.length < 12) {
+        titleDanger.value = 'Failed';
+        fieldDanger.value = 'New password must be at least 12 characters long.';
+        visibleStaticBackdropDangers();
     } else if (form.password_new != form.password_new_confirm) {
         titleDanger.value = 'Failed';
         fieldDanger.value = 'New password and confirmation do not match.';
@@ -259,7 +263,7 @@ onMounted(() => {
                             </div>
                         </div>
                         <div class="grid grid-cols-12 gap-2">
-                            <label for="password_new" class="flex items-center col-span-12 mb-2 md:col-span-6 md:mb-0">New Password</label>
+                            <label for="password_new" class="flex items-center col-span-12 mb-2 md:col-span-6 md:mb-0">New Password (min 12 chars)</label>
                             <div class="col-span-12 md:col-span-6">
                                 <IconField>
                                     <FloatLabel variant="on">

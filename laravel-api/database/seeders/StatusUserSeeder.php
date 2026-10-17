@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\StatusUser;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class StatusUserSeeder extends Seeder
@@ -14,11 +13,11 @@ class StatusUserSeeder extends Seeder
     public function run(): void
     {
         //
-        StatusUser::create([
-            'name'     => 'Aktif'
+        StatusUser::firstOrCreate([
+            'name' => 'Aktif',
         ]);
-        StatusUser::create([
-            'name'     => 'Tidak Aktif'
+        StatusUser::firstOrCreate([
+            'name' => 'Tidak Aktif',
         ]);
     }
 }

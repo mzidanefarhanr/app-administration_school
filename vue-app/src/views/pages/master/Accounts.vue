@@ -85,7 +85,6 @@ const {
     isCat1Used,
     isCat2Used,
     isCat3Used,
-    isCat4Used,
     validFieldCount,
     fetchDataUserRole,
     openNew,
@@ -114,8 +113,9 @@ const {
         'type_user.name':   'Type User',
         'status_user.name': 'Status User',
     },
-    uniqueFields:     ['name', 'email', 'username', 'nik'],
-    uniqueMinLengths: [3, 3, 3, 15],
+    uniqueFields:     ['email', 'username', 'nik'],
+    uniqueMinLengths: [3, 3, 16],
+    requiredFields:   ['name'],
     fkFields: [
         { fk: 'type_user',   fk_id: 'type_user_id'   },
         { fk: 'status_user', fk_id: 'status_user_id'  },
@@ -391,45 +391,42 @@ onMounted(() => {
                 <label for="name" class="block font-bold mb-3">Name</label>
                 <InputText id="name" v-model="singleData.name" required="true" autofocus :invalid="submitted && !singleData.name" fluid />
                 <small v-if="submitted && !singleData.name" class="text-red-500">Name is required.</small>
-                <small v-else-if="singleData.name && singleData.name.trim().length > 0 && singleData.name.trim().length <= 3" class="text-yellow-500">Name must be at least 4 characters.</small>
-                <small v-else-if="singleData.name && singleData.name === previousData.name" class="text-blue-500">Current Name (no changes).</small>
-                <small v-else-if="isCat1Used" class="text-red-500">This name is already taken.</small>
-                <small v-else-if="singleData.name && singleData.name.trim().length > 3" class="text-green-500">Name is available!</small>
+                <small v-else-if="singleData.name && singleData.name.trim().length > 0 && singleData.name.trim().length < 3" class="text-yellow-500">Name must be at least 3 characters.</small>
 
                 <label for="email" class="block font-bold mb-3 mt-3">Email</label>
                 <InputText id="email" v-model="singleData.email" required="true" autofocus :invalid="submitted && !singleData.email" fluid />
                 <small v-if="submitted && !singleData.email" class="text-red-500">Email is required.</small>
-                <small v-else-if="singleData.email && singleData.email === previousData.email" class="text-blue-500">Email is used.</small>
-                <small v-else-if="isCat2Used" class="text-red-500">Current Email (no changes).</small>
+                <small v-else-if="singleData.email && singleData.email === previousData.email" class="text-blue-500">Current Email (no changes).</small>
+                <small v-else-if="isCat1Used" class="text-red-500">Email is already used.</small>
                 <small v-else-if="singleData.email && singleData.email.trim().length > 3" class="text-green-500">Email is available! </small>
 
                 <label for="username" class="block font-bold mb-3 mt-3">Username</label>
                 <InputText id="username" v-model="singleData.username" required="true" autofocus :invalid="submitted && !singleData.username" fluid />
                 <small v-if="submitted && !singleData.username" class="text-red-500">Username is required.</small>
-                <small v-else-if="singleData.username && singleData.username.trim().length > 0 && singleData.username.trim().length <= 3" class="text-yellow-500">Username  must be at least 4 characters.</small>
-                <small v-else-if="singleData.username && singleData.username === previousData.username" class="text-blue-500">Username is used.</small>
-                <small v-else-if="isCat3Used" class="text-red-500">Current Username (no changes).</small>
-                <small v-else-if="singleData.username && singleData.username.trim().length > 3" class="text-green-500">Username is available! </small>
+                <small v-else-if="singleData.username && singleData.username.trim().length > 0 && singleData.username.trim().length < 3" class="text-yellow-500">Username must be at least 3 characters.</small>
+                <small v-else-if="singleData.username && singleData.username === previousData.username" class="text-blue-500">Current Username (no changes).</small>
+                <small v-else-if="isCat2Used" class="text-red-500">Username is already taken.</small>
+                <small v-else-if="singleData.username && singleData.username.trim().length >= 3" class="text-green-500">Username is available! </small>
 
                 <label for="nik" class="block font-bold mb-3 mt-3">NIK</label>
                 <InputText id="nik" v-model="singleData.nik" required="true" autofocus :invalid="submitted && !singleData.nik" fluid />
                 <small v-if="submitted && !singleData.nik" class="text-red-500">NIK is required.</small>
-                <small v-else-if="singleData.nik && singleData.nik.trim().length > 0 && singleData.nik.trim().length <= 15" class="text-yellow-500">NIK  must be at least 15 numbers.</small>
-                <small v-else-if="singleData.nik && singleData.nik === previousData.nik" class="text-blue-500">NIK is used.</small>
-                <small v-else-if="isCat4Used" class="text-red-500">Current NIK (no changes).</small>
-                <small v-else-if="singleData.nik && singleData.nik.trim().length > 15" class="text-green-500">NIK is available! </small>
+                <small v-else-if="singleData.nik && singleData.nik.trim().length > 0 && singleData.nik.trim().length !== 16" class="text-yellow-500">NIK must be exactly 16 digits.</small>
+                <small v-else-if="singleData.nik && singleData.nik === previousData.nik" class="text-blue-500">Current NIK (no changes).</small>
+                <small v-else-if="isCat3Used" class="text-red-500">NIK is already registered.</small>
+                <small v-else-if="singleData.nik && singleData.nik.trim().length === 16" class="text-green-500">NIK is valid!</small>
 
                 <div v-if="Object.keys(previousData).length === 0">
                     <label for="password" class="block font-bold mb-3 mt-3">Password</label>
                     <InputText id="password" type="password" v-model="singleData.password" required="true" autofocus :invalid="submitted && !singleData.password" fluid />
                     <small v-if="submitted && !singleData.password" class="text-red-500">Password is required.</small>
-                    <small v-else-if="singleData.password && singleData.password.trim().length > 0 && singleData.password.trim().length <= 7" class="text-yellow-500">Password must be at least 4 characters/numbers/symbols.</small>
+                    <small v-else-if="singleData.password && singleData.password.trim().length > 0 && singleData.password.trim().length < 12" class="text-yellow-500">Password must be at least 12 characters.</small>
                 </div>
                 <div v-else>
-                    <label for="password_new" class="block font-bold mb-3 mt-3">New Password</label>
-                    <InputText id="password_new" type="password" v-model="singleData.password_new" required="true" autofocus :invalid="submitted && !singleData.password_new" fluid />
-                    <small v-if="!singleData.password_new" class="text-yellow-500">You can set a new password or keep in.</small>
-                    <small v-else-if="singleData.password_new && singleData.password_new.trim().length > 0 && singleData.password_new.trim().length <= 7" class="text-yellow-500">Password must be at least 4 characters/numbers/symbols.</small>
+                    <label for="password_new" class="block font-bold mb-3 mt-3">New Password (optional)</label>
+                    <InputText id="password_new" type="password" v-model="singleData.password_new" autofocus :invalid="submitted && singleData.password_new && singleData.password_new.length < 12" fluid />
+                    <small v-if="!singleData.password_new" class="text-yellow-500">Leave blank to keep existing password.</small>
+                    <small v-else-if="singleData.password_new && singleData.password_new.trim().length > 0 && singleData.password_new.trim().length < 12" class="text-yellow-500">Password must be at least 12 characters.</small>
                 </div>
 
                 <label for="type_user" class="block font-bold mb-3 mt-3">Type User</label>
@@ -445,7 +442,7 @@ onMounted(() => {
 
         <template #footer>
             <Button label="Cancel" icon="pi pi-times" text @click="hideDialog" />
-            <Button v-if="!isCat1Used && !isCat2Used && !isCat3Used && !isCat4Used && validFieldCount > 0" label="Save" icon="pi pi-check" @click="saveSingleData" />
+            <Button v-if="!isCat1Used && !isCat2Used && !isCat3Used && validFieldCount > 0" label="Save" icon="pi pi-check" @click="saveSingleData" />
         </template>
     </Dialog>
     <!-- Loading Dialog -->

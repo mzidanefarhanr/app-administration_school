@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\TypeUser;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class TypeUserSeeder extends Seeder
@@ -14,11 +13,11 @@ class TypeUserSeeder extends Seeder
     public function run(): void
     {
         //
-        TypeUser::create([
-            'name'     => 'Admin'
+        TypeUser::firstOrCreate([
+            'name' => 'Admin',
         ]);
-        TypeUser::create([
-            'name'     => 'User'
+        TypeUser::firstOrCreate([
+            'name' => 'User',
         ]);
     }
 }

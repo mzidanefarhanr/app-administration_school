@@ -58,9 +58,9 @@ const submitResetPassword = async () => {
         return;
     }
 
-    if (!password.value || password.value.length < 8) {
+    if (!password.value || password.value.length < 12) {
         titleDanger.value = 'Validation Error';
-        fieldDanger.value = 'Password must be at least 8 characters long.';
+        fieldDanger.value = 'Password must be at least 12 characters long.';
         visibleDanger.value = true;
         return;
     }
@@ -159,7 +159,7 @@ const submitResetPassword = async () => {
                                     v-model="password"
                                     required
                                 />
-                                <label for="password" class="ps-7 !appearance-none !outline-0 !bg-white/0 !text-white placeholder:!text-white/50 !rounded-3xl !shadow-sm">New Password (min 8 chars)</label>
+                                <label for="password" class="ps-7 !appearance-none !outline-0 !bg-white/0 !text-white placeholder:!text-white/50 !rounded-3xl !shadow-sm">New Password (min 12 chars)</label>
                             </FloatLabel>
                             <InputIcon @click="togglePasswordVisibility" :class="inputIconPassword" />
                         </IconField>

@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
@@ -37,29 +38,31 @@ class UserController extends Controller
         // define validation rules
         $validator = Validator::make($request->all(), [
             'name' => [
-                'required', 'min:3', 'max:100',
-                Rule::unique('users')->whereNull('deleted_at'),
+                'required', 'string', 'min:3', 'max:100',
             ],
             'email' => [
                 'required', 'email:rfc', 'max:60',
                 Rule::unique('users')->whereNull('deleted_at'),
             ],
             'username' => [
-                'required', 'min:3', 'max:100',
+                'required', 'string', 'min:3', 'max:100',
                 Rule::unique('users')->whereNull('deleted_at'),
             ],
             'nik' => [
-                'required', 'min:16',
+                'required', 'string', 'digits:16',
                 Rule::unique('users')->whereNull('deleted_at'),
             ],
-            'password' => ['required', 'string', 'min:8'],
+            'password' => ['required', 'string', Password::defaults()],
             'type_user_id' => ['required', 'exists:type_users,id'],
             'status_user_id' => ['required', 'exists:status_users,id'],
         ]);
 
         // check if validation fails
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return response()->json([
+                'message' => 'The given data was invalid.',
+                'errors' => $validator->errors(),
+            ], 422);
         }
 
         // ── STEP 1: Check NIK against soft-deleted records ────────────────────────
@@ -76,16 +79,12 @@ class UserController extends Controller
                 ->whereNotNull('deleted_at')
                 ->where('id', '!=', $existingByNik->id)
                 ->where(function ($query) use ($request) {
-                    $query->where('name', $request->name)
-                        ->orWhere('email', $request->email)
+                    $query->where('email', $request->email)
                         ->orWhere('username', $request->username);
                 })
                 ->first();
 
             if ($conflicts) {
-                if ($conflicts->name === $request->name) {
-                    $conflictingFields[] = 'name';
-                }
                 if ($conflicts->email === $request->email) {
                     $conflictingFields[] = 'email';
                 }
@@ -119,22 +118,18 @@ class UserController extends Controller
             return new UserResource(true, 'Users successfully restored!', $existingByNik);
         }
 
-        // ── STEP 2: NIK is clean — now check name/email/username against soft-deleted ──
+        // ── STEP 2: NIK is clean — now check email/username against soft-deleted ──
         $conflictingFields = [];
 
         $conflictsByOtherFields = User::withTrashed()
             ->whereNotNull('deleted_at')
             ->where(function ($query) use ($request) {
-                $query->where('name', $request->name)
-                    ->orWhere('email', $request->email)
+                $query->where('email', $request->email)
                     ->orWhere('username', $request->username);
             })
             ->first();
 
         if ($conflictsByOtherFields) {
-            if ($conflictsByOtherFields->name === $request->name) {
-                $conflictingFields[] = 'name';
-            }
             if ($conflictsByOtherFields->email === $request->email) {
                 $conflictingFields[] = 'email';
             }
@@ -222,21 +217,29 @@ class UserController extends Controller
             }
         }
 
-        $validator = Validator::make($payload, [
-            'name' => ['required', 'min:3', 'max:100',
-                Rule::unique('users')->ignore($id)->whereNull('deleted_at')],
+        $rules = [
+            'name' => ['required', 'string', 'min:3', 'max:100'],
             'email' => ['required', 'email:rfc', 'max:60',
                 Rule::unique('users')->ignore($id)->whereNull('deleted_at')],
-            'username' => ['required', 'min:3', 'max:100',
+            'username' => ['required', 'string', 'min:3', 'max:100',
                 Rule::unique('users')->ignore($id)->whereNull('deleted_at')],
-            'nik' => ['required', 'min:16',
+            'nik' => ['required', 'string', 'digits:16',
                 Rule::unique('users')->ignore($id)->whereNull('deleted_at')],
             'type_user_id' => ['sometimes', 'required', 'exists:type_users,id'],
             'status_user_id' => ['sometimes', 'required', 'exists:status_users,id'],
-        ]);
+        ];
+
+        if ($request->filled('password_new')) {
+            $rules['password_new'] = ['string', Password::defaults()];
+        }
+
+        $validator = Validator::make($payload, $rules);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return response()->json([
+                'message' => 'The given data was invalid.',
+                'errors' => $validator->errors(),
+            ], 422);
         }
 
         // Untuk self update: wajib password lama (sesuai perilaku lama).
@@ -245,7 +248,10 @@ class UserController extends Controller
                 'password' => ['required', 'current_password'],
             ]);
             if ($pwValidator->fails()) {
-                return response()->json($pwValidator->errors(), 422);
+                return response()->json([
+                    'message' => 'The given data was invalid.',
+                    'errors' => $pwValidator->errors(),
+                ], 422);
             }
         }
 

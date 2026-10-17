@@ -39,7 +39,7 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'username' => fake()->unique()->userName(),
             'password' => static::$password ??= Hash::make('password'),
-            'nik' => fake()->unique()->numerify('################'),
+            'nik' => fake()->unique()->numerify('0###############'),
             'type_user_id' => static::$type_user_id ??= 2,
             'status_user_id' => static::$status_user_id ??= 1,
             'first_login_at' => false,
