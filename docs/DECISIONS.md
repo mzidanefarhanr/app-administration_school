@@ -44,6 +44,16 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 - Dampak API/UI: perintah Artisan `app:bootstrap-admin`; seeder dipisah ke `ReferenceDataSeeder` dan `SyntheticDataSeeder`; `StudentSeeder` lama dibersihkan dari data riil; validasi password minimal 12 karakter di backend dan form frontend; validasi keunikan nama pada `UserController` dihapus (nama boleh sama); validasi NIK string 16 digit angka (`digits:16`).
 - Status: APPROVED. Fase affected: 01c.
 
+### DEC-17 — Kebijakan audit trail, strategi backup, dan retensi arsip (APPROVED, 2026-10-17 WIB)
+- Konteks: perencanaan operasional Fase 02 (audit & backup/restore) berdasarkan instruksi pemilik 17 Oktober 2026 WIB.
+- Pilihan pemilik:
+  1. **Audit trail & rollback**: Rollback audit dinonaktifkan sepenuhnya. Audit trail bersifat *immutable append-only* murni untuk mencegah inkonsistensi foreign key dan integritas relasional; perbaikan kesalahan data dilakukan via mutasi baru yang tercatat secara resmi. Endpoint klien `POST /api/activities` dan `PUT/PATCH /api/activities/{id}` dinonaktifkan/dihapus; seluruh catatan audit dibuat oleh server-side observer/events.
+  2. **Lokasi backup (DEC-02)**: Backup privat lokal di server (`storage/app/backups`) dengan mekanisme salinan berkala ke perangkat terpisah oleh operator.
+  3. **Retensi & frekuensi (DEC-09)**: Retensi bertingkat: 7 backup harian terakhir + 4 backup mingguan terakhir. Backup yang melebihi batas retensi dibersihkan secara otomatis.
+  4. **Enkripsi arsip**: Enkripsi wajib diterapkan untuk arsip backup operasional (misal ZIP terenkripsi AES-256), dengan manajemen kunci/rahasia enkripsi disimpan terpisah dari repositori kode.
+- Dampak API/UI: Subfase 02a mengunci audit logging ke server-side dan mematikan rute rollback klien; Subfase 02b membangun command backup ZIP terenkripsi + manifest SHA-256 dan restore drill; Subfase 02c mengaktifkan scheduler rotasi retensi.
+- Status: APPROVED (Kebijakan). Fase affected: 02 (02a, 02b, 02c). Catatan: persetujuan kebijakan ini bukan penerimaan manual 02a atau otorisasi implementasi 02b–02c.
+
 ### Keputusan yang masih OPEN (belum diputuskan)
 - Makna `status_user_id` (jangan disamakan dengan `status_active`), deployment CORS/Sanctum produksi, strategi pencabutan token vs sesi.
 
@@ -52,14 +62,14 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 | ID | Keputusan | Usulan awal / pertanyaan | Status | Fase paling lambat |
 |---|---|---|---|---|
 | DEC-01 | Cakupan sekolah | Satu sekolah untuk awal; multi-sekolah di luar scope | PROPOSED | 00 |
-| DEC-02 | Lingkungan operasional | Local/LAN atau hosting; lokasi DB/storage; batas biaya | OPEN | 01b/02 |
+| DEC-02 | Lingkungan operasional | Local/LAN atau hosting; lokasi DB/storage; batas biaya | APPROVED (2026-10-17) | 01b/02 |
 | DEC-03 | Role dan kemampuan | Admin, Operator, Kepala sekolah, Guru/wali kelas; siapa boleh sign/approve/export | APPROVED (2026-10-15) | 01a |
 | DEC-04 | Hubungan pegawai–akun | Profil boleh tanpa login; teacher assignment memakai profil pegawai | PROPOSED | 04a |
 | DEC-05 | Identitas dan keanggotaan | NIK boleh kosong; satu rombel aktif per siswa/periode; NIS unik lingkup sekolah | PROPOSED | 03a/06a |
 | DEC-06 | Format nomor dan persetujuan surat | Format, reset counter, pejabat penandatangan, kapan nomor diterbitkan | OPEN | 07b |
 | DEC-07 | Jenis dan approval izin | Siswa/guru, approver, delegasi, perubahan/pembatalan keputusan | OPEN | 08a |
 | DEC-08 | Impor data campuran | Preview wajib; default usulan validasi semua sebelum commit per batch kecil; update hanya eksplisit | PROPOSED | 05a |
-| DEC-09 | Backup dan retensi | Lokasi, jadwal, RPO/RTO, enkripsi, lama simpan | OPEN | 02b |
+| DEC-09 | Backup dan retensi | Lokasi, jadwal, RPO/RTO, enkripsi, lama simpan | APPROVED (2026-10-17) | 02b |
 | DEC-10 | Jadwal dan jurnal | Jam/sesi, exception libur/cancel/reschedule, batas waktu pengisian | OPEN | 10a |
 | DEC-11 | Template dokumen | Kop, tanda tangan, stempel, jenis surat pertama dan format rekap yang benar-benar dipakai | OPEN | 07a/07c |
 | DEC-12 | Laporan eksternal | Format ekspor sekolah; Dapodik via rekonsiliasi file dahulu, tanpa API otomatis | PROPOSED | 05b/11b |
@@ -67,6 +77,7 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 | DEC-14 | Register/akun nonaktif/ekspor siswa/pemetaan legacy/Bahasa UI | Register ditutup; nonaktif ditolak; ekspor via `students.export`; legacy Admin→Admin Sistem (User manual); UI English | APPROVED (2026-10-14 WIB) | 01a |
 | DEC-15 | Error auth, CSRF 419 retry, reset password scope 01b | Reset password in scope (mail log); session expired redirect login; 419 single retry | APPROVED (2026-10-16 WIB) | 01b |
 | DEC-16 | Isolasi fixture, bootstrap admin, standar password 12 karakter | Bootstrap CLI interactive; synthetic seed dev only; password min 12 char | APPROVED (2026-10-17 WIB) | 01c |
+| DEC-17 | Kebijakan audit trail, strategi backup, dan retensi arsip | Rollback nonaktif; backup privat lokal + salinan terpisah; retensi 7+4; enkripsi wajib | APPROVED (2026-10-17) | 02a/02b |
 
 ## Format pencatatan keputusan
 Tanggal WIB; ID; konteks; alternatif; pilihan pemilik dan bukti instruksi; dampak schema/API/UI; fase affected; status OPEN/PROPOSED/APPROVED/SUPERSEDED. Pertahankan riwayat bila keputusan berubah.

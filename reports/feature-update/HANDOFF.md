@@ -1,7 +1,7 @@
 # Handoff pengembangan aplikasi sekolah
 
 Checkpoint terbaru: 2026-10-17 (WIB). Branch `main`.
-Implementasi 01b terakhir: `60e951b` ("fix(phase-01b): unify session errors, route guards, and password reset").
+Baseline terakhir yang dilaporkan: `b0f0b26` ("docs(phase-02): plan operational integrity, audit, and recovery").
 Kebijakan commit/push: commit dan push per fase/koreksi ke branch kerja aktif telah **diotorisasi**; merge, force-push, rewrite history, dan deploy manual **tetap tidak diotorisasi**.
 
 Catatan perubahan pemilik: entri `CHANGELOG.md` yang disebut laporan lama ("Pengembangan fitur iteratif via sesi Claude") **tidak ditemukan** pada working tree maupun history yang diperiksa (lihat §8); penyebab kehilangan belum diketahui dan tidak direkonstruksi. Berkas log bukti `console.txt` tetap ada dan **tidak** di-commit. Entri baru milik pemilik pada `CHANGELOG.md` dipertahankan tanpa menyentuh baris tersebut.
@@ -15,13 +15,19 @@ Catatan perubahan pemilik: entri `CHANGELOG.md` yang disebut laporan lama ("Peng
   - **Fase 01b (Konfigurasi API & Error Auth)**: DITERIMA pemilik (checklist #1–#16 APPROVED 2026-10-16/17 WIB).
   - **Fase 01c (Isolasi Fixture & Bootstrap)**: DITERIMA pemilik (checklist #1–#8 APPROVED 2026-10-17 WIB mengacu baseline `844883e`).
 - **BLK-03**: **CLOSED pada source aktif** (seluruh akun pengguna riil dan data siswa riil telah dibersihkan dari seeder aktif; data pada riwayat commit Git historis belum dihapus).
-- **Keputusan Terbuka (belum menghambat)**: makna `status_user_id` (jangan disamakan dengan `status_active`), deployment CORS/Sanctum produksi, strategi pencabutan token vs sesi.
-- **Batasan**: Penerimaan manual ini adalah penerimaan hasil pengembangan subfase, **bukan izin deployment ke produksi** dan bukan penerimaan modul yang belum tersedia.
-- **Fase 02 — Integritas Operasional**: **NOT STARTED** (rencana Fase 02 siap ditinjau pemilik).
+- **Fase 02 — Integritas Operasional**: **NOT STARTED (OTORISASI IMPLEMENTASI HANYA UNTUK 02a)**.
+  - Rencana kerja lengkap Fase 02: `reports/feature-update/PHASE-02-PLAN.md`.
+  - Keputusan pemilik 17 Oktober 2026 WIB: dicatat pada `DEC-17` (backup privat lokal + salinan terpisah; retensi 7+4; enkripsi wajib arsip operasional; rollback audit dinonaktifkan).
+  - **PENTING**: Persetujuan kebijakan di atas **bukan penerimaan manual 02a**. Fitur backup/restore drill (02b) dan scheduler/monitoring (02c) **belum boleh diimplementasikan**. Otorisasi sesi berikutnya **hanya** untuk implementasi Subfase 02a.
+- **Keputusan Terbuka yang Masih OPEN (belum menghambat)**:
+  1. Makna `status_user_id` (jangan disamakan dengan `status_active`).
+  2. Deployment CORS/Sanctum produksi.
+  3. Strategi pencabutan token dibanding sesi.
+- **Batasan**: Penerimaan manual Fase 01 dan persetujuan kebijakan Fase 02 **bukan izin deployment ke produksi** dan bukan penerimaan modul yang belum tersedia.
 
 ---
 
-## 2. Pemeriksaan yang Dijalankan & Hasil (Fase 01c)
+## 2. Pemeriksaan yang Dijalankan & Hasil (Fase 01c Terakhir)
 1. **Automated Backend**:
    - Perintah: `php artisan test` pada database SQLite in-memory `:memory:` terisolasi.
    - Hasil: **82 passed (346 assertions)**, bertambah 22 tes baru (`BootstrapAdminTest` 5 passed, `StorageIsolationTest` 3 passed, `FactoryIntegrityTest` 3 passed, `UserValidationTest` 5 passed, `SeederIsolationTest` 6 passed).
@@ -30,7 +36,7 @@ Catatan perubahan pemilik: entri `CHANGELOG.md` yang disebut laporan lama ("Peng
    - Perintah: `node --test tests/phase-01b-api-auth.test.mjs tests/auth-race-condition.test.mjs`.
    - Hasil: **15 passed (0 failed)**.
    - Build: `npm run build` → **PASS** (`✓ built in 47s`, 0 errors).
-   - Lint: `npx eslint ... --quiet` pada seluruh berkas yang disentuh → **0 errors**.
+   - Lint: `npx eslint ... --quiet` pada seluruh berkas yang disentuh → **0 errors** (peringatan format CRLF Prettier dilaporkan terpisah tanpa `--fix` massal).
 3. **Verifikasi Browser Nyata (UAT Live 127.0.0.1:4001 & 127.0.0.1:8001)**:
    - Dialog New Account (`/master/accounts`): NIK divalidasi tepat 16 digit string, password divalidasi minimal 12 karakter, kolom Name tidak lagi memblokir nama homonim.
    - Form Ubah Password Profil (`/profile/user`): Label "New Password (min 12 chars)", input kurang dari 12 karakter ditolak validasi.
@@ -64,15 +70,16 @@ Catatan perubahan pemilik: entri `CHANGELOG.md` yang disebut laporan lama ("Peng
   - `vue-app/src/views/pages/auth/ResetPassword.vue`: validasi form reset password min 12 karakter.
   - `vue-app/tests/phase-01b-api-auth.test.mjs`: Test 9 validasi klien password min 12 karakter.
 - Dokumentasi & Kontrak:
-  - `docs/DECISIONS.md`: dicatat DEC-16 APPROVED (Q-01c-1 s/d Q-01c-3).
+  - `docs/DECISIONS.md`: dicatat DEC-16 APPROVED (Q-01c-1 s/d Q-01c-3) dan DEC-17 APPROVED (kebijakan audit, backup, dan retensi).
   - `docs/DATABASE.md` & `docs/API-CONTRACTS.md`: pembaruan kontrak validasi dan isolasi storage.
   - `reports/feature-update/PHASE-01C-ISOLATION-FIXTURES.md` (baru): laporan implementasi Fase 01c lengkap.
   - `reports/feature-update/PHASE-01C-MANUAL-REVIEW.md` (baru): panduan manual UAT 01c (8 checklist).
+  - `reports/feature-update/PHASE-02-PLAN.md` (baru): rencana kerja Fase 02 operasional integritas & recovery.
   - `reports/feature-update/INDEX.md`, `roadmap/ROADMAP.md`, `CHANGELOG.md`: sinkronisasi status.
 
 ---
 
-## 4. Status Tugas Fase 01c & Penutupan Fase 01
+## 4. Status Tugas Fase 01 & Penutupan
 1. **Isolasi Database & Storage**: **SELESAI & DITERIMA**. SQLite in-memory guard aktif, storage testing disk fail-safe aktif.
 2. **Pembersihan BLK-03 (PII Seeder)**: **CLOSED PADA SOURCE AKTIF**. Akun riil dan data siswa riil dibersihkan; riwayat Git historis masa lalu tidak diubah.
 3. **Pemisahan Seeder & Bootstrap Admin**: **SELESAI & DITERIMA**. `ReferenceDataSeeder` referensi murni; `SyntheticDataSeeder` dummy aman; `app:bootstrap-admin` CLI interaktif dengan secret prompt.
@@ -87,6 +94,7 @@ Catatan perubahan pemilik: entri `CHANGELOG.md` yang disebut laporan lama ("Peng
 - **DEC-14** (register publik ditutup, status_active ditolak, ekspor via students.export, legacy mapping per nama, UI English): **APPROVED** (2026-10-14 WIB).
 - **DEC-15** (alur error auth, CSRF 419 single retry, reset password scope 01b via mail log): **APPROVED** (2026-10-16 WIB).
 - **DEC-16** (isolasi fixture, bootstrap admin CLI, standar password 12 karakter): **APPROVED** (2026-10-17 WIB).
+- **DEC-17** (kebijakan audit trail server, rollback nonaktif, backup privat lokal, retensi 7+4, enkripsi wajib): **APPROVED** (2026-10-17 WIB).
 - **BLK-03**: **CLOSED pada source aktif** (data riil dibersihkan dari seeder aktif; riwayat Git historis belum dihapus).
 - **Keputusan autentikasi yang masih OPEN**:
   1. Makna `status_user_id` (jangan disamakan dengan `status_active`).
@@ -103,12 +111,34 @@ Server UAT lokal yang diketahui masih berjalan (jangan dihentikan sembarangan):
 - **SPA UAT**: port `4001` (PID 16624, `vite --mode uat --host 127.0.0.1 --port 4001`)
 - **Database UAT**: MySQL `school_access_uat` (disposable, terpisah dari `backdata_administrations`)
 - Server operasional pada port `8000` dibiarkan utuh.
+- **PENTING**: Dilarang mengakses data operasional atau membersihkan database UAT `school_access_uat`.
 
 ---
 
-## 7. Pekerjaan Pertama Sesi Baru
-1. Menunggu review pemilik atas rencana Fase 02 di `reports/feature-update/PHASE-02-PLAN.md` (Audit Server, Rollback Terbatas, dan Backup/Restore Drill).
-2. Jangan memulai implementasi Fase 02 sebelum rencana dan keputusan pemilik disetujui.
+## 7. Pekerjaan Pertama Sesi Baru (Hanya Subfase 02a)
+Otorisasi kerja sesi baru **hanya untuk implementasi Subfase 02a** (Audit Server dan Rollback Terbatas). Subfase 02b dan 02c belum boleh diimplementasikan.
+Langkah-langkah konkrit pertama sesi baru:
+1. **Audit Kontrak Rute & Controller Audit**:
+   - Periksa `laravel-api/routes/api.php` dan `ActivityController.php`.
+   - Hapus atau nonaktifkan endpoint klien `POST /api/activities` (mencegah pemalsuan log) dan `PUT/PATCH /api/activities/{id}` (karena rollback dinonaktifkan sesuai DEC-17).
+   - Pastikan endpoint baca `GET /api/activities` tetap terlindungi kemampuan bernama `audit.view`.
+2. **Pemeriksaan & Penguatan Server-Side Logging**:
+   - Audit trait `Loggable.php` dan event Eloquent pada model domain utama (User, Role, Ability, Student, Employee, Master).
+   - Pastikan seluruh mutasi data domain dicatat otomatis di server dengan user actor yang valid (`auth()->id()`), tanpa bergantung pada panggilan API manual dari frontend.
+   - Pastikan seluruh atribut sensitif (`password`, `password_new`, token, remember_token) tersaring 100% dari kolom `before`, `after`, `new`, `delete`.
+3. **Penyelarasan Frontend**:
+   - Periksa apakah ada komponen Vue yang memanggil `POST /api/activities` (misal di `useResourceManager.js` baris yang dikomentari) dan pastikan tidak ada kode frontend yang mengirimkan request create/update activity.
+   - Bersihkan UI dari tombol rollback bila masih ada tombol pemicu rollback.
+4. **Pengujian & Verifikasi Terarah Subfase 02a**:
+   - Buat feature test di `laravel-api/tests/Feature/Audit/ServerAuditTest.php` pada SQLite in-memory:
+     - Uji bahwa mutasi model domain otomatis menghasilkan record pada tabel `activities`.
+     - Uji bahwa klien tidak dapat membuat atau memodifikasi log audit via API (endpoint ditutup/403/404/405).
+     - Uji bahwa rahasia autentikasi tidak pernah masuk ke kolom audit JSON.
+     - Uji bahwa percobaan rollback ditolak atau tidak tersedia.
+   - Jalankan Pint style check dan lint frontend.
+5. **Penyusunan Laporan & Panduan Review Manual 02a**:
+   - Susun `reports/feature-update/PHASE-02A-AUDIT.md` dan `reports/feature-update/PHASE-02A-MANUAL-REVIEW.md`.
+   - Berhenti untuk review pemilik atas Subfase 02a (jangan melanjutkan ke 02b).
 
 ---
 
