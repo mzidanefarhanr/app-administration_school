@@ -35,8 +35,17 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 - Dampak API/UI: interceptor `apiLogin` diperbaiki; routing dan form `/auth/forgot-password` serta `/auth/reset-password/:token` ditambahkan; `Logout.vue` dan `Profile.vue` diselaraskan ke English; `.env.uat` memakai `MAIL_MAILER=log`.
 - Status: APPROVED. Fase affected: 01b.
 
+### DEC-16 — Isolasi fixture, bootstrap admin, dan standar password (APPROVED, 2026-10-17 WIB)
+- Konteks: perencanaan dan implementasi Fase 01c berdasarkan temuan audit fixture, penanganan BLK-03, dan jawaban pemilik atas Q-01c-1 s/d Q-01c-3.
+- Pilihan pemilik:
+  1. **Bootstrap admin pertama (Q-01c-1)**: Melalui CLI Artisan interaktif (`php artisan app:bootstrap-admin`), kata sandi diketik tersembunyi dengan konfirmasi. Ditolak bila pengguna aktif yang mampu mengelola akses (`canManageAccess()`) sudah ada; tidak mengubah akun lama.
+  2. **Pembersihan data siswa riil seeder (Q-01c-2)**: Ganti data siswa riil dalam seeder dengan 10–20 siswa sintetis khusus lingkungan pengembangan/UAT terisolasi (`SyntheticDataSeeder`). `DatabaseSeeder` default hanya mengisi referensi murni (`ReferenceDataSeeder`) tanpa akun/password bawaan.
+  3. **Standar password (Q-01c-3)**: Minimal 12 karakter tanpa kewajiban kombinasi huruf besar/kecil/angka. Diterapkan konsisten pada pembuatan akun, bootstrap, perubahan password, dan reset password. Akun lama tidak dipaksa mengubah kata sandi secara massal.
+- Dampak API/UI: perintah Artisan `app:bootstrap-admin`; seeder dipisah ke `ReferenceDataSeeder` dan `SyntheticDataSeeder`; `StudentSeeder` lama dibersihkan dari data riil; validasi password minimal 12 karakter di backend dan form frontend; validasi keunikan nama pada `UserController` dihapus (nama boleh sama); validasi NIK string 16 digit angka (`digits:16`).
+- Status: APPROVED. Fase affected: 01c.
+
 ### Keputusan yang masih OPEN (belum diputuskan)
-- Makna `status_user_id` (jangan disamakan dengan `status_active`), bootstrap pengguna pertama (apakah register bootstrap diperlukan), deployment CORS/Sanctum produksi, strategi pencabutan token vs sesi.
+- Makna `status_user_id` (jangan disamakan dengan `status_active`), deployment CORS/Sanctum produksi, strategi pencabutan token vs sesi.
 
 ## Register
 
@@ -57,6 +66,7 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 | DEC-13 | Retensi data pribadi | Arsip siswa/alumni, audit, lampiran; siapa boleh memusnahkan | OPEN | 09b/13 |
 | DEC-14 | Register/akun nonaktif/ekspor siswa/pemetaan legacy/Bahasa UI | Register ditutup; nonaktif ditolak; ekspor via `students.export`; legacy Admin→Admin Sistem (User manual); UI English | APPROVED (2026-10-14 WIB) | 01a |
 | DEC-15 | Error auth, CSRF 419 retry, reset password scope 01b | Reset password in scope (mail log); session expired redirect login; 419 single retry | APPROVED (2026-10-16 WIB) | 01b |
+| DEC-16 | Isolasi fixture, bootstrap admin, standar password 12 karakter | Bootstrap CLI interactive; synthetic seed dev only; password min 12 char | APPROVED (2026-10-17 WIB) | 01c |
 
 ## Format pencatatan keputusan
 Tanggal WIB; ID; konteks; alternatif; pilihan pemilik dan bukti instruksi; dampak schema/API/UI; fase affected; status OPEN/PROPOSED/APPROVED/SUPERSEDED. Pertahankan riwayat bila keputusan berubah.
