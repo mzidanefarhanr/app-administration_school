@@ -185,8 +185,11 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::apiResource('/marital-statuses', MaritalStatusController::class);
     Route::apiResource('/school-profile', SchoolProfileController::class);
     Route::apiResource('/subjects', SubjectController::class);
-    Route::apiResource('/activities', ActivityController::class)
-        ->middleware('can:audit.view');
+    Route::get('/activities', [ActivityController::class, 'index'])->middleware('can:audit.view');
+    Route::get('/activities/{activity}', [ActivityController::class, 'show'])->middleware('can:audit.view');
+    Route::post('/activities', [ActivityController::class, 'store']);
+    Route::match(['put', 'patch'], '/activities/{activity}', [ActivityController::class, 'update']);
+    Route::delete('/activities/{activity}', [ActivityController::class, 'destroy']);
 
 });
 

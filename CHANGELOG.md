@@ -17,6 +17,54 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-17] Subfase 02a — Security & Feature: audit server terpercaya, allowlist atribut, dan penonaktifan rollback klien
+- Type: Security | Feature
+- Scope / fase: Subfase 02a (Audit Server dan Rollback Terbatas).
+- Files touched:
+  - `laravel-api/app/Traits/Loggable.php`
+  - `laravel-api/app/Models/Activity.php`
+  - `laravel-api/app/Models/User.php`
+  - `laravel-api/app/Models/Role.php`
+  - `laravel-api/app/Models/Ability.php`
+  - `laravel-api/app/Models/Student.php`
+  - `laravel-api/app/Http/Controllers/ActivityController.php`
+  - `laravel-api/app/Http/Controllers/RoleController.php`
+  - `laravel-api/app/Http/Controllers/AccessAssignmentController.php`
+  - `laravel-api/routes/api.php`
+  - `laravel-api/tests/Feature/Audit/ServerAuditTest.php` (baru)
+  - `vue-app/src/utils/useResourceManager.js`
+  - `docs/API-CONTRACTS.md`
+  - `docs/SECURITY-DATA.md`
+  - `docs/DATABASE.md`
+  - `reports/feature-update/PHASE-02A-AUDIT.md` (baru)
+  - `reports/feature-update/PHASE-02A-MANUAL-REVIEW.md` (baru)
+  - `reports/feature-update/INDEX.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `roadmap/ROADMAP.md`
+  - `roadmap/phases/PHASE-02-BACKUP-AUDIT.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Penutupan mutasi klien: `POST /api/activities` (pemalsuan log), `PUT/PATCH /api/activities/{id}` (modifikasi & rollback), dan `DELETE /api/activities/{id}` (penghapusan log) dinonaktifkan secara tegas dengan HTTP 405 Method Not Allowed.
+  2. Immutability model level: model `Activity` menerapkan event callback `booted()` yang melempar `\RuntimeException` saat `updating` atau `deleting` dipanggil langsung di kode aplikasi.
+  3. Pembacaan audit berizin: `GET /api/activities` dan `GET /api/activities/{id}` dilindungi kemampuan bernama `audit.view`; mengembalikan JSON terpaginasi dengan relasi pengguna `user:id,name,username`.
+  4. Penegakan server-side & allowlist atribut: actor (`user_id`), target (`table_name`, `record_id`), timestamp, dan aksi (`information`) ditentukan oleh server (`Auth::id()`). Trait `Loggable.php` menerapkan allowlist `$auditableAttributes` pada `User`, `Role`, `Ability`, `Student`, dan master data.
+  5. Penyaringan rahasia 100%: password, password_new, remember_token, access token, dan hash bcrypt tersaring total dari kolom JSON `before`, `after`, `new`, `delete`.
+  6. Audit pivot: mutasi penetapan peran (`role_user`) dan sinkronisasi kemampuan peran (`ability_role`) dicatat ke tabel `activities` secara transaksional di server.
+  7. Konsistensi transaksi & proteksi rekursi: kegagalan transaksi domain membatalkan pencatatan audit (atomik); reentrancy guard (`$isLoggingAudit`) mencegah rekursi; relasi pengguna pada `Activity` memakai `withTrashed()` untuk memelihara jejak historis akun yang di-soft delete.
+  8. Pembersihan frontend: pemanggilan `POST /api/activities` yang dikomentari di `useResourceManager.js` dibersihkan.
+- Why: memenuhi keputusan pemilik DEC-17 untuk mengunci audit trail ke mode immutable append-only, mencegah pemalsuan dan manipulasi data dari sisi klien, dan melindungi kredensial serta privasi data sekolah.
+- Validation:
+  - Backend: `php artisan test` pada SQLite in-memory → **99 passed (433 assertions)** (17 tes baru `ServerAuditTest` PASS).
+  - Backend style: `./vendor/bin/pint --test` (11 file) → **PASS** (100% clean).
+  - Frontend node tests: `node --test tests/phase-01b-api-auth.test.mjs tests/auth-race-condition.test.mjs` → **15 passed, 0 failed**.
+  - Frontend build: `npm run build` → **PASS** (`✓ built in 34s`, 0 errors).
+  - Frontend lint: `npx eslint src/utils/useResourceManager.js` → **0 errors**.
+  - Live HTTP UAT: `http://127.0.0.1:8001/api/activities` guest ditolak 401; unauthenticated browser dialihkan ke `/auth/login`.
+- Notes / risks:
+  - Perlindungan audit ditegakkan pada level API aplikasi dan Eloquent, bukan kekebalan terhadap administrator sistem operasi atau administrator database langsung (root DB/OS admin).
+  - Pemeriksaan manual pemilik berstatus PENDING (checklist #1–#9 di `PHASE-02A-MANUAL-REVIEW.md`).
+- Evidence: `reports/feature-update/PHASE-02A-AUDIT.md`, `reports/feature-update/PHASE-02A-MANUAL-REVIEW.md`.
+
 ## [2026-10-17] Fase 02 — Docs: perencanaan audit terpercaya, rollback terbatas, dan backup/restore drill
 - Type: Docs
 - Scope / fase: penyusunan rencana teknis Fase 02 (audit terpercaya dan backup yang dapat dipulihkan) berdasarkan roadmap dan kondisi aktual HEAD.

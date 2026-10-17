@@ -28,6 +28,24 @@ class User extends Authenticatable
     protected ?array $abilityNamesCache = null;
 
     /**
+     * Atribut yang diizinkan untuk dicatat dalam log audit (allowlist).
+     * Password, remember_token, dan rahasia autentikasi sengaja dikecualikan (DEC-17).
+     *
+     * @var array<int, string>
+     */
+    protected array $auditableAttributes = [
+        'name',
+        'username',
+        'email',
+        'nik',
+        'type_user_id',
+        'status_user_id',
+        'first_login_at',
+        'status_active',
+        'version',
+    ];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>

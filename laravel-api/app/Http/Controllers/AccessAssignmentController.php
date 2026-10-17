@@ -142,10 +142,10 @@ class AccessAssignmentController extends Controller
             'before' => null,
             'after' => null,
             'new' => $change === 'assign'
-                ? json_encode(['action' => $action, 'user_id' => $target->id, 'role' => $role->slug])
+                ? ['action' => $action, 'user_id' => $target->id, 'role' => $role->slug]
                 : null,
             'delete' => $change === 'revoke'
-                ? json_encode(['action' => $action, 'user_id' => $target->id, 'role' => $role->slug])
+                ? ['action' => $action, 'user_id' => $target->id, 'role' => $role->slug]
                 : null,
         ]);
     }

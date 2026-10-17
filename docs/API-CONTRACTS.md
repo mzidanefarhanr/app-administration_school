@@ -61,6 +61,24 @@ Kontrak validasi akun, bootstrap administrator, dan kebijakan password:
 - Frontend: `Student.vue` mengunduh via endpoint ini (bukan `dt.exportCSV()` klien); tombol tampil hanya bila `students.export` dimiliki.
 - Catatan penting: kemampuan ekspor mengendalikan **berkas unduhan**, bukan mencegah penyalinan data yang sudah boleh dilihat pengguna.
 
+### Kontrak Audit Trail (`/api/activities`) — Fase 02a (DEC-17)
+- `GET /api/activities`:
+  - Izin: `audit.view` (wajib). Guest `401`, user tanpa kemampuan `403`.
+  - Format: JSON paginasi (default 50 per halaman) dengan relasi `user:id,name,username` (termasuk soft-deleted user via `withTrashed()`).
+- `GET /api/activities/{id}`:
+  - Izin: `audit.view` (wajib). Mengembalikan detail rekaman audit tunggal.
+- `POST /api/activities`:
+  - Status: **DITUTUP/NONAKTIF** (DEC-17).
+  - Respons: `405 Method Not Allowed` (`{"message": "Audit logs are immutable and cannot be created by clients."}`).
+  - Seluruh log audit dihasilkan otomatis oleh observer/trait di server (`Loggable.php`).
+- `PUT/PATCH /api/activities/{id}`:
+  - Status: **DITUTUP/NONAKTIF** (DEC-17).
+  - Respons: `405 Method Not Allowed` (`{"message": "Audit logs are immutable. Rollback has been disabled."}`).
+  - Audit trail bersifat *immutable append-only*; perbaikan data dilakukan via mutasi baru yang tercatat secara resmi.
+- `DELETE /api/activities/{id}`:
+  - Status: **DITUTUP/NONAKTIF** (DEC-17).
+  - Respons: `405 Method Not Allowed` (`{"message": "Audit logs are immutable and cannot be deleted."}`).
+
 ## Aktual
 Resource di `/api`, dilindungi auth:sanctum: users, status-users, type-users, firstlogin; provinces/regencies/districts/villages; school-years/semesters/education-levels; genders/religions/blood-types/professions/family-status; education-schools/student-statuses/student-entries/student-majors/phase-statuses; students/school-levels/school-rombels/student-rombels; employee/employee-statuses/employee-types/employments/marital-statuses; school-profile/subjects/activities.
 `/api/user` mengambil actor. `/api/check-auth` mengembalikan authenticated + user atau null. Route auth web mencakup login/logout/register/forgot-password/reset-password dan email verification. Daftar route bukan bukti semua handler lengkap.

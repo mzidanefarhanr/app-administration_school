@@ -60,5 +60,7 @@ Baca [prompt OpenCode](../docs/OPENCODE-WORKFLOW.md), jalankan 00a–00b audit s
 - [x] Subfase 01c — isolasi test lanjutan, pemisahan fixture sintetis, validator fixture, dan penanganan BLK-03 (DEC-16 APPROVED; laporan PHASE-01C-ISOLATION-FIXTURES.md; 82 test backend PASS, 15 unit test frontend PASS).
 - [x] Penerimaan manual pemilik Fase 01c (checklist #1–#8 di PHASE-01C-MANUAL-REVIEW.md APPROVED 2026-10-17 WIB mengacu baseline 844883e).
 - [x] **Fase 01 — Hak akses, autentikasi dan lingkungan aman**: DITUTUP LENGKAP sesuai cakupan roadmap (01a, 01b, 01c seluruhnya DITERIMA PEMILIK).
-- [ ] Rencana Fase 02 — Audit terpercaya dan backup yang dapat dipulihkan (PHASE-02-PLAN.md siap review).
-- [ ] Implementasi dan UAT fase terpilih.
+- [x] Rencana Fase 02 — Audit terpercaya dan backup yang dapat dipulihkan (DEC-17 disetujui pemilik 2026-10-17 WIB).
+- [/] Subfase 02a — Audit server dan rollback terbatas (IMPLEMENTED & FULLY VERIFIED; laporan PHASE-02A-AUDIT.md; 99 test backend PASS; review manual pemilik PENDING di PHASE-02A-MANUAL-REVIEW.md).
+- [ ] Subfase 02b — Backup manual dan restore drill (NOT STARTED; menunggu otorisasi pemilik pasca 02a).
+- [ ] Subfase 02c — Jadwal dan monitoring backup (NOT STARTED).

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ability;
+use App\Models\Activity;
 use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -65,9 +66,20 @@ class RoleController extends Controller
             ]);
 
             if (is_array($request->abilities)) {
-                $role->abilities()->sync(
-                    Ability::whereIn('name', $request->abilities)->pluck('id')->all()
-                );
+                $abilityIds = Ability::whereIn('name', $request->abilities)->pluck('id')->all();
+                $role->abilities()->sync($abilityIds);
+
+                $abilityNames = Ability::whereIn('id', $abilityIds)->pluck('name')->all();
+                Activity::create([
+                    'user_id' => auth()->id(),
+                    'table_name' => 'ability_role',
+                    'record_id' => $role->id,
+                    'information' => 'Created',
+                    'before' => null,
+                    'after' => null,
+                    'new' => ['role' => $role->slug, 'abilities' => $abilityNames],
+                    'delete' => null,
+                ]);
             }
 
             return $role->load('abilities:id,name,group,is_sensitive');
@@ -108,9 +120,23 @@ class RoleController extends Controller
             $role->save();
 
             if ($request->has('abilities')) {
-                $role->abilities()->sync(
-                    Ability::whereIn('name', $request->abilities ?? [])->pluck('id')->all()
-                );
+                $oldAbilities = $role->abilities()->pluck('name')->sort()->values()->all();
+                $abilityIds = Ability::whereIn('name', $request->abilities ?? [])->pluck('id')->all();
+                $role->abilities()->sync($abilityIds);
+                $newAbilities = Ability::whereIn('id', $abilityIds)->pluck('name')->sort()->values()->all();
+
+                if ($oldAbilities !== $newAbilities) {
+                    Activity::create([
+                        'user_id' => auth()->id(),
+                        'table_name' => 'ability_role',
+                        'record_id' => $role->id,
+                        'information' => 'Updated',
+                        'before' => ['abilities' => $oldAbilities],
+                        'after' => ['abilities' => $newAbilities],
+                        'new' => null,
+                        'delete' => null,
+                    ]);
+                }
             }
         });
 

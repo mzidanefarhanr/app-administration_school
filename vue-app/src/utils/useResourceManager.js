@@ -285,15 +285,6 @@ export function useResourceManager(config) {
 
                 try {
                     await apiLogin.post(`/api/${endpoint}/${singleData.value.id}`, singleData.value);
-                    // await apiLogin.post('/api/activities', {
-                    //     before:      detailMessage.before,
-                    //     after:       detailMessage.after,
-                    //     new:         null,
-                    //     delete:      null,
-                    //     table_name:  endpoint,
-                    //     record_id:   singleData.value.id,
-                    //     information: 'Updated',
-                    // });
                     manyDatas.value[idx] = singleData.value;
 
                     waitingDialogRender();
@@ -350,15 +341,6 @@ export function useResourceManager(config) {
             waitingDialogRender();
             try {
                 await apiLogin.post(`/api/${endpoint}`, singleData.value);
-                // await apiLogin.post('/api/activities', {
-                //     before:      null,
-                //     after:       null,
-                //     new:         singleData.value,
-                //     delete:      null,
-                //     table_name:  endpoint,
-                //     record_id:   newData.data.id,
-                //     information: 'Created',
-                // });
 
                 EditOrNewDialog.value = false;
                 await fetchDataAll();
@@ -395,15 +377,6 @@ export function useResourceManager(config) {
             singleData.value.delete  = true;
 
             await apiLogin.post(`/api/${endpoint}/${singleData.value.id}`, singleData.value);
-            // await apiLogin.post('/api/activities', {
-            //     before:      null,
-            //     after:       null,
-            //     new:         null,
-            //     delete:      singleData.value,
-            //     table_name:  endpoint,
-            //     record_id:   singleData.value.id,
-            //     information: 'Deleted',
-            // });
             manyDatas.value          = manyDatas.value.filter(item => item.id !== singleData.value.id);
 
             waitingDialogRender();
@@ -449,16 +422,6 @@ export function useResourceManager(config) {
             if (element.id) {
                 try {
                     await apiLogin.post(`/api/${endpoint}/${element.id}`, element);
-                    // await apiLogin.post('/api/activities', {
-                    //     before:      null,
-                    //     after:       null,
-                    //     new:         null,
-                    //     delete:      element,
-                    //     table_name:  endpoint,
-                    //     record_id:   element.id,
-                    //     information: 'Deleted',
-                    // });
-                    // manyDatas.value = manyDatas.value.filter(val => !selectedManyDatas.value.includes(val));
                     manyDatas.value = manyDatas.value.filter(val => val.id !== element.id);
                     count--;
                 } catch (error) {

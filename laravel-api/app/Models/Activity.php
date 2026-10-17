@@ -11,6 +11,7 @@ class Activity extends Model
     use HasFactory;
 
     protected $guarded = ['id'];
+
     protected $table = 'activities';
 
     /**
@@ -31,12 +32,27 @@ class Activity extends Model
 
     protected $casts = [
         'before' => 'array',
-        'after'  => 'array',
-        'new'    => 'array',
+        'after' => 'array',
+        'new' => 'array',
         'delete' => 'array',
     ];
 
-     /**
+    /**
+     * Audit log bersifat immutable append-only (DEC-17).
+     * Modifikasi dan penghapusan catatan audit dilarang pada model level.
+     */
+    protected static function booted(): void
+    {
+        static::updating(function () {
+            throw new \RuntimeException('Audit logs are immutable and cannot be updated.');
+        });
+
+        static::deleting(function () {
+            throw new \RuntimeException('Audit logs are immutable and cannot be deleted.');
+        });
+    }
+
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var array<int, string>
@@ -47,6 +63,6 @@ class Activity extends Model
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id', 'id');
+        return $this->belongsTo(User::class, 'user_id', 'id')->withTrashed();
     }
 }

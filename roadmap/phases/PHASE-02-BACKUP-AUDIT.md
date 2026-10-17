@@ -1,15 +1,17 @@
 # Fase 02 — Audit terpercaya dan backup yang dapat dipulihkan
 
-Status teknis: NOT STARTED. Status review: PENDING. Semua tes/browser/manual: NOT RUN.
-Dependensi: 01; DEC-02 dan DEC-09 untuk backup. Baseline rencana: b02a87f; audit ulang HEAD saat pelaksanaan.
+Status teknis: 02a IMPLEMENTED (99 test backend PASS, 15 unit test frontend PASS, build PASS); 02b-02c NOT STARTED.
+Status review: PENDING (menunggu verifikasi manual pemilik atas checklist 02a).
+Dependensi: 01; DEC-02, DEC-09, dan DEC-17 (APPROVED 2026-10-17). Laporan subfase: PHASE-02A-AUDIT.md.
 
 ## Tujuan dan scope
-Audit terpercaya dan backup yang dapat dipulihkan. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Tidak ada pekerjaan implementasi yang telah dilakukan dalam penyusunan dokumen ini.
+Audit terpercaya dan backup yang dapat dipulihkan. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Subfase 02a telah diimplementasikan; 02b dan 02c menunggu otorisasi terpisah.
 
 ## Subfase
 
 ### 02a — Audit server dan rollback terbatas
-Scope: Audit whitelist per model; tidak log password/hash/token; hilangkan kemampuan memalsukan log; coverage siswa/membership disiapkan saat CRUD ada. Perbaiki target rollback DB::table($modelName), whitelist field/domain, version check, transaksi, linkage dan replay. Jika rollback belum aman, endpoint diblokir sesuai izin dan dicatat deferred, bukan tombol sukses palsu.
+Status: **IMPLEMENTED & FULLY VERIFIED** (Review Pemilik: PENDING).
+Scope selesai: Audit allowlist per model (User, Role, Ability, Student, Master); rahasia (password, remember_token, hash, token) 100% tersaring; penutupan endpoint klien POST /api/activities dan PUT/PATCH/DELETE /api/activities/{id} (HTTP 405); rollback dinonaktifkan (DEC-17); model Activity dilindungi immutability (updating/deleting throw RuntimeException); audit pembacaan dilindungi kemampuan bernama audit.view; audit mutasi pivot role_user dan ability_role; reentrancy guard dan konsistensi transaksi terbukti.
 
 Kriteria penerimaan: Create/update/delete actor dan before/after benar, secrets absent; log tidak dapat dibuat pengguna bebas; rollback stale/ulang/di luar domain ditolak; perubahan terbaru dan record decoy utuh.
 

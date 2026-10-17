@@ -23,7 +23,7 @@ Nama tahun pada migration mencapai 2029; Laravel menentukan urutan dari nama fil
 | provinces / regencies / districts / villages | hierarki wilayah | Relasi bertingkat untuk alamat |
 | education_schools / education_levels | npsn dan referensi pendidikan | Sekolah dirujuk memakai npsn |
 | genders / religions / blood_types / professions / family_statuses | referensi biodata | Identitas/domain berbeda dari role |
-| activities | user_id, table_name, record_id, before/after/new/delete JSON, information enum, timestamps | FK user cascade untuk hard delete; belum memiliki idempotency/rollback linkage |
+| activities | user_id, table_name, record_id, before/after/new/delete JSON, information enum, timestamps | Append-only immutable via Eloquent booted guard; relasi User::withTrashed() menjaga riwayat historis saat akun pengguna di-soft delete; client create/modify/delete dinonaktifkan (DEC-17) |
 | password_reset_tokens / personal_access_tokens / failed_jobs | tabel framework | Jangan masukkan token ke evidence |
 | roles (Fase 01a) | name, slug, description, is_protected, version, soft delete | Peran baru terpisah dari type_users; `is_protected` melindungi Admin Sistem |
 | abilities (Fase 01a) | name unik (mis. students.export), group, description, is_sensitive | Katalog kemampuan bernama; di-seed dari AbilityCatalog |

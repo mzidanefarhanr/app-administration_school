@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\Loggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -9,11 +10,24 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Role extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, Loggable, SoftDeletes;
 
     protected $guarded = ['id'];
 
     protected $dates = ['deleted_at'];
+
+    /**
+     * Atribut yang diizinkan untuk dicatat dalam log audit (allowlist).
+     *
+     * @var array<int, string>
+     */
+    protected array $auditableAttributes = [
+        'name',
+        'slug',
+        'description',
+        'is_protected',
+        'version',
+    ];
 
     protected $fillable = [
         'name',

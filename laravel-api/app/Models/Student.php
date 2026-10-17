@@ -2,18 +2,38 @@
 
 namespace App\Models;
 
+use App\Traits\Loggable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Student extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, Loggable, SoftDeletes;
 
     protected $guarded = ['id'];
+
     protected $table = 'students';
+
     protected $dates = ['deleted_at'];
+
+    /**
+     * Atribut yang diizinkan untuk dicatat dalam log audit (allowlist).
+     * Kolom data pribadi sensitif (riwayat medis, data orang tua/gaji, dll.) dikecualikan.
+     *
+     * @var array<int, string>
+     */
+    protected array $auditableAttributes = [
+        'name',
+        'nis',
+        'nisn',
+        'nik',
+        'gender_id',
+        'religion_id',
+        'education_level_id',
+        'version',
+    ];
 
     /**
      * The attributes that are mass assignable.
@@ -88,7 +108,7 @@ class Student extends Model
         'check_pip',
     ];
 
-     /**
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var array<int, string>
@@ -101,38 +121,47 @@ class Student extends Model
     {
         return $this->belongsTo(Gender::class, 'gender_id', 'id');
     }
+
     public function religion(): BelongsTo
     {
         return $this->belongsTo(Religion::class, 'religion_id', 'id');
     }
+
     public function education_level(): BelongsTo
     {
         return $this->belongsTo(EducationLevel::class, 'education_level_id', 'id');
     }
+
     public function blood_type(): BelongsTo
     {
         return $this->belongsTo(BloodType::class, 'blood_type_id', 'id');
     }
+
     public function profession(): BelongsTo
     {
         return $this->belongsTo(Profession::class, 'profession_id', 'id');
     }
+
     public function village(): BelongsTo
     {
         return $this->belongsTo(Village::class, 'village_id', 'id');
     }
+
     public function family_status(): BelongsTo
     {
         return $this->belongsTo(FamilyStatus::class, 'family_status_id', 'id');
     }
+
     public function last_education_school(): BelongsTo
     {
         return $this->belongsTo(EducationSchool::class, 'last_education_school_id', 'npsn');
     }
+
     public function latest_education_school(): BelongsTo
     {
         return $this->belongsTo(EducationSchool::class, 'latest_education_school_id', 'npsn');
     }
+
     // public function student_status(): BelongsTo
     // {
     //     return $this->belongsTo(StudentStatus::class, 'student_status_id', 'id');
@@ -157,25 +186,29 @@ class Student extends Model
     {
         return $this->belongsTo(EducationLevel::class, 'father_education_level_id', 'id');
     }
+
     public function father_profession(): BelongsTo
     {
         return $this->belongsTo(Profession::class, 'father_profession_id', 'id');
     }
+
     public function mother_education_level(): BelongsTo
     {
         return $this->belongsTo(EducationLevel::class, 'mother_education_level_id', 'id');
     }
+
     public function mother_profession(): BelongsTo
     {
         return $this->belongsTo(Profession::class, 'mother_profession_id', 'id');
     }
+
     public function guardian_education_level(): BelongsTo
     {
         return $this->belongsTo(EducationLevel::class, 'guardian_education_level_id', 'id');
     }
+
     public function guardian_profession(): BelongsTo
     {
         return $this->belongsTo(Profession::class, 'guardian_profession_id', 'id');
     }
-
 }
