@@ -102,18 +102,20 @@ class UserController extends Controller
             }
 
             // No conflict — safe to restore and update
-            $existingByNik->restore();
-            $existingByNik->update([
-                'name' => $request->name,
-                'email' => $request->email,
-                'username' => $request->username,
-                'password' => bcrypt($request->password),
-                'nik' => $request->nik,
-                'type_user_id' => $request->type_user_id,
-                'status_user_id' => $request->status_user_id,
-                'status_active' => 0,
-                'first_login_at' => 0,
-            ]);
+            DB::transaction(function () use ($existingByNik, $request) {
+                $existingByNik->restore();
+                $existingByNik->update([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'username' => $request->username,
+                    'password' => bcrypt($request->password),
+                    'nik' => $request->nik,
+                    'type_user_id' => $request->type_user_id,
+                    'status_user_id' => $request->status_user_id,
+                    'status_active' => 0,
+                    'first_login_at' => 0,
+                ]);
+            });
 
             return new UserResource(true, 'Users successfully restored!', $existingByNik);
         }
@@ -147,18 +149,20 @@ class UserController extends Controller
         }
 
         // ── STEP 3: All clear — create fresh user ────────────────────────────────
-        $users = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'email_verified_at' => now(),
-            'username' => $request->username,
-            'password' => bcrypt($request->password),
-            'nik' => $request->nik,
-            'first_login_at' => 0,
-            'status_active' => 0,
-            'type_user_id' => $request->type_user_id,
-            'status_user_id' => $request->status_user_id,
-        ]);
+        $users = DB::transaction(function () use ($request) {
+            return User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'email_verified_at' => now(),
+                'username' => $request->username,
+                'password' => bcrypt($request->password),
+                'nik' => $request->nik,
+                'first_login_at' => 0,
+                'status_active' => 0,
+                'type_user_id' => $request->type_user_id,
+                'status_user_id' => $request->status_user_id,
+            ]);
+        });
 
         return new UserResource(true, 'New Users successfully added!', $users);
     }
@@ -338,7 +342,7 @@ class UserController extends Controller
         }
 
         if ($request->delete == 'true') {
-            $user->delete();
+            DB::transaction(fn () => $user->delete());
 
             return new UserResource(true, 'User successfully deleted!', null);
         }

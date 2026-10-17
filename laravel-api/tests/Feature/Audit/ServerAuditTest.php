@@ -76,6 +76,48 @@ test('user with audit.view can view single activity detail', function () {
         ->assertJsonPath('data.table_name', 'roles');
 });
 
+test('audit read response does not expose password or hash through user relation or serialization', function () {
+    $admin = $this->makeUserWithRole('admin-sistem', ['password' => bcrypt('AdminTopSecret123!')]);
+    Sanctum::actingAs($admin);
+
+    // Create a target user mutation
+    $targetUser = User::factory()->create([
+        'name' => 'Target User For Leak Check',
+        'password' => bcrypt('TargetTopSecret456!'),
+    ]);
+
+    $activity = Activity::where('table_name', 'users')
+        ->where('record_id', $targetUser->id)
+        ->firstOrFail();
+
+    $responseList = $this->getJson('/api/activities');
+    $responseList->assertStatus(200);
+
+    // Verify list response serialization
+    $listContent = $responseList->getContent();
+    expect($listContent)->not->toContain('AdminTopSecret123!');
+    expect($listContent)->not->toContain('TargetTopSecret456!');
+    expect($listContent)->not->toContain('$2y$'); // No bcrypt hashes anywhere in response
+
+    $listUser = $responseList->json('data.data.0.user');
+    expect($listUser)->toHaveKeys(['id', 'name', 'username']);
+    expect($listUser)->not->toHaveKey('password');
+    expect($listUser)->not->toHaveKey('remember_token');
+
+    $responseDetail = $this->getJson("/api/activities/{$activity->id}");
+    $responseDetail->assertStatus(200);
+
+    $detailContent = $responseDetail->getContent();
+    expect($detailContent)->not->toContain('AdminTopSecret123!');
+    expect($detailContent)->not->toContain('TargetTopSecret456!');
+    expect($detailContent)->not->toContain('$2y$');
+
+    $detailUser = $responseDetail->json('data.user');
+    expect($detailUser)->toHaveKeys(['id', 'name', 'username']);
+    expect($detailUser)->not->toHaveKey('password');
+    expect($detailUser)->not->toHaveKey('remember_token');
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 2. Penolakan Pemalsuan & Mutasi Klien (Client Mutation / Spoofing / Rollback)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -415,6 +457,133 @@ test('transaction failure rolls back both domain mutation and audit record', fun
 
     // Decoy is still intact
     expect($decoy->fresh())->not->toBeNull();
+});
+
+test('audit insert failure rolls back user domain mutation and preserves database state', function () {
+    $admin = $this->makeUserWithRole('admin-sistem');
+    Sanctum::actingAs($admin);
+
+    // Decoy user that must remain untouched
+    $decoy = User::factory()->create(['name' => 'Decoy User Intact', 'username' => 'decoy_user_intact']);
+
+    // Hook to fail on audit insert for users table
+    Activity::$testCreatingHook = function ($activity) {
+        if ($activity->table_name === 'users') {
+            throw new \RuntimeException('Simulated audit insert failure for users table');
+        }
+    };
+
+    try {
+        $response = $this->postJson('/api/users', [
+            'name' => 'Failed User Should Rollback',
+            'username' => 'failed_rollback_user',
+            'email' => 'failed_user@example.com',
+            'nik' => '3201010101010055',
+            'password' => 'Password12345!',
+            'password_confirmation' => 'Password12345!',
+            'type_user_id' => TypeUser::where('name', 'User')->first()->id,
+            'status_user_id' => 1,
+        ]);
+        $response->assertStatus(500);
+    } finally {
+        Activity::$testCreatingHook = null;
+    }
+
+    // Assert database state: user was rolled back and does not exist in DB
+    expect(User::where('username', 'failed_rollback_user')->exists())->toBeFalse();
+    expect(Activity::where('table_name', 'users')->where('new->username', 'failed_rollback_user')->exists())->toBeFalse();
+
+    // Decoy remains untouched
+    expect($decoy->fresh()->name)->toBe('Decoy User Intact');
+});
+
+test('audit insert failure rolls back role_user pivot mutation and preserves database state', function () {
+    $admin = $this->makeUserWithRole('admin-sistem');
+    $targetUser = $this->makeUserWithRole('operator-sekolah');
+    $wakaRole = $this->role('wakil-kesiswaan');
+
+    Sanctum::actingAs($admin);
+
+    // Hook to fail on audit insert for role_user pivot table
+    Activity::$testCreatingHook = function ($activity) {
+        if ($activity->table_name === 'role_user') {
+            throw new \RuntimeException('Simulated audit insert failure for role_user');
+        }
+    };
+
+    // 1. Assign failure test
+    try {
+        $assignResponse = $this->postJson("/api/users/{$targetUser->id}/roles", [
+            'role_id' => $wakaRole->id,
+        ]);
+        $assignResponse->assertStatus(500);
+    } finally {
+        Activity::$testCreatingHook = null;
+    }
+
+    // Database state check: role was NOT assigned (pivot insert rolled back)
+    expect($targetUser->fresh()->roles()->where('slug', 'wakil-kesiswaan')->exists())->toBeFalse();
+    expect($targetUser->fresh()->roles()->where('slug', 'operator-sekolah')->exists())->toBeTrue();
+    expect(Activity::where('table_name', 'role_user')->exists())->toBeFalse();
+
+    // Now cleanly assign the role without hook
+    $targetUser->roles()->attach($wakaRole->id, ['assigned_by' => $admin->id]);
+    expect($targetUser->fresh()->roles()->where('slug', 'wakil-kesiswaan')->exists())->toBeTrue();
+
+    // 2. Revoke failure test
+    Activity::$testCreatingHook = function ($activity) {
+        if ($activity->table_name === 'role_user') {
+            throw new \RuntimeException('Simulated audit insert failure for role_user revoke');
+        }
+    };
+
+    try {
+        $revokeResponse = $this->deleteJson("/api/users/{$targetUser->id}/roles/{$wakaRole->id}");
+        $revokeResponse->assertStatus(500);
+    } finally {
+        Activity::$testCreatingHook = null;
+    }
+
+    // Database state check: role was NOT revoked (pivot delete rolled back)
+    expect($targetUser->fresh()->roles()->where('slug', 'wakil-kesiswaan')->exists())->toBeTrue();
+});
+
+test('audit insert failure rolls back ability_role pivot mutation and preserves database state', function () {
+    $admin = $this->makeUserWithRole('admin-sistem');
+    Sanctum::actingAs($admin);
+
+    // Create a role with specific initial abilities
+    $role = Role::create([
+        'name' => 'Pivot Test Role',
+        'slug' => 'pivot-test-role',
+        'description' => 'Initial role for atomic test',
+        'is_protected' => false,
+    ]);
+    $initialAbilities = ['master.view', 'students.view'];
+    $role->abilities()->sync(Ability::whereIn('name', $initialAbilities)->pluck('id')->all());
+
+    $originalAbilities = $role->abilities()->pluck('name')->sort()->values()->all();
+
+    // Hook to fail on audit insert for ability_role pivot
+    Activity::$testCreatingHook = function ($activity) {
+        if ($activity->table_name === 'ability_role') {
+            throw new \RuntimeException('Simulated audit insert failure for ability_role');
+        }
+    };
+
+    try {
+        $response = $this->putJson("/api/roles/{$role->id}", [
+            'abilities' => ['master.view', 'students.view', 'employees.view'],
+        ]);
+        $response->assertStatus(500);
+    } finally {
+        Activity::$testCreatingHook = null;
+    }
+
+    // Database state check: abilities on the role remain UNCHANGED
+    $currentAbilities = $role->fresh()->abilities()->pluck('name')->sort()->values()->all();
+    expect($currentAbilities)->toBe($originalAbilities);
+    expect($currentAbilities)->not->toContain('employees.view');
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

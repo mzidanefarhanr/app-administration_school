@@ -38,11 +38,24 @@ class Activity extends Model
     ];
 
     /**
+     * Hook pengujian atomisitas transaksi: menyimulasikan kegagalan INSERT audit.
+     *
+     * @var (\Closure(\App\Models\Activity): void)|null
+     */
+    public static ?\Closure $testCreatingHook = null;
+
+    /**
      * Audit log bersifat immutable append-only (DEC-17).
      * Modifikasi dan penghapusan catatan audit dilarang pada model level.
      */
     protected static function booted(): void
     {
+        static::creating(function ($activity) {
+            if (static::$testCreatingHook !== null) {
+                (static::$testCreatingHook)($activity);
+            }
+        });
+
         static::updating(function () {
             throw new \RuntimeException('Audit logs are immutable and cannot be updated.');
         });

@@ -3,7 +3,7 @@
 - Tanggal WIB: 2026-10-17
 - Subfase: **02a — Audit Server dan Rollback Terbatas**
 - Branch: `main`
-- Status teknis: **IMPLEMENTED & AUTOMATED TESTS PASS (99/99)**
+- Status teknis: **IMPLEMENTED & AUTOMATED TESTS PASS (103/103)**
 - Status checklist pemilik: **PENDING (Menunggu Pemeriksaan Manual Pemilik)**
 - Batasan klaim: **Perlindungan integritas audit dan pencegahan modifikasi/rollback ditegakkan pada API aplikasi dan ORM Eloquent, bukan merupakan klaim kekebalan terhadap administrator sistem operasi atau administrator database langsung (root DB/OS admin).**
 
@@ -21,6 +21,8 @@ Akun UAT sintetis yang tersedia (kata sandi sesuai sesi UAT Anda):
 - `uat.kepsek` (Principal — memiliki `audit.view`)
 - `uat.waka` (Vice Principal for Student Affairs — **tidak** memiliki `audit.view`)
 
+*Catatan pengujian API*: Cara paling andal menjalankan request POST/PUT/DELETE dengan sesi dan CSRF token yang valid adalah melalui **Developer Tools Console (F12)** pada tab browser SPA yang sedang login (memakai `fetch` yang otomatis menyertakan kredensial sesi Sanctum).
+
 ---
 
 ## 2. Checklist Pemeriksaan Manual
@@ -29,19 +31,28 @@ Status: **PENDING** = menunggu verifikasi dan jawaban pemilik; **APPROVED** = pe
 
 | # | Skenario Uji | Tindakan / Endpoint | Hasil yang Diharapkan | Status Pemilik |
 |---|---|---|---|---|
-| 1 | Akses Tamu (Unauthenticated) | Buka URL API langsung: `GET http://127.0.0.1:8001/api/activities` (tanpa cookie/token sesi) | Mengembalikan **HTTP 401 Unauthorized** (`{"message":"Unauthenticated."}`). Akses ditolak. | **PENDING** |
-| 2 | Otorisasi Akses Operator (Tanpa `audit.view`) | Login sebagai `uat.operator` di browser (`http://127.0.0.1:4001/auth/login`), lalu panggil `GET http://127.0.0.1:8001/api/activities` pada tab baru dengan sesi aktif | Mengembalikan **HTTP 403 Forbidden** (`{"message":"This action is unauthorized."}`). Operator tidak dapat melihat log audit. | **PENDING** |
-| 3 | Pembacaan Audit oleh Administrator | Login sebagai `uat.admin` di browser, lalu panggil `GET http://127.0.0.1:8001/api/activities` pada tab baru | Mengembalikan **HTTP 200 OK** dengan format JSON paginasi (`data.data`), memuat informasi `id`, `table_name`, `record_id`, `information`, serta relasi pengguna `user` (`id`, `name`, `username`). | **PENDING** |
-| 4 | Penolakan Pembuatan Audit Klien (Anti-Spoofing) | Kirim request POST ke endpoint aktivitas: `POST http://127.0.0.1:8001/api/activities` dengan payload JSON apa pun | Server menolak dengan **HTTP 405 Method Not Allowed** (`{"message":"Audit logs are immutable and cannot be created by clients."}`). Tidak ada log fiktif yang tercipta. | **PENDING** |
-| 5 | Penolakan Modifikasi & Rollback Klien | Kirim request PUT/PATCH ke endpoint aktivitas: `PUT http://127.0.0.1:8001/api/activities/1` dengan payload rollback | Server menolak dengan **HTTP 405 Method Not Allowed** (`{"message":"Audit logs are immutable. Rollback has been disabled."}`). Rollback klien dinonaktifkan. | **PENDING** |
-| 6 | Penolakan Penghapusan Audit Klien | Kirim request DELETE ke endpoint aktivitas: `DELETE http://127.0.0.1:8001/api/activities/1` | Server menolak dengan **HTTP 405 Method Not Allowed** (`{"message":"Audit logs are immutable and cannot be deleted."}`). Rekaman audit tidak dapat dihapus via API. | **PENDING** |
-| 7 | Sanitasi Rahasia & Allowlist pada Mutasi User | Sebagai admin, ubah nama atau kata sandi akun pengguna via form Accounts (`/master/accounts`) atau API, lalu periksa rekaman pada tabel `activities` | Rekaman audit mencatat perubahan nama pada kolom `before` dan `after`. Kolom `password`, `password_new`, `remember_token`, atau hash bcrypt **100% absen** dari JSON audit. | **PENDING** |
-| 8 | Audit Mutasi Pivot Hak Akses | Sebagai admin, tetapkan peran baru ke pengguna di `/master/accounts` atau ubah kemampuan peran di `/master/roles` | Tercipta rekaman audit dengan `table_name` bernilai `role_user` (untuk penetapan peran) atau `ability_role` (untuk perubahan matriks peran), memuat informasi peran dan kemampuan yang diubah tanpa rahasia. | **PENDING** |
-| 9 | Batasan Perlindungan API Aplikasi | Konfirmasi pemahaman batasan | Memahami bahwa kontrol audit ditegakkan pada level aplikasi API Laravel dan Eloquent, bukan proteksi terhadap root database/server administrator. | **PENDING** |
+| 1 | Akses Tamu (Unauthenticated) | Buka tab penyamaran (incognito) atau cURL: `curl.exe -s http://127.0.0.1:8001/api/activities` | Mengembalikan **HTTP 401 Unauthorized** (`{"message":"Unauthenticated."}`). Akses ditolak. | **PENDING** |
+| 2 | Otorisasi Akses Operator (Tanpa `audit.view`) | Login sebagai `uat.operator` di browser (`http://127.0.0.1:4001/auth/login`). Buka console browser (F12) lalu jalankan: `await fetch('http://127.0.0.1:8001/api/activities', { credentials: 'include', headers: { 'Accept': 'application/json' } }).then(r => r.status)` | Mengembalikan status **403 Forbidden** (`{"message":"This action is unauthorized."}`). Operator tidak dapat melihat log audit. | **PENDING** |
+| 3 | Pembacaan Audit oleh Administrator | Login sebagai `uat.admin` di browser. Buka console (F12) lalu jalankan: `const res = await fetch('http://127.0.0.1:8001/api/activities', { credentials: 'include', headers: { 'Accept': 'application/json' } }); const json = await res.json(); console.log(res.status, json);` | Mengembalikan status **200 OK**. Payload JSON memuat struktur paginasi `data.data`, field `id`, `table_name`, `record_id`, `information`, dan relasi `user` (`id`, `name`, `username`). Catat salah satu `id` audit nyata dari respons (misal `json.data.data[0].id`) untuk pengujian butir #5 dan #6. | **PENDING** |
+| 4 | Penolakan Pembuatan Audit Klien (Anti-Spoofing) | Di sesi `uat.admin`, jalankan di console (F12): `await fetch('http://127.0.0.1:8001/api/activities', { method: 'POST', credentials: 'include', headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ table_name: 'users', record_id: 1, information: 'Created', new: { forged: true } }) }).then(r => r.status)` | Server menolak dengan **HTTP 405 Method Not Allowed** (`{"message":"Audit logs are immutable and cannot be created by clients."}`). Tidak ada log fiktif yang tercipta. | **PENDING** |
+| 5 | Penolakan Modifikasi & Rollback Klien | Di sesi `uat.admin`, gunakan ID audit nyata yang diperoleh dari butir #3: `const id = json.data.data[0]?.id || 1; await fetch(`http://127.0.0.1:8001/api/activities/${id}`, { method: 'PUT', credentials: 'include', headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ information: 'Rollbacked_Updated' }) }).then(r => r.status)` | Server menolak dengan **HTTP 405 Method Not Allowed** (`{"message":"Audit logs are immutable. Rollback has been disabled."}`). Modifikasi/rollback ditolak. | **PENDING** |
+| 6 | Penolakan Penghapusan Audit Klien | Di sesi `uat.admin`, gunakan ID audit nyata: `const id = json.data.data[0]?.id || 1; await fetch(`http://127.0.0.1:8001/api/activities/${id}`, { method: 'DELETE', credentials: 'include', headers: { 'Accept': 'application/json' } }).then(r => r.status)` | Server menolak dengan **HTTP 405 Method Not Allowed** (`{"message":"Audit logs are immutable and cannot be deleted."}`). Rekaman audit tidak dapat dihapus via API. | **PENDING** |
+| 7 | Sanitasi Rahasia & Allowlist pada Mutasi User | Di menu Accounts (`/master/accounts`), edit akun `uat.operator`: ubah nama menjadi `UAT Operator Sekolah Updated` dan masukkan password baru valid (mis. `OperatorPass12345!`). Simpan. Lalu ambil log audit terbaru via console: `const res = await fetch('http://127.0.0.1:8001/api/activities', { credentials: 'include', headers: { 'Accept': 'application/json' } }); const latest = (await res.json()).data.data[0]; console.log(latest);` Periksa respons JSON mentah. | Kolom `before` dan `after` mencatat perubahan allowlist (`name`). Kolom `password`, `password_new`, `remember_token`, maupun string hash `$2y$` **absen total** dari respons JSON audit dan objek relasi pengguna `user`. Kembalikan nama ke `UAT Operator Sekolah` setelah verifikasi. | **PENDING** |
+| 8 | Audit Mutasi Pivot Hak Akses & Pemulihan | 1. Di menu `/master/accounts`, klik tombol Assign Roles pada akun `uat.waka`, tambahkan peran `School Operator`.<br>2. Periksa log audit: `const latest = (await (await fetch('http://127.0.0.1:8001/api/activities', { credentials: 'include', headers: { 'Accept': 'application/json' } })).json()).data.data[0]; console.log(latest);`<br>3. Cabut kembali peran `School Operator` dari `uat.waka` (restore state awal). | Pada langkah 2, tercipta rekaman audit dengan `table_name: 'role_user'`, `information: 'Created'`, dan payload `new` memuat peran `operator-sekolah`. Pada langkah 3, tercipta rekaman audit `information: 'Deleted'`. Peran `uat.waka` kembali seperti semula. | **PENDING** |
+| 9 | Batasan Perlindungan API Aplikasi | Konfirmasi pemahaman batasan | Memahami bahwa kontrol audit ditegakkan pada level aplikasi API Laravel dan ORM Eloquent, bukan proteksi terhadap root database/server administrator. | **PENDING** |
 
 ---
 
-## 3. Cara Memberikan Persetujuan Pemilik
+## 3. Pemulihan State Pasca UAT (Post-Test Cleanup)
+
+Bila pengujian butir #7 atau #8 mengubah data uji:
+1. Pastikan nama akun `uat.operator` tetap `UAT Operator Sekolah`.
+2. Pastikan akun `uat.waka` hanya memiliki satu peran: `wakil-kesiswaan` (cabut `operator-sekolah` bila masih ada).
+3. Matriks kemampuan default peran pada `/master/roles` tetap pada baseline DEC-03/DEC-14.
+
+---
+
+## 4. Cara Memberikan Persetujuan Pemilik
 
 Setelah Anda memeriksa butir-butir di atas pada lingkungan UAT lokal, kirim instruksi:
 ```text

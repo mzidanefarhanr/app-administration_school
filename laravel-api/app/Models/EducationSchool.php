@@ -2,18 +2,36 @@
 
 namespace App\Models;
 
+use App\Traits\Loggable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EducationSchool extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, Loggable, SoftDeletes;
 
     protected $guarded = ['id'];
+
     protected $table = 'education_schools';
+
     protected $dates = ['deleted_at'];
+
+    /**
+     * Atribut yang diizinkan untuk dicatat dalam log audit (allowlist).
+     *
+     * @var array<int, string>
+     */
+    protected array $auditableAttributes = [
+        'name',
+        'npsn',
+        'education_level_id',
+        'status_education',
+        'address',
+        'district_id',
+        'version',
+    ];
 
     /**
      * The attributes that are mass assignable.
@@ -30,7 +48,7 @@ class EducationSchool extends Model
         'district_id',
     ];
 
-     /**
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var array<int, string>

@@ -27,8 +27,8 @@ Catatan perubahan pemilik: berkas log bukti `console.txt` milik pemilik tetap ad
 ## 2. Pemeriksaan yang Dijalankan & Hasil (Subfase 02a)
 1. **Automated Backend**:
    - Perintah: `php artisan test` pada database SQLite in-memory `:memory:` terisolasi.
-   - Hasil: **99 passed (433 assertions)**, bertambah 17 tes baru khusus integritas audit pada `tests/Feature/Audit/ServerAuditTest.php` (seluruh 17 tes audit PASS: otorisasi, penolakan pemalsuan klien, penolakan rollback, sanitasi rahasia, audit pivot, konsistensi atomik transaksi, reentrancy guard, immutability model level, dan preservasi soft-delete).
-   - Style check: `./vendor/bin/pint --test` (11 files) → **PASS** (100% clean).
+   - Hasil: **103 passed (465 assertions)**, bertambah 21 tes baru khusus integritas audit pada `tests/Feature/Audit/ServerAuditTest.php` (seluruh 21 tes audit PASS: otorisasi, sanitasi serialisasi respons pembacaan, penolakan pemalsuan klien, penolakan rollback, sanitasi rahasia, audit pivot, konsistensi atomik transaksi, pembuktian kegagalan insert audit membatalkan mutasi domain/pivot, reentrancy guard, immutability model level, dan preservasi soft-delete).
+   - Style check: `./vendor/bin/pint --test` (16 files) → **PASS** (100% clean).
 2. **Automated Frontend**:
    - Perintah: `node --test tests/phase-01b-api-auth.test.mjs tests/auth-race-condition.test.mjs`.
    - Hasil: **15 passed (0 failed)**.

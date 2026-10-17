@@ -27,9 +27,14 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
   - `laravel-api/app/Models/Role.php`
   - `laravel-api/app/Models/Ability.php`
   - `laravel-api/app/Models/Student.php`
+  - `laravel-api/app/Models/EducationSchool.php`
+  - `laravel-api/app/Models/StatusUser.php`
+  - `laravel-api/app/Models/Semester.php`
+  - `laravel-api/app/Models/SchoolLevel.php`
   - `laravel-api/app/Http/Controllers/ActivityController.php`
   - `laravel-api/app/Http/Controllers/RoleController.php`
   - `laravel-api/app/Http/Controllers/AccessAssignmentController.php`
+  - `laravel-api/app/Http/Controllers/UserController.php`
   - `laravel-api/routes/api.php`
   - `laravel-api/tests/Feature/Audit/ServerAuditTest.php` (baru)
   - `vue-app/src/utils/useResourceManager.js`
@@ -45,17 +50,17 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
   - `CHANGELOG.md`
 - What changed:
   1. Penutupan mutasi klien: `POST /api/activities` (pemalsuan log), `PUT/PATCH /api/activities/{id}` (modifikasi & rollback), dan `DELETE /api/activities/{id}` (penghapusan log) dinonaktifkan secara tegas dengan HTTP 405 Method Not Allowed.
-  2. Immutability model level: model `Activity` menerapkan event callback `booted()` yang melempar `\RuntimeException` saat `updating` atau `deleting` dipanggil langsung di kode aplikasi.
-  3. Pembacaan audit berizin: `GET /api/activities` dan `GET /api/activities/{id}` dilindungi kemampuan bernama `audit.view`; mengembalikan JSON terpaginasi dengan relasi pengguna `user:id,name,username`.
-  4. Penegakan server-side & allowlist atribut: actor (`user_id`), target (`table_name`, `record_id`), timestamp, dan aksi (`information`) ditentukan oleh server (`Auth::id()`). Trait `Loggable.php` menerapkan allowlist `$auditableAttributes` pada `User`, `Role`, `Ability`, `Student`, dan master data.
-  5. Penyaringan rahasia 100%: password, password_new, remember_token, access token, dan hash bcrypt tersaring total dari kolom JSON `before`, `after`, `new`, `delete`.
+  2. Immutability model level: model `Activity` menerapkan event callback `booted()` yang melempar `\RuntimeException` saat `updating` atau `deleting` dipanggil langsung di kode aplikasi; dilengkapi hook pengujian atomisitas `$testCreatingHook`.
+  3. Pembacaan audit berizin & sanitasi serialisasi: `GET /api/activities` dan `GET /api/activities/{id}` dilindungi kemampuan bernama `audit.view`; mengembalikan JSON terpaginasi dengan relasi pengguna `user:id,name,username` tanpa mengekspos kata sandi atau hash.
+  4. Penegakan server-side & allowlist atribut: actor (`user_id`), target (`table_name`, `record_id`), timestamp, dan aksi (`information`) ditentukan oleh server (`Auth::id()`). Trait `Loggable.php` menerapkan allowlist `$auditableAttributes` pada `User`, `Role`, `Ability`, `Student`, `EducationSchool`, dan master data.
+  5. Penyaringan rahasia terdefinisi: kata sandi mentah, password baru, remember_token, access token, dan hash bcrypt tersaring total dari kolom JSON `before`, `after`, `new`, `delete`.
   6. Audit pivot: mutasi penetapan peran (`role_user`) dan sinkronisasi kemampuan peran (`ability_role`) dicatat ke tabel `activities` secara transaksional di server.
-  7. Konsistensi transaksi & proteksi rekursi: kegagalan transaksi domain membatalkan pencatatan audit (atomik); reentrancy guard (`$isLoggingAudit`) mencegah rekursi; relasi pengguna pada `Activity` memakai `withTrashed()` untuk memelihara jejak historis akun yang di-soft delete.
+  7. Konsistensi transaksi & proteksi rekursi: pembungkusan mutasi `UserController` (`store`, `update`, `destroy`), `RoleController`, dan `AccessAssignmentController` dalam `DB::transaction` atomik; kegagalan proses audit membatalkan perubahan domain/pivot; reentrancy guard (`$isLoggingAudit`) mencegah rekursi; relasi pengguna pada `Activity` memakai `withTrashed()` untuk memelihara jejak historis akun yang di-soft delete.
   8. Pembersihan frontend: pemanggilan `POST /api/activities` yang dikomentari di `useResourceManager.js` dibersihkan.
 - Why: memenuhi keputusan pemilik DEC-17 untuk mengunci audit trail ke mode immutable append-only, mencegah pemalsuan dan manipulasi data dari sisi klien, dan melindungi kredensial serta privasi data sekolah.
 - Validation:
-  - Backend: `php artisan test` pada SQLite in-memory → **99 passed (433 assertions)** (17 tes baru `ServerAuditTest` PASS).
-  - Backend style: `./vendor/bin/pint --test` (11 file) → **PASS** (100% clean).
+  - Backend: `php artisan test` pada SQLite in-memory → **103 passed (465 assertions)** (21 tes baru `ServerAuditTest` PASS).
+  - Backend style: `./vendor/bin/pint --test` (16 file) → **PASS** (100% clean).
   - Frontend node tests: `node --test tests/phase-01b-api-auth.test.mjs tests/auth-race-condition.test.mjs` → **15 passed, 0 failed**.
   - Frontend build: `npm run build` → **PASS** (`✓ built in 34s`, 0 errors).
   - Frontend lint: `npx eslint src/utils/useResourceManager.js` → **0 errors**.

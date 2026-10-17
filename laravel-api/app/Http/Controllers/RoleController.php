@@ -167,7 +167,7 @@ class RoleController extends Controller
             ], 422);
         }
 
-        $role->delete();
+        DB::transaction(fn () => $role->delete());
 
         return response()->json(['success' => true, 'message' => 'Role deleted', 'data' => null]);
     }
