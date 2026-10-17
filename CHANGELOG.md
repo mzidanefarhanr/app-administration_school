@@ -17,6 +17,29 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-17] Fase 01c — Docs: penyempurnaan panduan manual review dan konfigurasi lingkungan bootstrap disposable
+- Type: Docs
+- Scope / fase: penyempurnaan panduan pengujian manual UAT Fase 01c dan template konfigurasi database disposable khusus bootstrap.
+- Files touched:
+  - `laravel-api/.env.bootstrap.example` (baru)
+  - `laravel-api/.gitignore`
+  - `reports/feature-update/PHASE-01C-MANUAL-REVIEW.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Penyiapan template `.env.bootstrap.example` dan pendaftaran `.env.bootstrap` pada `.gitignore` untuk pengujian perintah bootstrap pada database disposable terisolasi.
+  2. Penyempurnaan `PHASE-01C-MANUAL-REVIEW.md`:
+     - Menegaskan aturan keselamatan: larangan terhadap database operasional `backdata_administrations`, perlindungan terhadap `school_access_uat` (dilarang migrate:fresh atau hapus admin existing).
+     - Prosedur pre-flight verifikasi koneksi efektif dan nama database sebelum mutasi apa pun.
+     - Panduan konkret dua skenario bootstrap: Skenario 3A (bootstrap berhasil pada DB disposable kosong) dan Skenario 3B (bootstrap ditolak saat admin aktif sudah ada pada DB yang sama).
+     - Penegasan kerahasiaan kata sandi: tidak pernah dicetak atau disimpan ke dokumen/Git.
+     - Pembedaan bukti otomatis agen dari penerimaan manual pemilik (seluruh checklist berstatus PENDING hingga diverifikasi mandiri oleh pemilik).
+     - Penjelasan bahwa ESLint `--quiet` membuktikan 0 errors (bukan 0 warnings).
+- Why: memastikan proses review manual mandiri oleh pemilik berjalan aman, terisolasi, dan tidak mengganggu data UAT maupun operasional sekolah.
+- Validation: dokumentasi saja.
+- Notes / risks: Status 01c tetap IMPLEMENTED & VERIFIED / MANUAL ACCEPTANCE PENDING; Fase 02 NOT STARTED.
+- Evidence: `reports/feature-update/PHASE-01C-MANUAL-REVIEW.md`.
+
 ## [2026-10-17] Fase 01c — Fix: isolasi fixture, pembersihan data riil seeder, bootstrap admin CLI, dan validator akun
 - Type: Fix, Security, Feature, Test, Docs
 - Scope / fase: implementasi Fase 01c berdasarkan rencana `PHASE-01C-PLAN.md` dan keputusan pemilik `DEC-16` (Q-01c-1 s/d Q-01c-3).

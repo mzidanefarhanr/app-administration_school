@@ -40,6 +40,8 @@ Catatan perubahan pemilik: entri `CHANGELOG.md` yang disebut laporan lama ("Peng
 
 ## 3. Berkas yang Berubah pada Fase 01c
 - Backend:
+  - `laravel-api/.env.bootstrap.example` (baru): konfigurasi lingkungan database disposable khusus pengujian bootstrap.
+  - `laravel-api/.gitignore`: pendaftaran `.env.bootstrap` agar tidak ter-commit.
   - `laravel-api/config/filesystems.php`: disk storage `testing` di bawah `storage/framework/testing/disks/testing`.
   - `laravel-api/phpunit.xml`: `FILESYSTEM_DISK=testing force="true"`.
   - `laravel-api/tests/CreatesApplication.php`: fail-safe `guardAgainstUnsafeStorage()`.
@@ -72,7 +74,7 @@ Catatan perubahan pemilik: entri `CHANGELOG.md` yang disebut laporan lama ("Peng
 2. **Pembersihan BLK-03 (PII Seeder)**: **SELESAI PENUH PADA SOURCE AKTIF**. Akun riil dan data siswa riil dibersihkan; riwayat Git masa lalu tidak diubah.
 3. **Pemisahan Seeder & Bootstrap Admin**: **SELESAI PENUH**. `ReferenceDataSeeder` referensi murni; `SyntheticDataSeeder` dummy aman; `app:bootstrap-admin` CLI interaktif dengan secret prompt.
 4. **Validasi Akun & Standar Password 12 Karakter**: **SELESAI PENUH**. Nama boleh sama, NIK string 16 digit, password min 12 karakter di seluruh alur.
-5. **Panduan Manual UAT 01c**: **SELESAI PENUH**. 8 butir checklist siap diuji pemilik pada `reports/feature-update/PHASE-01C-MANUAL-REVIEW.md`.
+5. **Panduan Manual UAT 01c**: **SELESAI PENUH**. 8 butir checklist siap diuji pemilik pada `reports/feature-update/PHASE-01C-MANUAL-REVIEW.md` (mencakup prosedur keselamatan pre-flight verifikasi database koneksi efektif dan pengujian bootstrap berhasil vs ditolak pada DB disposable khusus tanpa menyentuh `school_access_uat` atau database operasional).
 
 ---
 
