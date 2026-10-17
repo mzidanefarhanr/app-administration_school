@@ -17,6 +17,27 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-17] Fase 02 — Docs: perencanaan audit terpercaya, rollback terbatas, dan backup/restore drill
+- Type: Docs
+- Scope / fase: penyusunan rencana teknis Fase 02 (audit terpercaya dan backup yang dapat dipulihkan) berdasarkan roadmap dan kondisi aktual HEAD.
+- Files touched:
+  - `reports/feature-update/PHASE-02-PLAN.md` (baru)
+  - `reports/feature-update/INDEX.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Perumusan tujuan dan cakupan 3 subfase Fase 02: 02a (audit server-side anti-tampering dan rollback terbatas), 02b (backup mandiri DB + file privat dengan manifest SHA-256 dan restore drill pada target disposable), dan 02c (scheduler, rotasi retensi, dan monitoring).
+  2. Audit temuan teknis aktual HEAD:
+     - Celah pemalsuan log klien via `POST /api/activities`.
+     - Cacat teknis implementasi rollback pada `ActivityController::update` (`DB::table($modelName)`).
+     - Relasi `cascadeOnDelete()` pada `activities.user_id` yang berisiko menghapus riwayat audit.
+     - Kebutuhan disk privat untuk arsip backup dan command mandiri.
+  3. Perumusan kriteria penerimaan dan strategi verifikasi terisolasi tanpa menyentuh database operasional `backdata_administrations`.
+  4. Identifikasi keputusan pemilik yang diperlukan: DEC-02 (lokasi penyimpanan backup), DEC-09 (retensi & enkripsi backup), dan kebijakan fitur rollback pada 02a (rekomendasi: nonaktifkan rollback dan terapkan append-only audit trail murni).
+- Why: memenuhi prasyarat perencanaan formal sebelum memulai implementasi subfase 02a.
+- Validation: source review statis dan analisis roadmap.
+- Notes / risks: Fase 02 NOT STARTED (implementasi belum dimulai, menunggu review pemilik).
+- Evidence: `reports/feature-update/PHASE-02-PLAN.md`.
+
 ## [2026-10-17] Fase 01 — Docs: penerimaan manual lengkap Fase 01c dan penutupan Fase 01
 - Type: Docs
 - Scope / fase: pencatatan penerimaan manual pemilik atas checklist Fase 01c (#1–#8) dan penutupan resmi Fase 01.
