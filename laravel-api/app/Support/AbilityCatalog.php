@@ -30,6 +30,7 @@ final class AbilityCatalog
             'users.manage' => self::def('system', 'Membuat/mengubah/menghapus akun.', true),
             'access.assign' => self::def('system', 'Menetapkan peran kepada pengguna.', true),
             'audit.view' => self::def('system', 'Melihat log aktivitas/audit.', true),
+            'backup.manage' => self::def('system', 'Mengelola dan mengunduh backup arsip sistem.', true),
 
             // Data referensi/master (modul yang sudah tersedia)
             'master.view' => self::def('master', 'Melihat data referensi (gender, agama, dll.).', false),
@@ -81,7 +82,7 @@ final class AbilityCatalog
                 'protected' => true, // tidak boleh dihapus / kehilangan akses pengelolaan
                 'abilities' => [
                     'roles.view', 'roles.manage', 'abilities.manage',
-                    'users.view', 'users.manage', 'access.assign', 'audit.view',
+                    'users.view', 'users.manage', 'access.assign', 'audit.view', 'backup.manage',
                     'master.view', 'master.manage',
                     'students.view', 'students.manage', 'students.export',
                     'employees.view', 'employees.manage', 'employees.export',

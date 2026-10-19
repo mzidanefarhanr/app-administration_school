@@ -29,8 +29,8 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 ```
 
 ### 02b — Backup manual dan restore drill
-Status: **PLANNING / READY FOR OWNER REVIEW** (Rencana kerja teknis rinci: `reports/feature-update/PHASE-02B-PLAN.md`).
-Scope: Implementasi DB+lampiran+manifest/checksum serta private storage; akses eksplisit; credential dump aman; status nyata; desain retensi dan salinan terpisah sesuai deployment. Uji restore ke target disposable. Belum diimplementasikan sebelum otorisasi pemilik.
+Status: **IMPLEMENTED & FULLY VERIFIED** (Laporan: `reports/feature-update/PHASE-02B-BACKUP-RESTORE.md`; review pemilik: PENDING di `reports/feature-update/PHASE-02B-MANUAL-REVIEW.md`).
+Scope selesai: Backup database (mysqldump / sqlite) + lampiran privat ke storage privat terenkripsi ZIP AES-256; manifest SHA-256 dan companion sha256; atomic publishing; download berizin backup.manage dan anti-traversal; restore drill multi-faktor ke target disposable (school_restore_drill_uat) dengan fail-safe keras anti-operasional, anti-Zip-Slip, dan audit SQL dump. Uji integrasi nyata MariaDB lokal PASS (125 test backend PASS).
 
 Kriteria penerimaan: Backup sintetis lengkap; checksum/manifest diverifikasi; restore DB+file berjalan pada target terisolasi; disk penuh/missing file/target aktif ditolak atau gagal terlihat.
 

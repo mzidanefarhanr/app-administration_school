@@ -4,6 +4,7 @@ use App\Http\Controllers\AbilityController;
 use App\Http\Controllers\AccessAssignmentController;
 // use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\BloodTypeController;
 use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\EducationLevelController;
@@ -190,6 +191,10 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::post('/activities', [ActivityController::class, 'store']);
     Route::match(['put', 'patch'], '/activities/{activity}', [ActivityController::class, 'update']);
     Route::delete('/activities/{activity}', [ActivityController::class, 'destroy']);
+    Route::get('/backups', [BackupController::class, 'index'])->middleware('can:backup.manage');
+    Route::get('/backups/{filename}/download', [BackupController::class, 'download'])
+        ->where('filename', '.*')
+        ->middleware('can:backup.manage');
 
 });
 

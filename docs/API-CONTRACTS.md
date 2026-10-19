@@ -79,6 +79,15 @@ Kontrak validasi akun, bootstrap administrator, dan kebijakan password:
   - Status: **DITUTUP/NONAKTIF** (DEC-17).
   - Respons: `405 Method Not Allowed` (`{"message": "Audit logs are immutable and cannot be deleted."}`).
 
+### Kontrak Backup & Restore (`/api/backups`) — Fase 02b (DEC-18)
+- `GET /api/backups`:
+  - Izin: `backup.manage` (wajib). Guest `401`, user tanpa kemampuan `403`.
+  - Format: JSON daftar arsip backup selesai (`filename`, `size_bytes`, `created_at`, `sha256`).
+- `GET /api/backups/{filename}/download`:
+  - Izin: `backup.manage` (wajib). Guest `401`, user tanpa kemampuan `403`.
+  - Parameter `{filename}`: divalidasi strict regex `/^backup-[a-zA-Z0-9._-]+\.zip$/`. Karakter `..`, `/`, `\`, `%00` ditolak dengan `400 Bad Request`.
+  - Respons: Stream unduhan berkas biner ZIP (`Content-Type: application/zip`, `Cache-Control: no-store, private`). Berkas disajikan dari storage privat `storage/app/backups`, tanpa URL publik.
+
 ## Aktual
 Resource di `/api`, dilindungi auth:sanctum: users, status-users, type-users, firstlogin; provinces/regencies/districts/villages; school-years/semesters/education-levels; genders/religions/blood-types/professions/family-status; education-schools/student-statuses/student-entries/student-majors/phase-statuses; students/school-levels/school-rombels/student-rombels; employee/employee-statuses/employee-types/employments/marital-statuses; school-profile/subjects/activities.
 `/api/user` mengambil actor. `/api/check-auth` mengembalikan authenticated + user atau null. Route auth web mencakup login/logout/register/forgot-password/reset-password dan email verification. Daftar route bukan bukti semua handler lengkap.

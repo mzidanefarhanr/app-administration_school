@@ -17,6 +17,51 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-19] Subfase 02b — Feature & Security: implementasi backup manual terenkripsi dan restore drill terisolasi
+- Type: Feature | Security
+- Scope / fase: Subfase 02b (Backup Manual dan Restore Drill).
+- Files touched:
+  - `laravel-api/config/backup.php` (baru)
+  - `laravel-api/config/database.php`
+  - `laravel-api/app/Support/AbilityCatalog.php`
+  - `laravel-api/database/migrations/2029_07_22_000001_add_backup_manage_ability.php` (baru)
+  - `laravel-api/app/Services/BackupService.php` (baru)
+  - `laravel-api/app/Services/RestoreDrillService.php` (baru)
+  - `laravel-api/app/Console/Commands/BackupRunCommand.php` (baru)
+  - `laravel-api/app/Console/Commands/RestoreDrillCommand.php` (baru)
+  - `laravel-api/app/Http/Controllers/BackupController.php` (baru)
+  - `laravel-api/routes/api.php`
+  - `laravel-api/tests/Feature/Backup/BackupRunTest.php` (baru)
+  - `laravel-api/tests/Feature/Backup/RestoreDrillTest.php` (baru)
+  - `laravel-api/tests/Feature/Backup/MariaDbIntegrationTest.php` (baru)
+  - `docs/DECISIONS.md`
+  - `docs/API-CONTRACTS.md`
+  - `docs/OPERATIONS.md`
+  - `docs/SECURITY-DATA.md`
+  - `reports/feature-update/PHASE-02B-BACKUP-RESTORE.md` (baru)
+  - `reports/feature-update/PHASE-02B-MANUAL-REVIEW.md` (baru)
+  - `reports/feature-update/INDEX.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `roadmap/ROADMAP.md`
+  - `roadmap/phases/PHASE-02-BACKUP-AUDIT.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Perintah `app:backup-run`: mengekspor database (mysqldump / sqlite) dan berkas lampiran privat `storage/app/attachments` ke direktori privat `storage/app/backups`; enkripsi ZIP AES-256 via native PHP `ZipArchive::EM_AES_256`; isolasi kredensial dump via `--defaults-extra-file` temporer dengan pembersihan seketika di blok `finally`.
+  2. Manifest dan companion checksum: `manifest.json` di dalam arsip memuat metadata verifikasi lengkap tanpa kredensial; checksum SHA-256 arsip final disimpan di berkas pendamping `.sha256` di luar arsip; atomic publishing via direktori temporer `.tmp-<uuid>`.
+  3. API download berizin: `GET /api/backups` dan `GET /api/backups/{filename}/download` dilindungi kemampuan `backup.manage` (default: `admin-sistem` via migration baru additive tanpa mengubah peran kustom) dan validasi anti-path-traversal strict regex.
+  4. Perintah `app:restore-drill`: memulihkan dan memvalidasi integritas arsip ke target database disposable `school_restore_drill_uat`; fail-safe keras menolak database operasional `backdata_administrations` dan database sumber aktif; guard anti-Zip-Slip; audit pemindaian SQL dump menolak perintah pengalihan database (`USE`, `CREATE DATABASE`); isolasi ekstraksi lampiran ke direktori terpisah; pembuktian pemulihan multi-faktor (tabel, row count, foreign keys, akun admin tanpa mencetak hash, dan checksum lampiran).
+- Why: memenuhi keputusan pemilik DEC-17 dan DEC-18 untuk menjamin kesiapan pemulihan bencana dan integritas data sekolah sebelum modul operasional aktif.
+- Validation:
+  - Backend: `php artisan test` → **125 passed (573 assertions)** (15 tes baru Backup & Restore PASS).
+  - Integration: `MariaDbIntegrationTest` (uji round-trip nyata MariaDB lokal `school_access_uat` ke `school_restore_drill_uat`) → PASS (12 assertions).
+  - Backend style: `./vendor/bin/pint --test` (13 files) → PASS (100% clean).
+  - Frontend: `node --test` → 15 passed, `npm run build` → PASS (kode frontend tidak berubah).
+- Notes / risks:
+  - Modul lampiran riil belum tersedia; dibuktikan menggunakan fixture lampiran privat sintetis.
+  - Scheduler otomatis dan rotasi retensi 7+4 berada dalam cakupan Subfase 02c.
+  - Pemeriksaan manual pemilik berstatus PENDING (checklist #1–#10 di `PHASE-02B-MANUAL-REVIEW.md`).
+- Evidence: `reports/feature-update/PHASE-02B-BACKUP-RESTORE.md`, `reports/feature-update/PHASE-02B-MANUAL-REVIEW.md`.
+
 ## [2026-10-19] Subfase 02b — Docs: perencanaan backup manual terenkripsi dan restore drill terisolasi
 - Type: Docs
 - Scope / fase: Subfase 02b (Backup Manual dan Restore Drill).
