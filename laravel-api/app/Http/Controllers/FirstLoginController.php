@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class FirstLoginController extends Controller
@@ -62,9 +63,11 @@ class FirstLoginController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
-        $users->update([
-            'first_login_at' => $request->first_login_at,
-        ]);
+        DB::transaction(function () use ($users, $request) {
+            $users->update([
+                'first_login_at' => $request->first_login_at,
+            ]);
+        });
 
         return new UserResource(true, 'Data User Berhasil Terautentikasi!', $users);
     }

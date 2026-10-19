@@ -586,6 +586,111 @@ test('audit insert failure rolls back ability_role pivot mutation and preserves 
     expect($currentAbilities)->not->toContain('employees.view');
 });
 
+test('audit insert failure rolls back type_user creation on POST /api/type-users endpoint and preserves state', function () {
+    $admin = $this->makeUserWithRole('admin-sistem');
+    Sanctum::actingAs($admin);
+
+    $decoy = TypeUser::create(['name' => 'Decoy Master Type For Tx Check']);
+
+    Activity::$testCreatingHook = function ($activity) {
+        if ($activity->table_name === 'type_users') {
+            throw new \RuntimeException('Simulated audit insert failure for type_users create');
+        }
+    };
+
+    try {
+        $response = $this->postJson('/api/type-users', [
+            'name' => 'Failing Rollback Type User',
+        ]);
+        $response->assertStatus(500);
+    } finally {
+        Activity::$testCreatingHook = null;
+    }
+
+    // Database state check: model was rolled back and does not exist in DB
+    expect(TypeUser::where('name', 'Failing Rollback Type User')->exists())->toBeFalse();
+    expect(Activity::where('table_name', 'type_users')->where('new->name', 'Failing Rollback Type User')->exists())->toBeFalse();
+
+    // Decoy remains untouched
+    expect($decoy->fresh()->name)->toBe('Decoy Master Type For Tx Check');
+});
+
+test('audit insert failure rolls back type_user update on PUT /api/type-users/{id} endpoint and preserves state', function () {
+    $admin = $this->makeUserWithRole('admin-sistem');
+    Sanctum::actingAs($admin);
+
+    $type = TypeUser::create(['name' => 'Original Type Name']);
+
+    Activity::$testCreatingHook = function ($activity) {
+        if ($activity->table_name === 'type_users') {
+            throw new \RuntimeException('Simulated audit insert failure for type_users update');
+        }
+    };
+
+    try {
+        $response = $this->putJson("/api/type-users/{$type->id}", [
+            'name' => 'Attempted New Type Name',
+        ]);
+        $response->assertStatus(500);
+    } finally {
+        Activity::$testCreatingHook = null;
+    }
+
+    // Database state check: model was rolled back to original name
+    expect($type->fresh()->name)->toBe('Original Type Name');
+    expect(Activity::where('table_name', 'type_users')->where('after->name', 'Attempted New Type Name')->exists())->toBeFalse();
+});
+
+test('audit insert failure rolls back type_user deletion on DELETE /api/type-users/{id} endpoint and preserves state', function () {
+    $admin = $this->makeUserWithRole('admin-sistem');
+    Sanctum::actingAs($admin);
+
+    $type = TypeUser::create(['name' => 'Type Target Delete']);
+
+    Activity::$testCreatingHook = function ($activity) {
+        if ($activity->table_name === 'type_users') {
+            throw new \RuntimeException('Simulated audit insert failure for type_users delete');
+        }
+    };
+
+    try {
+        $response = $this->deleteJson("/api/type-users/{$type->id}", [
+            'delete' => 'true',
+        ]);
+        $response->assertStatus(500);
+    } finally {
+        Activity::$testCreatingHook = null;
+    }
+
+    // Database state check: model was NOT deleted (not soft deleted)
+    expect($type->fresh()->trashed())->toBeFalse();
+    expect(Activity::where('table_name', 'type_users')->where('record_id', $type->id)->where('information', 'Deleted')->exists())->toBeFalse();
+});
+
+test('audit insert failure rolls back firstlogin status update on PUT /api/firstlogin/{id} endpoint and preserves state', function () {
+    $user = $this->makeUserWithRole('operator-sekolah', ['first_login_at' => false]);
+    Sanctum::actingAs($user);
+
+    Activity::$testCreatingHook = function ($activity) {
+        if ($activity->table_name === 'users') {
+            throw new \RuntimeException('Simulated audit failure on firstlogin update');
+        }
+    };
+
+    try {
+        $response = $this->putJson("/api/firstlogin/{$user->id}", [
+            'first_login_at' => true,
+        ]);
+        $response->assertStatus(500);
+    } finally {
+        Activity::$testCreatingHook = null;
+    }
+
+    // Database state check: first_login_at remained false
+    expect((bool) $user->fresh()->first_login_at)->toBeFalse();
+    expect(Activity::where('table_name', 'users')->where('record_id', $user->id)->where('information', 'Updated')->exists())->toBeFalse();
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 6. Pencegahan Rekursi / Double Logging
 // ─────────────────────────────────────────────────────────────────────────────

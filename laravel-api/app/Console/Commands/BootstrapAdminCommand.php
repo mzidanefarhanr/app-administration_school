@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Activity;
 use App\Models\Role;
 use App\Models\StatusUser;
 use App\Models\TypeUser;
@@ -112,7 +113,7 @@ class BootstrapAdminCommand extends Command
             return Command::FAILURE;
         }
 
-        // 6. Atomically create user and assign role
+        // 6. Atomically create user, assign role, and record audit with system:cli actor
         DB::transaction(function () use ($name, $username, $email, $nik, $password, $adminType, $activeStatus, $adminRole) {
             $user = User::create([
                 'name' => $name,
@@ -129,6 +130,45 @@ class BootstrapAdminCommand extends Command
 
             $user->roles()->sync([
                 $adminRole->id => ['assigned_by' => null],
+            ]);
+
+            // Audit record for initial admin account creation by system/CLI (no password/hash/secret)
+            Activity::create([
+                'user_id' => null,
+                'table_name' => 'users',
+                'record_id' => $user->id,
+                'information' => 'Created',
+                'before' => null,
+                'after' => null,
+                'new' => [
+                    'name' => $name,
+                    'username' => $username,
+                    'email' => $email,
+                    'nik' => $nik,
+                    'type_user_id' => $adminType->id,
+                    'status_user_id' => $activeStatus->id,
+                    'status_active' => true,
+                    'first_login_at' => false,
+                    'actor' => 'system:cli',
+                ],
+                'delete' => null,
+            ]);
+
+            // Audit record for initial admin role assignment by system/CLI
+            Activity::create([
+                'user_id' => null,
+                'table_name' => 'role_user',
+                'record_id' => $user->id,
+                'information' => 'Created',
+                'before' => null,
+                'after' => null,
+                'new' => [
+                    'action' => 'bootstrap',
+                    'user_id' => $user->id,
+                    'role' => $adminRole->slug,
+                    'actor' => 'system:cli',
+                ],
+                'delete' => null,
             ]);
         });
 

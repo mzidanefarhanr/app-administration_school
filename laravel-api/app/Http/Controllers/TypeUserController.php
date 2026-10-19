@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\StatusResource;
 use App\Models\TypeUser;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -17,10 +18,10 @@ class TypeUserController extends Controller
      */
     public function index()
     {
-        //get all Type Users
+        // get all Type Users
         $typeUsers = TypeUser::select('name', 'id')->latest()->get();
 
-        //return collection of Type Users as a resource
+        // return collection of Type Users as a resource
         return new StatusResource(true, 'Type Users list', $typeUsers);
     }
 
@@ -37,7 +38,7 @@ class TypeUserController extends Controller
      */
     public function store(Request $request)
     {
-        //define validation rules
+        // define validation rules
         $validator = Validator::make($request->all(), [
             'name' => [
                 'required', 'min:3', 'max:100',
@@ -45,7 +46,7 @@ class TypeUserController extends Controller
             ],
         ]);
 
-        //check if validation fails
+        // check if validation fails
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
@@ -58,18 +59,22 @@ class TypeUserController extends Controller
 
         if ($existingFirst) {
             // No conflict — safe to restore and update
-            $existingFirst->restore();
-            $existingFirst->update([
-                'name'           => $request->name,
-            ]);
+            DB::transaction(function () use ($existingFirst, $request) {
+                $existingFirst->restore();
+                $existingFirst->update([
+                    'name' => $request->name,
+                ]);
+            });
 
             return new StatusResource(true, 'Type User successfully restored!', $existingFirst);
         }
 
         // ── STEP 2: All clear — create fresh user ────────────────────────────────
-        $typeUser = TypeUser::create([
-            'name'              => $request->name,
-        ]);
+        $typeUser = DB::transaction(function () use ($request) {
+            return TypeUser::create([
+                'name' => $request->name,
+            ]);
+        });
 
         return new StatusResource(true, 'New Type User successfully added!', $typeUser);
     }
@@ -79,10 +84,10 @@ class TypeUserController extends Controller
      */
     public function show($id)
     {
-        //find Type User by ID
+        // find Type User by ID
         $typeUser = TypeUser::find($id);
 
-        //return single Type User as a resource
+        // return single Type User as a resource
         return new StatusResource(true, 'Type User detail found!', $typeUser);
     }
 
@@ -99,28 +104,30 @@ class TypeUserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //find Type User by ID
+        // find Type User by ID
         $typeUser = TypeUser::firstWhere('id', $id);
 
         if (isset($typeUser)) {
 
-            //define validation rules
+            // define validation rules
             $validator = Validator::make($request->all(), [
-                'name'              => ['required', 'min:3', 'max:100',
+                'name' => ['required', 'min:3', 'max:100',
                     Rule::unique('type_users')->ignore($id)],
             ]);
 
-            //check if validation fails
+            // check if validation fails
             if ($validator->fails()) {
                 return response()->json($validator->errors(), 422);
             }
 
-            //update Type User
-            $typeUser->update([
-                'name'              => $request->name,
-            ]);
+            // update Type User
+            DB::transaction(function () use ($typeUser, $request) {
+                $typeUser->update([
+                    'name' => $request->name,
+                ]);
+            });
 
-            //return response
+            // return response
             return new StatusResource(true, 'Type User successfully updated!', $typeUser);
 
         } else {
@@ -134,43 +141,43 @@ class TypeUserController extends Controller
      */
     public function destroy($id, Request $request)
     {
-        //find Type User by ID
+        // find Type User by ID
         $typeUser = TypeUser::withCount('users')->findOrFail($id);
 
         // Build a list of all relations that still have data
         $conflicts = [];
 
-        if ($typeUser->users_count > 0)
+        if ($typeUser->users_count > 0) {
             $conflicts[] = "{$typeUser->users_count} users";
+        }
 
         // If any relation has data, block the delete
-        if (!empty($conflicts)) {
+        if (! empty($conflicts)) {
             $conflictList = count($conflicts) > 1
-                ? implode(', ', array_slice($conflicts, 0, -1)) . ' and ' . end($conflicts)
+                ? implode(', ', array_slice($conflicts, 0, -1)).' and '.end($conflicts)
                 : $conflicts[0];
+
             return response()->json([
                 'message' => "Cannot delete! This record is still being referenced by {$conflictList}.",
             ], 422);
         }
 
         if (isset($typeUser)) {
-            //define validation rules
+            // define validation rules
             $validator = Validator::make($request->all(), [
-                'delete'             => 'required',
+                'delete' => 'required',
             ]);
 
-            //check if validation fails
+            // check if validation fails
             if ($validator->fails()) {
                 return response()->json($validator->errors(), 422);
             }
 
-            //check if delete is true
+            // check if delete is true
             if ($request->delete == 'true') {
+                DB::transaction(fn () => $typeUser->delete());
 
-                //delete Type User
-                $typeUser->delete();
-
-                //return response
+                // return response
                 return new StatusResource(true, 'Type User successfully deleted!', null);
             } else {
                 return response()->json(['message' => 'You are not allowed to delete this data!'], 400);

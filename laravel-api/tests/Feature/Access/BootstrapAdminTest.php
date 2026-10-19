@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\Activity;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Tests\Support\CreatesAccessFixtures;
 
@@ -105,4 +107,89 @@ test('bootstrap admin command cancels cleanly when confirmation is denied', func
         ->assertExitCode(0);
 
     expect(User::where('username', 'cancelled.admin')->exists())->toBeFalse();
+});
+
+test('bootstrap admin command records audit with system actor and without secrets', function () {
+    $this->seedAccessReferenceData();
+
+    $this->artisan('app:bootstrap-admin', [
+        '--name' => 'Audited Admin',
+        '--username' => 'audited.admin',
+        '--email' => 'audited.admin@school.test',
+        '--nik' => '0987654321098765',
+    ])
+        ->expectsQuestion('Enter password (min 12 characters)', 'super-secret-admin-pass-2026')
+        ->expectsQuestion('Confirm password', 'super-secret-admin-pass-2026')
+        ->expectsConfirmation('Proceed with creating the administrator account?', 'yes')
+        ->assertExitCode(0);
+
+    $admin = User::where('username', 'audited.admin')->firstOrFail();
+
+    // Verify user audit record
+    $userActivity = Activity::where('table_name', 'users')
+        ->where('record_id', $admin->id)
+        ->firstOrFail();
+
+    expect($userActivity->user_id)->toBeNull(); // Explicitly system/CLI actor (no user logged in)
+    expect($userActivity->information)->toBe('Created');
+    expect($userActivity->new['actor'])->toBe('system:cli');
+    expect($userActivity->new)->toHaveKeys(['name', 'username', 'email', 'nik']);
+    expect($userActivity->new)->not->toHaveKey('password');
+    expect($userActivity->new)->not->toHaveKey('password_confirmation');
+    expect(json_encode($userActivity))->not->toContain('super-secret-admin-pass-2026');
+    expect(json_encode($userActivity))->not->toContain($admin->password); // No bcrypt hash
+
+    // Verify role_user audit record
+    $pivotActivity = Activity::where('table_name', 'role_user')
+        ->where('record_id', $admin->id)
+        ->firstOrFail();
+
+    expect($pivotActivity->user_id)->toBeNull();
+    expect($pivotActivity->new['actor'])->toBe('system:cli');
+    expect($pivotActivity->new['role'])->toBe('admin-sistem');
+});
+
+test('audit insert failure rolls back bootstrap user, role assignment, and audit records', function () {
+    $this->seedAccessReferenceData();
+
+    // Hook to fail on audit insert during bootstrap
+    Activity::$testCreatingHook = function ($activity) {
+        if ($activity->table_name === 'role_user') {
+            throw new \RuntimeException('Simulated audit insert failure during bootstrap');
+        }
+    };
+
+    try {
+        $this->artisan('app:bootstrap-admin', [
+            '--name' => 'Failed Bootstrap Admin',
+            '--username' => 'failed.admin',
+            '--email' => 'failed.admin@school.test',
+            '--nik' => '0987654321098765',
+        ])
+            ->expectsQuestion('Enter password (min 12 characters)', 'super-secret-admin-pass-2026')
+            ->expectsQuestion('Confirm password', 'super-secret-admin-pass-2026')
+            ->expectsConfirmation('Proceed with creating the administrator account?', 'yes');
+    } catch (\RuntimeException $e) {
+        expect($e->getMessage())->toBe('Simulated audit insert failure during bootstrap');
+    } finally {
+        Activity::$testCreatingHook = null;
+    }
+
+    // State check: user creation and role assignment rolled back
+    expect(User::where('username', 'failed.admin')->exists())->toBeFalse();
+    expect(DB::table('role_user')->count())->toBe(0);
+    expect(Activity::count())->toBe(0);
+});
+
+test('rejected bootstrap when admin already exists does not generate any audit records', function () {
+    $this->seedAccessReferenceData();
+    $this->makeUserWithRole('admin-sistem');
+
+    $initialActivityCount = Activity::count();
+
+    $this->artisan('app:bootstrap-admin')
+        ->expectsOutput('An active user with access management capabilities already exists. Bootstrap aborted.')
+        ->assertExitCode(1);
+
+    expect(Activity::count())->toBe($initialActivityCount);
 });

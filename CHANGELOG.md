@@ -21,6 +21,8 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 - Type: Security | Feature
 - Scope / fase: Subfase 02a (Audit Server dan Rollback Terbatas).
 - Files touched:
+  - `laravel-api/database/migrations/2029_07_21_000001_make_user_id_nullable_on_activities_table.php` (baru)
+  - `laravel-api/app/Console/Commands/BootstrapAdminCommand.php`
   - `laravel-api/app/Traits/Loggable.php`
   - `laravel-api/app/Models/Activity.php`
   - `laravel-api/app/Models/User.php`
@@ -35,8 +37,12 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
   - `laravel-api/app/Http/Controllers/RoleController.php`
   - `laravel-api/app/Http/Controllers/AccessAssignmentController.php`
   - `laravel-api/app/Http/Controllers/UserController.php`
+  - `laravel-api/app/Http/Controllers/FirstLoginController.php`
+  - `laravel-api/app/Http/Controllers/TypeUserController.php`
+  - `laravel-api/app/Http/Controllers/SchoolYearController.php`
   - `laravel-api/routes/api.php`
   - `laravel-api/tests/Feature/Audit/ServerAuditTest.php` (baru)
+  - `laravel-api/tests/Feature/Access/BootstrapAdminTest.php`
   - `vue-app/src/utils/useResourceManager.js`
   - `docs/API-CONTRACTS.md`
   - `docs/SECURITY-DATA.md`
@@ -55,12 +61,14 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
   4. Penegakan server-side & allowlist atribut: actor (`user_id`), target (`table_name`, `record_id`), timestamp, dan aksi (`information`) ditentukan oleh server (`Auth::id()`). Trait `Loggable.php` menerapkan allowlist `$auditableAttributes` pada `User`, `Role`, `Ability`, `Student`, `EducationSchool`, dan master data.
   5. Penyaringan rahasia terdefinisi: kata sandi mentah, password baru, remember_token, access token, dan hash bcrypt tersaring total dari kolom JSON `before`, `after`, `new`, `delete`.
   6. Audit pivot: mutasi penetapan peran (`role_user`) dan sinkronisasi kemampuan peran (`ability_role`) dicatat ke tabel `activities` secara transaksional di server.
-  7. Konsistensi transaksi & proteksi rekursi: pembungkusan mutasi `UserController` (`store`, `update`, `destroy`), `RoleController`, dan `AccessAssignmentController` dalam `DB::transaction` atomik; kegagalan proses audit membatalkan perubahan domain/pivot; reentrancy guard (`$isLoggingAudit`) mencegah rekursi; relasi pengguna pada `Activity` memakai `withTrashed()` untuk memelihara jejak historis akun yang di-soft delete.
-  8. Pembersihan frontend: pemanggilan `POST /api/activities` yang dikomentari di `useResourceManager.js` dibersihkan.
+  7. Konsistensi transaksi mutasi model: pembungkusan mutasi `UserController` (`store`, `update`, `destroy`), `RoleController`, `AccessAssignmentController`, `FirstLoginController::update`, `TypeUserController` (`store`, `update`, `destroy`), dan `SchoolYearController` (`store`, `update`, `destroy`) dalam `DB::transaction` atomik; terbukti kegagalan proses audit membatalkan perubahan domain/pivot secara penuh tanpa meninggalkan audit sukses atau data separuh jalan.
+  8. Audit bootstrap admin: migration baru `2029_07_21_000001_make_user_id_nullable_on_activities_table.php` mendukung actor `system:cli` (`user_id = null`); `BootstrapAdminCommand` mencatat audit pembuatan akun dan penetapan peran secara atomik tanpa password/hash/secret; kegagalan audit membatalkan pembuatan akun dan role assignment; bootstrap yang ditolak karena admin sudah ada tidak menghasilkan audit keberhasilan fiktif.
+  9. Koreksi matriks bulk delete: diklasifikasikan sebagai per-record atomic (loop HTTP individual di `useResourceManager.js`), bukan satu batch atomic lintas entitas.
+  10. Pembersihan frontend: pemanggilan `POST /api/activities` yang dikomentari di `useResourceManager.js` dibersihkan.
 - Why: memenuhi keputusan pemilik DEC-17 untuk mengunci audit trail ke mode immutable append-only, mencegah pemalsuan dan manipulasi data dari sisi klien, dan melindungi kredensial serta privasi data sekolah.
 - Validation:
-  - Backend: `php artisan test` pada SQLite in-memory → **103 passed (465 assertions)** (21 tes baru `ServerAuditTest` PASS).
-  - Backend style: `./vendor/bin/pint --test` (16 file) → **PASS** (100% clean).
+  - Backend: `php artisan test` pada SQLite in-memory → **110 passed (506 assertions)** (25 tes `ServerAuditTest`, 8 tes `BootstrapAdminTest` PASS).
+  - Backend style: `./vendor/bin/pint --test` (18 file) → **PASS** (100% clean).
   - Frontend node tests: `node --test tests/phase-01b-api-auth.test.mjs tests/auth-race-condition.test.mjs` → **15 passed, 0 failed**.
   - Frontend build: `npm run build` → **PASS** (`✓ built in 34s`, 0 errors).
   - Frontend lint: `npx eslint src/utils/useResourceManager.js` → **0 errors**.

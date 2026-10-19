@@ -47,12 +47,14 @@ Subfase 02a mengimplementasikan audit trail terpercaya berbasis server (*immutab
 | `RoleController::store` (Create Peran + Ability Sync) | Trait `Loggable` pada Role + `Activity::create` pada `ability_role` | `DB::transaction(...)` (atomik) | `role ability sync generates ability_role pivot audit` | **TERCAKUP & TERBUKTI** |
 | `RoleController::update` (Update Peran + Ability Sync) | Trait `Loggable` pada Role + `Activity::create` pada `ability_role` | `DB::transaction(...)` (atomik) | `role ability sync generates ability_role pivot audit`<br>`audit insert failure rolls back ability_role pivot mutation and preserves database state` | **TERCAKUP & TERBUKTI** |
 | `RoleController::destroy` (Soft Delete Peran) | Trait `Loggable` (`deleted`) | `DB::transaction(...)` (atomik) | `AuthorizationTest`, `ServerAuditTest` | **TERCAKUP & TERBUKTI** |
-| `FirstLoginController::store` (Ganti Password Pertama) | Trait `Loggable` (`updated` pada `User`) | Model `User::update` | `firstlogin can update own account only` | **TERCAKUP & TERBUKTI** (rahasia tersaring) |
+| `FirstLoginController::update` (Ganti Status Login Pertama) | Trait `Loggable` (`updated` pada `User`) | `DB::transaction(...)` (atomik) | `firstlogin can update own account only`<br>`audit insert failure rolls back firstlogin status update on PUT /api/firstlogin/{id} endpoint and preserves state` | **TERCAKUP & TERBUKTI** (rahasia tersaring) |
 | `NewPasswordController::store` (Reset Password Token) | Trait `Loggable` (`updated` pada `User`) | Broker Password Transaction | `password can be reset with valid token` | **TERCAKUP & TERBUKTI** (rahasia tersaring) |
-| Master Data Controllers (`TypeUserController`, `StatusUserController`, `SchoolYearController`, `EducationSchoolController`, `EducationLevelController`, `ProfessionController`, `PhaseStatusController`, `SubjectController`, `EmploymentController`, `EmployeeTypeController`, `EmployeeStatusController`, `MaritalStatusController`, `SchoolProfileController`) | Trait `Loggable` pada model master masing-masing | Model-level Eloquent observer | `audit actor cannot be forged: server strictly derives actor from Auth::id()`<br>`TypeUserAccessTest` | **TERCAKUP & TERBUKTI** |
-| Bulk Deletion di Frontend (`useResourceManager.js::deleteSelectedManyDatas`) | Loop individual request `DELETE /api/{endpoint}/{id}` ke backend | Per-record atomic transaction | `useResourceManager.js` build PASS | **TERCAKUP** |
+| Master Data `TypeUserController` (`store`, `update`, `destroy`) | Trait `Loggable` (`created`, `updated`, `deleted`) | `DB::transaction(...)` (atomik) | `audit insert failure rolls back type_user creation on POST /api/type-users endpoint and preserves state`<br>`audit insert failure rolls back type_user update on PUT /api/type-users/{id} endpoint and preserves state`<br>`audit insert failure rolls back type_user deletion on DELETE /api/type-users/{id} endpoint and preserves state` | **TERCAKUP & TERBUKTI** |
+| Master Data `SchoolYearController` (`store`, `update`, `destroy`) | Trait `Loggable` (`created`, `updated`, `deleted`) | `DB::transaction(...)` (atomik) | `TypeUserAccessTest`, `AuthorizationTest`, `ServerAuditTest` | **TERCAKUP & TERBUKTI** |
+| Master Data Lainnya (`StatusUserController`, `EducationSchoolController`, `EducationLevelController`, `ProfessionController`, `PhaseStatusController`, `SubjectController`, `EmploymentController`, `EmployeeTypeController`, `EmployeeStatusController`, `MaritalStatusController`, `SchoolProfileController`) | Trait `Loggable` pada model master masing-masing | Model-level Eloquent observer | `audit actor cannot be forged: server strictly derives actor from Auth::id()` | **TERCAKUP** |
+| Bulk Deletion di Frontend (`useResourceManager.js::deleteSelectedManyDatas`) | Loop HTTP klien per-record mengirim request DELETE | Per-record atomic (bukan batch atomic; jika item ke-3 gagal, item 1–2 yang sudah sukses tetap terhapus dan ter-audit) | Inspeksi source `useResourceManager.js` (build frontend hanya memverifikasi sintaks, BUKAN bukti atomisitas batch; belum ada endpoint batch backend) | **PER-RECORD (NON-BATCH-ATOMIC)** |
 | Query Langsung `DB::table(...)` | Tidak ada query mutasi langsung di controller | N/A | Source grep review (hanya ada di historical migration) | **TIDAK ADA CELAH** |
-| Command `BootstrapAdminCommand` (`php artisan app:bootstrap-admin`) | CLI Non-authenticated (`Auth::check() = false`) | `DB::transaction(...)` (atomik) | `BootstrapAdminTest` (5 tests PASS) | **TERISOLASI DARI AUDIT WEB** |
+| Command `BootstrapAdminCommand` (`php artisan app:bootstrap-admin`) | Eksplisit `Activity::create` (actor: `system:cli`, `user_id = null`) | `DB::transaction(...)` (atomik meliputi pembuatan user, penetapan role, dan 2 audit record) | `bootstrap admin command records audit with system actor and without secrets`<br>`audit insert failure rolls back bootstrap user, role assignment, and audit records`<br>`rejected bootstrap when admin already exists does not generate any audit records` | **TERCAKUP & TERBUKTI** |
 | `ActivityController` (`store`, `update`, `destroy`) | Mutasi audit oleh klien | Dinonaktifkan (HTTP 405) + Model level guard | `client cannot create audit log via POST /api/activities (rejected 405)`<br>`client cannot modify audit log or trigger rollback via PUT/PATCH /api/activities/{id} (rejected 405)`<br>`client cannot delete audit log via DELETE /api/activities/{id} (rejected 405)`<br>`activity model throws RuntimeException when update or delete is attempted directly` | **TERKUNCI & IMMUTABLE** |
 | **Jalur Scaffold / Belum Diimplementasikan (Di Luar Scope 02a)** | | | | |
 | `StudentController` (`store`, `update`, `destroy`) | Model `Student` memiliki `Loggable` + allowlist | Scaffold kosong (Fase 03) | `student model audit captures operational attributes without dumping private data` | **BELUM DIIMPLEMENTASIKAN** (CRUD belum ada di controller) |
@@ -87,7 +89,7 @@ Pengujian terarah `audit read response does not expose password or hash through 
 
 ### A. Pengujian Backend (`php artisan test`)
 - Lingkungan: SQLite in-memory `:memory:` terisolasi (`DatabaseIsolationTest` & `StorageIsolationTest` PASS).
-- Hasil: **103 passed (465 assertions)**, bertambah 21 tes pada `tests/Feature/Audit/ServerAuditTest.php`:
+- Hasil: **110 passed (506 assertions)**, mencakup 25 tes pada `tests/Feature/Audit/ServerAuditTest.php` dan 8 tes pada `tests/Feature/Access/BootstrapAdminTest.php`:
   1. `guest cannot access activities endpoint` (401) — PASS
   2. `user without audit.view is denied viewing activities` (403) — PASS
   3. `user with audit.view can list activities with user relation` (200, paginate, user relation) — PASS
@@ -106,9 +108,16 @@ Pengujian terarah `audit read response does not expose password or hash through 
   16. `audit insert failure rolls back user domain mutation and preserves database state` — PASS
   17. `audit insert failure rolls back role_user pivot mutation and preserves database state` — PASS
   18. `audit insert failure rolls back ability_role pivot mutation and preserves database state` — PASS
-  19. `reentrancy guard prevents recursive audit creation` — PASS
-  20. `activity model throws RuntimeException when update or delete is attempted directly` — PASS
-  21. `activity user relation resolves soft-deleted user historically via withTrashed` — PASS
+  19. `audit insert failure rolls back type_user creation on POST /api/type-users endpoint and preserves state` — PASS
+  20. `audit insert failure rolls back type_user update on PUT /api/type-users/{id} endpoint and preserves state` — PASS
+  21. `audit insert failure rolls back type_user deletion on DELETE /api/type-users/{id} endpoint and preserves state` — PASS
+  22. `audit insert failure rolls back firstlogin status update on PUT /api/firstlogin/{id} endpoint and preserves state` — PASS
+  23. `reentrancy guard prevents recursive audit creation` — PASS
+  24. `activity model throws RuntimeException when update or delete is attempted directly` — PASS
+  25. `activity user relation resolves soft-deleted user historically via withTrashed` — PASS
+  26. `bootstrap admin command records audit with system actor and without secrets` — PASS
+  27. `audit insert failure rolls back bootstrap user, role assignment, and audit records` — PASS
+  28. `rejected bootstrap when admin already exists does not generate any audit records` — PASS
 
 ### B. Pemeriksaan Style Pint Backend (`./vendor/bin/pint --test`)
 - File diperiksa: 16 file PHP yang disentuh pada Fase 02a.
@@ -134,12 +143,18 @@ Pengujian terarah `audit read response does not expose password or hash through 
   - `laravel-api/app/Models/StatusUser.php`: integrasi trait `Loggable`, definisi `$auditableAttributes`.
   - `laravel-api/app/Models/Semester.php`: integrasi trait `Loggable`, definisi `$auditableAttributes`.
   - `laravel-api/app/Models/SchoolLevel.php`: integrasi trait `Loggable`, definisi `$auditableAttributes`.
+  - `laravel-api/database/migrations/2029_07_21_000001_make_user_id_nullable_on_activities_table.php` (baru): penyesuaian skema minimal untuk membuat kolom `user_id` pada tabel `activities` menjadi nullable (mendukung actor system/CLI tanpa mengarang akun login).
+  - `laravel-api/app/Console/Commands/BootstrapAdminCommand.php`: pencatatan audit atomik pembuatan akun dan penetapan peran dengan actor `system:cli` (`user_id = null`) tanpa rahasia.
+  - `laravel-api/app/Http/Controllers/FirstLoginController.php`: pembungkusan mutasi `first_login_at` dalam `DB::transaction` atomik.
+  - `laravel-api/app/Http/Controllers/TypeUserController.php`: pembungkusan `store`, `update`, dan `destroy` dalam `DB::transaction` atomik.
+  - `laravel-api/app/Http/Controllers/SchoolYearController.php`: pembungkusan `store`, `update`, dan `destroy` dalam `DB::transaction` atomik.
   - `laravel-api/app/Http/Controllers/ActivityController.php`: pembacaan terproteksi `audit.view`, penonaktifan store/update/destroy via HTTP 405.
   - `laravel-api/app/Http/Controllers/RoleController.php`: audit pivot `ability_role`, atomisitas transaksi delete.
   - `laravel-api/app/Http/Controllers/AccessAssignmentController.php`: perbaikan penyimpanan array cast pada audit pivot `role_user`.
   - `laravel-api/app/Http/Controllers/UserController.php`: pembungkusan `store` dan `destroy` dalam `DB::transaction` atomik.
   - `laravel-api/routes/api.php`: penataan rute eksplisit `/activities` (GET dengan `can:audit.view`; POST/PUT/PATCH/DELETE ditolak 405).
-  - `laravel-api/tests/Feature/Audit/ServerAuditTest.php`: 21 skenario automated test pembuktian otorisasi, penolakan pemalsuan, sanitasi rahasia, audit pivot, konsistensi transaksi, kegagalan insert audit, dan immutability.
+  - `laravel-api/tests/Feature/Audit/ServerAuditTest.php`: 25 skenario automated test pembuktian otorisasi, penolakan pemalsuan, sanitasi rahasia, audit pivot, konsistensi transaksi (termasuk kegagalan insert audit pada endpoint aktual), dan immutability.
+  - `laravel-api/tests/Feature/Access/BootstrapAdminTest.php`: 8 skenario automated test termasuk pembuktian audit bootstrap ber-actor `system:cli`, ketiadaan rahasia, rollback atomik saat audit gagal, dan penolakan bootstrap tanpa audit fiktif.
 - Frontend:
   - `vue-app/src/utils/useResourceManager.js`: pembersihan dead code / komentar pemanggilan `POST /api/activities`.
 - Dokumentasi & Kontrak:
