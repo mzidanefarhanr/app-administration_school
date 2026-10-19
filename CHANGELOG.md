@@ -17,6 +17,24 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-19] Subfase 02a — Docs: penerimaan manual pemilik atas audit server dan penonaktifan rollback
+- Type: Docs
+- Scope / fase: Subfase 02a (Audit Server dan Rollback Terbatas).
+- Files touched:
+  - `reports/feature-update/PHASE-02A-AUDIT.md`
+  - `reports/feature-update/PHASE-02A-MANUAL-REVIEW.md`
+  - `reports/feature-update/INDEX.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `roadmap/ROADMAP.md`
+  - `roadmap/phases/PHASE-02-BACKUP-AUDIT.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Pencatatan penerimaan manual pemilik atas seluruh checklist UAT Subfase 02a (#1–#9) berstatus **APPROVED** pada 19 Oktober 2026 WIB mengacu baseline commit `cf94cae`.
+  2. Status Subfase 02a resmi ditetapkan **DITERIMA PEMILIK**.
+  3. Penegasan status fase: Fase 01 tetap DITUTUP LENGKAP; Fase 02 secara keseluruhan masih berjalan (IN PROGRESS / PARTIAL) karena Subfase 02b (Backup Manual dan Restore Drill) dan 02c (Jadwal dan Monitoring Backup) belum diimplementasikan / belum diterima.
+  4. Penegasan batas cakupan: perlindungan audit dan immutability ditegakkan pada level API aplikasi dan ORM Eloquent, bukan proteksi terhadap administrator root DB/OS; bulk deletion di frontend berjalan per-record atomic di level klien; modul yang belum diimplementasikan (Student CRUD, Employee CRUD, Rombel write, Surat, Izin, Pembelajaran) tetap berstatus N/A.
+- Evidence: `reports/feature-update/PHASE-02A-MANUAL-REVIEW.md`, commit baseline `cf94cae`.
+
 ## [2026-10-17] Subfase 02a — Security & Feature: audit server terpercaya, allowlist atribut, dan penonaktifan rollback klien
 - Type: Security | Feature
 - Scope / fase: Subfase 02a (Audit Server dan Rollback Terbatas).

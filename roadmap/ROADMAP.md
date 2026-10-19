@@ -61,6 +61,6 @@ Baca [prompt OpenCode](../docs/OPENCODE-WORKFLOW.md), jalankan 00a–00b audit s
 - [x] Penerimaan manual pemilik Fase 01c (checklist #1–#8 di PHASE-01C-MANUAL-REVIEW.md APPROVED 2026-10-17 WIB mengacu baseline 844883e).
 - [x] **Fase 01 — Hak akses, autentikasi dan lingkungan aman**: DITUTUP LENGKAP sesuai cakupan roadmap (01a, 01b, 01c seluruhnya DITERIMA PEMILIK).
 - [x] Rencana Fase 02 — Audit terpercaya dan backup yang dapat dipulihkan (DEC-17 disetujui pemilik 2026-10-17 WIB).
-- [/] Subfase 02a — Audit server dan rollback terbatas (IMPLEMENTED & FULLY VERIFIED; laporan PHASE-02A-AUDIT.md; 99 test backend PASS; review manual pemilik PENDING di PHASE-02A-MANUAL-REVIEW.md).
-- [ ] Subfase 02b — Backup manual dan restore drill (NOT STARTED; menunggu otorisasi pemilik pasca 02a).
+- [x] Subfase 02a — Audit server dan rollback terbatas: DITERIMA PEMILIK (checklist #1–#9 APPROVED 2026-10-19 WIB mengacu baseline cf94cae; laporan PHASE-02A-AUDIT.md).
+- [ ] Subfase 02b — Backup manual dan restore drill (NOT STARTED; menunggu otorisasi pemilik pasca rencana 02b disetujui).
 - [ ] Subfase 02c — Jadwal dan monitoring backup (NOT STARTED).

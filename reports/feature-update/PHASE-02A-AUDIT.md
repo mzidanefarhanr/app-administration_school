@@ -1,12 +1,15 @@
 # Laporan Subfase 02a — Audit Server dan Penonaktifan Rollback Klien
 
-- Tanggal WIB: 2026-10-17
+- Tanggal WIB: 2026-10-17 (Implementasi), 2026-10-19 (Penerimaan Manual)
 - Branch kerja: `main`
-- Status teknis: **IMPLEMENTED & FULLY VERIFIED**
-- Status review pemilik: **PENDING** (menunggu pemeriksaan manual checklist 02a di `PHASE-02A-MANUAL-REVIEW.md`)
+- Status teknis: **IMPLEMENTED & FULLY VERIFIED (110 backend tests PASS, 15 frontend tests PASS, Pint PASS)**
+- Status review pemilik: **APPROVED (DITERIMA PEMILIK pada 19 Oktober 2026 WIB mengacu baseline cf94cae; seluruh checklist #1–#9 APPROVED)**
 - Prasyarat: Fase 01 telah DITERIMA PENUH dan DITUTUP; kebijakan DEC-17 APPROVED
 - Database & storage: **SQLite in-memory `:memory:` terisolasi**, disk storage `testing` terisolasi, API UAT port 8001 / SPA UAT port 4001
-- Batasan klaim: **Perlindungan integritas audit dan penonaktifan modifikasi/rollback ditegakkan pada lapisan API aplikasi dan ORM Eloquent, bukan merupakan klaim kekebalan terhadap administrator sistem operasi atau administrator database langsung (root DB/OS admin).**
+- Batasan cakupan & klaim:
+  - **Lapisan Perlindungan**: Perlindungan integritas audit dan penonaktifan modifikasi/rollback ditegakkan pada lapisan API aplikasi dan ORM Eloquent, bukan merupakan klaim kekebalan terhadap administrator sistem operasi atau administrator database langsung (root DB/OS admin).
+  - **Bulk Deletion**: Berjalan per-record atomic di level klien, bukan batch atomic lintas item.
+  - **Modul Belum Diimplementasikan**: Modul scaffold (Student CRUD, Employee CRUD, Rombel write, Surat, Izin, Pembelajaran) tetap berstatus N/A / belum diimplementasikan.
 
 ---
 

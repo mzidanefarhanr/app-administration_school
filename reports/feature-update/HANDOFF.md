@@ -1,7 +1,7 @@
 # Handoff pengembangan aplikasi sekolah
 
-Checkpoint terbaru: 2026-10-17 (WIB). Branch `main`.
-Baseline terakhir yang dilaporkan: kandidat commit pasca implementasi Subfase 02a.
+Checkpoint terbaru: 2026-10-19 (WIB). Branch `main`.
+Baseline terakhir yang dilaporkan: `cf94cae` ("fix(phase-02a): wrap active master and firstlogin in transactions and audit bootstrap admin").
 Kebijakan commit/push: commit dan push per fase/koreksi ke branch kerja aktif telah **diotorisasi**; merge, force-push, rewrite history, dan deploy manual **tetap tidak diotorisasi**.
 
 Catatan perubahan pemilik: berkas log bukti `console.txt` milik pemilik tetap ada dan **tidak** di-commit.
@@ -12,15 +12,18 @@ Catatan perubahan pemilik: berkas log bukti `console.txt` milik pemilik tetap ad
 - **Fase 00 — Audit baseline**: PARTIAL (source & environment audit selesai; browser NOT RUN).
 - **Fase 01 — Hak akses, autentikasi dan lingkungan aman**: **DITERIMA LENGKAP & DITUTUP** (Fase 01a, 01b, dan 01c seluruhnya DITERIMA PEMILIK).
 - **BLK-03**: **CLOSED pada source aktif** (seluruh akun pengguna riil dan data siswa riil telah dibersihkan dari seeder aktif; data pada riwayat commit Git historis belum dihapus).
-- **Fase 02 — Integritas Operasional**:
-  - **Subfase 02a — Audit Server dan Rollback Terbatas**: **IMPLEMENTED & FULLY VERIFIED** (Pemeriksaan manual pemilik: **PENDING** mengacu `reports/feature-update/PHASE-02A-MANUAL-REVIEW.md`).
-  - **Subfase 02b — Backup Manual dan Restore Drill**: **NOT STARTED** (menunggu penerimaan manual 02a dan otorisasi pemilik terpisah).
+- **Fase 02 — Integritas Operasional**: **IN PROGRESS / PARTIAL (02a DITERIMA, 02b–02c NOT STARTED)**:
+  - **Subfase 02a — Audit Server dan Rollback Terbatas**: **DITERIMA PEMILIK** (seluruh checklist manual #1–#9 APPROVED 2026-10-19 WIB mengacu baseline `cf94cae`).
+  - **Subfase 02b — Backup Manual dan Restore Drill**: **NOT STARTED (PERENCANAAN)** (menunggu otorisasi implementasi dari pemilik).
   - **Subfase 02c — Jadwal dan Monitoring Backup**: **NOT STARTED**.
 - **Keputusan Terbuka yang Masih OPEN (belum menghambat)**:
   1. Makna `status_user_id` (jangan disamakan dengan `status_active`).
   2. Deployment CORS/Sanctum produksi.
   3. Strategi pencabutan token dibanding sesi.
-- **Batasan**: Penerimaan manual Fase 01, implementasi 02a, dan persetujuan kebijakan DEC-17 **bukan izin deployment ke produksi** dan bukan penerimaan modul yang belum tersedia. Klaim perlindungan audit terbatas pada lapisan API aplikasi dan Eloquent, bukan kekebalan terhadap administrator database/server langsung.
+- **Batasan**: Penerimaan manual Fase 01, penerimaan manual 02a, dan persetujuan kebijakan DEC-17 **bukan izin deployment ke produksi** dan bukan penerimaan modul yang belum tersedia.
+  - Perlindungan audit & immutability terbatas pada lapisan API aplikasi dan ORM Eloquent, bukan kekebalan terhadap root DB/OS admin.
+  - Bulk deletion di frontend berjalan per-record atomic, bukan satu transaksi batch lintas item.
+  - Modul scaffold (Student CRUD, Employee CRUD, Rombel write, Surat, Izin, Pembelajaran) tetap N/A.
 
 ---
 
@@ -70,12 +73,12 @@ Catatan perubahan pemilik: berkas log bukti `console.txt` milik pemilik tetap ad
 ---
 
 ## 4. Status Tugas Subfase 02a
-1. **Penutupan Mutasi & Rollback Klien**: **SELESAI**. `POST /api/activities` dan `PUT/PATCH/DELETE /api/activities/{id}` dinonaktifkan (405); callback model Eloquent melempar RuntimeException bila diubah/dihapus langsung.
-2. **Perlindungan Akses Baca**: **SELESAI**. `GET /api/activities` dan `GET /api/activities/{id}` dilindungi kemampuan bernama `audit.view`.
-3. **Pencatatan Otomatis & Penentuan Server**: **SELESAI**. Actor ditentukan dari `Auth::id()`; target, waktu, dan aksi ditentukan dari server; allowlist atribut diterapkan pada User, Role, Ability, Student, dan Master; rahasia autentikasi tersaring 100%.
-4. **Audit Pivot Hak Akses**: **SELESAI**. Perubahan `role_user` (assign/revoke) dan `ability_role` (sync) diaudit secara transaksional di server.
-5. **Konsistensi Transaksi & Immutability**: **SELESAI**. Transaksi domain yang gagal otomatis membatalkan pencatatan audit; reentrancy guard aktif; riwayat pengguna soft-delete tetap terjaga.
-6. **Pemeriksaan Manual Pemilik**: **PENDING**. Tersedia 9 butir checklist di `PHASE-02A-MANUAL-REVIEW.md` menunggu pemeriksaan manual pemilik.
+1. **Penutupan Mutasi & Rollback Klien**: **SELESAI & DITERIMA**. `POST /api/activities` dan `PUT/PATCH/DELETE /api/activities/{id}` dinonaktifkan (405); model Eloquent melempar RuntimeException bila diubah/dihapus langsung.
+2. **Perlindungan Akses Baca**: **SELESAI & DITERIMA**. `GET /api/activities` dan `GET /api/activities/{id}` dilindungi kemampuan bernama `audit.view`.
+3. **Pencatatan Otomatis & Penentuan Server**: **SELESAI & DITERIMA**. Actor ditentukan dari `Auth::id()`; target, waktu, dan aksi ditentukan dari server; allowlist atribut diterapkan pada User, Role, Ability, Student, dan Master; rahasia autentikasi tersaring.
+4. **Audit Pivot Hak Akses**: **SELESAI & DITERIMA**. Perubahan `role_user` (assign/revoke) dan `ability_role` (sync) diaudit secara transaksional di server.
+5. **Konsistensi Transaksi & Immutability**: **SELESAI & DITERIMA**. Mutasi `UserController`, `RoleController`, `AccessAssignmentController`, `FirstLoginController`, `TypeUserController`, dan `SchoolYearController` terbukti atomik; kegagalan audit membatalkan mutasi domain/pivot.
+6. **Pemeriksaan Manual Pemilik**: **DITERIMA LENGKAP**. Seluruh checklist #1–#9 di `PHASE-02A-MANUAL-REVIEW.md` dinyatakan **APPROVED** oleh pemilik pada 19 Oktober 2026 WIB mengacu baseline `cf94cae`.
 
 ---
 
@@ -89,7 +92,6 @@ Server UAT lokal yang diketahui masih berjalan (jangan dihentikan sembarangan):
 
 ---
 
-## 6. Pekerjaan Pertama Sesi Baru
-1. Menunggu instruksi pemilik mengenai hasil pemeriksaan manual Subfase 02a (checklist #1–#9 di `PHASE-02A-MANUAL-REVIEW.md`).
-2. Setelah disetujui pemilik, catat persetujuan manual dalam commit dokumentasi tersendiri.
-3. Menunggu otorisasi pemilik untuk memulai implementasi Subfase 02b (Backup Manual dan Restore Drill). Jangan mendahului implementasi 02b tanpa instruksi eksplisit pemilik.
+## 6. Pekerjaan Pertama Sesi Baru (Hanya Perencanaan Subfase 02b)
+1. Menyusun rencana kerja teknis Subfase 02b (Backup Manual dan Restore Drill) tanpa implementasi kode atau eksekusi backup/restore.
+2. Menunggu review dan otorisasi pemilik atas rencana teknis 02b sebelum memulai implementasi. Jangan mendahului implementasi 02b tanpa instruksi eksplisit pemilik.
