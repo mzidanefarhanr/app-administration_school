@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\BackupService;
 use Illuminate\Support\Facades\File;
 use Laravel\Sanctum\Sanctum;
 use Tests\Support\CreatesAccessFixtures;
@@ -16,9 +17,12 @@ beforeEach(function () {
 
     config(['backup.path' => $this->backupTestDir]);
     config(['backup.attachments_path' => $this->attachmentsTestDir]);
+    config(['backup.encryption_key' => null]); // Pastikan env bersih
 });
 
 afterEach(function () {
+    BackupService::$testDumpHook = null;
+
     if (File::isDirectory($this->backupTestDir)) {
         File::deleteDirectory($this->backupTestDir);
     }
@@ -41,7 +45,7 @@ test('user without backup.manage cannot list or download backups', function () {
     Sanctum::actingAs($operator);
 
     $this->getJson('/api/backups')->assertStatus(403);
-    $this->get('/api/backups/backup-test-123.zip/download')->assertStatus(403);
+    $this->getJson('/api/backups/backup-test-123.zip/download')->assertStatus(403);
 });
 
 test('admin-sistem with backup.manage can list backups and download valid archive', function () {
@@ -83,23 +87,51 @@ test('download rejects path traversal and invalid filenames', function () {
     $this->get('/api/backups/backup-nonexistent-999.zip/download')->assertStatus(404);
 });
 
+test('partial and temporary backup files are excluded from list and download', function () {
+    $admin = $this->makeUserWithRole('admin-sistem');
+    Sanctum::actingAs($admin);
+
+    // Buat folder .tmp dan file parsial .tmp
+    $tmpDir = $this->backupTestDir.DIRECTORY_SEPARATOR.'.tmp-sample-uuid';
+    File::makeDirectory($tmpDir);
+    File::put($this->backupTestDir.DIRECTORY_SEPARATOR.'backup-partial.zip.tmp', 'partial');
+    File::put($this->backupTestDir.DIRECTORY_SEPARATOR.'backup-valid-20261019_111111.zip.sha256', 'sha256');
+
+    $backupService = app(BackupService::class);
+    $list = $backupService->listBackups();
+    expect($list)->toBeEmpty();
+
+    // Pastikan file .tmp ditolak download
+    $this->get('/api/backups/backup-partial.zip.tmp/download')->assertStatus(400);
+});
+
+test('download rejects symlink resolving outside backup directory', function () {
+    $backupService = app(BackupService::class);
+
+    // Coba minta file dengan nama yang dimanipulasi
+    expect(fn () => $backupService->getBackupFileForDownload('../../../outside.zip'))
+        ->toThrow(\InvalidArgumentException::class);
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
-// 2. Command app:backup-run
+// 2. Command app:backup-run Contract & Execution
 // ─────────────────────────────────────────────────────────────────────────────
 
-test('backup run command creates encrypted zip, manifest, and companion sha256', function () {
+test('backup run command creates encrypted zip via interactive secret prompt', function () {
     $this->seedAccessReferenceData();
 
     // Buat file lampiran sintetis untuk membuktikan dukungan file
     $testDocPath = $this->attachmentsTestDir.DIRECTORY_SEPARATOR.'sample-doc.txt';
     File::put($testDocPath, 'Synthetic attachment content for backup test');
 
-    $passphrase = 'SecurePassphrase2026!';
+    $passphrase = 'InteractiveSecretPass2026!';
 
-    $this->artisan('app:backup-run', [
-        '--passphrase' => $passphrase,
-    ])
+    // Jalankan tanpa opsi --passphrase (rahasia diinput via secret prompt)
+    $this->artisan('app:backup-run')
         ->expectsOutput('Starting automated backup process...')
+        ->expectsQuestion('Enter backup encryption passphrase (min 12 characters)', $passphrase)
+        ->expectsQuestion('Confirm passphrase', $passphrase)
+        ->expectsOutput('Backup successfully created!')
         ->assertExitCode(0);
 
     // Verifikasi file backup terbuat di direktori privat
@@ -145,12 +177,65 @@ test('backup run command creates encrypted zip, manifest, and companion sha256',
     $zip->close();
 });
 
+test('backup run command aborts when passphrase confirmation does not match', function () {
+    $this->artisan('app:backup-run')
+        ->expectsQuestion('Enter backup encryption passphrase (min 12 characters)', 'PassphraseOne123!')
+        ->expectsQuestion('Confirm passphrase', 'PassphraseTwo456!')
+        ->expectsOutput('Passphrase confirmation does not match. Backup aborted.')
+        ->assertExitCode(1);
+
+    expect(File::files($this->backupTestDir))->toBeEmpty();
+});
+
 test('backup run command rejects passphrase under 12 characters', function () {
-    $this->artisan('app:backup-run', [
-        '--passphrase' => 'short-pass',
-    ])
+    $this->artisan('app:backup-run')
+        ->expectsQuestion('Enter backup encryption passphrase (min 12 characters)', 'short')
+        ->expectsQuestion('Confirm passphrase', 'short')
         ->expectsOutput('Encryption passphrase must be at least 12 characters long.')
         ->assertExitCode(1);
 
+    expect(File::files($this->backupTestDir))->toBeEmpty();
+});
+
+test('backup run cleans up temporary directories and plaintext dumps on failure', function () {
+    $this->seedAccessReferenceData();
+
+    // Hook kegagalan simulasi saat dump berlangsung
+    BackupService::$testDumpHook = function ($tempDir) {
+        // Verifikasi folder temp sedang ada saat hook dipanggil
+        expect(File::isDirectory($tempDir))->toBeTrue();
+        throw new \RuntimeException('Simulated dump failure for cleanup check');
+    };
+
+    config(['backup.encryption_key' => 'ValidConfiguredPassphrase2026!']);
+
+    $this->artisan('app:backup-run')
+        ->expectsOutput('Starting automated backup process...')
+        ->assertExitCode(1);
+
+    // Verifikasi tidak ada folder .tmp-* atau arsip parsial yang tertinggal
+    $allDirs = File::directories($this->backupTestDir);
+    expect($allDirs)->toBeEmpty();
+    expect(File::files($this->backupTestDir))->toBeEmpty();
+});
+
+test('backup run detects attachment drift during backup and aborts publication', function () {
+    $this->seedAccessReferenceData();
+
+    // Buat lampiran awal
+    File::put($this->attachmentsTestDir.DIRECTORY_SEPARATOR.'initial.txt', 'Initial Attachment');
+
+    // Hook simulasi: saat database sedang di-dump, file lampiran diubah/ditambah
+    BackupService::$testDumpHook = function ($tempDir) {
+        File::put($this->attachmentsTestDir.DIRECTORY_SEPARATOR.'drift-file.txt', 'Drift File Added During Dump');
+    };
+
+    config(['backup.encryption_key' => 'ValidConfiguredPassphrase2026!']);
+
+    $this->artisan('app:backup-run')
+        ->expectsOutput('Starting automated backup process...')
+        ->assertExitCode(1);
+
+    // Publikasi gagal: tidak ada file .zip yang dipublikasikan
     expect(File::files($this->backupTestDir))->toBeEmpty();
 });

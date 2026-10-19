@@ -20,6 +20,7 @@ beforeEach(function () {
     config(['backup.path' => $this->backupTestDir]);
     config(['backup.attachments_path' => $this->attachmentsTestDir]);
     config(['backup.drill_attachments_path' => $this->drillAttachmentsDir]);
+    config(['backup.encryption_key' => null]);
 
     // Setup koneksi drill SQLite terisolasi
     config([
@@ -46,7 +47,7 @@ afterEach(function () {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. Sukses Round-Trip Restore Drill
+// 1. Sukses Round-Trip Restore Drill & Command Contract
 // ─────────────────────────────────────────────────────────────────────────────
 
 test('restore drill successfully restores and verifies database and attachments on disposable target', function () {
@@ -66,8 +67,7 @@ test('restore drill successfully restores and verifies database and attachments 
     $report = $drillService->runDrill(
         $backupResult['path'],
         $this->passphrase,
-        'drill_sqlite',
-        true
+        'drill_sqlite'
     );
 
     expect($report['status'])->toBe('PASS');
@@ -83,8 +83,26 @@ test('restore drill successfully restores and verifies database and attachments 
     expect($restoredUsers)->toBeGreaterThan(0);
 });
 
+test('restore drill command executes via interactive secret prompt without CLI passphrase flag', function () {
+    $this->seedAccessReferenceData();
+    $this->makeUserWithRole('admin-sistem');
+
+    $backupService = app(BackupService::class);
+    $backupResult = $backupService->createBackup($this->passphrase);
+
+    // Jalankan command tanpa --passphrase atau --force (rahasia diinput via secret prompt)
+    $this->artisan('app:restore-drill', [
+        'archive' => $backupResult['filename'],
+        '--target-connection' => 'drill_sqlite',
+    ])
+        ->expectsOutput('Starting disaster recovery restore drill...')
+        ->expectsQuestion('Enter backup decryption passphrase', $this->passphrase)
+        ->expectsOutput('=== RESTORE DRILL VERIFICATION: PASS ===')
+        ->assertExitCode(0);
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
-// 2. Proteksi Fail-Safe Keamanan Target
+// 2. Proteksi Fail-Safe Keamanan Target & Penolakan Target Berisi Data
 // ─────────────────────────────────────────────────────────────────────────────
 
 test('restore drill strictly refuses to target operational database backdata_administrations', function () {
@@ -135,6 +153,27 @@ test('restore drill refuses target database not on disposable allowlist', functi
         ->toThrow(\RuntimeException::class, 'is not in the allowed disposable databases list');
 });
 
+test('restore drill strictly rejects target database containing existing data and preserves original data', function () {
+    $backupService = app(BackupService::class);
+    $backupResult = $backupService->createBackup($this->passphrase);
+
+    // Buat data eksisting di koneksi target drill_sqlite
+    $pdo = DB::connection('drill_sqlite')->getPdo();
+    $pdo->exec("CREATE TABLE existing_decoy_table (id INT, label TEXT); INSERT INTO existing_decoy_table VALUES (1, 'Preserved Decoy');");
+
+    $drillService = app(RestoreDrillService::class);
+
+    // Harap ditolak karena target sudah berisi data
+    expect(fn () => $drillService->runDrill($backupResult['path'], $this->passphrase, 'drill_sqlite'))
+        ->toThrow(\RuntimeException::class, 'already contains data');
+
+    // Pastikan data semula pada target tetap utuh dan tidak terhapus
+    $count = DB::connection('drill_sqlite')->table('existing_decoy_table')->count();
+    expect($count)->toBe(1);
+    $first = DB::connection('drill_sqlite')->table('existing_decoy_table')->first();
+    expect($first->label)->toBe('Preserved Decoy');
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 3. Validasi Integritas & Anti-Malicious Archive
 // ─────────────────────────────────────────────────────────────────────────────
@@ -145,7 +184,7 @@ test('restore drill rejects archive with invalid passphrase', function () {
 
     $drillService = app(RestoreDrillService::class);
 
-    expect(fn () => $drillService->runDrill($backupResult['path'], 'WrongPassphrase123!', 'drill_sqlite', true))
+    expect(fn () => $drillService->runDrill($backupResult['path'], 'WrongPassphrase123!', 'drill_sqlite'))
         ->toThrow(\RuntimeException::class);
 });
 
@@ -158,7 +197,7 @@ test('restore drill rejects modified archive failing companion checksum', functi
 
     $drillService = app(RestoreDrillService::class);
 
-    expect(fn () => $drillService->runDrill($backupResult['path'], $this->passphrase, 'drill_sqlite', true))
+    expect(fn () => $drillService->runDrill($backupResult['path'], $this->passphrase, 'drill_sqlite'))
         ->toThrow(\RuntimeException::class, 'Companion checksum mismatch');
 });
 
@@ -176,7 +215,7 @@ test('restore drill rejects zip containing path traversal (Zip Slip guard)', fun
 
     $drillService = app(RestoreDrillService::class);
 
-    expect(fn () => $drillService->runDrill($maliciousZipPath, $this->passphrase, 'drill_sqlite', true))
+    expect(fn () => $drillService->runDrill($maliciousZipPath, $this->passphrase, 'drill_sqlite'))
         ->toThrow(\RuntimeException::class, 'Zip Slip detected');
 });
 
@@ -204,6 +243,6 @@ test('restore drill rejects SQL dump containing database switching commands (USE
 
     $drillService = app(RestoreDrillService::class);
 
-    expect(fn () => $drillService->runDrill($archivePath, $this->passphrase, 'drill_sqlite', true))
+    expect(fn () => $drillService->runDrill($archivePath, $this->passphrase, 'drill_sqlite'))
         ->toThrow(\RuntimeException::class, 'Security audit failed: SQL dump contains forbidden command');
 });

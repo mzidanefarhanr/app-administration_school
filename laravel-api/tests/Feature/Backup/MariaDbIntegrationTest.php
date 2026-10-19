@@ -88,13 +88,21 @@ test('real local MariaDB backup and restore drill round-trip between school_acce
     expect($backupResult['size_bytes'])->toBeGreaterThan(0);
     expect($backupResult['manifest']['database']['database_name'])->toBe('school_access_uat');
 
-    // 5. Jalankan restore drill nyata ke target school_restore_drill_uat
+    // 5. Bersihkan database target drill agar dalam keadaan kosong sebelum drill
+    $tables = DB::connection('mariadb_target')->select('SHOW TABLES');
+    DB::connection('mariadb_target')->statement('SET FOREIGN_KEY_CHECKS = 0');
+    foreach ($tables as $table) {
+        $tblName = array_values((array) $table)[0];
+        DB::connection('mariadb_target')->statement("DROP TABLE IF EXISTS `{$tblName}`");
+    }
+    DB::connection('mariadb_target')->statement('SET FOREIGN_KEY_CHECKS = 1');
+
+    // Jalankan restore drill nyata ke target disposable school_restore_drill_uat
     $drillService = app(RestoreDrillService::class);
     $report = $drillService->runDrill(
         $backupResult['path'],
         $passphrase,
-        'mariadb_target',
-        true
+        'mariadb_target'
     );
 
     expect($report['status'])->toBe('PASS');

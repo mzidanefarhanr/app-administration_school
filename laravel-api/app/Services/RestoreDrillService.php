@@ -17,10 +17,9 @@ class RestoreDrillService
      * @param  string  $archivePath  Path berkas backup .zip
      * @param  string|null  $passphrase  Kunci/passphrase dekripsi
      * @param  string|null  $targetConnectionName  Nama koneksi target disposable
-     * @param  bool  $force  Izinkan overwrite jika target sudah memiliki data
      * @return array<string, mixed> Laporan hasil verifikasi pemulihan multi-faktor
      */
-    public function runDrill(string $archivePath, ?string $passphrase = null, ?string $targetConnectionName = null, bool $force = false): array
+    public function runDrill(string $archivePath, ?string $passphrase = null, ?string $targetConnectionName = null): array
     {
         $startTime = microtime(true);
 
@@ -52,7 +51,7 @@ class RestoreDrillService
         // 4. Verifikasi koneksi dan fail-safe target database
         $targetConnectionName = $targetConnectionName ?: 'restore_drill';
         $targetConnection = DB::connection($targetConnectionName);
-        $this->guardTargetConnection($targetConnection, $force);
+        $this->guardTargetConnection($targetConnection);
 
         // 5. Direktori temporer ekstraksi
         $tempExtractDir = dirname($archivePath).DIRECTORY_SEPARATOR.'.tmp-restore-'.Str::uuid();
@@ -155,7 +154,7 @@ class RestoreDrillService
      * Fail-safe pengaman koneksi target: menolak keras database operasional,
      * database sumber aktif, dan database yang tidak ada di allowlist disposable.
      */
-    protected function guardTargetConnection(Connection $targetConnection, bool $force): void
+    protected function guardTargetConnection(Connection $targetConnection): void
     {
         $targetDb = (string) $targetConnection->getDatabaseName();
         $targetDriver = $targetConnection->getDriverName();
@@ -203,10 +202,10 @@ class RestoreDrillService
             }
         }
 
-        // 4. Periksa apakah database target sudah berisi data (jangan menimpa tanpa --force)
+        // 4. Periksa apakah database target sudah berisi data (wajib bersih/kosong, jangan menimpa)
         $existingTablesCount = $this->countTablesInConnection($targetConnection);
-        if ($existingTablesCount > 0 && ! $force) {
-            throw new \RuntimeException("Target database '{$targetDb}' already contains {$existingTablesCount} tables. Use --force to allow overwriting disposable data.");
+        if ($existingTablesCount > 0) {
+            throw new \RuntimeException("Target database '{$targetDb}' already contains data ({$existingTablesCount} tables). Target must be a clean/empty disposable database to prevent data overwriting.");
         }
     }
 

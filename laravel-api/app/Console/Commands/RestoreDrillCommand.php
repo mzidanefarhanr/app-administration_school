@@ -9,14 +9,13 @@ class RestoreDrillCommand extends Command
 {
     /**
      * The name and signature of the console command.
+     * Passphrase is never accepted via CLI flags to prevent exposure in process listing.
      *
      * @var string
      */
     protected $signature = 'app:restore-drill
                             {archive : Path or filename of the backup archive to test}
-                            {--passphrase= : Passphrase to decrypt the backup archive}
-                            {--target-connection=restore_drill : Database connection name for the disposable target}
-                            {--force : Force overwrite if disposable target database already contains data}';
+                            {--target-connection=restore_drill : Database connection name for the disposable target}';
 
     /**
      * The console command description.
@@ -44,7 +43,20 @@ class RestoreDrillCommand extends Command
             return Command::FAILURE;
         }
 
-        $passphrase = $this->option('passphrase') ?: config('backup.encryption_key');
+        $targetConnection = $this->option('target-connection') ?: 'restore_drill';
+        $connConfig = config("database.connections.{$targetConnection}", []);
+        $targetHost = $connConfig['host'] ?? 'local/in-memory';
+        $targetPort = $connConfig['port'] ?? 'N/A';
+        $targetDb = $connConfig['database'] ?? 'N/A';
+        $drillAttachmentsPath = config('backup.drill_attachments_path', storage_path('app/restore-drill-attachments'));
+
+        $this->info('Starting disaster recovery restore drill...');
+        $this->line("Archive file: {$archive}");
+        $this->line("Target connection: {$targetConnection}");
+        $this->line("Effective Target: host={$targetHost}, port={$targetPort}, database={$targetDb}");
+        $this->line("Drill Attachments Path: {$drillAttachmentsPath}");
+
+        $passphrase = config('backup.encryption_key');
         if (! $passphrase) {
             $passphrase = $this->secret('Enter backup decryption passphrase');
         }
@@ -55,15 +67,8 @@ class RestoreDrillCommand extends Command
             return Command::FAILURE;
         }
 
-        $targetConnection = $this->option('target-connection') ?: 'restore_drill';
-        $force = (bool) $this->option('force');
-
-        $this->info('Starting disaster recovery restore drill...');
-        $this->line("Archive file: {$archive}");
-        $this->line("Target connection: {$targetConnection}");
-
         try {
-            $report = $restoreDrillService->runDrill($archive, $passphrase, $targetConnection, $force);
+            $report = $restoreDrillService->runDrill($archive, $passphrase, $targetConnection);
 
             $this->info('=== RESTORE DRILL VERIFICATION: PASS ===');
             $this->line("Status: {$report['status']}");

@@ -12,6 +12,13 @@ use ZipArchive;
 class BackupService
 {
     /**
+     * Hook pengujian simulasi kegagalan dump untuk memverifikasi cleanup direktori temporer.
+     *
+     * @var (\Closure(string): void)|null
+     */
+    public static ?\Closure $testDumpHook = null;
+
+    /**
      * Jalankan proses backup mandiri: dump database, lampiran privat, manifest,
      * enkripsi ZIP AES-256, dan berkas checksum SHA-256 pendamping.
      *
@@ -44,25 +51,39 @@ class BackupService
             $connectionName = $connectionName ?: config('database.default');
             $connection = DB::connection($connectionName);
 
-            // 4. Dump database ke database.sql
+            $attachmentsSource = $attachmentsPath ?: config('backup.attachments_path', storage_path('app/attachments'));
+
+            // 4. Deteksi konsistensi berkas lampiran: Pre-scan sebelum dump database dimulai
+            $preScanAttachments = $this->scanAttachmentsDirectory($attachmentsSource);
+
+            // 5. Dump database ke database.sql
             $dumpSqlPath = $tempDir.DIRECTORY_SEPARATOR.'database.sql';
             $this->dumpDatabase($connection, $dumpSqlPath, $tempDir);
+
+            if (static::$testDumpHook !== null) {
+                (static::$testDumpHook)($tempDir);
+            }
 
             if (! file_exists($dumpSqlPath) || filesize($dumpSqlPath) === 0) {
                 throw new \RuntimeException('Database dump failed: dump file is empty or missing.');
             }
 
+            // 6. Deteksi konsistensi berkas lampiran: Post-scan sesudah dump selesai
+            $postScanAttachments = $this->scanAttachmentsDirectory($attachmentsSource);
+            if ($preScanAttachments !== $postScanAttachments) {
+                throw new \RuntimeException('Consistency violation detected: Attachments were modified, added, or deleted during database dump. Backup publication aborted.');
+            }
+
             $dumpSha256 = hash_file('sha256', $dumpSqlPath);
 
-            // 5. Kumpulkan metadata tabel dan migration
+            // 7. Kumpulkan metadata tabel dan migration
             $tableStats = $this->collectTableStats($connection);
             $lastMigration = $this->getLastMigration($connection);
 
-            // 6. Kumpulkan dan salin berkas lampiran privat
-            $attachmentsSource = $attachmentsPath ?: config('backup.attachments_path', storage_path('app/attachments'));
+            // 8. Salin berkas lampiran privat ke folder temporer
             $attachmentsMeta = $this->collectAndCopyAttachments($attachmentsSource, $tempDir.DIRECTORY_SEPARATOR.'attachments');
 
-            // 7. Susun manifest.json di dalam direktori temporer
+            // 9. Susun manifest.json di dalam direktori temporer
             $envName = app()->environment();
             $timestampUtc = now('UTC')->toIso8601String();
             $timestampWib = now('Asia/Jakarta')->toIso8601String();
@@ -95,15 +116,18 @@ class BackupService
                     'files' => $attachmentsMeta,
                 ],
                 'consistency' => [
-                    'type' => $dbDriver === 'mysql' ? 'innodb_single_transaction' : 'sqlite_read_transaction',
-                    'notes' => 'Point-in-time snapshot. Attachments copied in sequence with database dump.',
+                    'type' => $dbDriver === 'mysql' ? 'innodb_single_transaction_with_attachment_drift_detection' : 'sqlite_read_transaction_with_attachment_drift_detection',
+                    'database_engine_verified' => $dbDriver === 'mysql' ? 'InnoDB' : 'SQLite',
+                    'attachment_drift_detected' => false,
+                    'operational_attachments_consistency' => 'N/A (operational attachment modules not yet implemented; verified via synthetic fixtures)',
+                    'prerequisites_for_production' => 'Application write quiescence (freeze writes) or filesystem-level snapshot required before operational attachments backup.',
                 ],
             ];
 
             $manifestPath = $tempDir.DIRECTORY_SEPARATOR.'manifest.json';
             File::put($manifestPath, json_encode($manifestData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
-            // 8. Kompres dan enkripsi ke file archive.zip di dalam folder temporer
+            // 10. Kompres dan enkripsi ke file archive.zip di dalam folder temporer
             $tempZipPath = $tempDir.DIRECTORY_SEPARATOR.'archive.zip';
             $zip = new ZipArchive;
             if ($zip->open($tempZipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
@@ -133,7 +157,7 @@ class BackupService
 
             $zip->close();
 
-            // 9. Atomic Publishing: pindahkan ke berkas final dan tulis checksum pendamping
+            // 11. Atomic Publishing: pindahkan ke berkas final dan tulis checksum pendamping
             $finalZipSha256 = hash_file('sha256', $tempZipPath);
             $filenameTimestamp = now()->format('Ymd_His');
             $finalFilename = "backup-{$envName}-{$filenameTimestamp}.zip";
@@ -239,10 +263,34 @@ class BackupService
 
         // 3. Pastikan path absolut berada di dalam backupDir (anti-symlink escape)
         if (! str_starts_with($realTargetPath, $backupDir.DIRECTORY_SEPARATOR)) {
-            throw new \SecurityException('Unauthorized path resolution.');
+            throw new \RuntimeException('Security rejection: Unauthorized path resolution outside backup directory.');
         }
 
         return $realTargetPath;
+    }
+
+    /**
+     * Scan dan kumpulkan peta path relatif => hash sha256 untuk deteksi deviasi.
+     *
+     * @return array<string, string>
+     */
+    public function scanAttachmentsDirectory(string $path): array
+    {
+        if (! File::isDirectory($path)) {
+            return [];
+        }
+
+        $files = File::allFiles($path);
+        $map = [];
+
+        foreach ($files as $file) {
+            $relativePath = str_replace('\\', '/', $file->getRelativePathname());
+            $map[$relativePath] = hash_file('sha256', $file->getRealPath());
+        }
+
+        ksort($map);
+
+        return $map;
     }
 
     /**
@@ -273,6 +321,17 @@ class BackupService
         $port = $config['port'] ?? 3306;
         $username = $config['username'] ?? 'root';
         $password = (string) ($config['password'] ?? '');
+
+        // Verifikasi prasyarat engine tabel: seluruh tabel sumber harus menggunakan InnoDB
+        $nonTransactional = $connection->select(
+            "SELECT TABLE_NAME, ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND (ENGINE IS NULL OR UPPER(ENGINE) != 'INNODB')",
+            [$dbName]
+        );
+
+        if (! empty($nonTransactional)) {
+            $names = array_map(fn ($r) => ($r->TABLE_NAME ?? '').' ('.($r->ENGINE ?? 'NONE').')', $nonTransactional);
+            throw new \RuntimeException('Consistency prerequisite failed: Non-InnoDB tables detected: '.implode(', ', $names).'. Single-transaction consistency cannot be guaranteed.');
+        }
 
         $mysqldumpBinary = config('backup.mysqldump_binary', 'C:\xampp\mysql\bin\mysqldump.exe');
         if (! file_exists($mysqldumpBinary)) {
