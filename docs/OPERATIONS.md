@@ -15,14 +15,14 @@ Retensi, jadwal, enkripsi, lokasi salinan, RPO (kehilangan data maksimal) dan RT
 - **Manajemen Passphrase**: Kunci enkripsi (`BACKUP_ENCRYPTION_KEY` min 12 karakter) disimpan di vault/password manager terpisah oleh administrator; tidak pernah dimasukkan ke dalam repositori Git, process argument OS, manifest, atau log.
 - **Perintah Pencadangan**:
   ```bash
-  php artisan app:backup-run
+  php artisan --env=uat app:backup-run
   ```
-  Menghasilkan arsip `backup-<env>-<timestamp>.zip` dan berkas pendamping `backup-...zip.sha256`. Kredensial dump MySQL menggunakan `--defaults-extra-file` temporer dengan pembersihan seketika.
+  Menghasilkan arsip `backup-<env>-<timestamp>.zip` dan berkas pendamping `backup-...zip.sha256`. Kredensial dump MySQL menggunakan `--defaults-extra-file` temporer dengan pembersihan seketika. Passphrase rahasia diminta interaktif via secret prompt atau env rahasia lokal.
 - **Perintah Restore Drill**:
   ```bash
-  php artisan app:restore-drill <path-to-archive.zip> --target-connection=restore_drill --force
+  php artisan --env=uat app:restore-drill <path-to-archive.zip> --target-connection=restore_drill
   ```
-  Target wajib masuk allowlist disposable (`school_restore_drill`, `school_restore_drill_uat`). Menolak keras database operasional `backdata_administrations` dan database sumber aktif.
+  Target wajib masuk allowlist disposable (`school_restore_drill`, `school_restore_drill_uat`) dan dalam keadaan bersih/kosong. Menolak keras database operasional `backdata_administrations`, database sumber aktif, dan target yang sudah berisi data. Passphrase diminta interaktif via secret prompt.
 - **Prosedur Salinan Terpisah (Cold Storage)**:
   Operator/Admin mengunduh arsip backup terenkripsi secara berkala via endpoint berizin `GET /api/backups/{filename}/download` (`backup.manage`) atau menyalin berkas dari server ke harddisk eksternal offline. Kunci pemulihan disimpan di brankas terpisah dari media fisik arsip.
 - **Prosedur Pemulihan Mesin Pengganti**:
