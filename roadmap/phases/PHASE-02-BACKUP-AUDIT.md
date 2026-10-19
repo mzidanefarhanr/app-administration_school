@@ -29,7 +29,8 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 ```
 
 ### 02b — Backup manual dan restore drill
-Scope: Implementasi DB+lampiran+manifest/checksum serta private storage; akses eksplisit; credential dump aman; status nyata; desain retensi dan salinan terpisah sesuai deployment. Uji restore ke target disposable.
+Status: **PLANNING / READY FOR OWNER REVIEW** (Rencana kerja teknis rinci: `reports/feature-update/PHASE-02B-PLAN.md`).
+Scope: Implementasi DB+lampiran+manifest/checksum serta private storage; akses eksplisit; credential dump aman; status nyata; desain retensi dan salinan terpisah sesuai deployment. Uji restore ke target disposable. Belum diimplementasikan sebelum otorisasi pemilik.
 
 Kriteria penerimaan: Backup sintetis lengkap; checksum/manifest diverifikasi; restore DB+file berjalan pada target terisolasi; disk penuh/missing file/target aktif ditolak atau gagal terlihat.
 

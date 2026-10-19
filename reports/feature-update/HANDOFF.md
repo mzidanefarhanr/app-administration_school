@@ -92,6 +92,6 @@ Server UAT lokal yang diketahui masih berjalan (jangan dihentikan sembarangan):
 
 ---
 
-## 6. Pekerjaan Pertama Sesi Baru (Hanya Perencanaan Subfase 02b)
-1. Menyusun rencana kerja teknis Subfase 02b (Backup Manual dan Restore Drill) tanpa implementasi kode atau eksekusi backup/restore.
-2. Menunggu review dan otorisasi pemilik atas rencana teknis 02b sebelum memulai implementasi. Jangan mendahului implementasi 02b tanpa instruksi eksplisit pemilik.
+## 6. Pekerjaan Pertama Sesi Baru (Subfase 02b Menunggu Otorisasi)
+1. Rencana teknis Subfase 02b telah selesai disusun pada `reports/feature-update/PHASE-02B-PLAN.md` (read-only, tanpa implementasi kode atau mutasi data).
+2. Menunggu review, keputusan atas 2 pertanyaan teknis (§6 di `PHASE-02B-PLAN.md`), dan otorisasi pemilik sebelum memulai implementasi Subfase 02b. Jangan mendahului implementasi 02b tanpa instruksi eksplisit pemilik.

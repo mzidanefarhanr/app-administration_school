@@ -17,6 +17,29 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-19] Subfase 02b — Docs: perencanaan backup manual terenkripsi dan restore drill terisolasi
+- Type: Docs
+- Scope / fase: Subfase 02b (Backup Manual dan Restore Drill).
+- Files touched:
+  - `reports/feature-update/PHASE-02B-PLAN.md` (baru)
+  - `reports/feature-update/INDEX.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `roadmap/ROADMAP.md`
+  - `roadmap/phases/PHASE-02-BACKUP-AUDIT.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Penyusunan rencana kerja teknis konkret Subfase 02b tanpa implementasi kode atau eksekusi mutasi data:
+     - Backup database skema + data dan lampiran privat ke direktori privat (`storage/app/backups`) di luar public web root.
+     - Standar enkripsi arsip: ZIP AES-256 via ekstensi native PHP `ZipArchive`; rahasia enkripsi bersumber dari env/secret prompt terpisah, tidak pernah masuk argumen proses atau log.
+     - Struktur `manifest.json`: format version, timestamp, identitas sumber tanpa kredensial, ringkasan skema/tabel/baris, dan checksum SHA-256 untuk database dump, file lampiran, serta arsip final.
+     - Penanganan kegagalan & atomic publishing: pembuatan backup di direktori temporer `.tmp-<uuid>`; jika gagal dibersihkan seketika tanpa meninggalkan file parsial/korup; publikasi arsip hanya setelah seluruh tahapan berhasil.
+     - Endpoint unduh berizin `GET /api/backups/{filename}/download` dengan kemampuan bernama `backup.manage` (default: System Administrator), dilengkapi perlindungan anti-directory traversal.
+     - Command restore drill `app:restore-drill` ke target database dan storage disposable (`school_restore_drill`), dilengkapi fail-safe keras menolak database operasional (`backdata_administrations`) dan database aktif sumber, anti-Zip-Slip guard, serta pembuktian multi-faktor (skema, data row count, foreign key integrity, verifikasi akun admin, dan berkas lampiran).
+     - Prosedur penyalinan berkala ke media eksternal (cold storage) dan pemisahan kunci pemulihan.
+  2. Inventarisasi prasyarat aktual: MariaDB 10.4.32, mysqldump.exe, mysql.exe, PHP 8.2.12 ZipArchive dengan EM_AES_256, OpenSSL, disk privat `local` (`storage/app`).
+  3. Identifikasi keputusan yang dibutuhkan dari pemilik sebelum implementasi: nama database disposable lokal (`school_restore_drill_uat`) dan konfirmasi default peran untuk `backup.manage`.
+- Evidence: `reports/feature-update/PHASE-02B-PLAN.md`.
+
 ## [2026-10-19] Subfase 02a — Docs: penerimaan manual pemilik atas audit server dan penonaktifan rollback
 - Type: Docs
 - Scope / fase: Subfase 02a (Audit Server dan Rollback Terbatas).
