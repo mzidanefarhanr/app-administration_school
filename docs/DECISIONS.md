@@ -54,6 +54,15 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 - Dampak API/UI: Subfase 02a mengunci audit logging ke server-side dan mematikan rute rollback klien; Subfase 02b membangun command backup ZIP terenkripsi + manifest SHA-256 dan restore drill; Subfase 02c mengaktifkan scheduler rotasi retensi.
 - Status: APPROVED (Kebijakan). Fase affected: 02 (02a, 02b, 02c). Catatan: persetujuan kebijakan ini bukan penerimaan manual 02a atau otorisasi implementasi 02b–02c.
 
+### DEC-18 — Operasional backup manual dan restore drill (APPROVED, 2026-10-19 WIB)
+- Konteks: pelaksanaan implementasi Subfase 02b berdasarkan instruksi pemilik 19 Oktober 2026 WIB.
+- Pilihan pemilik:
+  1. **Target restore drill lokal**: Target database disposable untuk drill lokal ditetapkan pada `school_restore_drill_uat` (MySQL lokal port 3306). Database operasional (`backdata_administrations`) dan database aktif sumber dilarang keras dijadikan target pemulihan.
+  2. **Kemampuan `backup.manage`**: Default kemampuan `backup.manage` (menjalankan backup, melihat daftar arsip, dan mengunduh berkas) hanya diberikan kepada peran Admin Sistem (`admin-sistem`). Pengaturan ini tetap fleksibel dan dapat dikonfigurasi melalui matriks kemampuan (`/master/roles`) tanpa mengubah kode.
+  3. **Penyimpanan privat & enkripsi arsip**: Mempertahankan keputusan DEC-17: direktori privat `storage/app/backups`, enkripsi arsip wajib standar ZIP AES-256 dengan rahasia terpisah (tanpa masuk argumen proses/log/repo), serta prosedur salinan berkala ke perangkat eksternal.
+- Dampak schema/API/UI: pendaftaran kemampuan `backup.manage` pada `AbilityCatalog`; command `app:backup-run` dan `app:restore-drill`; rute API `GET /api/backups` dan `GET /api/backups/{filename}/download`.
+- Status: APPROVED. Fase affected: 02b.
+
 ### Keputusan yang masih OPEN (belum diputuskan)
 - Makna `status_user_id` (jangan disamakan dengan `status_active`), deployment CORS/Sanctum produksi, strategi pencabutan token vs sesi.
 
@@ -78,6 +87,7 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 | DEC-15 | Error auth, CSRF 419 retry, reset password scope 01b | Reset password in scope (mail log); session expired redirect login; 419 single retry | APPROVED (2026-10-16 WIB) | 01b |
 | DEC-16 | Isolasi fixture, bootstrap admin, standar password 12 karakter | Bootstrap CLI interactive; synthetic seed dev only; password min 12 char | APPROVED (2026-10-17 WIB) | 01c |
 | DEC-17 | Kebijakan audit trail, strategi backup, dan retensi arsip | Rollback nonaktif; backup privat lokal + salinan terpisah; retensi 7+4; enkripsi wajib | APPROVED (2026-10-17) | 02a/02b |
+| DEC-18 | Operasional backup manual dan restore drill | Target drill `school_restore_drill_uat`; `backup.manage` default admin-sistem | APPROVED (2026-10-19) | 02b |
 
 ## Format pencatatan keputusan
 Tanggal WIB; ID; konteks; alternatif; pilihan pemilik dan bukti instruksi; dampak schema/API/UI; fase affected; status OPEN/PROPOSED/APPROVED/SUPERSEDED. Pertahankan riwayat bila keputusan berubah.
