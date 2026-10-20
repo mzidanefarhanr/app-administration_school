@@ -49,8 +49,9 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 ```
 
 ### 02c — Jadwal dan monitoring backup
-Status: **PLANNING / READY FOR OWNER REVIEW** (Rencana kerja teknis rinci: `reports/feature-update/PHASE-02C-PLAN.md`).
-Scope: Aktifkan scheduler/job sesuai lingkungan yang disepakati; retry/idempotency; retention 7 harian + 4 mingguan dengan preservasi backup terakhir; monitoring status dan freshness alert. Runbook operasi Windows Task Scheduler dan Linux Cron. Belum diimplementasikan sebelum otorisasi pemilik.
+Status: **IMPLEMENTED & FULLY VERIFIED** (Review Pemilik: PENDING di `reports/feature-update/PHASE-02C-MANUAL-REVIEW.md`).
+Laporan: `reports/feature-update/PHASE-02C-MONITORING-SCHEDULE.md`.
+Scope selesai: Backup non-interaktif (`--non-interactive`) dengan rahasia lokal tanpa prompt; scheduler Laravel opt-in pada 02:00 dan 02:30 Asia/Jakarta dengan default OFF; mutex lock atomik bersama (`BackupMutex`) pada file lock `.backup.lock` untuk mencegah overlap; algoritma retensi bertingkat 7 harian + 4 mingguan dengan preservasi cadangan terakhir sukses dan mode `--dry-run`; monitoring status pasif terstruktur di `monitoring.json`, freshness alert dinamis (> 28 jam), pembedaan tegas `backup_created` vs `restore_verified`, dan endpoint API `GET /api/backups/status` berizin `backup.manage`. Runbook operasi Windows Task Scheduler dan Linux Cron. Batas cakupan: monitoring pasif tanpa notifikasi eksternal, single-server mutex, lampiran operasional N/A. (152 test backend PASS).
 
 Kriteria penerimaan: Scheduler/worker yang dipakai terbukti memicu job; retry tidak menggandakan efek; backup gagal terlihat; jadwal/retensi disetujui. Jika environment belum tersedia, catat BLOCKED tanpa klaim otomatis aktif.
 

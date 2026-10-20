@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Services\BackupMonitoringService;
+use App\Services\BackupMutex;
 use App\Services\BackupService;
 use Illuminate\Console\Command;
 
@@ -14,6 +16,7 @@ class BackupRunCommand extends Command
      * @var string
      */
     protected $signature = 'app:backup-run
+                            {--non-interactive : Execute non-interactively reading passphrase strictly from local config}
                             {--connection= : Database connection to backup}
                             {--attachments= : Path to private attachments directory}';
 
@@ -27,9 +30,11 @@ class BackupRunCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(BackupService $backupService): int
+    public function handle(BackupService $backupService, BackupMonitoringService $monitoringService): int
     {
         $this->info('Starting automated backup process...');
+
+        $isNonInteractive = (bool) $this->option('non-interactive');
 
         $connection = $this->option('connection') ?: config('database.default');
         $connConfig = config("database.connections.{$connection}", []);
@@ -53,40 +58,66 @@ class BackupRunCommand extends Command
         // 1. Resolve passphrase safely (local config or interactive secret prompt)
         $passphrase = config('backup.encryption_key');
 
-        if (! $passphrase) {
-            $passphrase = $this->secret('Enter backup encryption passphrase (min 12 characters)');
-            $confirmation = $this->secret('Confirm passphrase');
+        if ($isNonInteractive) {
+            if (empty($passphrase) || strlen((string) $passphrase) < 12) {
+                $errMsg = 'Non-interactive backup aborted: BACKUP_ENCRYPTION_KEY is not configured or shorter than 12 characters.';
+                $this->error($errMsg);
+                $monitoringService->recordBackupFailure($errMsg, 0.0);
 
-            if ($passphrase !== $confirmation) {
-                $this->error('Passphrase confirmation does not match. Backup aborted.');
+                return Command::FAILURE;
+            }
+        } else {
+            if (! $passphrase) {
+                $passphrase = $this->secret('Enter backup encryption passphrase (min 12 characters)');
+                $confirmation = $this->secret('Confirm passphrase');
+
+                if ($passphrase !== $confirmation) {
+                    $this->error('Passphrase confirmation does not match. Backup aborted.');
+
+                    return Command::FAILURE;
+                }
+            }
+
+            if (strlen((string) $passphrase) < 12) {
+                $this->error('Encryption passphrase must be at least 12 characters long.');
 
                 return Command::FAILURE;
             }
         }
 
-        if (strlen((string) $passphrase) < 12) {
-            $this->error('Encryption passphrase must be at least 12 characters long.');
+        // 2. Wrap execution inside shared atomic mutex
+        return BackupMutex::withLock(function () use ($backupService, $monitoringService, $passphrase, $connection, $attachments) {
+            $startTime = microtime(true);
 
-            return Command::FAILURE;
-        }
+            try {
+                $result = $backupService->createBackup($passphrase, $connection, $attachments);
+                $duration = microtime(true) - $startTime;
 
-        try {
-            $result = $backupService->createBackup($passphrase, $connection, $attachments);
+                $this->info('Backup successfully created!');
+                $this->line("Archive File: {$result['filename']}");
+                $this->line("Archive Path: {$result['path']}");
+                $this->line("Archive Size: {$result['size_bytes']} bytes");
+                $this->line("Archive SHA-256: {$result['sha256']}");
+                $this->line("Companion Checksum File: {$result['companion_sha256_path']}");
+                $this->line('Tables Backed Up: '.count($result['manifest']['database']['tables']));
+                $this->line("Attachments Backed Up: {$result['manifest']['attachments']['files_count']}");
 
-            $this->info('Backup successfully created!');
-            $this->line("Archive File: {$result['filename']}");
-            $this->line("Archive Path: {$result['path']}");
-            $this->line("Archive Size: {$result['size_bytes']} bytes");
-            $this->line("Archive SHA-256: {$result['sha256']}");
-            $this->line("Companion Checksum File: {$result['companion_sha256_path']}");
-            $this->line('Tables Backed Up: '.count($result['manifest']['database']['tables']));
-            $this->line("Attachments Backed Up: {$result['manifest']['attachments']['files_count']}");
+                $monitoringService->recordBackupSuccess($result, $duration);
+
+                return Command::SUCCESS;
+            } catch (\Throwable $e) {
+                $duration = microtime(true) - $startTime;
+                $this->error("Backup failed: {$e->getMessage()}");
+                $monitoringService->recordBackupFailure($e->getMessage(), $duration);
+
+                return Command::FAILURE;
+            }
+        }, function () use ($monitoringService) {
+            $skipMsg = 'Another backup or restore process is currently running. Skipping backup run.';
+            $this->warn($skipMsg);
+            $monitoringService->recordBackupSkipped($skipMsg);
 
             return Command::SUCCESS;
-        } catch (\Throwable $e) {
-            $this->error("Backup failed: {$e->getMessage()}");
-
-            return Command::FAILURE;
-        }
+        });
     }
 }

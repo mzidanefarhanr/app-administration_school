@@ -192,6 +192,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::match(['put', 'patch'], '/activities/{activity}', [ActivityController::class, 'update']);
     Route::delete('/activities/{activity}', [ActivityController::class, 'destroy']);
     Route::get('/backups', [BackupController::class, 'index'])->middleware('can:backup.manage');
+    Route::get('/backups/status', [BackupController::class, 'status'])->middleware('can:backup.manage');
     Route::get('/backups/{filename}/download', [BackupController::class, 'download'])
         ->where('filename', '.*')
         ->middleware('can:backup.manage');

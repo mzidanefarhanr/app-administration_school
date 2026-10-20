@@ -135,8 +135,9 @@ class RestoreDrillService
                 'checks' => $verificationResults,
             ];
 
-            // 11. Simpan laporan drill ke storage
+            // 11. Simpan laporan drill ke storage dan monitoring service
             $this->saveDrillReport($report);
+            app(BackupMonitoringService::class)->recordDrillResult($report);
 
             return $report;
         } finally {

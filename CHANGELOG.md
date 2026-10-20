@@ -17,6 +17,51 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-20] Subfase 02c — Feature & Ops: implementasi backup non-interaktif, mutex lock, retensi 7+4, dan monitoring status
+- Type: Feature | Ops | Security
+- Scope / fase: Subfase 02c (Jadwal dan Monitoring Backup).
+- Files touched:
+  - `laravel-api/config/backup.php`
+  - `laravel-api/app/Services/BackupMutex.php` (baru)
+  - `laravel-api/app/Services/BackupMonitoringService.php` (baru)
+  - `laravel-api/app/Services/BackupRetentionService.php` (baru)
+  - `laravel-api/app/Console/Commands/BackupPruneCommand.php` (baru)
+  - `laravel-api/app/Console/Commands/BackupRunCommand.php`
+  - `laravel-api/app/Console/Commands/RestoreDrillCommand.php`
+  - `laravel-api/app/Console/Kernel.php`
+  - `laravel-api/app/Http/Controllers/BackupController.php`
+  - `laravel-api/routes/api.php`
+  - `laravel-api/.env.example`
+  - `laravel-api/tests/Feature/Backup/BackupScheduleTest.php` (baru)
+  - `laravel-api/tests/Feature/Backup/BackupPruneTest.php` (baru)
+  - `laravel-api/tests/Feature/Backup/BackupMonitoringTest.php` (baru)
+  - `docs/DECISIONS.md`
+  - `docs/API-CONTRACTS.md`
+  - `docs/OPERATIONS.md`
+  - `reports/feature-update/PHASE-02C-MONITORING-SCHEDULE.md` (baru)
+  - `reports/feature-update/PHASE-02C-MANUAL-REVIEW.md` (baru)
+  - `reports/feature-update/INDEX.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `roadmap/ROADMAP.md`
+  - `roadmap/phases/PHASE-02-BACKUP-AUDIT.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Backup non-interaktif: opsi `--non-interactive` pada `app:backup-run` membaca passphrase lokal; gagal seketika tanpa prompt dan tanpa secret leak jika key kosong/tidak valid.
+  2. Penjadwalan opt-in: Kernel menjadwalkan backup 02:00 dan prune 02:30 Asia/Jakarta dengan default OFF (`BACKUP_SCHEDULE_ENABLED=false`).
+  3. Shared Mutex Lock: `BackupMutex` mencegah tabrakan eksekusi manual, terjadwal, dan rotasi retensi; proses yang tumpang tindih dilewati (*skipped*) tanpa menimpa status sukses terakhir.
+  4. Rotasi retensi bertingkat 7 harian + 4 mingguan: command `app:backup-prune` memelihara 7 tanggal harian terbaru dan 4 minggu kalender terbaru (Senin-Minggu, Asia/Jakarta); melindungi backup terakhir sukses secara mutlak; menghapus arsip `.zip` dan companion `.sha256` berpasangan; rotasi dilewati jika backup hari ini gagal; mode `--dry-run` tersedia.
+  5. Monitoring pasif & freshness detection: status terstruktur di `monitoring.json`, endpoint API `GET /api/backups/status` (`backup.manage`), pembedaan tegas `backup_created` vs `restore_verified`, dan deteksi dinamis status `OVERDUE` jika > 28 jam.
+- Why: memenuhi keputusan pemilik DEC-17, DEC-18, dan DEC-19 untuk mengotomatiskan dan memantau cadangan sistem sekolah secara aman.
+- Validation:
+  - Backend: `php artisan test` → **152 passed (702 assertions)** (27 tes baru 02c PASS).
+  - Style check: `./vendor/bin/pint --test` (13 file) → **PASS** (100% clean).
+  - Frontend: `node --test` → 15 passed, `npm run build` → PASS (kode frontend tidak berubah).
+- Notes / risks:
+  - Monitoring bersifat pasif dan memerlukan peninjauan berkala oleh administrator.
+  - Penjadwalan otomatis memerlukan aktivasi opt-in dan konfigurasi Task Scheduler / cron saat deployment produksi.
+  - Review manual pemilik berstatus PENDING (checklist #1–#10 di `PHASE-02C-MANUAL-REVIEW.md`).
+- Evidence: `reports/feature-update/PHASE-02C-MONITORING-SCHEDULE.md`, `reports/feature-update/PHASE-02C-MANUAL-REVIEW.md`.
+
 ## [2026-10-20] Subfase 02c — Docs: perencanaan jadwal otomatis, rotasi retensi bertingkat, dan monitoring backup
 - Type: Docs
 - Scope / fase: Subfase 02c (Jadwal dan Monitoring Backup).

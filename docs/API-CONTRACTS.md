@@ -79,10 +79,13 @@ Kontrak validasi akun, bootstrap administrator, dan kebijakan password:
   - Status: **DITUTUP/NONAKTIF** (DEC-17).
   - Respons: `405 Method Not Allowed` (`{"message": "Audit logs are immutable and cannot be deleted."}`).
 
-### Kontrak Backup & Restore (`/api/backups`) — Fase 02b (DEC-18)
+### Kontrak Backup & Restore (`/api/backups`) — Fase 02b & 02c (DEC-18, DEC-19)
 - `GET /api/backups`:
   - Izin: `backup.manage` (wajib). Guest `401`, user tanpa kemampuan `403`.
   - Format: JSON daftar arsip backup selesai (`filename`, `size_bytes`, `created_at`, `sha256`).
+- `GET /api/backups/status`:
+  - Izin: `backup.manage` (wajib). Guest `401`, user tanpa kemampuan `403`.
+  - Format: JSON status kesehatan dan metrik monitoring (`status`: `HEALTHY`/`OVERDUE`/`DEGRADED`/`NEVER_BACKED_UP`/`ARCHIVE_MISSING`, `hours_since_last_success`, `is_overdue`, `backup_created`, `restore_verified`, `last_attempt`, `last_success`, `last_verified_drill`). Dihitung dinamis saat runtime, bebas dari rahasia/password.
 - `GET /api/backups/{filename}/download`:
   - Izin: `backup.manage` (wajib). Guest `401`, user tanpa kemampuan `403`.
   - Parameter `{filename}`: divalidasi strict regex `/^backup-[a-zA-Z0-9._-]+\.zip$/`. Karakter `..`, `/`, `\`, `%00` ditolak dengan `400 Bad Request`.

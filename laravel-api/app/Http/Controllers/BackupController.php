@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\BackupMonitoringService;
 use App\Services\BackupService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,6 +15,23 @@ class BackupController extends Controller
     public function __construct(BackupService $backupService)
     {
         $this->backupService = $backupService;
+    }
+
+    /**
+     * Display backup health status and monitoring metrics (DEC-19).
+     * Protected by named ability 'backup.manage'.
+     */
+    public function status(BackupMonitoringService $monitoringService): JsonResponse
+    {
+        $this->authorize('backup.manage');
+
+        $status = $monitoringService->getHealthStatus();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Backup system status and health metrics',
+            'data' => $status,
+        ]);
     }
 
     /**

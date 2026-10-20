@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\BackupMutex;
 use App\Services\RestoreDrillService;
 use Illuminate\Console\Command;
 
@@ -67,24 +68,30 @@ class RestoreDrillCommand extends Command
             return Command::FAILURE;
         }
 
-        try {
-            $report = $restoreDrillService->runDrill($archive, $passphrase, $targetConnection);
+        return BackupMutex::withLock(function () use ($restoreDrillService, $archive, $passphrase, $targetConnection) {
+            try {
+                $report = $restoreDrillService->runDrill($archive, $passphrase, $targetConnection);
 
-            $this->info('=== RESTORE DRILL VERIFICATION: PASS ===');
-            $this->line("Status: {$report['status']}");
-            $this->line("Duration: {$report['duration_seconds']}s");
-            $this->line("Target Database: {$report['target_database']} ({$report['target_driver']})");
-            $this->line("Tables Verified: {$report['checks']['tables_verified']}");
-            $this->line('Foreign Keys Intact: '.($report['checks']['foreign_keys_valid'] ? 'YES' : 'NO'));
-            $this->line('Admin Account Verified: '.($report['checks']['admin_account_verified'] ? 'YES' : 'NO'));
-            $this->line("Attachments Verified: {$report['checks']['attachments_verified']}");
+                $this->info('=== RESTORE DRILL VERIFICATION: PASS ===');
+                $this->line("Status: {$report['status']}");
+                $this->line("Duration: {$report['duration_seconds']}s");
+                $this->line("Target Database: {$report['target_database']} ({$report['target_driver']})");
+                $this->line("Tables Verified: {$report['checks']['tables_verified']}");
+                $this->line('Foreign Keys Intact: '.($report['checks']['foreign_keys_valid'] ? 'YES' : 'NO'));
+                $this->line('Admin Account Verified: '.($report['checks']['admin_account_verified'] ? 'YES' : 'NO'));
+                $this->line("Attachments Verified: {$report['checks']['attachments_verified']}");
+
+                return Command::SUCCESS;
+            } catch (\Throwable $e) {
+                $this->error('=== RESTORE DRILL VERIFICATION: FAILED ===');
+                $this->error($e->getMessage());
+
+                return Command::FAILURE;
+            }
+        }, function () {
+            $this->warn('Another backup or restore process is currently running. Skipping restore drill.');
 
             return Command::SUCCESS;
-        } catch (\Throwable $e) {
-            $this->error('=== RESTORE DRILL VERIFICATION: FAILED ===');
-            $this->error($e->getMessage());
-
-            return Command::FAILURE;
-        }
+        });
     }
 }

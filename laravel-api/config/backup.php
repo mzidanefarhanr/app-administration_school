@@ -66,4 +66,24 @@ return [
     'forbidden_databases' => [
         'backdata_administrations',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Automated Scheduling & Retention Configuration (Fase 02c — DEC-19)
+    |--------------------------------------------------------------------------
+    */
+    // Default aktivasi penjadwalan otomatis adalah OFF (opt-in)
+    'schedule_enabled' => env('BACKUP_SCHEDULE_ENABLED', false),
+    'schedule_timezone' => env('BACKUP_SCHEDULE_TIMEZONE', 'Asia/Jakarta'),
+    'schedule_backup_time' => env('BACKUP_SCHEDULE_TIME', '02:00'),
+    'schedule_prune_time' => env('BACKUP_PRUNE_TIME', '02:30'),
+
+    // Retensi bertingkat (DEC-09, DEC-17): 7 backup harian + 4 mingguan
+    'retention_days' => 7,
+    'retention_weeks' => 4,
+    'max_age_hours' => 28,
+
+    // File penyimpanan monitoring dan lock
+    'monitoring_file' => env('BACKUP_MONITORING_FILE', storage_path('app/backups/monitoring.json')),
+    'lock_file' => env('BACKUP_LOCK_FILE', storage_path('app/backups/.backup.lock')),
 ];
