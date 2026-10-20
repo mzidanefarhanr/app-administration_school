@@ -63,6 +63,15 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 - Dampak schema/API/UI: pendaftaran kemampuan `backup.manage` pada `AbilityCatalog`; command `app:backup-run` dan `app:restore-drill`; rute API `GET /api/backups` dan `GET /api/backups/{filename}/download`.
 - Status: APPROVED. Fase affected: 02b.
 
+### DEC-19 — Penjadwalan, retensi otomatis, dan monitoring backup (APPROVED, 2026-10-20 WIB)
+- Konteks: pelaksanaan implementasi Subfase 02c berdasarkan instruksi pemilik 20 Oktober 2026 WIB.
+- Pilihan pemilik:
+  1. **Jadwal otomatis**: Backup harian dijadwalkan pukul **02:00 Asia/Jakarta (WIB)**; rotasi retensi dijadwalkan pukul **02:30 Asia/Jakarta (WIB)**. Default aktivasi penjadwalan otomatis disetel OFF (`BACKUP_SCHEDULE_ENABLED=false`) demi keamanan operasional dan pencegahan eksekusi tak disengaja.
+  2. **Monitoring & Alerting awal**: Cukup melalui file terstruktur `monitoring.json`, endpoint API berizin `GET /api/backups/status` (`backup.manage`), dan log sistem Laravel; belum ada notifikasi eksternal (webhook/email). Pemantauan bersifat pasif dan memerlukan pemeriksaan oleh operator/admin.
+  3. **Pemisahan Task OS**: Implementasi kode tidak mencakup pemasangan atau aktivasi task pada sistem operasi (Windows Task Scheduler / cron) dan tidak mengeksekusi backup terhadap database produksi.
+- Dampak schema/API/UI: penambahan command `app:backup-prune`; mode `--non-interactive` pada `app:backup-run`; endpoint API `GET /api/backups/status`; pendaftaran jadwal di `app/Console/Kernel.php` dengan timezone `Asia/Jakarta`.
+- Status: APPROVED. Fase affected: 02c.
+
 ### Keputusan yang masih OPEN (belum diputuskan)
 - Makna `status_user_id` (jangan disamakan dengan `status_active`), deployment CORS/Sanctum produksi, strategi pencabutan token vs sesi.
 
@@ -88,6 +97,7 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 | DEC-16 | Isolasi fixture, bootstrap admin, standar password 12 karakter | Bootstrap CLI interactive; synthetic seed dev only; password min 12 char | APPROVED (2026-10-17 WIB) | 01c |
 | DEC-17 | Kebijakan audit trail, strategi backup, dan retensi arsip | Rollback nonaktif; backup privat lokal + salinan terpisah; retensi 7+4; enkripsi wajib | APPROVED (2026-10-17) | 02a/02b |
 | DEC-18 | Operasional backup manual dan restore drill | Target drill `school_restore_drill_uat`; `backup.manage` default admin-sistem | APPROVED (2026-10-19) | 02b |
+| DEC-19 | Penjadwalan, retensi otomatis, dan monitoring backup | Jadwal 02:00 & 02:30 WIB; default schedule OFF; monitoring pasif API/JSON | APPROVED (2026-10-20) | 02c |
 
 ## Format pencatatan keputusan
 Tanggal WIB; ID; konteks; alternatif; pilihan pemilik dan bukti instruksi; dampak schema/API/UI; fase affected; status OPEN/PROPOSED/APPROVED/SUPERSEDED. Pertahankan riwayat bila keputusan berubah.
