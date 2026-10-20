@@ -17,6 +17,24 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-20] Subfase 02b — Docs: penerimaan manual pemilik atas backup manual dan restore drill
+- Type: Docs
+- Scope / fase: Subfase 02b (Backup Manual dan Restore Drill).
+- Files touched:
+  - `reports/feature-update/PHASE-02B-BACKUP-RESTORE.md`
+  - `reports/feature-update/PHASE-02B-MANUAL-REVIEW.md`
+  - `reports/feature-update/INDEX.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `roadmap/ROADMAP.md`
+  - `roadmap/phases/PHASE-02-BACKUP-AUDIT.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Pencatatan penerimaan manual pemilik atas seluruh checklist UAT Subfase 02b (#1–#10) berstatus **APPROVED** pada 20 Oktober 2026 WIB mengacu baseline commit `e8eaea4`.
+  2. Status Subfase 02b resmi ditetapkan **DITERIMA PEMILIK**.
+  3. Penegasan status fase: Fase 01 tetap DITUTUP LENGKAP; Subfase 02a dan 02b DITERIMA PEMILIK; Fase 02 secara keseluruhan tetap berjalan (PARTIAL / IN PROGRESS) karena Subfase 02c (Jadwal dan Monitoring Backup) belum diimplementasikan / belum selesai.
+  4. Penegasan batasan penerimaan: pencadangan dan pemulihan dibuktikan pada data UAT sintetis (`school_access_uat` dan fixture privat sintetis); modul lampiran operasional belum tersedia sehingga konsistensi lintas database–lampiran operasional tetap berstatus N/A; deteksi deviasi berkas bukan snapshot atomik database–berkas; penerapan lampiran operasional produksi memerlukan mekanisme penghentian mutasi sementara (*write quiescence*); penerimaan ini bukan izin deployment atau backup operasional produksi.
+- Evidence: `reports/feature-update/PHASE-02B-MANUAL-REVIEW.md`, baseline commit `e8eaea4`.
+
 ## [2026-10-19] Subfase 02b — Feature & Security: implementasi backup manual terenkripsi dan restore drill terisolasi
 - Type: Feature | Security
 - Scope / fase: Subfase 02b (Backup Manual dan Restore Drill).

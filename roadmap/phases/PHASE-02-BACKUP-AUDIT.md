@@ -1,7 +1,7 @@
 # Fase 02 — Audit terpercaya dan backup yang dapat dipulihkan
 
-Status teknis: 02a IMPLEMENTED & DITERIMA PEMILIK; 02b-02c NOT STARTED.
-Status review: Subfase 02a APPROVED (19 Oktober 2026 WIB mengacu baseline cf94cae); Fase 02 keseluruhan IN PROGRESS.
+Status teknis: 02a & 02b IMPLEMENTED & DITERIMA PEMILIK; 02c NOT STARTED.
+Status review: Subfase 02a & 02b APPROVED (02a pada 19 Okt 2026, 02b pada 20 Okt 2026 WIB mengacu baseline e8eaea4); Fase 02 keseluruhan IN PROGRESS / PARTIAL.
 Dependensi: 01; DEC-02, DEC-09, dan DEC-17 (APPROVED 2026-10-17). Laporan subfase: PHASE-02A-AUDIT.md.
 
 ## Tujuan dan scope
@@ -29,8 +29,9 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 ```
 
 ### 02b — Backup manual dan restore drill
-Status: **IMPLEMENTED & FULLY VERIFIED** (Laporan: `reports/feature-update/PHASE-02B-BACKUP-RESTORE.md`; review pemilik: PENDING di `reports/feature-update/PHASE-02B-MANUAL-REVIEW.md`).
-Scope selesai: Backup database (mysqldump / sqlite) + lampiran privat ke storage privat terenkripsi ZIP AES-256; manifest SHA-256 dan companion sha256; atomic publishing; download berizin backup.manage dan anti-traversal; restore drill multi-faktor ke target disposable (school_restore_drill_uat) dengan fail-safe keras anti-operasional, anti-Zip-Slip, dan audit SQL dump. Uji integrasi nyata MariaDB lokal PASS (125 test backend PASS).
+Status: **DITERIMA PEMILIK** (Review Pemilik: APPROVED pada 20 Oktober 2026 WIB, checklist #1–#10 di PHASE-02B-MANUAL-REVIEW.md mengacu baseline e8eaea4).
+Laporan: `reports/feature-update/PHASE-02B-BACKUP-RESTORE.md`.
+Scope selesai: Backup database (mysqldump / sqlite) + lampiran privat ke storage privat terenkripsi ZIP AES-256 via secret prompt; manifest SHA-256 dan companion sha256; atomic publishing; download berizin backup.manage dan anti-traversal; restore drill multi-faktor ke target disposable (school_restore_drill_uat) dengan fail-safe keras anti-operasional, penolakan target berisi data, anti-Zip-Slip, dan audit SQL dump. Uji integrasi nyata MariaDB lokal PASS (132 test backend PASS). Batas cakupan: dibuktikan dengan data sintetis, konsistensi lampiran operasional N/A, deteksi deviasi bukan snapshot atomik DB-berkas.
 
 Kriteria penerimaan: Backup sintetis lengkap; checksum/manifest diverifikasi; restore DB+file berjalan pada target terisolasi; disk penuh/missing file/target aktif ditolak atau gagal terlihat.
 

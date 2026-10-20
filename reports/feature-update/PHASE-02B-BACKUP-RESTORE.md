@@ -1,10 +1,15 @@
 # Laporan Subfase 02b — Backup Manual Terenkripsi dan Restore Drill Terisolasi
 
-- Tanggal WIB: 2026-10-19
+- Tanggal WIB: 2026-10-19 (Implementasi), 2026-10-20 (Penerimaan Manual)
 - Branch kerja: `main`
-- Status teknis: **IMPLEMENTED & FULLY VERIFIED**
-- Status review pemilik: **PENDING** (menunggu pemeriksaan manual checklist 02b di `PHASE-02B-MANUAL-REVIEW.md`)
+- Status teknis: **IMPLEMENTED & FULLY VERIFIED (132 backend tests PASS, MariaDB round-trip PASS, Pint PASS)**
+- Status review pemilik: **APPROVED (DITERIMA PEMILIK pada 20 Oktober 2026 WIB mengacu baseline e8eaea4; seluruh checklist #1–#10 APPROVED)**
 - Prasyarat: Subfase 02a telah **DITERIMA LENGKAP OLEH PEMILIK**; keputusan DEC-18 APPROVED
+- Batasan penerimaan & cakupan:
+  - **Data Sintetis**: Pencadangan dan pemulihan dibuktikan sepenuhnya menggunakan data UAT sintetis (`school_access_uat` dan fixture privat sintetis).
+  - **Konsistensi Lampiran**: Modul lampiran operasional (Surat, Kepegawaian, Dokumen Siswa) belum dibangun; konsistensi lintas database–lampiran operasional berstatus **N/A (belum dibuktikan)**.
+  - **Bukan Snapshot Atomik**: Deteksi deviasi berkas (pre/post-scan) bukan snapshot atomik database–berkas. Penerapan pada lampiran operasional produksi memerlukan penghentian mutasi sementara (*write quiescence*) atau mekanisme snapshot filesystem.
+  - **Bukan Izin Rilis**: Penerimaan manual ini bukan izin deployment atau pelaksanaan backup pada database operasional produksi.
 - Database & storage:
   - Database pengujian otomatis: **SQLite in-memory `:memory:` terisolasi** dan disk storage `testing`.
   - Database integrasi nyata lokal: MariaDB 10.4.32 port 3306 sumber `school_access_uat` (sintetis) dan target disposable `school_restore_drill_uat`.
