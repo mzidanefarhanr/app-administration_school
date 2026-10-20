@@ -105,6 +105,6 @@ Server UAT lokal yang diketahui masih berjalan (jangan dihentikan sembarangan):
 
 ---
 
-## 6. Pekerjaan Pertama Sesi Baru (Subfase 02c Menunggu Perencanaan & Otorisasi)
-1. Menyusun rencana kerja teknis Subfase 02c (Jadwal dan Monitoring Backup) tanpa implementasi kode atau pengaktifan scheduler otomatis.
-2. Menunggu review dan otorisasi pemilik atas rencana teknis 02c sebelum memulai implementasi. Jangan mendahului implementasi 02c tanpa instruksi eksplisit pemilik.
+## 6. Pekerjaan Pertama Sesi Baru (Subfase 02c Menunggu Otorisasi)
+1. Rencana teknis Subfase 02c telah selesai disusun pada `reports/feature-update/PHASE-02C-PLAN.md` (read-only, tanpa implementasi kode atau pengaktifan scheduler otomatis).
+2. Menunggu review, keputusan atas 2 pertanyaan teknis (§8 di `PHASE-02C-PLAN.md`), dan otorisasi pemilik sebelum memulai implementasi Subfase 02c. Jangan mendahului implementasi 02c tanpa instruksi eksplisit pemilik.

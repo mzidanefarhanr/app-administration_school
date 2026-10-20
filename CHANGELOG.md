@@ -17,6 +17,28 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-20] Subfase 02c — Docs: perencanaan jadwal otomatis, rotasi retensi bertingkat, dan monitoring backup
+- Type: Docs
+- Scope / fase: Subfase 02c (Jadwal dan Monitoring Backup).
+- Files touched:
+  - `reports/feature-update/PHASE-02C-PLAN.md` (baru)
+  - `reports/feature-update/INDEX.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `roadmap/ROADMAP.md`
+  - `roadmap/phases/PHASE-02-BACKUP-AUDIT.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Penyusunan rencana kerja teknis konkret Subfase 02c tanpa implementasi kode atau pengaktifan scheduler otomatis:
+     - Jadwal dan timezone: `Asia/Jakarta` (WIB), usulan waktu pencadangan harian pukul 02:00 WIB dan rotasi retensi pukul 02:30 WIB di luar jam operasional sekolah.
+     - Eksekusi non-interaktif: pembacaan passphrase rahasia dari konfigurasi lokal `BACKUP_ENCRYPTION_KEY`; pembatalan seketika tanpa prompt dan tanpa fallback kredensial jika tidak tersedia.
+     - Pencegahan overlap: mutex lock atomik berbasis file lock (`.backup.lock`) dan `withoutOverlapping` pada scheduler Laravel.
+     - Algoritma retensi 7 harian + 4 mingguan (DEC-09, DEC-17): definisi seleksi harian (1 arsip terbaru per hari selama 7 hari terakhir) dan mingguan (1 arsip akhir pekan per minggu selama 4 minggu terakhir), deduplikasi union, proteksi mutlak cadangan terakhir yang berhasil (*last successful backup preservation*), pembersihan berpasangan (.zip dan .sha256), guard anti-symlink, serta mode `--dry-run`.
+     - Monitoring status & freshness alert: struktur data terstruktur `monitoring.json`, endpoint `GET /api/backups/status` (`backup.manage`), pembedaan tegas status "backup created" vs "restore verified", dan deteksi keterlambatan jika waktu melebihi 28 jam.
+     - Runbook OS: panduan instalasi Windows Task Scheduler dan Linux Cron untuk referensi masa depan (belum dipasang/diaktifkan saat ini).
+     - Strategi pengujian: manipulasi waktu virtual `Carbon::setTestNow(...)` pada storage testing terisolasi tanpa menyentuh backup UAT pemilik.
+  2. Identifikasi 2 pertanyaan keputusan pemilik: konfirmasi jadwal 02:00 WIB dan konfirmasi penanganan status `OVERDUE`.
+- Evidence: `reports/feature-update/PHASE-02C-PLAN.md`.
+
 ## [2026-10-20] Subfase 02b — Docs: penerimaan manual pemilik atas backup manual dan restore drill
 - Type: Docs
 - Scope / fase: Subfase 02b (Backup Manual dan Restore Drill).

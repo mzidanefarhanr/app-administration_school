@@ -49,7 +49,8 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 ```
 
 ### 02c — Jadwal dan monitoring backup
-Scope: Aktifkan scheduler/job sesuai lingkungan yang disepakati; retry/idempotency; retention tidak menghapus backup masih digunakan. Runbook operasi dan hasil drill.
+Status: **PLANNING / READY FOR OWNER REVIEW** (Rencana kerja teknis rinci: `reports/feature-update/PHASE-02C-PLAN.md`).
+Scope: Aktifkan scheduler/job sesuai lingkungan yang disepakati; retry/idempotency; retention 7 harian + 4 mingguan dengan preservasi backup terakhir; monitoring status dan freshness alert. Runbook operasi Windows Task Scheduler dan Linux Cron. Belum diimplementasikan sebelum otorisasi pemilik.
 
 Kriteria penerimaan: Scheduler/worker yang dipakai terbukti memicu job; retry tidak menggandakan efek; backup gagal terlihat; jadwal/retensi disetujui. Jika environment belum tersedia, catat BLOCKED tanpa klaim otomatis aktif.
 
