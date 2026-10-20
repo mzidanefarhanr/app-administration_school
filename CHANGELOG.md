@@ -17,6 +17,29 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-20] Fase 03 — Docs: perencanaan teknis pendataan siswa lengkap dan aman
+- Type: Docs
+- Scope / fase: Fase 03 (Pendataan Siswa Lengkap dan Aman).
+- Files touched:
+  - `reports/feature-update/PHASE-03-PLAN.md` (baru)
+  - `reports/feature-update/INDEX.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Penyusunan rencana kerja teknis komprehensif Fase 03 (`reports/feature-update/PHASE-03-PLAN.md`):
+     - Baseline skema dan analisis cacat FK `student_rombels.student_nik` (masalah siswa tanpa NIK dan pemutusan relasi saat perbaikan NIK).
+     - Rencana Subfase 03a: migrasi additive penambahan `student_id` pada `student_rombels`, backfill otomatis, penanganan orphan, preservasi `student_nik` untuk kompatibilitas, virtual calculated age dari birthdate, dan pembaruan model fillable.
+     - Rencana Subfase 03b: implementasi CRUD siswa (Store, Show, Update, Soft Delete/Arsip, Restore), validasi FormRequest server, validasi homonim sah (nama boleh sama), validasi nomor identitas string, optimistic concurrency control (version 409 conflict), otorisasi backend `students.manage` vs `students.view`, dan audit server dengan eksklusi data riwayat medis/penghasilan orang tua.
+     - Rencana Subfase 03c: paginasi server `GET /api/students`, pencarian dan filter rombel/tahun, penanganan empty state tahun ajaran tanpa data, rekap chart dinamis, dan integrasi ekspor CSV.
+     - Identifikasi 4 butir keputusan yang diperlukan dari pemilik terkait DEC-05 (kebijakan NIS vs NIK, aturan keanggotaan 1 rombel/periode, soft delete vs restore, dan eksklusi audit data sensitif).
+     - Strategi pengujian terisolasi (SQLite `:memory:`, UAT sintetis, zero access to production DB).
+- Why: mematuhi alur tata kelola repository dan AGENTS.md untuk merencanakan fase baru secara matang sebelum meminta otorisasi implementasi dari pemilik.
+- Validation: verifikasi keselarasan silang dokumen teknis, roadmap, dan schema database.
+- Notes / risks:
+  - Implementasi Fase 03 BELUM DIOTORISASI dan belum dimulai.
+  - Menunggu review rencana dan jawaban keputusan dari pemilik.
+- Evidence: `reports/feature-update/PHASE-03-PLAN.md`.
+
 ## [2026-10-20] Subfase 02c & Fase 02 — Docs: penerimaan manual pemilik atas jadwal/monitoring backup dan penutupan resmi Fase 02
 - Type: Docs
 - Scope / fase: Subfase 02c (Jadwal dan Monitoring Backup) & Penutupan Fase 02 (Audit & Backup).

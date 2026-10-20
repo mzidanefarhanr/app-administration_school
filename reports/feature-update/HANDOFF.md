@@ -106,7 +106,12 @@ Server UAT lokal yang diketahui masih berjalan (jangan dihentikan sembarangan):
 
 ---
 
-## 6. Tugas Sesi Baru
-1. **Tuntaskan Pencatatan Formal**: Catat penerimaan manual pemilik Subfase 02c dan penutupan formal Fase 02 pada `CHANGELOG.md`, `reports/feature-update/PHASE-02C-MANUAL-REVIEW.md`, `reports/feature-update/INDEX.md`, `roadmap/ROADMAP.md`, dan `roadmap/phases/PHASE-02-BACKUP-AUDIT.md` dalam **commit dokumentasi tersendiri**.
-2. **Perencanaan Fase Berikutnya**: Susun dokumen rencana kerja teknis untuk fase berikutnya dari roadmap aktual, yaitu **Fase 03 — Data Siswa dan Riwayat Rombel** (`roadmap/phases/PHASE-03-STUDENTS.md`).
-3. **PENTING**: Implementasi fase berikutnya **BELUM DIOTORISASI**. Jangan memulai pengkodean modul Fase 03 sebelum rencana teknis disetujui pemilik.
+## 6. Tugas Sesi Ini & Checkpoint Terkini
+1. **Pencatatan Formal 02c & Penutupan Fase 02**: SELESAI. Seluruh checklist #1–#10 di `PHASE-02C-MANUAL-REVIEW.md` telah disetujui (APPROVED) pemilik pada 20 Oktober 2026 WIB mengacu baseline `94d29f4`, dan Fase 02 resmi DITUTUP LENGKAP pada commit `8631545`.
+2. **Rencana Teknis Fase 03**: SELESAI DISUSUN di `reports/feature-update/PHASE-03-PLAN.md` mencakup:
+   - Baseline skema, anomali FK `student_rombels.student_nik`, dan scaffold controller.
+   - Subfase 03a (Additive migration `student_id`, backfill, virtual age, model fillable).
+   - Subfase 03b (CRUD siswa, optimistic concurrency 409, validasi homonim & string identitas, audit server).
+   - Subfase 03c (Paginasi server, filter rombel/tahun, empty state, rekap chart, integrasi ekspor CSV).
+   - 4 butir pertanyaan keputusan pemilik terkait DEC-05 (NIS vs NIK, aturan 1 rombel/periode, soft delete/restore, eksklusi audit medis/gaji).
+3. **PENTING**: Implementasi Fase 03 **BELUM DIOTORISASI**. Jangan memulai pengkodean modul Fase 03 sebelum rencana teknis dan pertanyaan keputusan disetujui oleh pemilik.
