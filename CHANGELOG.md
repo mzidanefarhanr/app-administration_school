@@ -53,7 +53,7 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
   5. Monitoring pasif & freshness detection: status terstruktur di `monitoring.json`, endpoint API `GET /api/backups/status` (`backup.manage`), pembedaan tegas `backup_created` vs `restore_verified`, dan deteksi dinamis status `OVERDUE` jika > 28 jam.
 - Why: memenuhi keputusan pemilik DEC-17, DEC-18, dan DEC-19 untuk mengotomatiskan dan memantau cadangan sistem sekolah secara aman.
 - Validation:
-  - Backend: `php artisan test` → **152 passed (702 assertions)** (27 tes baru 02c PASS).
+  - Backend: `php artisan test` → **154 passed (720 assertions)** (29 tes baru 02c PASS).
   - Style check: `./vendor/bin/pint --test` (13 file) → **PASS** (100% clean).
   - Frontend: `node --test` → 15 passed, `npm run build` → PASS (kode frontend tidak berubah).
 - Notes / risks:

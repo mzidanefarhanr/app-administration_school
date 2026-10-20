@@ -36,13 +36,13 @@ Catatan perubahan pemilik: berkas log bukti `console.txt` milik pemilik tetap ad
 ## 2. Pemeriksaan yang Dijalankan & Hasil (Subfase 02c Terakhir)
 1. **Automated Backend**:
    - Perintah: `php artisan test` pada database SQLite in-memory `:memory:` terisolasi dan database integrasi MariaDB lokal.
-   - Hasil: **152 passed (702 assertions)**, mencakup 42 tes di suite `tests/Feature/Backup`:
+   - Hasil: **154 passed (720 assertions)**, mencakup 44 tes di suite `tests/Feature/Backup`:
      - Otorisasi endpoint `GET /api/backups`, `GET /api/backups/status`, dan download `GET /api/backups/{filename}/download` (401 guest, 403 operator, 200 admin-sistem).
      - Validasi anti-path-traversal pada nama file download.
      - Mode non-interaktif: sukses tanpa prompt bila key valid; gagal seketika tanpa prompt dan tanpa secret print bila key kosong.
      - Mutex lock atomik: menolak overlap backup manual, terjadwal, dan rotasi; status lewati tercatat tanpa menimpa `last_success`; lock dilepas saat gagal.
      - Penjadwalan opt-in: default schedule OFF; aktif pada 02:00 dan 02:30 Asia/Jakarta bila di-enable.
-     - Retensi 7 harian + 4 mingguan: preservasi backup terakhir sukses, union harian/mingguan, deduplikasi tanggal, rotasi dilewati bila backup hari ini gagal.
+     - Retensi 7 harian + 4 mingguan: preservasi backup terakhir sukses, pemilihan backup terbaru per minggu tanpa mensyaratkan hari Sabtu/Minggu, transisi tahun, union harian/mingguan tanpa duplikasi, rotasi dilewati bila backup hari ini gagal.
      - Mode `--dry-run`: kandidat penghapusan dilaporkan tanpa mutasi fisik pada berkas.
      - Monitoring status & freshness detection dinamis: status `NEVER_BACKED_UP`, `OVERDUE` (> 28 jam), `DEGRADED`, dan `HEALTHY` dihitung saat runtime; pembedaan tegas `backup_created` vs `restore_verified`.
      - Uji integrasi nyata MariaDB lokal: round-trip backup dari `school_access_uat` dengan `mysqldump` dan restore drill ke `school_restore_drill_uat` dengan `mysql.exe` terbukti **PASS** (12 assertions).

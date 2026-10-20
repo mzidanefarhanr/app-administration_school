@@ -2,7 +2,7 @@
 
 - Tanggal WIB: 2026-10-20
 - Branch kerja: `main`
-- Status teknis: **IMPLEMENTED & FULLY VERIFIED (152 backend tests PASS, Pint 100% clean)**
+- Status teknis: **IMPLEMENTED & FULLY VERIFIED (154 backend tests PASS, Pint 100% clean)**
 - Status review pemilik: **PENDING (Menunggu Pemeriksaan Manual Pemilik di `PHASE-02C-MANUAL-REVIEW.md`)**
 - Prasyarat: Subfase 02a dan Subfase 02b telah **DITERIMA LENGKAP OLEH PEMILIK**; keputusan DEC-19 APPROVED
 - Database & storage:
@@ -31,7 +31,7 @@ Subfase 02c mengimplementasikan otomatisasi penjadwalan non-interaktif, penegaka
 3. **Algoritma Retensi Bertingkat (7 Harian + 4 Mingguan)**:
    - Command `app:backup-prune [--dry-run]` mengimplementasikan pemilihan arsip berbasis tanggal dan minggu kalender `Asia/Jakarta`:
      - **Kelompok Harian**: Menyimpan 1 arsip terbaru per hari untuk 7 tanggal unik terbaru yang memiliki backup sukses (termasuk hari berjalan).
-     - **Kelompok Mingguan**: Menyimpan 1 arsip akhir pekan (Senin–Minggu) per minggu untuk 4 minggu kalender unik terbaru.
+     - **Kelompok Mingguan**: Menyimpan 1 arsip terbaru per minggu untuk 4 minggu kalender unik terbaru (Senin–Minggu, tanpa mensyaratkan hari Sabtu/Minggu; berlaku untuk minggu yang hanya memiliki backup hari kerja maupun akhir pekan).
      - **Deduplikasi Union**: Arsip yang memenuhi kedua kriteria hanya dihitung satu entitas.
    - **Aturan Pengaman Mutlak (*Safety Rules*)**:
      - Arsip cadangan valid paling akhir (*most recent successful backup*) **MUTLAK SELALU DILINDUNGI**, bahkan jika retensi menghitungnya berumur tua atau backup baru gagal.
@@ -80,8 +80,8 @@ Subfase 02c mengimplementasikan otomatisasi penjadwalan non-interaktif, penegaka
 
 ### A. Pengujian Backend (`php artisan test`)
 - Lingkungan uji: SQLite in-memory `:memory:` terisolasi, storage disk `testing`, dan MariaDB lokal.
-- Total pengujian aplikasi: **152 passed (702 assertions)**.
-- Rincian pengujian Subfase 02c (27 tes baru lulus):
+- Total pengujian aplikasi: **154 passed (720 assertions)**.
+- Rincian pengujian Subfase 02c (29 tes lulus):
   - `tests/Feature/Backup/BackupScheduleTest.php` (6 tes):
     1. `non-interactive backup succeeds when valid encryption key is configured without prompts` — PASS
     2. `non-interactive backup fails immediately without prompt when encryption key is missing or short` — PASS
@@ -89,7 +89,7 @@ Subfase 02c mengimplementasikan otomatisasi penjadwalan non-interaktif, penegaka
     4. `scheduler registers commands at 02:00 and 02:30 Asia/Jakarta when opt-in enabled` — PASS
     5. `mutex lock prevents overlapping backup runs and logs skipped attempt without clearing last_success` — PASS
     6. `mutex lock is released on failure allowing subsequent run to acquire lock` — PASS
-  - `tests/Feature/Backup/BackupPruneTest.php` (7 tes):
+  - `tests/Feature/Backup/BackupPruneTest.php` (9 tes):
     7. `retention preserves single archive when only one backup exists` — PASS
     8. `retention preserves latest backup overall regardless of age or count` — PASS
     9. `retention correctly retains 7 daily, 4 weekly across month boundaries and deletes older archives` — PASS
@@ -97,14 +97,16 @@ Subfase 02c mengimplementasikan otomatisasi penjadwalan non-interaktif, penegaka
     11. `pruning deletes both zip archive and companion sha256 file as a group` — PASS
     12. `rotation is skipped if latest backup attempt failed today to prevent data loss` — PASS
     13. `prune rejects symlinks and ignores corrupted or temporary files without deleting valid archives` — PASS
+    14. `retention selects latest backup in week having only weekday backups without requiring weekend` — PASS
+    15. `retention correctly handles year transition and deduplicates daily and weekly union` — PASS
   - `tests/Feature/Backup/BackupMonitoringTest.php` (7 tes):
-    14. `health status returns NEVER_BACKED_UP on fresh installation` — PASS
-    15. `health status dynamically detects OVERDUE when more than 28 hours pass without running scheduler` — PASS
-    16. `failed backup attempt preserves last_success and updates health status to DEGRADED` — PASS
-    17. `backup_created and restore_verified remain strictly distinct metrics` — PASS
-    18. `guest cannot access backup status endpoint` (401) — PASS
-    19. `user without backup.manage cannot access backup status endpoint` (403) — PASS
-    20. `admin with backup.manage can access status endpoint without leaking secrets or credentials` (200) — PASS
+    16. `health status returns NEVER_BACKED_UP on fresh installation` — PASS
+    17. `health status dynamically detects OVERDUE when more than 28 hours pass without running scheduler` — PASS
+    18. `failed backup attempt preserves last_success and updates health status to DEGRADED` — PASS
+    19. `backup_created and restore_verified remain strictly distinct metrics` — PASS
+    20. `guest cannot access backup status endpoint` (401) — PASS
+    21. `user without backup.manage cannot access backup status endpoint` (403) — PASS
+    22. `admin with backup.manage can access status endpoint without leaking secrets or credentials` (200) — PASS
   - `tests/Feature/Backup/{BackupRunTest.php, RestoreDrillTest.php, MariaDbIntegrationTest.php}`: Seluruh 22 tes Subfase 02b tetap **100% PASS** tanpa regresi.
 
 ### B. Pemeriksaan Style Pint (`./vendor/bin/pint --test`)

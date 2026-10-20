@@ -148,15 +148,16 @@ class BackupRetentionService
         }
 
         // 3. Kelompok Mingguan: 4 minggu kalender unik terbaru (Senin-Minggu)
+        // Memilih satu backup sukses terbaru pada minggu tersebut tanpa mensyaratkan hari Sabtu/Minggu.
         $byWeek = [];
         foreach ($validArchives as $archive) {
             $byWeek[$archive['week_key']][] = $archive;
         }
 
-        // Ambil maksimal 4 minggu terbaru
+        // Ambil maksimal 4 minggu terbaru yang memiliki backup
         $recentWeeks = array_slice(array_keys($byWeek), 0, 4);
         foreach ($recentWeeks as $weekKey) {
-            // Pilih arsip paling baru pada minggu tersebut
+            // Pilih arsip paling baru yang tersedia pada minggu tersebut (hari apa saja)
             $latestInWeek = $byWeek[$weekKey][0];
             $fn = $latestInWeek['filename'];
 

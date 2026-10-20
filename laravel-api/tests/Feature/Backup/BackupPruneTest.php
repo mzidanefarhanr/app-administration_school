@@ -194,3 +194,93 @@ test('prune rejects symlinks and ignores corrupted or temporary files without de
     // File valid tetap terjaga
     expect($evaluation['keep'])->toHaveKey($fnValid);
 });
+
+test('retention selects latest backup in week having only weekday backups without requiring weekend', function () {
+    // Tanggal sekarang: 2026-10-20 (Selasa)
+    // 7 hari terakhir: 14 s/d 20 Okt
+    for ($d = 14; $d <= 20; $d++) {
+        createSyntheticArchive($this->backupTestDir, "2026-10-{$d}", '020000');
+    }
+
+    // Minggu ke-41 (05-11 Okt): Hanya memiliki backup hari kerja (Selasa 06 Okt dan Kamis 08 Okt; TIDAK ADA Sabtu/Minggu)
+    $fnTue = createSyntheticArchive($this->backupTestDir, '2026-10-06', '020000'); // Selasa
+    $fnThu = createSyntheticArchive($this->backupTestDir, '2026-10-08', '020000'); // Kamis (terbaru di minggu 41)
+
+    // Minggu ke-40 (28 Sep - 04 Okt): Hanya backup Rabu 30 Sep
+    $fnWed = createSyntheticArchive($this->backupTestDir, '2026-09-30', '020000');
+
+    // Minggu ke-39 (21-27 Sep): Hanya backup Senin 21 Sep
+    $fnMon = createSyntheticArchive($this->backupTestDir, '2026-09-21', '020000');
+
+    $retentionService = app(BackupRetentionService::class);
+    $result = $retentionService->evaluateRetention();
+
+    $kept = array_keys($result['keep']);
+    $deleted = array_keys($result['delete']);
+
+    // Kamis 08 Okt harus dipilih sebagai weekly slot untuk minggu 41 (karena terbaru di minggu itu)
+    expect($kept)->toContain($fnThu);
+    // Selasa 06 Okt harus dihapus (kalah dari Kamis 08 Okt pada minggu yang sama)
+    expect($deleted)->toContain($fnTue);
+
+    // Backup hari kerja Rabu 30 Sep (Minggu 40) tetap di-keep sebagai weekly slot ke-4
+    expect($kept)->toContain($fnWed);
+
+    // Backup Senin 21 Sep (Minggu 39) adalah minggu ke-5 (lebih dari 4 minggu) sehingga dihapus
+    expect($deleted)->toContain($fnMon);
+});
+
+test('retention correctly handles year transition and deduplicates daily and weekly union', function () {
+    // Set waktu acuan pada pergantian tahun: Selasa, 05 Januari 2027 02:30:00 WIB
+    Carbon::setTestNow(Carbon::parse('2027-01-05 02:30:00', 'Asia/Jakarta'));
+
+    // Hari berjalan (05 Jan 2027): buat 2 backup (jam 01:00 dan 02:00)
+    $fnTodayOld = createSyntheticArchive($this->backupTestDir, '2027-01-05', '010000');
+    $fnTodayLatest = createSyntheticArchive($this->backupTestDir, '2027-01-05', '020000');
+
+    // Hari-hari transisi tahun (04 Jan, 03 Jan, 02 Jan, 01 Jan 2027, 31 Des, 30 Des 2026) -> total 7 hari unik
+    $fn04 = createSyntheticArchive($this->backupTestDir, '2027-01-04', '020000');
+    $fn03 = createSyntheticArchive($this->backupTestDir, '2027-01-03', '020000');
+    $fn02 = createSyntheticArchive($this->backupTestDir, '2027-01-02', '020000');
+    $fn01 = createSyntheticArchive($this->backupTestDir, '2027-01-01', '020000');
+    $fn31 = createSyntheticArchive($this->backupTestDir, '2026-12-31', '020000');
+    $fn30 = createSyntheticArchive($this->backupTestDir, '2026-12-30', '020000');
+
+    // Minggu-minggu sebelumnya di tahun 2026:
+    // Minggu ke-52 2026 (Jumat 25 Des)
+    $fnDec25 = createSyntheticArchive($this->backupTestDir, '2026-12-25', '020000');
+    // Minggu ke-51 2026 (Jumat 18 Des)
+    $fnDec18 = createSyntheticArchive($this->backupTestDir, '2026-12-18', '020000');
+
+    // Arsip kadaluarsa (> 4 minggu): Minggu ke-50 (11 Des 2026)
+    $fnExpiredDec11 = createSyntheticArchive($this->backupTestDir, '2026-12-11', '020000');
+
+    $retentionService = app(BackupRetentionService::class);
+    $result = $retentionService->evaluateRetention();
+
+    $kept = array_keys($result['keep']);
+    $deleted = array_keys($result['delete']);
+
+    // Hari berjalan yang terbaru disimpan, yang lama di hari yang sama dihapus
+    expect($kept)->toContain($fnTodayLatest);
+    expect($deleted)->toContain($fnTodayOld);
+
+    // 7 hari unik lintas tahun dipertahankan
+    expect($kept)->toContain($fn04);
+    expect($kept)->toContain($fn03);
+    expect($kept)->toContain($fn02);
+    expect($kept)->toContain($fn01);
+    expect($kept)->toContain($fn31);
+    expect($kept)->toContain($fn30);
+
+    // Minggu 52 dan 51 dipertahankan
+    expect($kept)->toContain($fnDec25);
+    expect($kept)->toContain($fnDec18);
+
+    // Arsip kadaluarsa dihapus
+    expect($deleted)->toContain($fnExpiredDec11);
+
+    // Union deduplication: tidak ada file yang muncul di keep sekaligus delete
+    $intersection = array_intersect($kept, $deleted);
+    expect($intersection)->toBeEmpty();
+});
