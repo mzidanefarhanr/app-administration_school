@@ -1,11 +1,11 @@
 # Fase 02 — Audit terpercaya dan backup yang dapat dipulihkan
 
-Status teknis: 02a & 02b IMPLEMENTED & DITERIMA PEMILIK; 02c NOT STARTED.
-Status review: Subfase 02a & 02b APPROVED (02a pada 19 Okt 2026, 02b pada 20 Okt 2026 WIB mengacu baseline e8eaea4); Fase 02 keseluruhan IN PROGRESS / PARTIAL.
-Dependensi: 01; DEC-02, DEC-09, dan DEC-17 (APPROVED 2026-10-17). Laporan subfase: PHASE-02A-AUDIT.md.
+Status teknis: IMPLEMENTED & FULLY VERIFIED (02a, 02b, 02c selesai; 154 backend tests PASS).
+Status review: DITERIMA LENGKAP & DITUTUP (02a APPROVED 2026-10-19, 02b APPROVED 2026-10-20, 02c APPROVED 2026-10-20 WIB mengacu baseline 94d29f4).
+Dependensi: 01; DEC-02, DEC-09, DEC-17, DEC-18, dan DEC-19. Laporan subfase: PHASE-02A-AUDIT.md, PHASE-02B-BACKUP-RESTORE.md, PHASE-02C-MONITORING-SCHEDULE.md.
 
 ## Tujuan dan scope
-Audit terpercaya dan backup yang dapat dipulihkan. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Subfase 02a telah diimplementasikan dan DITERIMA PEMILIK; 02b dan 02c menunggu otorisasi terpisah.
+Audit terpercaya dan backup yang dapat dipulihkan. Subfase 02a, 02b, dan 02c telah diimplementasikan dan DITERIMA LENGKAP OLEH PEMILIK; Fase 02 resmi DITUTUP.
 
 ## Subfase
 
@@ -49,9 +49,9 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 ```
 
 ### 02c — Jadwal dan monitoring backup
-Status: **IMPLEMENTED & FULLY VERIFIED** (Review Pemilik: PENDING di `reports/feature-update/PHASE-02C-MANUAL-REVIEW.md`).
+Status: **DITERIMA PEMILIK** (Review Pemilik: APPROVED pada 20 Oktober 2026 WIB, checklist #1–#10 di `reports/feature-update/PHASE-02C-MANUAL-REVIEW.md` mengacu baseline `94d29f4`; butir #10 diterima atas bukti automated `BackupMonitoringTest` waktu virtual).
 Laporan: `reports/feature-update/PHASE-02C-MONITORING-SCHEDULE.md`.
-Scope selesai: Backup non-interaktif (`--non-interactive`) dengan rahasia lokal tanpa prompt; scheduler Laravel opt-in pada 02:00 dan 02:30 Asia/Jakarta dengan default OFF; mutex lock atomik bersama (`BackupMutex`) pada file lock `.backup.lock` untuk mencegah overlap; algoritma retensi bertingkat 7 harian + 4 mingguan dengan preservasi cadangan terakhir sukses dan mode `--dry-run`; monitoring status pasif terstruktur di `monitoring.json`, freshness alert dinamis (> 28 jam), pembedaan tegas `backup_created` vs `restore_verified`, dan endpoint API `GET /api/backups/status` berizin `backup.manage`. Runbook operasi Windows Task Scheduler dan Linux Cron. Batas cakupan: monitoring pasif tanpa notifikasi eksternal, single-server mutex, lampiran operasional N/A. (152 test backend PASS).
+Scope selesai: Backup non-interaktif (`--non-interactive`) dengan rahasia lokal tanpa prompt; scheduler Laravel opt-in pada 02:00 dan 02:30 Asia/Jakarta dengan default OFF; mutex lock atomik bersama (`BackupMutex`) pada file lock `.backup.lock` untuk mencegah overlap; algoritma retensi bertingkat 7 harian + 4 mingguan dengan preservasi cadangan terakhir sukses dan mode `--dry-run`; monitoring status pasif terstruktur di `monitoring.json`, freshness alert dinamis (> 28 jam), pembedaan tegas `backup_created` vs `restore_verified`, dan endpoint API `GET /api/backups/status` berizin `backup.manage`. Runbook operasi Windows Task Scheduler dan Linux Cron. Batas cakupan: monitoring pasif tanpa notifikasi eksternal, single-server mutex, lampiran operasional N/A. (154 test backend PASS).
 
 Kriteria penerimaan: Scheduler/worker yang dipakai terbukti memicu job; retry tidak menggandakan efek; backup gagal terlihat; jadwal/retensi disetujui. Jika environment belum tersedia, catat BLOCKED tanpa klaim otomatis aktif.
 
@@ -83,9 +83,9 @@ OPERATIONS; SECURITY-DATA; DATABASE; API-CONTRACTS; laporan restore drill; CHANG
 Rollback log bukan pengganti backup. Tabel audit baseline cascade ketika user hard-delete; kebijakan actor historis perlu dijaga.
 
 ## Syarat keluar subfase
-- [ ] Scope selesai atau partial/blocker dijelaskan.
-- [ ] Kontrak request/response/schema/permission yang berubah didokumentasikan.
-- [ ] Uji relevan benar-benar dijalankan atau NOT RUN dengan alasan.
-- [ ] Checklist manual tersedia bila dibutuhkan; persetujuan dicatat hanya setelah jawaban pemilik.
-- [ ] SHA/working tree, known issues dan langkah berikutnya dicatat.
-- [ ] Scope berikutnya diusulkan, belum dijalankan tanpa instruksi.
+- [x] Scope selesai atau partial/blocker dijelaskan.
+- [x] Kontrak request/response/schema/permission yang berubah didokumentasikan.
+- [x] Uji relevan benar-benar dijalankan atau NOT RUN dengan alasan.
+- [x] Checklist manual tersedia bila dibutuhkan; persetujuan dicatat hanya setelah jawaban pemilik.
+- [x] SHA/working tree, known issues dan langkah berikutnya dicatat.
+- [x] Scope berikutnya diusulkan, belum dijalankan tanpa instruksi.
