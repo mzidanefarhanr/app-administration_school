@@ -1,7 +1,7 @@
 # Handoff pengembangan aplikasi sekolah
 
 Checkpoint terbaru: 2026-10-20 (WIB). Branch `main`.
-Baseline terakhir yang dilaporkan: `e8eaea4` ("docs(phase-02b): align operations runbook with interactive prompts and empty target requirements").
+Baseline terakhir yang dilaporkan: `94d29f4` ("docs(phase-02c): clarify weekly retention semantics, expand retention test coverage, and isolate manual guide").
 Kebijakan commit/push: commit dan push per fase/koreksi ke branch kerja aktif telah **diotorisasi**; merge, force-push, rewrite history, dan deploy manual **tetap tidak diotorisasi**.
 
 Catatan perubahan pemilik: berkas log bukti `console.txt` milik pemilik tetap ada dan **tidak** di-commit.
@@ -12,16 +12,18 @@ Catatan perubahan pemilik: berkas log bukti `console.txt` milik pemilik tetap ad
 - **Fase 00 — Audit baseline**: PARTIAL (source & environment audit selesai; browser NOT RUN).
 - **Fase 01 — Hak akses, autentikasi dan lingkungan aman**: **DITERIMA LENGKAP & DITUTUP** (Fase 01a, 01b, dan 01c seluruhnya DITERIMA PEMILIK).
 - **BLK-03**: **CLOSED pada source aktif** (seluruh akun pengguna riil dan data siswa riil telah dibersihkan dari seeder aktif; data pada riwayat commit Git historis belum dihapus).
-- **Fase 02 — Integritas Operasional**: **IN PROGRESS / PARTIAL (02a DITERIMA, 02b DITERIMA, 02c IMPLEMENTED & PENDING REVIEW)**:
+- **Fase 02 — Integritas Operasional**: **SUBFASE 02a, 02b, DAN 02c TELAH DISETUJUI PEMILIK; PENCATATAN FORMAL & PENUTUPAN FASE 02 MENJADI TUGAS SESI BARU**:
   - **Subfase 02a — Audit Server dan Rollback Terbatas**: **DITERIMA PEMILIK** (seluruh checklist manual #1–#9 APPROVED 2026-10-19 WIB mengacu baseline `cf94cae`).
   - **Subfase 02b — Backup Manual dan Restore Drill**: **DITERIMA PEMILIK** (seluruh checklist manual #1–#10 APPROVED 2026-10-20 WIB mengacu baseline `e8eaea4`).
-  - **Subfase 02c — Jadwal dan Monitoring Backup**: **IMPLEMENTED & FULLY VERIFIED** (Pemeriksaan manual pemilik: **PENDING** mengacu `reports/feature-update/PHASE-02C-MANUAL-REVIEW.md`).
+  - **Subfase 02c — Jadwal dan Monitoring Backup**: **DISETUJUI PEMILIK** (seluruh checklist manual #1–#10 dinyatakan **APPROVED** oleh pemilik pada 20 Oktober 2026 WIB mengacu baseline `94d29f4`; butir #10 merupakan penerimaan atas bukti automated `BackupMonitoringTest` dengan waktu virtual `Carbon::setTestNow`).
+  - **Pencatatan Dokumentasi Formal**: Pencatatan resmi penerimaan manual 02c dan penutupan formal Fase 02 pada `CHANGELOG.md`, `PHASE-02C-MANUAL-REVIEW.md`, `INDEX.md`, dan `ROADMAP.md` **belum dicatat/di-commit pada sesi ini dan menjadi tugas pertama sesi baru** dalam commit dokumentasi tersendiri.
 - **Keputusan Terbuka yang Masih OPEN (belum menghambat)**:
   1. Makna `status_user_id` (jangan disamakan dengan `status_active`).
   2. Deployment CORS/Sanctum produksi.
   3. Strategi pencabutan token dibanding sesi.
-- **Batasan Penerimaan**:
-  - Penerimaan manual Fase 01, Subfase 02a, dan Subfase 02b **bukan izin deployment ke produksi** dan bukan izin pencadangan data operasional aktif.
+- **Batasan Cakupan & Penerimaan**:
+  - Task scheduler OS (Windows Task Scheduler / Linux Cron) **belum diaktifkan**.
+  - **Tidak ada izin deployment ke produksi** dan bukan izin pencadangan data operasional aktif.
   - Backup dan restore drill dibuktikan menggunakan data UAT sintetis (`school_access_uat` dan fixture lampiran privat sintetis).
   - Modul lampiran operasional belum tersedia; konsistensi lintas database–lampiran operasional tetap **N/A (belum dibuktikan)**.
   - Deteksi deviasi berkas (pre/post-scan) bukan snapshot atomik database–berkas. Penggunaan pada lampiran operasional produksi memerlukan mekanisme penghentian mutasi sementara (*write quiescence*).
@@ -72,7 +74,7 @@ Catatan perubahan pemilik: berkas log bukti `console.txt` milik pemilik tetap ad
   - `laravel-api/routes/api.php`: penambahan rute `GET /api/backups/status`.
   - `laravel-api/.env.example`: dokumentasi variabel env backup tanpa rahasia.
   - `laravel-api/tests/Feature/Backup/BackupScheduleTest.php` (baru): 6 tes non-interaktif, timezone scheduler, dan mutex lock.
-  - `laravel-api/tests/Feature/Backup/BackupPruneTest.php` (baru): 7 tes evaluasi retensi, dry-run, group deletion, safety preservation.
+  - `laravel-api/tests/Feature/Backup/BackupPruneTest.php` (baru): 9 tes evaluasi retensi, dry-run, group deletion, safety preservation, weekday retention, dan year transition.
   - `laravel-api/tests/Feature/Backup/BackupMonitoringTest.php` (baru): 7 tes health status, freshness alert, distinct metrics, dan API status.
 - Dokumentasi & Kontrak:
   - `docs/DECISIONS.md`: pencatatan keputusan operasional DEC-19.
@@ -85,11 +87,11 @@ Catatan perubahan pemilik: berkas log bukti `console.txt` milik pemilik tetap ad
 ---
 
 ## 4. Status Tugas Subfase 02c
-1. **Backup Non-Interaktif & Scheduler Opt-In**: **SELESAI**. `app:backup-run --non-interactive` membaca config lokal; jadwal harian 02:00 dan prune 02:30 WIB terdaftar di Kernel dengan default OFF.
-2. **Pencegahan Overlap (Shared Mutex)**: **SELESAI**. `BackupMutex` mencegah tabrakan proses manual, terjadwal, dan rotasi.
-3. **Penegakan Retensi Bertingkat**: **SELESAI**. `app:backup-prune` memelihara 7 harian + 4 mingguan dan melindungi backup terakhir secara mutlak; mode `--dry-run` tersedia.
-4. **Monitoring Pasif & Freshness Alert**: **SELESAI**. `monitoring.json` atomik dan endpoint `GET /api/backups/status` mendeteksi status `OVERDUE` (> 28 jam) secara dinamis.
-5. **Pemeriksaan Manual Pemilik**: **PENDING**. Tersedia 10 butir checklist di `PHASE-02C-MANUAL-REVIEW.md` menunggu pemeriksaan manual pemilik.
+1. **Backup Non-Interaktif & Scheduler Opt-In**: **SELESAI & DIVERIFIKASI**. `app:backup-run --non-interactive` membaca config lokal; jadwal harian 02:00 dan prune 02:30 WIB terdaftar di Kernel dengan default OFF.
+2. **Pencegahan Overlap (Shared Mutex)**: **SELESAI & DIVERIFIKASI**. `BackupMutex` mencegah tabrakan proses manual, terjadwal, dan rotasi.
+3. **Penegakan Retensi Bertingkat**: **SELESAI & DIVERIFIKASI**. `app:backup-prune` memelihara 7 harian + 4 mingguan dan melindungi backup terakhir secara mutlak; mode `--dry-run` tersedia.
+4. **Monitoring Pasif & Freshness Alert**: **SELESAI & DIVERIFIKASI**. `monitoring.json` atomik dan endpoint `GET /api/backups/status` mendeteksi status `OVERDUE` (> 28 jam) secara dinamis.
+5. **Pemeriksaan Manual Pemilik**: **DISETUJUI PEMILIK**. Seluruh checklist #1–#10 di `PHASE-02C-MANUAL-REVIEW.md` dinyatakan **APPROVED** oleh pemilik pada 20 Oktober 2026 WIB mengacu baseline `94d29f4` (butir #10 disetujui berdasarkan bukti automated `BackupMonitoringTest` waktu virtual).
 
 ---
 
@@ -104,7 +106,7 @@ Server UAT lokal yang diketahui masih berjalan (jangan dihentikan sembarangan):
 
 ---
 
-## 6. Pekerjaan Pertama Sesi Baru (Subfase 02c Menunggu Review Pemilik)
-1. Menunggu pemeriksaan manual pemilik atas Subfase 02c (checklist #1–#10 di `PHASE-02C-MANUAL-REVIEW.md`).
-2. Setelah disetujui pemilik, catat persetujuan manual dalam commit dokumentasi tersendiri.
-3. Setelah 02a, 02b, dan 02c seluruhnya disetujui pemilik, Fase 02 resmi ditutup di roadmap. Menunggu arahan pemilik untuk perencanaan Fase 03 (Data Siswa).
+## 6. Tugas Sesi Baru
+1. **Tuntaskan Pencatatan Formal**: Catat penerimaan manual pemilik Subfase 02c dan penutupan formal Fase 02 pada `CHANGELOG.md`, `reports/feature-update/PHASE-02C-MANUAL-REVIEW.md`, `reports/feature-update/INDEX.md`, `roadmap/ROADMAP.md`, dan `roadmap/phases/PHASE-02-BACKUP-AUDIT.md` dalam **commit dokumentasi tersendiri**.
+2. **Perencanaan Fase Berikutnya**: Susun dokumen rencana kerja teknis untuk fase berikutnya dari roadmap aktual, yaitu **Fase 03 — Data Siswa dan Riwayat Rombel** (`roadmap/phases/PHASE-03-STUDENTS.md`).
+3. **PENTING**: Implementasi fase berikutnya **BELUM DIOTORISASI**. Jangan memulai pengkodean modul Fase 03 sebelum rencana teknis disetujui pemilik.
