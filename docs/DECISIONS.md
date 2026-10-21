@@ -72,6 +72,21 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 - Dampak schema/API/UI: penambahan command `app:backup-prune`; mode `--non-interactive` pada `app:backup-run`; endpoint API `GET /api/backups/status`; pendaftaran jadwal di `app/Console/Kernel.php` dengan timezone `Asia/Jakarta`.
 - Status: APPROVED. Fase affected: 02c.
 
+### DEC-20 — Kebijakan identitas siswa, keanggotaan rombel, dan audit pendataan (APPROVED, 2026-10-20 WIB)
+- Konteks: pelaksanaan implementasi Subfase 03a dan perencanaan Fase 03 berdasarkan instruksi pemilik 20 Oktober 2026 WIB (menuntaskan usulan DEC-05).
+- Pilihan pemilik:
+  1. **NIK opsional & format string**: NIK bersifat opsional (nullable). Jika diisi, wajib string tepat 16 digit angka (`digits:16`) dan unik (mengabaikan record terhapus soft delete). Karakter leading zero ('0') wajib dipertahankan; input kosong (string kosong/whitespace) dinormalisasi konsisten menjadi `null`.
+  2. **NIS unik lingkup sekolah**: NIS bersifat unik dalam lingkup sekolah.
+  3. **Keanggotaan rombel aktif per siswa per tahun ajaran**: Maksimal satu keanggotaan rombel aktif per siswa per tahun ajaran (`school_year_id`). Riwayat perpindahan kelas/mutasi tetap disimpan.
+  4. **Perilaku soft delete & restore siswa**: Soft delete siswa menonaktifkan keanggotaan rombel aktif tanpa menghapus riwayat. Restore memeriksa potensi konflik keunikan identitas dan tidak otomatis mengaktifkan kembali rombel lama.
+  5. **Audit pendataan terarah & proteksi privasi**: Log audit mencatat perubahan identitas dan data akademik seperlunya; mengecualikan data riwayat medis/penyakit (`history_illness`) serta penghasilan orang tua/wali; meminimalkan penyalinan NIK dan data pribadi pada log.
+- Dampak schema/API/UI:
+  - Additive migration menambahkan `student_id` nullable pada `student_rombels` dengan FK ke `students.id`.
+  - Backfill aman berbasis kecocokan NIK tunggal; NIK kosong/ambigu/tidak cocok dibiarkan unresolved tanpa mutasi destruktif.
+  - Perhitungan umur dinamis (*virtual derived age*) dari `birthdate` berbasis timezone `Asia/Jakarta`.
+  - Model `Student` dan `StudentRombel` menyelaraskan relasi dan trait `Loggable` dengan allowlist audit yang meminimalkan data pribadi.
+- Status: APPROVED. Fase affected: 03 (03a, 03b, 03c).
+
 ### Keputusan yang masih OPEN (belum diputuskan)
 - Makna `status_user_id` (jangan disamakan dengan `status_active`), deployment CORS/Sanctum produksi, strategi pencabutan token vs sesi.
 
@@ -83,7 +98,7 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 | DEC-02 | Lingkungan operasional | Local/LAN atau hosting; lokasi DB/storage; batas biaya | APPROVED (2026-10-17) | 01b/02 |
 | DEC-03 | Role dan kemampuan | Admin, Operator, Kepala sekolah, Guru/wali kelas; siapa boleh sign/approve/export | APPROVED (2026-10-15) | 01a |
 | DEC-04 | Hubungan pegawai–akun | Profil boleh tanpa login; teacher assignment memakai profil pegawai | PROPOSED | 04a |
-| DEC-05 | Identitas dan keanggotaan | NIK boleh kosong; satu rombel aktif per siswa/periode; NIS unik lingkup sekolah | PROPOSED | 03a/06a |
+| DEC-05 | Identitas dan keanggotaan | NIK boleh kosong; satu rombel aktif per siswa/periode; NIS unik lingkup sekolah | APPROVED (2026-10-20, disahkan DEC-20) | 03a/06a |
 | DEC-06 | Format nomor dan persetujuan surat | Format, reset counter, pejabat penandatangan, kapan nomor diterbitkan | OPEN | 07b |
 | DEC-07 | Jenis dan approval izin | Siswa/guru, approver, delegasi, perubahan/pembatalan keputusan | OPEN | 08a |
 | DEC-08 | Impor data campuran | Preview wajib; default usulan validasi semua sebelum commit per batch kecil; update hanya eksplisit | PROPOSED | 05a |
@@ -98,6 +113,7 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 | DEC-17 | Kebijakan audit trail, strategi backup, dan retensi arsip | Rollback nonaktif; backup privat lokal + salinan terpisah; retensi 7+4; enkripsi wajib | APPROVED (2026-10-17) | 02a/02b |
 | DEC-18 | Operasional backup manual dan restore drill | Target drill `school_restore_drill_uat`; `backup.manage` default admin-sistem | APPROVED (2026-10-19) | 02b |
 | DEC-19 | Penjadwalan, retensi otomatis, dan monitoring backup | Jadwal 02:00 & 02:30 WIB; default schedule OFF; monitoring pasif API/JSON | APPROVED (2026-10-20) | 02c |
+| DEC-20 | Identitas siswa, keanggotaan rombel, audit pendataan | NIK opsional 16 digit, NIS unik sekolah, 1 rombel aktif/tahun, soft delete nonaktifkan rombel, audit minimal PII | APPROVED (2026-10-20 WIB) | 03a |
 
 ## Format pencatatan keputusan
 Tanggal WIB; ID; konteks; alternatif; pilihan pemilik dan bukti instruksi; dampak schema/API/UI; fase affected; status OPEN/PROPOSED/APPROVED/SUPERSEDED. Pertahankan riwayat bila keputusan berubah.
