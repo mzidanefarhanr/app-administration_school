@@ -13,9 +13,9 @@ Catatan perubahan pemilik: berkas log bukti `console.txt` milik pemilik tetap ad
 - **Fase 01 — Hak akses, autentikasi dan lingkungan aman**: **DITERIMA LENGKAP & DITUTUP** (Fase 01a, 01b, dan 01c seluruhnya DITERIMA PEMILIK).
 - **BLK-03**: **CLOSED pada source aktif** (seluruh akun pengguna riil dan data siswa riil telah dibersihkan dari seeder aktif; data pada riwayat commit Git historis belum dihapus).
 - **Fase 02 — Integritas Operasional (Audit & Backup/Restore)**: **DITERIMA LENGKAP & DITUTUP** (Fase 02a, 02b, dan 02c seluruhnya DITERIMA PEMILIK mengacu baseline `94d29f4` / commit `8631545`).
-- **Fase 03 — Pendataan Siswa Lengkap dan Aman**: **IN PROGRESS**
-  - **Subfase 03a — Identitas dan Membership Migration**: **IMPLEMENTED & FULLY VERIFIED** (22 test backend PASS, Pint 100% clean, build PASS; review manual pemilik berstatus **PENDING** di `reports/feature-update/PHASE-03A-MANUAL-REVIEW.md`).
-  - **Subfase 03b — CRUD dan Form Siswa**: NOT STARTED (belum diotorisasi).
+- **Fase 03 — Pendataan Siswa Lengkap dan Aman**: **IN PROGRESS / PARTIAL**:
+  - **Subfase 03a — Identitas dan Membership Migration**: **DITERIMA PEMILIK** (seluruh checklist manual #1–#11 APPROVED pada 21 Oktober 2026 WIB mengacu baseline `37f7d79`; bukti konkurensi multi-transaksi dibuktikan via automated MariaDB integration test agen).
+  - **Subfase 03b — CRUD dan Form Siswa**: NOT STARTED (rencana kerja disusun pada sesi ini; implementasi belum diotorisasi).
   - **Subfase 03c — Daftar dan Rekap Siswa**: NOT STARTED (belum diotorisasi).
 - **Keputusan Terbuka yang Masih OPEN (belum menghambat)**:
   1. Makna `status_user_id` (jangan disamakan dengan `status_active`).
@@ -103,14 +103,6 @@ Server UAT lokal yang diketahui masih berjalan (jangan dihentikan sembarangan):
 ---
 
 ## 6. Tugas Sesi Ini & Checkpoint Terkini
-1. **Keputusan Pemilik DEC-20**: SELESAI DICATAT pada commit `832c0c7` (NIK opsional 16 digit, NIS unik sekolah, 1 rombel aktif/tahun, soft delete nonaktifkan rombel, audit minimal PII).
-2. **Subfase 03a — Identitas dan Membership Migration**:
-   - Migration additive `2029_07_23_000001_add_student_id_to_student_rombels_table` selesai dan teruji.
-   - Kolom `student_id` nullable (FK restrictOnDelete, cascadeOnUpdate); `student_nik` nullable.
-   - Service `StudentBackfillService` dan artisan command `app:student-backfill` selesai, idempotent, bebas PII.
-   - Trigger database MariaDB dan SQLite menegakkan aturan maksimal 1 rombel aktif per siswa per tahun ajaran.
-   - Umur dihitung dinamis dari `birthdate` berbasis `Asia/Jakarta` (nilai turunan runtime).
-   - Penyelarasan `StudentExportController` dan `StudentRombelController` ke relasi ganda `student` & `studentNik`.
-   - Pengujian: 29 backend test PASS, Pint 100% clean, frontend build PASS.
-   - Checklist manual 11 butir disiapkan di `reports/feature-update/PHASE-03A-MANUAL-REVIEW.md` (status: PENDING).
-3. **Langkah Berikutnya**: Menunggu review manual dan persetujuan pemilik atas Subfase 03a sebelum melangkah ke perencanaan/implementasi Subfase 03b (CRUD Siswa). Implementasi 03b BELUM DIOTORISASI.
+1. **Penerimaan Manual Subfase 03a**: SELESAI. Seluruh checklist manual #1–#11 di `PHASE-03A-MANUAL-REVIEW.md` telah disetujui (APPROVED) pemilik pada 21 Oktober 2026 WIB mengacu baseline `37f7d79`. Status Subfase 03a resmi **DITERIMA PEMILIK**.
+2. **Rencana Teknis Subfase 03b**: Disusun pada `reports/feature-update/PHASE-03B-PLAN.md` dalam commit tersendiri.
+3. **PENTING**: Implementasi Subfase 03b **BELUM DIOTORISASI**. Jangan memulai pengkodean modul 03b sebelum rencana teknis disetujui pemilik.

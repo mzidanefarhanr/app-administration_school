@@ -4,7 +4,7 @@
 - Branch kerja: `main`
 - Baseline: `832c0c7` (pencatatan keputusan DEC-20)
 - Status teknis: **IMPLEMENTED & FULLY VERIFIED (29 backend test PASS, Pint 100% clean, build PASS)**
-- Status review pemilik: **PENDING (Menunggu Pemeriksaan Manual Pemilik di `PHASE-03A-MANUAL-REVIEW.md`)**
+- Status review pemilik: **DITERIMA PEMILIK (Checklist manual #1–#11 APPROVED pada 21 Oktober 2026 WIB mengacu baseline `37f7d79`)**
 - Prasyarat: Fase 01 dan Fase 02 telah **DITERIMA LENGKAP & DITUTUP**; keputusan pemilik **DEC-20** APPROVED pada 20 Oktober 2026 WIB.
 - Database & storage uji:
   - Database pengujian otomatis: **SQLite in-memory `:memory:` terisolasi** dan MariaDB lokal disposable `school_restore_drill_uat`.

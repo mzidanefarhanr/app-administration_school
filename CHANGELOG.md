@@ -17,6 +17,29 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-21] Subfase 03a — Docs: penerimaan manual pemilik atas identitas siswa dan migrasi keanggotaan rombel
+- Type: Docs
+- Scope / fase: Subfase 03a (Identitas Siswa dan Membership Migration).
+- Files touched:
+  - `reports/feature-update/PHASE-03A-MANUAL-REVIEW.md`
+  - `reports/feature-update/PHASE-03A-STUDENT-IDENTITY.md`
+  - `reports/feature-update/INDEX.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `roadmap/ROADMAP.md`
+  - `roadmap/phases/PHASE-03-STUDENTS.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Pencatatan resmi penerimaan manual pemilik atas Subfase 03a: seluruh checklist UAT #1–#11 di `PHASE-03A-MANUAL-REVIEW.md` dinyatakan **APPROVED** pada 21 Oktober 2026 WIB mengacu baseline `37f7d79`.
+  2. Status Subfase 03a resmi ditetapkan **DITERIMA PEMILIK**.
+  3. Pembuktian serialisasi konkurensi multi-transaksi MariaDB diakui berdasarkan bukti automated integration test agen (`MariaDbStudentIntegrationTest`), terpisah dari observasi checklist manual pemilik.
+  4. Status Fase 03 tetap PARTIAL / IN PROGRESS; Subfase 03b dan 03c belum diimplementasikan/diterima.
+  5. Batasan cakupan tetap dipertahankan: pengujian memakai fixture sintetis dan DB UAT terisolasi, `student_nik` legacy dipertahankan, baris backfill unresolved tidak dimutasi otomatis, CRUD siswa dan optimistic locking tetap berada pada lingkup Subfase 03b, dan penerimaan ini bukan izin migrasi database operasional atau deployment produksi.
+- Why: memenuhi tata kelola repository dan aturan AGENTS.md sebelum melangkah ke perencanaan Subfase 03b.
+- Validation: verifikasi keselarasan silang seluruh dokumen dokumentasi.
+- Notes / risks:
+  - Implementasi Subfase 03b belum diotorisasi.
+- Evidence: `reports/feature-update/PHASE-03A-MANUAL-REVIEW.md`, `reports/feature-update/PHASE-03A-STUDENT-IDENTITY.md`.
+
 ## [2026-10-21] Subfase 03a — Docs: penyempurnaan panduan manual review 03a berbasis transaksi aman dan bukti otomatis
 - Type: Docs
 - Scope / fase: Subfase 03a (Identitas Siswa dan Membership Migration).
