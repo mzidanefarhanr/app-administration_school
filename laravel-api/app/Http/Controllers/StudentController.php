@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Http\Resources\StatusResource;
+use App\Models\Gender;
+use App\Models\SchoolRombel;
 use App\Models\Student;
 use App\Models\StudentRombel;
+use App\Support\StudentDirectory;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,33 +25,182 @@ class StudentController extends Controller
     {
         $this->authorize('viewAny', Student::class);
 
-        $query = Student::with([
-            'gender',
-            'religion',
-            'education_level',
-            'blood_type',
-            'profession',
-            'village.district.regency.province',
-            'family_status',
-            'last_education_school',
-            'latest_education_school',
-            'father_education_level',
-            'father_profession',
-            'mother_education_level',
-            'mother_profession',
-            'guardian_education_level',
-            'guardian_profession',
-        ]);
-
+        // Dialog Archived (03b) tetap memakai daftar arsip terpisah; hanya untuk pengelola.
         if ($request->boolean('only_archived')) {
-            $query->onlyTrashed();
-        } elseif ($request->boolean('with_archived')) {
-            $query->withTrashed();
+            $this->authorize('students.manage');
+
+            $students = Student::onlyTrashed()->with([
+                'gender',
+                'religion',
+                'education_level',
+                'blood_type',
+                'profession',
+                'village.district.regency.province',
+                'family_status',
+                'last_education_school',
+                'latest_education_school',
+                'father_education_level',
+                'father_profession',
+                'mother_education_level',
+                'mother_profession',
+                'guardian_education_level',
+                'guardian_profession',
+            ])->get();
+
+            return new StatusResource(true, 'List Data Student', $students);
         }
 
-        $students = $query->get();
+        $validated = $request->validate([
+            'school_year_id' => ['required', 'integer', 'exists:school_years,id'],
+            'search' => ['nullable', 'string', 'max:100'],
+            'placement' => ['nullable', 'in:all,placed,unplaced'],
+            'rombel' => ['nullable', 'integer', 'exists:school_rombels,id'],
+            'per_page' => ['nullable', 'integer', 'in:10,20,50,100'],
+            'page' => ['nullable', 'integer', 'min:1'],
+            'sort' => ['nullable', 'in:id,name,nis,nisn'],
+            'direction' => ['nullable', 'in:asc,desc'],
+        ], [
+            'school_year_id.required' => 'A school year is required to list students.',
+            'placement.in' => 'The placement filter must be one of: all, placed, unplaced.',
+            'per_page.in' => 'The per page value must be one of: 10, 20, 50, 100.',
+            'sort.in' => 'The sort field must be one of: id, name, nis, nisn.',
+            'direction.in' => 'The sort direction must be asc or desc.',
+        ]);
 
-        return new StatusResource(true, 'List Data Student', $students);
+        $yearId = (int) $validated['school_year_id'];
+        $placement = $validated['placement'] ?? 'all';
+        $rombelId = isset($validated['rombel']) ? (int) $validated['rombel'] : null;
+
+        if ($rombelId !== null && ! SchoolRombel::where('id', $rombelId)->where('school_year_id', $yearId)->exists()) {
+            throw ValidationException::withMessages([
+                'rombel' => ['The selected rombel does not belong to the selected school year.'],
+            ]);
+        }
+
+        if ($rombelId !== null && $placement === 'unplaced') {
+            throw ValidationException::withMessages([
+                'placement' => ['The unplaced filter cannot be combined with a rombel filter.'],
+            ]);
+        }
+
+        $filters = [
+            'school_year_id' => $yearId,
+            'search' => $validated['search'] ?? null,
+            'rombel' => $rombelId,
+        ];
+
+        // Rekap dihitung dari seluruh hasil filter, bukan halaman aktif.
+        $scope = StudentDirectory::base($filters);
+        $placedCount = (clone $scope)
+            ->whereExists(StudentDirectory::activeMembershipExists($yearId))
+            ->count('students.id');
+        $scopeCount = $scope->count('students.id');
+        $unplacedCount = max(0, $scopeCount - $placedCount);
+        $totalMatches = match ($placement) {
+            'placed' => $placedCount,
+            'unplaced' => $unplacedCount,
+            default => $scopeCount,
+        };
+
+        $sort = $validated['sort'] ?? 'name';
+        $direction = $validated['direction'] ?? 'asc';
+        $perPage = (int) ($validated['per_page'] ?? 20);
+
+        $listQuery = StudentDirectory::place(StudentDirectory::base($filters), $yearId, $placement)
+            ->with('gender:id,name')
+            ->orderBy('students.'.$sort, $direction);
+
+        // Urutan stabil saat nilai sort sama.
+        if ($sort !== 'id') {
+            $listQuery->orderBy('students.id');
+        }
+
+        $paginator = $listQuery->paginate($perPage)->withQueryString();
+
+        $memberships = StudentDirectory::membershipsFor($paginator->getCollection(), $yearId);
+        $data = $paginator->getCollection()->map(function (Student $student) use ($memberships) {
+            $membership = $memberships[$student->id] ?? null;
+
+            return [
+                'id' => $student->id,
+                'version' => (int) $student->version,
+                'name' => $student->name,
+                'nis' => $student->nis,
+                'nisn' => $student->nisn,
+                'gender' => $student->gender?->name,
+                'rombel' => $membership?->schoolRombel
+                    ? ['id' => $membership->schoolRombel->id, 'name' => $membership->schoolRombel->name]
+                    : null,
+                'placement' => $membership ? 'placed' : 'unplaced',
+            ];
+        })->values();
+
+        $result = StudentDirectory::place(StudentDirectory::base($filters), $yearId, $placement);
+        $genderRows = (clone $result)
+            ->select(['students.gender_id'])
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('students.gender_id')
+            ->get();
+        $genderNames = Gender::whereIn('id', $genderRows->pluck('gender_id')->filter())->pluck('name', 'id');
+        $byGender = $genderRows->map(fn ($row) => [
+            'label' => $genderNames[$row->gender_id] ?? 'Unspecified',
+            'total' => (int) $row->total,
+        ])->values();
+
+        $byRombel = collect();
+        if ($placement !== 'unplaced') {
+            $placed = StudentDirectory::place(StudentDirectory::base($filters), $yearId, 'placed')->get();
+            $ids = $placed->pluck('id')->filter()->all();
+            $niks = $placed->pluck('nik')->filter()->all();
+
+            if ($ids || $niks) {
+                $byRombel = DB::table('student_rombels as sr')
+                    ->join('school_rombels as rb', 'rb.id', '=', 'sr.school_rombel')
+                    ->where('rb.school_year_id', $yearId)
+                    ->whereNull('sr.deleted_at')
+                    ->whereNull('sr.archived_at')
+                    ->where(function ($q) {
+                        $q->where('sr.student_status_id', 1)->orWhereNull('sr.student_status_id');
+                    })
+                    ->whereNull('sr.latest_student_exit_date')
+                    ->where(function ($q) use ($ids, $niks) {
+                        $q->whereIn('sr.student_id', $ids)
+                            ->orWhere(function ($legacy) use ($niks) {
+                                $legacy->whereNull('sr.student_id')->whereIn('sr.student_nik', $niks);
+                            });
+                    })
+                    ->groupBy('rb.id', 'rb.name')
+                    ->orderBy('rb.name')
+                    ->selectRaw('rb.id as id, rb.name as name, COUNT(DISTINCT COALESCE(sr.student_id, sr.student_nik)) as total')
+                    ->get()
+                    ->map(fn ($row) => [
+                        'id' => (int) $row->id,
+                        'name' => $row->name,
+                        'total' => (int) $row->total,
+                    ]);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Student list retrieved successfully.',
+            'data' => $data,
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+                'last_page' => $paginator->lastPage(),
+                'from' => $paginator->firstItem(),
+                'to' => $paginator->lastItem(),
+            ],
+            'recap' => [
+                'total_matches' => $totalMatches,
+                'placed_count' => $placedCount,
+                'unplaced_count' => $unplacedCount,
+                'by_gender' => $byGender,
+                'by_rombel' => $byRombel,
+            ],
+        ], 200);
     }
 
     /**

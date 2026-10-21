@@ -8,7 +8,6 @@ import { useConfirm } from "primevue/useconfirm";
 import { useToast } from "primevue/usetoast";
 import apiLogin from '@/apiLogin';
 import gifSuccess from '@/assets/gif/success.gif';
-import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 import { CustomerService } from '@/service/CustomerService';
 
 const confirm = useConfirm();
@@ -33,16 +32,31 @@ const school_years_now = ref('');
 const school_years_pick = ref([]);
 const searchQuery = ref([]);
 const filtered_Cat1 = ref([]);
-const students = ref([]);
 const all_students = ref('');
 const active_students = ref('');
 const mutation_students = ref('');
 const dropout_students = ref('');
 const graduation_students = ref('');
-const genders = ref([]);
-const school_rombels = ref([]);
-const student_entries = ref([]);
-const student_statuses = ref([]);
+// ── 03c: Daftar siswa server-side (pagination/pencarian/sort/filter/rekap) ──
+const listRows = ref([]);
+const listMeta = ref({ current_page: 1, per_page: 20, total: 0, last_page: 1 });
+const listRecap = ref({ total_matches: 0, placed_count: 0, unplaced_count: 0, by_gender: [], by_rombel: [] });
+const listLoading = ref(false);
+const listError = ref('');
+const listSearch = ref('');
+const listPlacement = ref('all');
+const listRombelId = ref(null);
+const listSortField = ref('name');
+const listSortOrder = ref(1);
+const listPage = ref(1);
+const listRequestId = ref(0);
+const listDebounceTimer = ref(null);
+const rombelOptions = ref([]);
+const placementOptions = [
+    { label: 'All', value: 'all' },
+    { label: 'Placed', value: 'placed' },
+    { label: 'Unplaced', value: 'unplaced' },
+];
 
 const saveUser = ref([]);
 const saveCompany = ref([]);
@@ -125,18 +139,90 @@ const fetchDataSelected = async () => {
     // console.log(school_years_now.value);
 }
 
-const fetchFilterOptions = async () => {
-    const [gendersRes, rombelsRes, entriesRes, statusesRes] = await Promise.all([
-        apiLogin.get('/api/genders'),
-        apiLogin.get('/api/school-rombels'),
-        apiLogin.get('/api/student-entries'),
-        apiLogin.get('/api/student-statuses'),
-    ]);
-    genders.value        = gendersRes.data.data.map(g => g.name);
-    school_rombels.value = rombelsRes.data.data.map(r => r.name);
-    student_entries.value  = entriesRes.data.data.map(e => e.name);
-    student_statuses.value = statusesRes.data.data.map(s => s.name);
-}
+const fetchRombelOptions = async () => {
+    if (!school_years_now.value?.id) {
+        rombelOptions.value = [];
+        return;
+    }
+    try {
+        const res = await apiLogin.get('/api/school-rombels');
+        rombelOptions.value = (res.data.data ?? [])
+            .filter((rombel) => rombel.school_year_id === school_years_now.value.id)
+            .map((rombel) => ({ id: rombel.id, name: rombel.name }));
+    } catch {
+        rombelOptions.value = [];
+    }
+};
+
+// 03c: daftar siswa server-side. Respons usang (requestId lama) diabaikan.
+const fetchStudentList = async () => {
+    if (!school_years_now.value?.id) return;
+
+    const requestId = ++listRequestId.value;
+    listLoading.value = true;
+    listError.value = '';
+
+    if (listPlacement.value === 'unplaced') {
+        listRombelId.value = null;
+    }
+
+    try {
+        const params = {
+            school_year_id: school_years_now.value.id,
+            page: listPage.value,
+            per_page: length_rows_pick.value,
+            placement: listPlacement.value,
+            sort: listSortField.value,
+            direction: listSortOrder.value === -1 ? 'desc' : 'asc',
+        };
+        if (listSearch.value.trim()) params.search = listSearch.value.trim();
+        if (listRombelId.value && listPlacement.value !== 'unplaced') params.rombel = listRombelId.value;
+
+        const res = await apiLogin.get('/api/students', { params });
+        if (requestId !== listRequestId.value) return;
+
+        listRows.value = res.data.data ?? [];
+        listMeta.value = res.data.meta ?? { current_page: 1, per_page: length_rows_pick.value, total: 0, last_page: 1 };
+        listRecap.value = res.data.recap ?? { total_matches: 0, placed_count: 0, unplaced_count: 0, by_gender: [], by_rombel: [] };
+
+        // Halaman terakhir menjadi kosong (mis. setelah archive) → mundur satu halaman.
+        if (listRows.value.length === 0 && listPage.value > 1 && listPage.value > listMeta.value.last_page) {
+            listPage.value = Math.max(1, listMeta.value.last_page);
+            return fetchStudentList();
+        }
+    } catch (error) {
+        if (requestId !== listRequestId.value) return;
+        listRows.value = [];
+        listError.value = error.response?.data?.message ?? 'Failed to load students. Please try again.';
+    } finally {
+        if (requestId === listRequestId.value) listLoading.value = false;
+    }
+};
+
+const onListPage = (event) => {
+    listPage.value = event.page + 1;
+    length_rows_pick.value = event.rows;
+    fetchStudentList();
+};
+
+const onListSort = (event) => {
+    listSortField.value = event.sortField || 'name';
+    listSortOrder.value = event.sortOrder ?? 1;
+    listPage.value = 1;
+    fetchStudentList();
+};
+
+const onListFilterChange = () => {
+    listPage.value = 1;
+    fetchStudentList();
+};
+
+const onListSearchInput = () => {
+    if (listDebounceTimer.value) clearTimeout(listDebounceTimer.value);
+    listDebounceTimer.value = setTimeout(onListFilterChange, 300);
+};
+
+const rowDisplayNumber = (index) => (listMeta.value.current_page - 1) * listMeta.value.per_page + index + 1;
 
 //method fetchDataStudentRombels
 const fetchDataStudentRombels = async () => {
@@ -168,8 +254,6 @@ const fetchDataStudentRombels = async () => {
         index_graduation_students = counts[4] || 0;
         if (school_years_pick.value.length > 0) {
 
-            fetchFilterOptions();
-
             active_students.value = index_active_students;
             mutation_students.value = index_mutation_students;
             dropout_students.value = index_dropout_students;
@@ -184,6 +268,8 @@ const fetchDataStudentRombels = async () => {
         // console.log(all_students.value);
         // console.log(school_years_pick.value);
     });
+    fetchRombelOptions();
+    fetchStudentList();
     updateChartData();
 }
 
@@ -201,14 +287,14 @@ const fetchDataUserRole = async () => {
 };
 
 function handleSchoolYearsChange() {
+    listPage.value = 1;
+    listRombelId.value = null;
     fetchDataSelected();
 }
 
-const filters = ref();
-
 const loading = ref(true);
-const length_rows_pick = ref(10);
-const length_rows = ref([10, 25, 50, 100]);
+const length_rows_pick = ref(20);
+const length_rows = ref([10, 20, 50, 100]);
 
 const getSeverity = (status) => {
     switch (status) {
@@ -261,8 +347,14 @@ const exportCSV = async () => {
         return;
     }
     try {
+        const params = {
+            school_year_id: school_years_now.value.id,
+            placement: listPlacement.value,
+            search: listSearch.value.trim() || undefined,
+            rombel: listPlacement.value !== 'unplaced' && listRombelId.value ? listRombelId.value : undefined,
+        };
         const response = await apiLogin.get('/api/students/export', {
-            params: { school_year_id: school_years_now.value.id, search: filters.value?.global?.value || undefined },
+            params,
             responseType: 'blob'
         });
         const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' });
@@ -292,40 +384,18 @@ const exportCSV = async () => {
 };
 
 const clearFilter = () => {
-    initFilters();
+    listSearch.value = '';
+    listPlacement.value = 'all';
+    listRombelId.value = null;
+    listSortField.value = 'name';
+    listSortOrder.value = 1;
+    onListFilterChange();
 };
 
-const initFilters = () => {
-    filters.value = {
-        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        'country.name': { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-        'student_nik.name': { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
-        'student_nik.gender.name': { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-        'student_nik.birthplace': { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-        'student_nik.birthdate': { value: null, matchMode: FilterMatchMode.CONTAINS },
-        'student_nik.nik': { value: null, matchMode: FilterMatchMode.CONTAINS },
-        'student_nik.nis': { value: null, matchMode: FilterMatchMode.CONTAINS },
-        'student_nik.nisn': { value: null, matchMode: FilterMatchMode.CONTAINS },
-        'school_rombel.name': { value: null, matchMode: FilterMatchMode.IN },
-        'student_entry.name': { value: null, matchMode: FilterMatchMode.EQUALS },
-        'student_status.name': { value: null, matchMode: FilterMatchMode.IN },
-        representative: { value: null, matchMode: FilterMatchMode.IN }
-    };
-};
-
-initFilters();
-
-// Automatically compute the tab items whenever recapClassCounts updates
-const tabItems = computed(() => {
-    const levels = Object.keys(recapClassCounts.value);
-
-    // Set a default active tab if none is selected yet
-    if (levels.length > 0 && !activeTab.value) {
-        activeTab.value = levels[0];
-    }
-    updateChartData();
-    return levels.map(level => ({ label: `Class ${level}`, value: level }));
-});
+// Tab item murni (tanpa efek samping) — DEC-22 lint terarah.
+const tabItems = computed(() =>
+    Object.keys(recapClassCounts.value).map(level => ({ label: `Class ${level}`, value: level }))
+);
 
 const updateChartData = () => {
     const documentStyle = getComputedStyle(document.documentElement);
@@ -412,6 +482,12 @@ const updateChartData = () => {
         recapClassCountss[levelName][level2Name][genderKey]++;
     });
     recapClassCounts.value = recapClassCountss;
+
+    // Pilih tab default di luar computed (menghindari efek samping pada computed).
+    const levelNames = Object.keys(recapClassCountss);
+    if (levelNames.length > 0 && (!activeTab.value || !levelNames.includes(activeTab.value))) {
+        activeTab.value = levelNames[0];
+    }
 
     const religionNames = Object.keys(religionCounts);
     const religionValues = Object.values(religionCounts);
@@ -765,7 +841,7 @@ const emptyStudentForm = () => {
     return form;
 };
 
-const rowStudentId = (row) => row?.student_id ?? row?.student?.id ?? row?.student_nik?.id ?? null;
+const rowStudentId = (row) => row?.id ?? row?.student_id ?? row?.student?.id ?? row?.student_nik?.id ?? null;
 
 const fetchStudentFormOptions = async () => {
     if (formOptionsLoaded.value) return;
@@ -866,12 +942,15 @@ const submitStudentForm = async () => {
             if (studentDetailDialog.value && detailStudent.value?.id === editTargetId.value) {
                 detailStudent.value = res.data.data;
             }
+            fetchStudentList();
         } else {
             const res = await apiLogin.post('/api/students', payload);
             toast.add({ severity: 'success', summary: 'Student Created', detail: `${res.data.data.name} has been created successfully.`, life: 4000 });
             studentFormDialog.value = false;
             detailStudent.value = res.data.data;
             studentDetailDialog.value = true;
+            // Siswa baru tanpa rombel tetap tampil pada All/Unplaced setelah refresh.
+            fetchStudentList();
         }
     } catch (error) {
         const status = error.response?.status;
@@ -1152,158 +1231,74 @@ onMounted(() => {
 
         <div class="flex mt-8" v-show="activeGroup === 'demographics' && activeSub === 'section-students'">
             <div class="card flex flex-col gap-4 w-full">
-                <DataTable ref="dt" v-model:filters="filters" :value="school_years_pick" paginator showGridlines :rows="length_rows_pick" dataKey="id" filterDisplay="menu" :loading="loading"
-                        :globalFilterFields="['student_nik.name', 'student_nik.nik', 'student_nik.nis', 'student_nik.nisn', 'school_rombel.name', 'student_entry.name', 'student_status.name']"
-                        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                currentPageReportTemplate="Showing {first} to {last} of {totalRecords} students">
+                <DataTable
+                    :value="listRows"
+                    :lazy="true"
+                    paginator
+                    showGridlines
+                    :rows="length_rows_pick"
+                    :totalRecords="listMeta.total"
+                    :first="(listMeta.current_page - 1) * listMeta.per_page"
+                    :rowsPerPageOptions="length_rows"
+                    dataKey="id"
+                    :loading="listLoading"
+                    removableSort
+                    :sortField="listSortField"
+                    :sortOrder="listSortOrder"
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} students"
+                    @page="onListPage"
+                    @sort="onListSort">
                     <template #header>
-                        <div class="mb-3 flex flex-col md:flex-row gap-4">
-                            <div class="flex flex-wrap gap-2 w-full">
-                                Total Student in {{ school_years_now ? school_years_now.name : "" }} is {{ school_years_pick ? school_years_pick.length : "Loading" }}
-                            </div>
+                        <div class="mb-3 flex flex-wrap gap-4 items-center text-sm">
+                            <span>Total: <strong>{{ listRecap.total_matches }}</strong></span>
+                            <span class="text-green-600">Placed: <strong>{{ listRecap.placed_count }}</strong></span>
+                            <span class="text-orange-500">Unplaced: <strong>{{ listRecap.unplaced_count }}</strong></span>
+                            <span v-for="group in listRecap.by_gender" :key="group.label">{{ group.label }}: <strong>{{ group.total }}</strong></span>
                         </div>
-                        <div class="flex flex-col md:flex-row gap-4">
-                            <div class="flex flex-wrap gap-2">
-                                <Select v-model="length_rows_pick" :options="length_rows" placeholder="Select" class="w-5">
-                                </Select>
-
-                            </div>
+                        <div class="flex flex-col xl:flex-row gap-4 xl:items-center">
+                            <IconField class="w-full xl:w-64">
+                                <InputIcon><i class="pi pi-search" /></InputIcon>
+                                <InputText v-model="listSearch" placeholder="Search name, NIS, or NISN" class="w-full" @input="onListSearchInput" />
+                            </IconField>
+                            <Select v-model="listPlacement" :options="placementOptions" optionLabel="label" optionValue="value" placeholder="Placement" class="w-full xl:w-40" @change="onListFilterChange" />
+                            <Select v-model="listRombelId" :options="rombelOptions" optionLabel="name" optionValue="id" placeholder="Rombel" showClear class="w-full xl:w-48" :disabled="listPlacement === 'unplaced'" @change="onListFilterChange" />
                             <div class="flex flex-wrap gap-2">
                                 <Button v-if="useAuthStore.can('students.export')" icon="pi pi-external-link" label="Export" @click="exportCSV($event)" />
-
-                            </div>
-                            <div class="flex flex-wrap gap-2" v-if="canManage">
-                                <Button icon="pi pi-user-plus" label="New Student" @click="openCreateStudent" />
-                            </div>
-                            <div class="flex flex-wrap gap-2" v-if="canManage">
-                                <Button icon="pi pi-inbox" label="Archived" severity="secondary" variant="outlined" @click="openArchivedList" />
-                            </div>
-                            <div class="flex flex-wrap gap-2">
+                                <Button v-if="canManage" icon="pi pi-user-plus" label="New Student" @click="openCreateStudent" />
+                                <Button v-if="canManage" icon="pi pi-inbox" label="Archived" severity="secondary" variant="outlined" @click="openArchivedList" />
                                 <Button type="button" icon="pi pi-filter-slash" label="Clear" variant="outlined" @click="clearFilter()" />
                             </div>
-                            <div class="flex flex-wrap gap-2 w-full">
-
-                            </div>
-                            <div class="flex flex-wrap gap-2 w-full">
-
-                            </div>
-                            <div class="flex flex-wrap gap-2 w-full">
-                                <IconField>
-                                    <InputIcon>
-                                        <i class="pi pi-search" />
-                                    </InputIcon>
-                                    <InputText v-model="filters['global'].value" placeholder="Search" />
-                                </IconField>
-
-                            </div>
                         </div>
-
                     </template>
-                    <template #empty> No Students found. </template>
-                    <template #loading> Loading Students data. Please wait. </template>
-                    <Column  header="No"  sortable style="width: 3rem">
-                        <template #body="slotProps">
-                            {{ slotProps.index + 1 }}
+                    <template #loading> Loading students. Please wait. </template>
+                    <template #empty>
+                        <div class="flex flex-col items-center gap-3 py-6">
+                            <span v-if="listError" class="text-red-500">{{ listError }}</span>
+                            <span v-else>No students match the current filters.</span>
+                            <Button v-if="listError" icon="pi pi-refresh" label="Retry" @click="fetchStudentList()" />
+                        </div>
+                    </template>
+                    <Column header="No" style="width: 3rem">
+                        <template #body="{ index }">{{ rowDisplayNumber(index) }}</template>
+                    </Column>
+                    <Column field="name" header="Name" sortable style="min-width: 12rem" />
+                    <Column field="gender" header="Gender" style="min-width: 8rem">
+                        <template #body="{ data }">
+                            <Tag v-if="data.gender" :value="data.gender" :severity="getSeverity(data.gender)" />
                         </template>
                     </Column>
-                    <Column field="student_nik.name" filterField="student_nik.name" exportHeader="Name" header="Name" sortable style="min-width: 12rem">
+                    <Column field="nis" header="NIS" sortable style="min-width: 8rem" />
+                    <Column field="nisn" header="NISN" sortable style="min-width: 10rem" />
+                    <Column header="Rombel" style="min-width: 10rem">
                         <template #body="{ data }">
-                            {{ data.student_nik.name }}
-                        </template>
-                        <template #filter="{ filterModel, filterCallback }">
-                            <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Search by Name" />
+                            <Tag v-if="data.rombel" :value="data.rombel.name" :severity="getSeverity(data.rombel.name)" />
+                            <span v-else>-</span>
                         </template>
                     </Column>
-                    <Column header="Gender" filterField="student_nik.gender.name" :showFilterMatchModes="false" :filterMenuStyle="{ width: '14rem' }" style="min-width: 12rem">
+                    <Column header="Placement" style="min-width: 8rem">
                         <template #body="{ data }">
-                            <Tag :value="data.student_nik.gender.name" :severity="getSeverity(data.student_nik.gender.name)" />
-                        </template>
-                        <template #filter="{ filterModel, filterCallback }">
-                            <Select v-model="filterModel.value" @change="filterCallback()" :options="genders" placeholder="Select One" style="min-width: 12rem" :showClear="true">
-                                <template #option="slotProps">
-                                    <Tag :value="slotProps.option" :severity="getSeverity(slotProps.option)" />
-                                </template>
-                            </Select>
-                        </template>
-                    </Column>
-                    <Column field="student_nik.birthplace" sortable filterField="student_nik.birthplace" exportHeader="Birthplace" header="Birthplace" style="min-width: 12rem">
-                        <template #body="{ data }">
-                            {{ data.student_nik.birthplace }}
-                        </template>
-                        <template #filter="{ filterModel, filterCallback }">
-                            <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Search by Birthplace" />
-                        </template>
-                    </Column>
-                    <Column field="student_nik.birthdate" sortable filterField="student_nik.birthdate" exportHeader="Birthdate" header="Birthdate" style="min-width: 12rem">
-                        <template #body="{ data }">
-                            {{ data.student_nik.birthdate }}
-                        </template>
-                        <template #filter="{ filterModel, filterCallback }">
-                            <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Search by Birthdate" />
-                        </template>
-                    </Column>
-                    <Column field="student_nik.nik" filterField="student_nik.nik" exportHeader="NIK" header="NIK" style="min-width: 12rem">
-                        <template #body="{ data }">
-                            {{ data.student_nik.nik }}
-                        </template>
-                        <template #filter="{ filterModel, filterCallback }">
-                            <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Search by NIK" />
-                        </template>
-                    </Column>
-                    <Column field="student_nik.nis" sortable filterField="student_nik.nis" exportHeader="NIS" header="NIS" style="min-width: 12rem">
-                        <template #body="{ data }">
-                            {{ data.student_nik.nis }}
-                        </template>
-                        <template #filter="{ filterModel, filterCallback }">
-                            <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Search by NIS" />
-                        </template>
-                    </Column>
-                    <Column field="student_nik.nisn" filterField="student_nik.nisn" exportHeader="NISN" header="NISN" style="min-width: 12rem">
-                        <template #body="{ data }">
-                            {{ data.student_nik.nisn }}
-                        </template>
-                        <template #filter="{ filterModel, filterCallback }">
-                            <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Search by NISN" />
-                        </template>
-                    </Column>
-                    <Column field="school_rombel.name" header="School Rombel" sortable filterField="school_rombel.name" :showFilterMatchModes="false" :filterMenuStyle="{ width: '14rem' }" style="min-width: 12rem">
-                        <template #body="{ data }">
-                            <Tag :value="data.school_rombel.name" :severity="getSeverity(data.school_rombel.name)" />
-                        </template>
-                        <template #filter="{ filterModel, filterCallback }">
-                            <MultiSelect v-model="filterModel.value" @change="filterCallback()" :options="school_rombels" placeholder="Any">
-                                <template #option="slotProps">
-                                    <div class="flex items-center gap-2">
-                                        <Tag :value="slotProps.option" :severity="getSeverity(slotProps.option)" />
-                                    </div>
-                                </template>
-                            </MultiSelect>
-                        </template>
-                    </Column>
-                    <Column field="student_entry.name" header="Student Entry" filterField="student_entry.name" :showFilterMatchModes="false" :filterMenuStyle="{ width: '14rem' }" style="min-width: 12rem">
-                        <template #body="{ data }">
-                            <Tag :value="data.student_entry.name" :severity="getSeverity(data.student_entry.name)" />
-                        </template>
-                        <template #filter="{ filterModel, filterCallback }">
-                            <Select v-model="filterModel.value" @change="filterCallback()" :options="student_entries" placeholder="Select One" style="min-width: 12rem" :showClear="true">
-                                <template #option="slotProps">
-                                    <Tag :value="slotProps.option" :severity="getSeverity(slotProps.option)" />
-                                </template>
-                            </Select>
-                        </template>
-                    </Column>
-                    <Column field="student_status.name" header="Student Statuses" filterField="student_status.name" :showFilterMatchModes="false" :filterMenuStyle="{ width: '14rem' }" style="min-width: 12rem">
-                        <template #body="{ data }">
-                            <Tag :value="data.student_status.name" :severity="getSeverity(data.student_status.name)" />
-                        </template>
-                        <template #filter="{ filterModel, filterCallback }">
-                            <MultiSelect v-model="filterModel.value" @change="filterCallback()" :options="student_statuses" placeholder="Any">
-                                <template #option="slotProps">
-                                    <div class="flex items-center gap-2">
-                                        <Tag :value="slotProps.option" :severity="getSeverity(slotProps.option)" />
-                                    </div>
-                                </template>
-                            </MultiSelect>
+                            <Tag :value="data.placement === 'placed' ? 'Placed' : 'Unplaced'" :severity="data.placement === 'placed' ? 'success' : 'warn'" />
                         </template>
                     </Column>
                     <Column header="Action" :exportable="false" style="min-width: 10rem">
@@ -1313,7 +1308,6 @@ onMounted(() => {
                             <Button v-if="canManage" icon="pi pi-inbox" variant="outlined" rounded severity="danger" v-tooltip.top="'Archive Student'" @click="openArchiveStudent(data)" />
                         </template>
                     </Column>
-
                 </DataTable>
             </div>
         </div>

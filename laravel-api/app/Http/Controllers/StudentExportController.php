@@ -2,39 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SchoolRombel;
+use App\Models\Student;
 use App\Models\StudentRombel;
-use Illuminate\Database\Eloquent\Builder;
+use App\Support\StudentDirectory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Fase 01a — ekspor siswa (CSV) yang terlindungi.
+ * Ekspor siswa (CSV) terlindungi — DEC-14, DEC-22.
  *
- * Penegakan izin (server):
- *   - `students.view` : wajib (ekspor tidak lebih longgar dari akses baca).
- *   - `students.export` : wajib untuk mengunduh CSV.
- * Middleware route `active` menolak akun nonaktif. Guest ditolak oleh auth:sanctum.
+ * Izin (server): `students.view` wajib, `students.export` wajib untuk unduhan.
+ * Filter memakai definisi bersama dengan daftar (StudentDirectory): tahun ajaran
+ * wajib, pencarian, rombel, dan placement. Ekspor mencakup seluruh hasil filter,
+ * bukan halaman aktif. `unplaced` menghasilkan kolom rombel kosong (tanpa mengarang).
  *
- * Lingkup data & filter: sama dengan daftar siswa (tahun ajaran + status/entry/rombel
- * + pencarian), tanpa menambah data yang tidak boleh dilihat. Kolom eksplisit
- * (tidak mengekspor seluruh model/relasi). Semua nilai identitas dikirim sebagai
- * teks; nilai diskalakan sebagai teks agar nol awal/panjang tidak hilang.
- *
- * Batas baris: bila hasil filter melebihi batas (`students.export_max_rows`,
- * default 10000), ekspor DITOLAK dengan pesan
- * (bukan memotong hasil secara diam-diam). Pengguna diminta mempersempit filter.
- *
- * Catatan: `students.export` TIDAK mencegah penyalinan data yang memang sudah boleh
- * dilihat pengguna; ini mengendalikan unduhan berkas, bukan menjamin kerahasiaan
- * data yang sudah dapat diakses.
+ * Batas baris: hasil melebihi `students.export_max_rows` DITOLAK 422, bukan dipotong.
+ * Kolom eksplisit; identitas sebagai teks (nol awal dipertahankan); formula injection
+ * dinetralkan. Kolom sensitif baru tidak ditambahkan.
  */
 class StudentExportController extends Controller
 {
-    /**
-     * Batas maksimum baris ekspor. Hasil filter yang melebihi batas ditolak.
-     * Dapat diturunkan lewat config saat pengujian (`students.export_max_rows`).
-     */
     private function maxRows(): int
     {
         return (int) config('students.export_max_rows', 10000);
@@ -50,72 +40,87 @@ class StudentExportController extends Controller
     public function __construct()
     {
         $this->columns = [
-            'name' => ['Name', fn (StudentRombel $r) => $r->resolveStudent()?->name],
-            'gender' => ['Gender', fn (StudentRombel $r) => $r->resolveStudent()?->gender?->name],
-            'birthplace' => ['Birthplace', fn (StudentRombel $r) => $r->resolveStudent()?->birthplace],
-            'birthdate' => ['Birthdate', fn (StudentRombel $r) => $r->resolveStudent()?->birthdate],
-            'nik' => ['NIK', fn (StudentRombel $r) => $r->resolveStudent()?->nik],
-            'nis' => ['NIS', fn (StudentRombel $r) => $r->resolveStudent()?->nis],
-            'nisn' => ['NISN', fn (StudentRombel $r) => $r->resolveStudent()?->nisn],
-            'school_rombel' => ['School Rombel', fn (StudentRombel $r) => $r->schoolRombel?->name],
-            'student_entry' => ['Student Entry', fn (StudentRombel $r) => $r->studentEntry?->name],
-            'student_status' => ['Student Status', fn (StudentRombel $r) => $r->studentStatus?->name],
+            'name' => ['Name', fn (Student $s) => $s->name],
+            'gender' => ['Gender', fn (Student $s) => $s->gender?->name],
+            'birthplace' => ['Birthplace', fn (Student $s) => $s->birthplace],
+            'birthdate' => ['Birthdate', fn (Student $s) => $s->birthdate],
+            'nik' => ['NIK', fn (Student $s) => $s->nik],
+            'nis' => ['NIS', fn (Student $s) => $s->nis],
+            'nisn' => ['NISN', fn (Student $s) => $s->nisn],
+            'school_rombel' => ['School Rombel', fn (Student $s, ?StudentRombel $m) => $m?->schoolRombel?->name],
+            'student_entry' => ['Student Entry', fn (Student $s, ?StudentRombel $m) => $m?->studentEntry?->name],
+            'student_status' => ['Student Status', fn (Student $s, ?StudentRombel $m) => $m?->studentStatus?->name],
         ];
     }
 
-    /**
-     * Unduh CSV siswa. Filter sama dengan daftar: `school_year_id` (wajib),
-     * opsional `status`, `entry`, `rombel`, `search`.
-     *
-     * Bila jumlah baris hasil filter melebihi batas (`students.export_max_rows`),
-     * ekspor ditolak (422) tanpa memotong data — pengguna diminta mempersempit filter.
-     */
     public function export(Request $request): StreamedResponse|JsonResponse
     {
-        // Wajib punya akses baca siswa...
         $this->authorize('students.view');
-        // ...dan kemampuan ekspor eksplisit.
         $this->authorize('students.export');
 
         $validated = $request->validate([
             'school_year_id' => ['required', 'integer', 'exists:school_years,id'],
-            'status' => ['nullable', 'string', 'max:100'],
-            'entry' => ['nullable', 'string', 'max:100'],
-            'rombel' => ['nullable', 'string', 'max:100'],
             'search' => ['nullable', 'string', 'max:100'],
+            'placement' => ['nullable', 'in:all,placed,unplaced'],
+            'rombel' => ['nullable', 'integer', 'exists:school_rombels,id'],
+        ], [
+            'school_year_id.required' => 'A school year is required to export students.',
+            'placement.in' => 'The placement filter must be one of: all, placed, unplaced.',
         ]);
 
-        $query = $this->buildQuery($validated);
+        $yearId = (int) $validated['school_year_id'];
+        // Default `placed` mempertahankan perilaku ekspor per tahun ajaran (DEC-22).
+        $placement = $validated['placement'] ?? 'placed';
+        $rombelId = isset($validated['rombel']) ? (int) $validated['rombel'] : null;
 
-        // Tolak bila hasil filter melebihi batas — jangan potong diam-diam.
+        if ($rombelId !== null && ! SchoolRombel::where('id', $rombelId)->where('school_year_id', $yearId)->exists()) {
+            throw ValidationException::withMessages([
+                'rombel' => ['The selected rombel does not belong to the selected school year.'],
+            ]);
+        }
+
+        if ($rombelId !== null && $placement === 'unplaced') {
+            throw ValidationException::withMessages([
+                'placement' => ['The unplaced filter cannot be combined with a rombel filter.'],
+            ]);
+        }
+
+        $query = StudentDirectory::place(StudentDirectory::base([
+            'school_year_id' => $yearId,
+            'search' => $validated['search'] ?? null,
+            'rombel' => $rombelId,
+        ]), $yearId, $placement)
+            ->with('gender:id,name')
+            ->orderBy('students.name')
+            ->orderBy('students.id');
+
         $maxRows = $this->maxRows();
-        $total = (clone $query)->toBase()->getCountForPagination();
+        $total = (clone $query)->count('students.id');
         if ($total > $maxRows) {
             return response()->json([
                 'message' => 'The export matches '.$total.' rows, which exceeds the limit of '
                     .$maxRows.'. Please narrow your filters (for example by school year, '
-                    .'rombel, status, entry, or search) and try again.',
+                    .'rombel, or search) and try again.',
             ], 422);
         }
 
-        $filename = 'students_'.($validated['school_year_id'] ?? 'all').'_'.now()->format('Ymd_His').'.csv';
+        $filename = 'students_'.$yearId.'_'.now()->format('Ymd_His').'.csv';
 
-        return response()->streamDownload(function () use ($query) {
+        return response()->streamDownload(function () use ($query, $yearId) {
             $out = fopen('php://output', 'w');
 
-            // BOM UTF-8 agar Excel membaca aksen dengan benar.
             fwrite($out, "\xEF\xBB\xBF");
 
-            // Header.
-            $headers = array_map(fn ($c) => $c[0], $this->columns);
-            $this->writeCsvRow($out, $headers);
+            $this->writeCsvRow($out, array_map(fn ($c) => $c[0], $this->columns));
 
-            // Data (sudah dipastikan tidak melebihi batas).
-            $query->chunk(500, function ($rows) use ($out) {
-                foreach ($rows as $r) {
+            $query->chunk(500, function ($students) use ($out, $yearId) {
+                $memberships = StudentDirectory::membershipsFor($students, $yearId);
+
+                foreach ($students as $student) {
+                    $membership = $memberships[$student->id] ?? null;
                     $row = [];
                     foreach ($this->columns as [$header, $resolver]) {
-                        $row[] = $resolver($r);
+                        $row[] = $resolver($student, $membership);
                     }
                     $this->writeCsvRow($out, $row);
                 }
@@ -130,60 +135,7 @@ class StudentExportController extends Controller
     }
 
     /**
-     * Query dasar: sama dengan daftar siswa (berdasar tahun ajaran + filter),
-     * hanya memilih kolom yang dibutuhkan dan memuat relasi eksplisit.
-     *
-     * @param  array<string, mixed>  $filters
-     */
-    private function buildQuery(array $filters): Builder
-    {
-        $query = StudentRombel::query()
-            ->with([
-                'student.gender',
-                'studentNik.gender',
-                'schoolRombel',
-                'studentEntry',
-                'studentStatus',
-            ])
-            ->whereNull('student_rombels.archived_at')
-            ->whereHas('schoolRombel', function (Builder $q) use ($filters) {
-                $q->where('school_year_id', $filters['school_year_id']);
-            });
-
-        if (! empty($filters['status'])) {
-            $query->whereHas('studentStatus', fn (Builder $q) => $q->where('name', $filters['status']));
-        }
-        if (! empty($filters['entry'])) {
-            $query->whereHas('studentEntry', fn (Builder $q) => $q->where('name', $filters['entry']));
-        }
-        if (! empty($filters['rombel'])) {
-            $query->whereHas('schoolRombel', fn (Builder $q) => $q->where('name', $filters['rombel']));
-        }
-        if (! empty($filters['search'])) {
-            $search = $filters['search'];
-            $query->where(function (Builder $sub) use ($search) {
-                $sub->whereHas('student', function (Builder $q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('nik', 'like', "%{$search}%")
-                        ->orWhere('nis', 'like', "%{$search}%")
-                        ->orWhere('nisn', 'like', "%{$search}%");
-                })->orWhereHas('studentNik', function (Builder $q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('nik', 'like', "%{$search}%")
-                        ->orWhere('nis', 'like', "%{$search}%")
-                        ->orWhere('nisn', 'like', "%{$search}%");
-                });
-            });
-        }
-
-        return $query->orderBy('id');
-    }
-
-    /**
-     * Tulis satu baris CSV dengan penanganan khusus:
-     *  - nilai diperlakukan sebagai teks (nol awal dipertahankan);
-     *  - karakter koma/kutip/newline di-escape sesuai RFC 4180 (fputcsv);
-     *  - formula injection (=, +, -, @, TAB, CR) dicegah dengan prefix apostrof.
+     * Tulis satu baris CSV: nilai sebagai teks, escape RFC 4180, cegah formula injection.
      *
      * @param  resource  $out
      * @param  array<int, mixed>  $row
@@ -193,9 +145,6 @@ class StudentExportController extends Controller
         fputcsv($out, array_map([$this, 'sanitizeCell'], $row), ',', '"', '\\');
     }
 
-    /**
-     * Normalisasi nilai sel: null → '', cegah formula injection, semua → string.
-     */
     private function sanitizeCell($value): string
     {
         if ($value === null) {
@@ -204,7 +153,6 @@ class StudentExportController extends Controller
 
         $value = (string) $value;
 
-        // Cegah CSV formula injection bila sel diawali karakter berbahaya.
         if ($value !== '' && preg_match('/^[=+\-@\t\r]/', $value)) {
             $value = "'".$value;
         }
