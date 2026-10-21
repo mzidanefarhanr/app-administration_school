@@ -141,6 +141,7 @@ trait CreatesAccessFixtures
             ]);
 
             $made->push(StudentRombel::create([
+                'student_id' => $student->id,
                 'student_nik' => $student->nik,
                 'school_rombel' => $rombel->id,
                 'student_status_id' => $status->id,

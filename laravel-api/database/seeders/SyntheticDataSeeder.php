@@ -58,6 +58,7 @@ class SyntheticDataSeeder extends Seeder
             StudentRombel::firstOrCreate(
                 ['student_nik' => $student->nik, 'school_rombel' => $rombel->id],
                 [
+                    'student_id' => $student->id,
                     'student_status_id' => $statusActive->id,
                     'student_entry_id' => $entryNew->id,
                 ]

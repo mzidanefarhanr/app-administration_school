@@ -91,6 +91,18 @@ Kontrak validasi akun, bootstrap administrator, dan kebijakan password:
   - Parameter `{filename}`: divalidasi strict regex `/^backup-[a-zA-Z0-9._-]+\.zip$/`. Karakter `..`, `/`, `\`, `%00` ditolak dengan `400 Bad Request`.
   - Respons: Stream unduhan berkas biner ZIP (`Content-Type: application/zip`, `Cache-Control: no-store, private`). Berkas disajikan dari storage privat `storage/app/backups`, tanpa URL publik.
 
+## Perubahan Subfase 03a
+Kontrak keanggotaan rombel dan identitas siswa (DEC-20):
+- **Relasi Keanggotaan Rombel (`StudentRombel`)**:
+  - Kolom `student_id` (FK ke `students.id`) menjadi relasi utama `student`.
+  - Kolom legacy `student_nik` dibuat nullable dan tetap dipertahankan untuk backward compatibility.
+  - Sinkronisasi dua arah otomatis pada level model saat saving.
+  - Penegakan integritas: maksimal 1 keanggotaan rombel aktif per siswa per tahun ajaran (`school_year_id`) ditegakkan pada level database trigger MariaDB (`SQLSTATE 45000`) dan SQLite (`RAISE(ABORT)`).
+- **Perhitungan Umur Dinamis (`Student`)**:
+  - Kolom `age` dan accessor `calculated_age` dihitung secara dinamis dari tanggal lahir (`birthdate`) menggunakan timezone `Asia/Jakarta`. Nilai tanggal kosong, tidak valid, atau di masa depan mengembalikan `null`.
+- **Ekspor Siswa (`GET /api/students/export`)**:
+  - Eager load dan resolusi atribut siswa kini mendukung relasi `student` (utama) maupun `studentNik` (fallback).
+
 ## Aktual
 Resource di `/api`, dilindungi auth:sanctum: users, status-users, type-users, firstlogin; provinces/regencies/districts/villages; school-years/semesters/education-levels; genders/religions/blood-types/professions/family-status; education-schools/student-statuses/student-entries/student-majors/phase-statuses; students/school-levels/school-rombels/student-rombels; employee/employee-statuses/employee-types/employments/marital-statuses; school-profile/subjects/activities.
 `/api/user` mengambil actor. `/api/check-auth` mengembalikan authenticated + user atau null. Route auth web mencakup login/logout/register/forgot-password/reset-password dan email verification. Daftar route bukan bukti semua handler lengkap.

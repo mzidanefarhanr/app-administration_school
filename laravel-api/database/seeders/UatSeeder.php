@@ -133,7 +133,11 @@ class UatSeeder extends Seeder
 
             StudentRombel::firstOrCreate(
                 ['student_nik' => $student->nik, 'school_rombel' => $rombel->id],
-                ['student_status_id' => $status->id, 'student_entry_id' => $entry->id]
+                [
+                    'student_id' => $student->id,
+                    'student_status_id' => $status->id,
+                    'student_entry_id' => $entry->id,
+                ]
             );
         }
 

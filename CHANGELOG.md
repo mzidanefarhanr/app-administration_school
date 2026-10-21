@@ -17,6 +17,66 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-21] Subfase 03a — Feature & Schema: migrasi additive student_id, backfill aman, umur dinamis, dan penegakan keanggotaan rombel tunggal
+- Type: Schema Change | Feature | Security
+- Scope / fase: Subfase 03a (Identitas Siswa dan Membership Migration).
+- Files touched:
+  - `laravel-api/database/migrations/2029_07_23_000001_add_student_id_to_student_rombels_table.php` (baru)
+  - `laravel-api/app/Services/StudentBackfillService.php` (baru)
+  - `laravel-api/app/Console/Commands/StudentBackfillCommand.php` (baru)
+  - `laravel-api/app/Models/Student.php`
+  - `laravel-api/app/Models/StudentRombel.php`
+  - `laravel-api/app/Http/Controllers/StudentRombelController.php`
+  - `laravel-api/app/Http/Controllers/StudentExportController.php`
+  - `laravel-api/database/seeders/SyntheticDataSeeder.php`
+  - `laravel-api/database/seeders/UatSeeder.php`
+  - `laravel-api/tests/Support/CreatesAccessFixtures.php`
+  - `laravel-api/tests/Feature/Student/StudentMigrationAndBackfillTest.php` (baru)
+  - `laravel-api/tests/Feature/Student/StudentAgeAndIdentityTest.php` (baru)
+  - `laravel-api/tests/Feature/Student/StudentRombelConstraintTest.php` (baru)
+  - `laravel-api/tests/Feature/Student/MariaDbStudentIntegrationTest.php` (baru)
+  - `docs/DATABASE.md`
+  - `docs/API-CONTRACTS.md`
+  - `reports/feature-update/PHASE-03A-STUDENT-IDENTITY.md` (baru)
+  - `reports/feature-update/PHASE-03A-MANUAL-REVIEW.md` (baru)
+  - `reports/feature-update/INDEX.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `roadmap/ROADMAP.md`
+  - `roadmap/phases/PHASE-03-STUDENTS.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Additive migration: menambahkan kolom `student_id` nullable pada `student_rombels` (FK restrictOnDelete, cascadeOnUpdate) dan mengubah `student_nik` menjadi nullable, sehingga siswa tanpa NIK dapat memiliki keanggotaan rombel. Kolom legacy `student_nik` tetap dipertahankan.
+  2. Backfill aman & idempotent (`StudentBackfillService` dan `app:student-backfill`): hanya mengisi baris yang `student_id`-nya null; hanya memadankan bila NIK valid 16 digit dan unik cocok dengan tepat satu siswa di tabel `students`. NIK kosong/invalid/unmatched/ambigu dibiarkan unresolved tanpa mutasi destruktif. Pelaporan bebas PII.
+  3. Penegakan 1 rombel aktif per siswa per tahun: ditegakkan pada level database via native BEFORE INSERT dan BEFORE UPDATE trigger pada MariaDB (SQLSTATE 45000) dan SQLite (RAISE(ABORT)) serta Eloquent saving event. Mempertahankan riwayat mutasi kelas (keanggotaan non-aktif/exit date).
+  4. Perhitungan umur dinamis: accessor `age` dan `calculated_age` pada model `Student` menghitung umur runtime dari `birthdate` berbasis `Asia/Jakarta`. Tanggal kosong, tidak valid, atau masa depan mengembalikan `null`.
+  5. Penyelarasan controller: `StudentExportController` dan `StudentRombelController` mengadopsi relasi ganda `student` dan `studentNik`.
+  6. Audit dan fillable: `StudentRombel` mengaktifkan trait `Loggable` dengan allowlist audit; `Student` menambahkan `'check_bpms'` ke `$fillable` dan allowlist audit mengecualikan data riwayat medis dan penghasilan orang tua.
+- Why: memenuhi instruksi pemilik dan keputusan DEC-20 untuk menyelesaikan cacat struktural relasi FK NIK siswa dan integritas keanggotaan rombel.
+- Validation:
+  - Backend: 22 test baru Subfase 03a PASS (82 assertions); 41 test regresi PASS; total suite PASS.
+  - Style check: `./vendor/bin/pint --test` (14 file) → PASS (100% clean).
+  - Frontend: `node --test` (15 passed), `npm run build` PASS (0 errors).
+- Notes / risks:
+  - Lingkup sekolah untuk NIS saat ini single-school (DEC-01), tidak ada kolom `school_id` pada `students`.
+  - Review manual pemilik berstatus PENDING di `reports/feature-update/PHASE-03A-MANUAL-REVIEW.md`.
+  - Implementasi CRUD siswa tetap di Subfase 03b.
+- Evidence: `reports/feature-update/PHASE-03A-STUDENT-IDENTITY.md`, `reports/feature-update/PHASE-03A-MANUAL-REVIEW.md`.
+
+## [2026-10-20] Keputusan — Docs: pencatatan keputusan pemilik atas identitas siswa, keanggotaan rombel, dan audit (DEC-20)
+- Type: Docs
+- Scope / fase: Fase 03 (Pendataan Siswa Lengkap dan Aman).
+- Files touched:
+  - `docs/DECISIONS.md`
+- What changed:
+  1. Pencatatan resmi keputusan pemilik DEC-20 (menuntaskan usulan DEC-05):
+     - NIK opsional; bila diisi wajib string tepat 16 digit angka dan unik (mengabaikan soft delete); leading zero dipertahankan; input kosong dinormalisasi ke null.
+     - NIS unik dalam lingkup sekolah.
+     - Maksimal satu keanggotaan rombel aktif per siswa per tahun ajaran; riwayat mutasi kelas tetap disimpan.
+     - Soft delete siswa menonaktifkan keanggotaan rombel aktif tanpa menghapus riwayat; restore memeriksa potensi konflik identitas dan tidak otomatis mengaktifkan rombel lama.
+     - Audit pendataan mencatat perubahan identitas/akademik seperlunya; mengecualikan data medis dan penghasilan orang tua; meminimalkan penyalinan PII.
+- Why: dasar hukum dan teknis resmi untuk memulai implementasi Subfase 03a.
+- Evidence: `docs/DECISIONS.md`.
+
 ## [2026-10-20] Fase 03 — Docs: perencanaan teknis pendataan siswa lengkap dan aman
 - Type: Docs
 - Scope / fase: Fase 03 (Pendataan Siswa Lengkap dan Aman).

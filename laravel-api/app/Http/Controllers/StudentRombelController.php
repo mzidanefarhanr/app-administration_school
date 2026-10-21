@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\StudentRombel;
 use App\Http\Requests\StoreStudentRombelRequest;
 use App\Http\Requests\UpdateStudentRombelRequest;
 use App\Http\Resources\StatusResource;
+use App\Models\StudentRombel;
 
 class StudentRombelController extends Controller
 {
@@ -14,8 +14,23 @@ class StudentRombelController extends Controller
      */
     public function index()
     {
-        //get all StudentRombel
+        // get all StudentRombel
         $StudentRombel = StudentRombel::with([
+            'student.gender',
+            'student.religion',
+            'student.education_level',
+            'student.blood_type',
+            'student.profession',
+            'student.village.district.regency.province',
+            'student.family_status',
+            'student.last_education_school',
+            'student.latest_education_school',
+            'student.father_education_level',
+            'student.father_profession',
+            'student.mother_education_level',
+            'student.mother_profession',
+            'student.guardian_education_level',
+            'student.guardian_profession',
             'studentNik.gender',
             'studentNik.religion',
             'studentNik.education_level',
@@ -42,9 +57,9 @@ class StudentRombelController extends Controller
             'latestStudentExitSchool.educationLevel',
             'latestStudentExitSchool.district.regency.province',
             // 'student_major',
-            ])->get();
+        ])->get();
 
-        //return collection of StudentRombel as a resource
+        // return collection of StudentRombel as a resource
         return new StatusResource(true, 'List Data StudentRombel', $StudentRombel);
     }
 
@@ -71,6 +86,21 @@ class StudentRombelController extends Controller
     {
         //
         $studentRombels = StudentRombel::with([
+            'student.gender',
+            'student.religion',
+            'student.education_level',
+            'student.blood_type',
+            'student.profession',
+            'student.village.district.regency.province',
+            'student.family_status',
+            'student.last_education_school',
+            'student.latest_education_school',
+            'student.father_education_level',
+            'student.father_profession',
+            'student.mother_education_level',
+            'student.mother_profession',
+            'student.guardian_education_level',
+            'student.guardian_profession',
             'studentNik.gender',
             'studentNik.religion',
             'studentNik.education_level',
@@ -97,10 +127,11 @@ class StudentRombelController extends Controller
             'latestStudentExitSchool.educationLevel',
             'latestStudentExitSchool.district.regency.province',
         ])
-        ->whereHas('schoolRombel', function ($query) use ($id) {
-            $query->where('school_year_id', $id);
-        })
-        ->get();
+            ->whereHas('schoolRombel', function ($query) use ($id) {
+                $query->where('school_year_id', $id);
+            })
+            ->get();
+
         return new StatusResource(true, 'Student Rombels detail found!', $studentRombels);
     }
 

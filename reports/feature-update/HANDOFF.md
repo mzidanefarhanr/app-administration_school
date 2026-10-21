@@ -1,7 +1,7 @@
 # Handoff pengembangan aplikasi sekolah
 
-Checkpoint terbaru: 2026-10-20 (WIB). Branch `main`.
-Baseline terakhir yang dilaporkan: `94d29f4` ("docs(phase-02c): clarify weekly retention semantics, expand retention test coverage, and isolate manual guide").
+Checkpoint terbaru: 2026-10-21 (WIB). Branch `main`.
+Baseline terakhir yang dilaporkan: `832c0c7` ("docs(decisions): record owner decisions for student identity and rombel membership (DEC-20)").
 Kebijakan commit/push: commit dan push per fase/koreksi ke branch kerja aktif telah **diotorisasi**; merge, force-push, rewrite history, dan deploy manual **tetap tidak diotorisasi**.
 
 Catatan perubahan pemilik: berkas log bukti `console.txt` milik pemilik tetap ada dan **tidak** di-commit.
@@ -12,26 +12,22 @@ Catatan perubahan pemilik: berkas log bukti `console.txt` milik pemilik tetap ad
 - **Fase 00 — Audit baseline**: PARTIAL (source & environment audit selesai; browser NOT RUN).
 - **Fase 01 — Hak akses, autentikasi dan lingkungan aman**: **DITERIMA LENGKAP & DITUTUP** (Fase 01a, 01b, dan 01c seluruhnya DITERIMA PEMILIK).
 - **BLK-03**: **CLOSED pada source aktif** (seluruh akun pengguna riil dan data siswa riil telah dibersihkan dari seeder aktif; data pada riwayat commit Git historis belum dihapus).
-- **Fase 02 — Integritas Operasional (Audit & Backup/Restore)**: **DITERIMA LENGKAP & DITUTUP** (Fase 02a, 02b, dan 02c seluruhnya DITERIMA PEMILIK):
-  - **Subfase 02a — Audit Server dan Rollback Terbatas**: **DITERIMA PEMILIK** (seluruh checklist manual #1–#9 APPROVED 2026-10-19 WIB mengacu baseline `cf94cae`).
-  - **Subfase 02b — Backup Manual dan Restore Drill**: **DITERIMA PEMILIK** (seluruh checklist manual #1–#10 APPROVED 2026-10-20 WIB mengacu baseline `e8eaea4`).
-  - **Subfase 02c — Jadwal dan Monitoring Backup**: **DITERIMA PEMILIK** (seluruh checklist manual #1–#10 dinyatakan **APPROVED** oleh pemilik pada 20 Oktober 2026 WIB mengacu baseline `94d29f4`; butir #10 merupakan penerimaan atas bukti automated `BackupMonitoringTest` dengan waktu virtual `Carbon::setTestNow`).
-  - **Pencatatan Dokumentasi Formal & Penutupan Fase 02**: Pencatatan resmi penerimaan manual 02c dan penutupan formal Fase 02 pada `CHANGELOG.md`, `PHASE-02C-MANUAL-REVIEW.md`, `PHASE-02C-MONITORING-SCHEDULE.md`, `INDEX.md`, `ROADMAP.md`, dan `PHASE-02-BACKUP-AUDIT.md` dituntaskan pada sesi ini.
+- **Fase 02 — Integritas Operasional (Audit & Backup/Restore)**: **DITERIMA LENGKAP & DITUTUP** (Fase 02a, 02b, dan 02c seluruhnya DITERIMA PEMILIK mengacu baseline `94d29f4` / commit `8631545`).
+- **Fase 03 — Pendataan Siswa Lengkap dan Aman**: **IN PROGRESS**
+  - **Subfase 03a — Identitas dan Membership Migration**: **IMPLEMENTED & FULLY VERIFIED** (22 test backend PASS, Pint 100% clean, build PASS; review manual pemilik berstatus **PENDING** di `reports/feature-update/PHASE-03A-MANUAL-REVIEW.md`).
+  - **Subfase 03b — CRUD dan Form Siswa**: NOT STARTED (belum diotorisasi).
+  - **Subfase 03c — Daftar dan Rekap Siswa**: NOT STARTED (belum diotorisasi).
 - **Keputusan Terbuka yang Masih OPEN (belum menghambat)**:
   1. Makna `status_user_id` (jangan disamakan dengan `status_active`).
   2. Deployment CORS/Sanctum produksi.
   3. Strategi pencabutan token dibanding sesi.
 - **Batasan Cakupan & Penerimaan**:
+  - Arsitektur saat ini single-school (DEC-01); keunikan NIS berlaku pada level tabel `students`.
   - Task scheduler OS (Windows Task Scheduler / Linux Cron) **belum diaktifkan**.
   - **Tidak ada izin deployment ke produksi** dan bukan izin pencadangan data operasional aktif.
-  - Backup dan restore drill dibuktikan menggunakan data UAT sintetis (`school_access_uat` dan fixture lampiran privat sintetis).
   - Modul lampiran operasional belum tersedia; konsistensi lintas database–lampiran operasional tetap **N/A (belum dibuktikan)**.
-  - Deteksi deviasi berkas (pre/post-scan) bukan snapshot atomik database–berkas. Penggunaan pada lampiran operasional produksi memerlukan mekanisme penghentian mutasi sementara (*write quiescence*).
-  - Perlindungan audit & immutability terbatas pada lapisan API aplikasi dan ORM Eloquent, bukan kekebalan terhadap root DB/OS admin.
-  - Pemantauan status cadangan bersifat pasif via API/JSON dan log Laravel; belum ada notifikasi eksternal.
-  - Mutex lock mengamankan single-server concurrency; belum mendukung multi-server cluster.
-  - Bulk deletion di frontend berjalan per-record atomic, bukan satu transaksi batch lintas item.
-  - Modul scaffold (Student CRUD, Employee CRUD, Rombel write, Surat, Izin, Pembelajaran) tetap N/A.
+  - CRUD siswa (Store/Update/Delete/Restore) di UI/API tetap berada pada lingkup **Subfase 03b**.
+  - Paginasi server dan rekap chart tetap berada pada lingkup **Subfase 03c**.
 
 ---
 
@@ -107,11 +103,14 @@ Server UAT lokal yang diketahui masih berjalan (jangan dihentikan sembarangan):
 ---
 
 ## 6. Tugas Sesi Ini & Checkpoint Terkini
-1. **Pencatatan Formal 02c & Penutupan Fase 02**: SELESAI. Seluruh checklist #1–#10 di `PHASE-02C-MANUAL-REVIEW.md` telah disetujui (APPROVED) pemilik pada 20 Oktober 2026 WIB mengacu baseline `94d29f4`, dan Fase 02 resmi DITUTUP LENGKAP pada commit `8631545`.
-2. **Rencana Teknis Fase 03**: SELESAI DISUSUN di `reports/feature-update/PHASE-03-PLAN.md` mencakup:
-   - Baseline skema, anomali FK `student_rombels.student_nik`, dan scaffold controller.
-   - Subfase 03a (Additive migration `student_id`, backfill, virtual age, model fillable).
-   - Subfase 03b (CRUD siswa, optimistic concurrency 409, validasi homonim & string identitas, audit server).
-   - Subfase 03c (Paginasi server, filter rombel/tahun, empty state, rekap chart, integrasi ekspor CSV).
-   - 4 butir pertanyaan keputusan pemilik terkait DEC-05 (NIS vs NIK, aturan 1 rombel/periode, soft delete/restore, eksklusi audit medis/gaji).
-3. **PENTING**: Implementasi Fase 03 **BELUM DIOTORISASI**. Jangan memulai pengkodean modul Fase 03 sebelum rencana teknis dan pertanyaan keputusan disetujui oleh pemilik.
+1. **Keputusan Pemilik DEC-20**: SELESAI DICATAT pada commit `832c0c7` (NIK opsional 16 digit, NIS unik sekolah, 1 rombel aktif/tahun, soft delete nonaktifkan rombel, audit minimal PII).
+2. **Subfase 03a — Identitas dan Membership Migration**:
+   - Migration additive `2029_07_23_000001_add_student_id_to_student_rombels_table` selesai dan teruji.
+   - Kolom `student_id` nullable (FK restrictOnDelete, cascadeOnUpdate); `student_nik` nullable.
+   - Service `StudentBackfillService` dan artisan command `app:student-backfill` selesai, idempotent, bebas PII.
+   - Trigger database MariaDB dan SQLite menegakkan aturan maksimal 1 rombel aktif per siswa per tahun ajaran.
+   - Umur dihitung dinamis dari `birthdate` berbasis `Asia/Jakarta` (nilai turunan runtime).
+   - Penyelarasan `StudentExportController` dan `StudentRombelController` ke relasi ganda `student` & `studentNik`.
+   - Pengujian: 22 backend test PASS, Pint 100% clean, frontend build PASS.
+   - Checklist manual 10 butir disiapkan di `reports/feature-update/PHASE-03A-MANUAL-REVIEW.md` (status: PENDING).
+3. **Langkah Berikutnya**: Menunggu review manual dan persetujuan pemilik atas Subfase 03a sebelum melangkah ke perencanaan/implementasi Subfase 03b (CRUD Siswa). Implementasi 03b BELUM DIOTORISASI.

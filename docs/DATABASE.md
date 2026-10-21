@@ -11,9 +11,9 @@ Nama tahun pada migration mencapai 2029; Laravel menentukan urutan dari nama fil
 |---|---|---|
 | users | name, email, username, password, nik, type_user_id, status_user_id, version, first_login_at, status_active | email/username/nik unique; dua field terakhir boolean; soft delete |
 | type_users / status_users | name | Seeder Admin/User dan Aktif/Tidak Aktif |
-| students | nik, nis, nisn, birthdate, age; gender/religion/education/blood/profession/village FK; keluarga; check_kjp/pip/ppdbbersama/bpms | Identitas unique nullable; age tersimpan; soft delete |
+| students | nik, nis, nisn, birthdate, age; gender/religion/education/blood/profession/village FK; keluarga; check_kjp/pip/ppdbbersama/bpms | Identitas unique nullable; umur dihitung dinamis dari birthdate (Asia/Jakarta, DEC-20); soft delete |
 | school_rombels | school_level_id, school_year_id, student_major_id, class_teach_id, name, version | Wali kelas terkait users.id |
-| student_rombels | student_nik → students.nik; school_rombel → school_rombels.id; status/entry/mutation/exit/graduation/check_dapodik | Tidak ada constraint unique komposit pada baseline; soft delete |
+| student_rombels | student_id → students.id (Fase 03a); student_nik (legacy nullable); school_rombel → school_rombels.id; status/entry/exit/graduation | Relasi primer student_id; trigger DB menegakkan max 1 rombel aktif per siswa/tahun (DEC-20); soft delete |
 | employees | user_nik → users.nik; employee status/type/employment/subject, religion/district/marital/gender; biodata dan pendidikan | Banyak FK required; subject tunggal; tidak memiliki version baseline |
 | school_profiles | pendidikan sekolah, kepala sekolah, tahun ajaran, nomor/kontak sekolah | Detail sumber migration dan SchoolProfile model |
 | subjects | name, description | Referensi mata pelajaran, bukan jurnal |
@@ -30,14 +30,16 @@ Nama tahun pada migration mencapai 2029; Laravel menentukan urutan dari nama fil
 | ability_role (Fase 01a) | role_id, ability_id, unique komposit | Pemetaan peran→kemampuan yang dapat diatur admin |
 | role_user (Fase 01a) | user_id, role_id, assigned_by, unique komposit, FK cascade | Penetapan peran; auto-map legacy hanya `Admin`→`admin-sistem` (DEC-14); `User` tidak otomatis; penetapan manual admin tidak dihapus |
 
-## Kesenjangan model–schema
-Migration siswa punya check_bpms; model fillable yang diperiksa belum memuatnya. StudentRombel migration memiliki graduation/latest_information/check_dapodik/informations_dapodik yang tidak semuanya ada di fillable baseline. Employee relation `relogion` tampak salah eja. Verifikasi consumer sebelum mengganti nama. Jangan menganggap semua model memiliki version atau Loggable; Student/StudentRombel belum menggunakannya.
+## Kesenjangan model–schema & Status Penyelarasan
+- `Student.php`: Atribut `check_bpms` telah ditambahkan ke `$fillable`. Umur dihitung dinamis via accessor `age` / `calculated_age` dari `birthdate` (Asia/Jakarta, DEC-20).
+- `StudentRombel.php`: Kolom `student_id` telah ditambahkan via migration `2029_07_23_000001` (additive). Model mengaktifkan trait `Loggable` dengan allowlist audit minimalkan PII. Atribut `latest_student_graduation_date`, `latest_information`, `check_dapodik`, dan `informations_dapodik` diselaraskan ke `$fillable`.
+- Employee relation `relogion` tampak salah eja. Verifikasi consumer sebelum mengganti nama pada Fase 04.
 
-## Usulan migration inti (belum ada)
-- Tambah student_id pada student_rombels, backfill berdasar NIK yang cocok, audit orphan/duplikat, constraint, pindahkan consumer, kemudian deprecate FK lama di perubahan terpisah. NIK siswa nullable, sehingga FK NIK sebagai satu-satunya identitas menyulitkan data belum lengkap.
-- Evaluasi user_id/akun opsional pada employees. Profil pegawai bukan akun login; migrasi hubungan membutuhkan keputusan DEC-04.
-- Identitas bernama tetap string. Null/blank dinormalisasi. Unique NIS/NISN sesuai lingkup sekolah dan kebijakan retensi; soft delete tidak otomatis membebaskan unique DB.
-- Constraint keanggotaan rombel mengikuti kebijakan satu rombel per periode; jangan hanya menambah unique student_id-school_rombel jika larangan meliputi dua rombel berbeda pada tahun sama.
+## Usulan migration & status implementasi
+- **Subfase 03a (SELESAI)**: Penambahan `student_id` pada `student_rombels` (FK restrictOnDelete, cascadeOnUpdate); pelonggaran nullability `student_nik`; backfill idempotent berbasis NIK tunggal; dan penegakan trigger database 1 rombel aktif per siswa per tahun ajaran.
+- Evaluasi user_id/akun opsional pada employees. Profil pegawai bukan akun login; migrasi hubungan membutuhkan keputusan DEC-04 (Fase 04).
+- Identitas bernama tetap string. Null/blank dinormalisasi. Unique NIS lingkup sekolah (DEC-20).
+- Constraint keanggotaan rombel: telah ditegakkan via database trigger MariaDB dan SQLite pada Fase 03a.
 - Jangan rewrite migration lama. Semua backfill punya count awal/akhir, daftar exception sintetis, strategi retry, dan rollback yang tidak menghapus data valid.
 
 ## Tabel target baru (usulan logis)

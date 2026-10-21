@@ -50,13 +50,13 @@ class StudentExportController extends Controller
     public function __construct()
     {
         $this->columns = [
-            'name' => ['Name', fn (StudentRombel $r) => $r->studentNik?->name],
-            'gender' => ['Gender', fn (StudentRombel $r) => $r->studentNik?->gender?->name],
-            'birthplace' => ['Birthplace', fn (StudentRombel $r) => $r->studentNik?->birthplace],
-            'birthdate' => ['Birthdate', fn (StudentRombel $r) => $r->studentNik?->birthdate],
-            'nik' => ['NIK', fn (StudentRombel $r) => $r->studentNik?->nik],
-            'nis' => ['NIS', fn (StudentRombel $r) => $r->studentNik?->nis],
-            'nisn' => ['NISN', fn (StudentRombel $r) => $r->studentNik?->nisn],
+            'name' => ['Name', fn (StudentRombel $r) => ($r->student ?? $r->studentNik)?->name],
+            'gender' => ['Gender', fn (StudentRombel $r) => ($r->student?->gender ?? $r->studentNik?->gender)?->name],
+            'birthplace' => ['Birthplace', fn (StudentRombel $r) => ($r->student ?? $r->studentNik)?->birthplace],
+            'birthdate' => ['Birthdate', fn (StudentRombel $r) => ($r->student ?? $r->studentNik)?->birthdate],
+            'nik' => ['NIK', fn (StudentRombel $r) => ($r->student ?? $r->studentNik)?->nik],
+            'nis' => ['NIS', fn (StudentRombel $r) => ($r->student ?? $r->studentNik)?->nis],
+            'nisn' => ['NISN', fn (StudentRombel $r) => ($r->student ?? $r->studentNik)?->nisn],
             'school_rombel' => ['School Rombel', fn (StudentRombel $r) => $r->schoolRombel?->name],
             'student_entry' => ['Student Entry', fn (StudentRombel $r) => $r->studentEntry?->name],
             'student_status' => ['Student Status', fn (StudentRombel $r) => $r->studentStatus?->name],
@@ -139,6 +139,7 @@ class StudentExportController extends Controller
     {
         $query = StudentRombel::query()
             ->with([
+                'student.gender',
                 'studentNik.gender',
                 'schoolRombel',
                 'studentEntry',
@@ -159,11 +160,18 @@ class StudentExportController extends Controller
         }
         if (! empty($filters['search'])) {
             $search = $filters['search'];
-            $query->whereHas('studentNik', function (Builder $q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('nik', 'like', "%{$search}%")
-                    ->orWhere('nis', 'like', "%{$search}%")
-                    ->orWhere('nisn', 'like', "%{$search}%");
+            $query->where(function (Builder $sub) use ($search) {
+                $sub->whereHas('student', function (Builder $q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('nik', 'like', "%{$search}%")
+                        ->orWhere('nis', 'like', "%{$search}%")
+                        ->orWhere('nisn', 'like', "%{$search}%");
+                })->orWhereHas('studentNik', function (Builder $q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('nik', 'like', "%{$search}%")
+                        ->orWhere('nis', 'like', "%{$search}%")
+                        ->orWhere('nisn', 'like', "%{$search}%");
+                });
             });
         }
 

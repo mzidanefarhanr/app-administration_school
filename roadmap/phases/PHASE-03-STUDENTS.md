@@ -1,15 +1,18 @@
 # Fase 03 — Pendataan siswa lengkap dan aman
 
-Status teknis: NOT STARTED. Status review: PENDING. Semua tes/browser/manual: NOT RUN.
-Dependensi: 01; 02 sebelum data operasional; DEC-05. Baseline rencana: b02a87f; audit ulang HEAD saat pelaksanaan.
+Status teknis: 03a IMPLEMENTED & FULLY VERIFIED (22 test backend PASS, Pint 100%, build PASS); 03b & 03c NOT STARTED.
+Status review: 03a PENDING (Checklist #1–#10 di reports/feature-update/PHASE-03A-MANUAL-REVIEW.md); Fase 03 keseluruhan IN PROGRESS.
+Dependensi: 01; 02; DEC-05; DEC-20 (APPROVED 2026-10-20 WIB). Laporan subfase: reports/feature-update/PHASE-03A-STUDENT-IDENTITY.md.
 
 ## Tujuan dan scope
-Pendataan siswa lengkap dan aman. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Tidak ada pekerjaan implementasi yang telah dilakukan dalam penyusunan dokumen ini.
+Pendataan siswa lengkap dan aman. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Subfase 03a telah diimplementasikan dan diverifikasi; Subfase 03b dan 03c menunggu otorisasi terpisah.
 
 ## Subfase
 
 ### 03a — Identitas dan membership migration
-Scope: Rancang student_id additive untuk student_rombels; audit backfill NIK/orphan/duplikat tanpa expose data. Normalisasi null dan identitas string; schema/model mismatch bantuan/status diperbaiki sesuai source; umur dihitung.
+Status: **IMPLEMENTED & FULLY VERIFIED** (Review Pemilik: PENDING di `reports/feature-update/PHASE-03A-MANUAL-REVIEW.md`).
+Laporan: `reports/feature-update/PHASE-03A-STUDENT-IDENTITY.md`.
+Scope selesai: Kolom `student_id` additive pada `student_rombels` (FK restrictOnDelete, cascadeOnUpdate); `student_nik` nullable; backfill aman kecocokan NIK tunggal tanpa membocorkan PII (`StudentBackfillService` dan `app:student-backfill`); penegakan aturan maksimal 1 rombel aktif per siswa per tahun ajaran via database trigger MariaDB (`SQLSTATE 45000`) dan SQLite (`RAISE(ABORT)`) serta model event; umur dihitung dinamis dari `birthdate` berbasis `Asia/Jakarta`; trait `Loggable` aktif di `StudentRombel` dengan allowlist audit yang mengecualikan data medis dan penghasilan orang tua; adaptasi jalur ekspor dan pembacaan. (22 backend test PASS).
 
 Kriteria penerimaan: Siswa tanpa NIK tetap dapat dicatat dan diberi membership; NIK diperbaiki tidak memutus relasi; backfill count dan exception terbukti; unique constraint sesuai kebijakan.
 

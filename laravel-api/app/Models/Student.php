@@ -105,6 +105,7 @@ class Student extends Model
         'guardian_hp_num',
         'check_ppdbbersama',
         'check_kjp',
+        'check_bpms',
         'check_pip',
     ];
 
@@ -210,5 +211,63 @@ class Student extends Model
     public function guardian_profession(): BelongsTo
     {
         return $this->belongsTo(Profession::class, 'guardian_profession_id', 'id');
+    }
+
+    /**
+     * Hitung umur dinamis dari tanggal lahir berbasis timezone Asia/Jakarta (DEC-20).
+     * Nilai turunan runtime; tanggal kosong atau tidak valid mengembalikan null.
+     */
+    public function getAgeAttribute($value): ?int
+    {
+        return $this->getAgeAsOf();
+    }
+
+    /**
+     * Accessor eksplisit untuk umur terhitung.
+     */
+    public function getCalculatedAgeAttribute(): ?int
+    {
+        return $this->getAgeAsOf();
+    }
+
+    /**
+     * Hitung umur per tanggal acuan tertentu (default: hari ini di Asia/Jakarta).
+     */
+    public function getAgeAsOf(?\DateTimeInterface $asOf = null): ?int
+    {
+        if (! $this->birthdate) {
+            return null;
+        }
+
+        try {
+            $birth = \Carbon\Carbon::parse($this->birthdate, 'Asia/Jakarta')->startOfDay();
+            $target = $asOf
+                ? \Carbon\Carbon::parse($asOf, 'Asia/Jakarta')->startOfDay()
+                : \Carbon\Carbon::now('Asia/Jakarta')->startOfDay();
+
+            if ($birth->isAfter($target)) {
+                return null;
+            }
+
+            return (int) $birth->diffInYears($target);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * Relasi utama keanggotaan rombel berbasis student_id (Fase 03a).
+     */
+    public function studentRombels(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(StudentRombel::class, 'student_id', 'id');
+    }
+
+    /**
+     * Relasi fallback legacy berbasis student_nik.
+     */
+    public function studentRombelsLegacy(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(StudentRombel::class, 'student_nik', 'nik');
     }
 }
