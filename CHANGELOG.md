@@ -17,6 +17,30 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-21] Subfase 03b — Docs: perencanaan teknis CRUD siswa, optimistic locking, dan validasi form
+- Type: Docs
+- Scope / fase: Subfase 03b (CRUD dan Form Siswa).
+- Files touched:
+  - `reports/feature-update/PHASE-03B-PLAN.md` (baru)
+  - `reports/feature-update/INDEX.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Penyusunan dokumen rencana teknis terperinci Subfase 03b (`reports/feature-update/PHASE-03B-PLAN.md`):
+     - Spesifikasi endpoint RESTful: `POST /api/students`, `GET /api/students/{id}`, `PUT /api/students/{id}`, `DELETE /api/students/{id}`, dan `POST /api/students/{id}/restore` dilindungi kemampuan `students.manage` dan `students.view`.
+     - Validasi server lengkap (`StoreStudentRequest` / `UpdateStudentRequest`): normalisasi string/null, homonim sah (nama boleh sama), NIK nullable 16 digit angka, NIS unik lingkup single-school (DEC-01 & DEC-20), NISN nullable 10 digit, serta validasi FK ke seluruh tabel referensi.
+     - Kontrol konkurensi optimistik atomik via kolom `version`: deteksi konflik versi pada update HTTP 409 Conflict tanpa menimpa data server dan aman terhadap request bersamaan.
+     - Transaksi atomik soft delete dan penonaktifan keanggotaan rombel aktif pada tahun ajaran berjalan tanpa menghapus riwayat mutasi kelas siswa.
+     - Transaksi restore dengan pemeriksaan potensi bentrok keunikan identitas dan kepatuhan aturan bahwa rombel lama tidak otomatis diaktifkan kembali.
+     - Penjelasan semantik keunikan aktual: indeks unik tabel `students` pada MariaDB/InnoDB berlaku menyeluruh (unconditional unique), menjaga nomor identitas siswa terarsip tidak dipakai sembarangan tanpa melemahkan constraint database.
+     - Audit server terarah via trait `Loggable` dengan allowlist ketat atribut operasional dan eksklusi mutlak data medis (`history_illness`), nomor kontak, dan data penghasilan orang tua/wali (NFR-01, DEC-20).
+     - Antarmuka pengguna (UI English): dialog form modular di `Student.vue`, penanganan inline field error HTTP 422, penanganan dialog konflik HTTP 409, loading state, dan pencegahan double-submit.
+     - Matriks pengujian backend komprehensif dan UAT sintetis.
+     - Identifikasi satu pertanyaan keputusan operasional pemilik terkait penetapan status rombel spesifik saat soft delete siswa.
+- Why: mematuhi tata kelola repository dan instruksi pemilik untuk merencanakan Subfase 03b secara konkret sebelum implementasi.
+- Notes / risks:
+  - Implementasi Subfase 03b belum diotorisasi.
+- Evidence: `reports/feature-update/PHASE-03B-PLAN.md`.
+
 ## [2026-10-21] Subfase 03a — Docs: penerimaan manual pemilik atas identitas siswa dan migrasi keanggotaan rombel
 - Type: Docs
 - Scope / fase: Subfase 03a (Identitas Siswa dan Membership Migration).
