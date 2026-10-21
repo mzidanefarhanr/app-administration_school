@@ -2,6 +2,7 @@
 
 Status: DRAFT untuk pengembangan; disusun 14 Oktober 2026. Tujuan pemilik sudah diketahui, detail kebijakan pada DECISIONS masih terbuka. Tidak semua target di dokumen ini diotorisasi untuk langsung dibangun.
 Catatan Fase 01a (2026-10-15): FR-01 sebagian tercapai — kemampuan bernama + enforcement backend terpusat, FirstLogin terikat actor, akun nonaktif ditolak, admin pengelola akses terakhir dilindungi, register publik ditutup. Ekspor siswa kini punya endpoint backend terlindungi (`students.view` + `students.export`) dengan kolom eksplisit dan filter sama dengan daftar. Sisa FR-01 (cakupan record per modul, pemetaan role lengkap) menunggu modul terkait.
+Catatan Subfase 03c (2026-10-21, DEC-22): FR-04 dan bagian server-pagination FR-14 untuk daftar siswa tercapai — daftar/rekap/ekspor siswa server-side dengan filter All/Placed/Unplaced, pencarian nama/NIS/NISN, sort allowlist, paginasi 10/20/50/100 (default 20), atribut daftar minimum tanpa PII sensitif, dan ekspor yang mengikuti filter (batas baris menolak 422). Aksi penempatan rombel via UI belum termasuk (di luar 03c). Penerimaan manual 03c masih menunggu pemilik.
 
 ## Pengguna dan batas produk
 Pengguna utama operator; admin mengatur akses; guru/wali kelas dan kepala sekolah merupakan peran target yang perlu dipetakan ke akun aktual. Default scope satu sekolah, beberapa tahun ajaran. Multi-sekolah, portal orang tua/siswa, pembayaran, LMS lengkap, aplikasi mobile native dan integrasi otomatis pemerintah di luar roadmap awal.

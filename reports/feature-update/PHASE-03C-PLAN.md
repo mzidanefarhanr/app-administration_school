@@ -3,7 +3,7 @@
 - Tanggal WIB: 2026-10-21
 - Subfase: **03c — Daftar dan Rekap Siswa**
 - Mode: **Audit source aktual + perencanaan (READ-ONLY)**. Tidak ada perubahan kode/skema yang dieksekusi pada langkah ini.
-- Status rencana: **READY FOR OWNER REVIEW** (implementasi belum diotorisasi).
+- Status rencana: **DISETUJUI PEMILIK (DEC-22, 2026-10-21 WIB); diimplementasikan pada 03c**.
 - Prasyarat: Subfase 03b **DITERIMA PEMILIK** (checklist #1–#13 APPROVED 2026-10-21 WIB, baseline `cbd25bd`); backend `e77f335`.
 - Dokumen acuan: `AGENTS.md`, `ROADMAP.md`, `roadmap/phases/PHASE-03-STUDENTS.md`, `docs/REQUIREMENTS.md`, `docs/DATABASE.md`, `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `docs/DECISIONS.md`.
 

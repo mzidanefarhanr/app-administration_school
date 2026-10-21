@@ -12,7 +12,7 @@ Fondasi keamanan + backup dahulu; penyelesaian pendataan; pengolahan massal dan 
 | 00 | [Audit baseline dan kesiapan lingkungan](phases/PHASE-00-BASELINE.md) | Tidak ada | PARTIAL (source+env audit; test/build/browser NOT RUN) | PENDING |
 | 01 | [Hak akses, autentikasi dan lingkungan aman](phases/PHASE-01-ACCESS.md) | 00; DEC-03 untuk 01a | **IMPLEMENTED & VERIFIED** (01a, 01b, 01c selesai; 82 test backend PASS; 15 unit test frontend PASS; UAT browser PASS) | **DITERIMA LENGKAP & DITUTUP** (01a APPROVED 2026-10-15; 01b APPROVED 2026-10-16/17; 01c APPROVED 2026-10-17 WIB) |
 | 02 | [Audit terpercaya dan backup yang dapat dipulihkan](phases/PHASE-02-BACKUP-AUDIT.md) | 01; DEC-02 dan DEC-09 untuk backup | **IMPLEMENTED & VERIFIED** (02a, 02b, 02c selesai; 154 test backend PASS; round-trip MariaDB PASS) | **DITERIMA LENGKAP & DITUTUP** (02a APPROVED 2026-10-19; 02b APPROVED 2026-10-20; 02c APPROVED 2026-10-20 WIB) |
-| 03 | [Pendataan siswa lengkap dan aman](phases/PHASE-03-STUDENTS.md) | 01; 02 sebelum data operasional; DEC-05, DEC-20 | PARTIAL (03a DITERIMA PEMILIK; 03b–03c NOT STARTED) | PENDING |
+| 03 | [Pendataan siswa lengkap dan aman](phases/PHASE-03-STUDENTS.md) | 01; 02 sebelum data operasional; DEC-05, DEC-20 | PARTIAL (03a & 03b DITERIMA PEMILIK; 03c IMPLEMENTED & VERIFIED, manual acceptance pending) | PENDING |
 | 04 | [Guru dan pegawai](phases/PHASE-04-EMPLOYEES.md) | 01; 02; DEC-04 | NOT STARTED | PENDING |
 | 05 | [Impor, ekspor dan kualitas data](phases/PHASE-05-IMPORT-EXPORT.md) | 03,04; DEC-08 | NOT STARTED | PENDING |
 | 06 | [Siklus tahun ajaran dan rombel](phases/PHASE-06-ACADEMIC-YEAR.md) | 03,04; DEC-05 | NOT STARTED | PENDING |
@@ -68,4 +68,5 @@ Baca [prompt OpenCode](../docs/OPENCODE-WORKFLOW.md), jalankan 00a–00b audit s
 - [x] Keputusan DEC-20 (kebijakan identitas siswa, keanggotaan rombel, audit) APPROVED 2026-10-20 WIB.
 - [x] Subfase 03a — Identitas dan membership migration: DITERIMA PEMILIK (checklist #1–#11 APPROVED 2026-10-21 WIB mengacu baseline 37f7d79; laporan PHASE-03A-STUDENT-IDENTITY.md).
 - [x] Subfase 03b — CRUD dan form siswa: **DITERIMA PEMILIK** (checklist #1–#13 APPROVED 2026-10-21 WIB mengacu baseline `cbd25bd`; backend `e77f335` + UI `cbd25bd`; 55 test Student/228 assertions, 209 test penuh/946 assertions, 15 unit frontend, build PASS, browser UAT agen PASS; laporan PHASE-03B-STUDENT-CRUD.md).
-- [ ] Subfase 03c — Daftar dan rekap siswa: RENCANA DISUSUN, menunggu review pemilik (laporan PHASE-03C-PLAN.md); implementasi belum diotorisasi.
+- [ ] Subfase 03c — Daftar, rekap & ekspor siswa (server-side): **IMPLEMENTED & VERIFIED (AGEN) / MANUAL ACCEPTANCE PENDING**. Keputusan DEC-22 disetujui 2026-10-21 WIB (`4fa20c6`); daftar/rekap/ekspor server-side, filter All/Placed/Unplaced, atribut minimum, `only_archived` butuh `students.manage`; 229 test penuh/1076 assertions, 88 test Student+Export/394 assertions, 15 unit frontend, build PASS, Pint PASS, browser UAT PASS; laporan PHASE-03C-STUDENT-DIRECTORY.md.
+- [ ] Subfase 03d (kandidat) — Aksi penempatan/penyesuaian keanggotaan rombel via UI: **BELUM DIOTORISASI** (di luar scope 03c, DEC-22 #5).

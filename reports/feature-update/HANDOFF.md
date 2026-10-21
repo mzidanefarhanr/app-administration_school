@@ -3,6 +3,7 @@
 Checkpoint terbaru: 2026-10-21 (WIB). Branch `main`.
 Baseline backend terakhir: `e77f335` ("feat(phase-03b): implement student CRUD with optimistic locking, administrative archive, and audit privacy").
 Baseline penerimaan manual 03b: `cbd25bd` ("feat(phase-03b): add student CRUD UI, archive/restore flows, and 03b concurrency tests").
+Baseline implementasi 03c: `0a15325`; keputusan 03c (DEC-22): `4fa20c6` ("docs(phase-03c): record owner decisions for list, placement, recap, and export").
 Kebijakan commit/push: commit dan push per fase/koreksi ke branch kerja aktif telah **diotorisasi**; merge, force-push, rewrite history, dan deploy manual **tetap tidak diotorisasi**.
 
 Catatan perubahan pemilik: `console.txt` dan `vue-app/test-results/` adalah artefak lokal dan **tidak** di-commit.
@@ -19,7 +20,11 @@ Catatan perubahan pemilik: `console.txt` dan `vue-app/test-results/` adalah arte
     - Backend: `e77f335`; UI/deliverable: `cbd25bd`.
     - Verifikasi agen: suite Student **55 passed (228 assertions)**; regresi backend **209 passed (946 assertions)**; frontend unit **15 passed**; build **PASS**; browser UAT agen PASS.
     - **Penerimaan manual pemilik: APPROVED** (checklist #1–#13, 2026-10-21 WIB, baseline `cbd25bd`).
-  - **Subfase 03c** — Daftar dan Rekap Siswa: NOT STARTED. Rencana teknis disusun (`reports/feature-update/PHASE-03C-PLAN.md`) dan menunggu review pemilik; implementasi belum diotorisasi.
+  - **Subfase 03c** — Daftar, Rekap & Ekspor Siswa (server-side): **IMPLEMENTED & VERIFIED (AGEN) / MANUAL ACCEPTANCE PENDING**.
+    - Keputusan **DEC-22** disetujui pemilik 2026-10-21 WIB (commit `4fa20c6`); baseline implementasi `0a15325`.
+    - Verifikasi agen: `php artisan test` **229 passed (1076 assertions)**; `tests/Feature/Student` + `StudentExportTest` **88 passed (394 assertions)**; frontend `node --test` **15 passed**; `npm run build` **PASS**; Pint **PASS**; browser UAT **PASS**.
+    - Laporan: `PHASE-03C-STUDENT-DIRECTORY.md`; checklist `PHASE-03C-MANUAL-REVIEW.md` (#1–#23) **menunggu review pemilik**.
+  - **Subfase 03d (kandidat)** — Aksi penempatan/penyesuaian keanggotaan rombel via UI: **BELUM DIOTORISASI** (di luar scope 03c).
 - **Keputusan Terbuka yang Masih OPEN (belum menghambat)**:
   1. Makna `status_user_id`.
   2. Deployment CORS/Sanctum produksi.
@@ -28,8 +33,8 @@ Catatan perubahan pemilik: `console.txt` dan `vue-app/test-results/` adalah arte
   - Single-school (DEC-01); keunikan NIS level tabel `students`.
   - Task scheduler OS belum diaktifkan.
   - Tidak ada izin deployment produksi.
-  - UI 03b tidak membuat keanggotaan rombel; siswa baru belum tampil di daftar per tahun ajaran sampai ditempatkan di rombel.
-  - Pagination server dan rekap chart tetap scope **03c**.
+  - UI 03b tidak membuat keanggotaan rombel; siswa baru kini **tampil** pada daftar All/Unplaced (03c) meski belum ditempatkan ke rombel.
+  - Pagination server dan rekap chart dikerjakan pada **03c** (selesai secara teknis, menunggu penerimaan manual).
 
 ---
 
@@ -64,13 +69,15 @@ Catatan perubahan pemilik: `console.txt` dan `vue-app/test-results/` adalah arte
 
 ---
 
-## 4. Status Tugas Subfase 03b
-1. **Backend CRUD + optimistic locking + arsip administratif**: SELESAI (commit `e77f335`).
-2. **UI create/edit/detail/archive/restore + 422/409/version/loading/izin/English**: IMPLEMENTED & DIVERIFIKASI agen.
-3. **Bukti konkurensi 03b**: SELESAI (2 integration test MariaDB disposable PASS).
-4. **Browser UAT**: PASS oleh agen pada server UAT lokal.
-5. **Penerimaan manual pemilik**: **APPROVED** (checklist #1–#13, 2026-10-21 WIB, baseline `cbd25bd`). Status Subfase 03b: **DITERIMA PEMILIK**.
-6. **Catatan klasifikasi bukti**: penerimaan manual pemilik terpisah dari bukti otomatis/browser agen. ESLint terakhir 22 errors / 2609 warnings (**bukan PASS**). Penerimaan bukan izin deployment/akses data operasional.
+## 4. Status Tugas Subfase 03c
+1. **Keputusan DEC-22**: SELESAI dicatat & di-push (`4fa20c6`).
+2. **Backend daftar/rekap + validasi + anti double-count + atribut minimum**: SELESAI (`StudentDirectory`, `StudentController::index`); `only_archived` kini butuh `students.manage`.
+3. **Backend ekspor terfilter (unplaced, batas 422, leading zero, audit tidak berubah)**: SELESAI (`StudentExportController`).
+4. **Frontend lazy table + filter + rekap + stale guard + state + pemulihan halaman kosong**: SELESAI (`Student.vue`).
+5. **Verifikasi**: backend **229 passed (1076 assertions)**; Student+Export **88 passed (394 assertions)**; frontend **15 passed**; build **PASS**; Pint **PASS**; browser UAT **PASS**.
+6. **Lint terarah**: `Student.vue` blob LF 22 errors/228 warnings → **20 errors/218 warnings** (tidak ada error baru; sisa pre-existing).
+7. **Penerimaan manual pemilik**: **PENDING** (checklist #1–#23). Fase 03 tetap PARTIAL; 03a–03b tetap DITERIMA.
+8. **Catatan klasifikasi bukti**: bukti agen (test/build/browser) terpisah dari penerimaan manual. ESLint repo **bukan PASS** (20 errors/218 warnings tersisa). Tidak ada deployment; penerimaan bukan izin deployment/akses data operasional.
 
 ---
 
@@ -84,13 +91,14 @@ Server UAT lokal yang diketahui berjalan (jangan dihentikan sembarangan):
 - **PENTING**: dilarang mengakses data operasional atau membersihkan database UAT `school_access_uat`.
 
 Data sintetis yang berubah selama browser UAT:
-- Dibuat `UAT Browser Invalid Nik` (NIK `9876543210123456`, NIS `UAT-BROWSER-001`).
-- `Synthetic Student One` diubah menjadi `Synthetic Student One (B)`, diarsipkan (`UAT browser archive test`), lalu di-restore; rombel lamanya tetap non-aktif sesuai DEC-21.
+- 03b: `UAT Browser Invalid Nik` (NIK `9876543210123456`, NIS `UAT-BROWSER-001`); `Synthetic Student One` → `Synthetic Student One (B)` diarsipkan lalu di-restore (rombel lama tetap non-aktif).
+- 03c: siswa `UAT 03C No Rombel` (NIK `9000000000000101`); seed `UAT03C Bulk 01–25` (NIK `90000000000002xx`; 10 placed, 15 unplaced); beberapa bulk diarsipkan lalu satu di-restore; `=FORMULA TEST` NISN diubah ke `0000000999` via edit UAT.
+- 03c: kata sandi akun sintetis `uat.operator`/`uat.kepsek` direset pada DB UAT disposable (kata sandi tidak ditulis ke dokumen) karena kata sandi sesi sebelumnya tidak tersedia.
 
 ---
 
 ## 6. Langkah Berikutnya
-1. Subfase 03b **DITERIMA PEMILIK** (penerimaan manual #1–#13, baseline `cbd25bd`). Penerimaan 03a tetap dipertahankan.
-2. Rencana teknis **Subfase 03c** disusun (`reports/feature-update/PHASE-03C-PLAN.md`) dan menunggu review pemilik. Fase 03 tetap **PARTIAL** sampai 03c selesai.
-3. **Jangan memulai implementasi 03c** sebelum rencana disetujui pemilik.
-4. Keputusan pemilik yang dibutuhkan tercantum pada bagian keputusan di rencana 03c.
+1. Review pemilik checklist 03c (`PHASE-03C-MANUAL-REVIEW.md` #1–#23). Status 03c: IMPLEMENTED & VERIFIED / MANUAL ACCEPTANCE PENDING.
+2. Setelah persetujuan: catat penerimaan pada commit dokumentasi tersendiri dan tutup Fase 03 bila seluruh subfase selesai.
+3. Aksi penempatan rombel via UI belum dibangun (kandidat 03d; belum diotorisasi).
+4. 03a–03b tetap DITERIMA PEMILIK; jangan mengubah semantik arsip/restore DEC-21.

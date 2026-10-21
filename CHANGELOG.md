@@ -17,6 +17,42 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-21] Subfase 03c — Implementasi daftar, rekap, dan ekspor siswa server-side
+- Type: Feature
+- Scope / fase: Subfase 03c (Daftar dan Rekap Siswa), DEC-22.
+- Files touched:
+  - `laravel-api/app/Support/StudentDirectory.php` (baru)
+  - `laravel-api/app/Http/Controllers/StudentController.php`
+  - `laravel-api/app/Http/Controllers/StudentExportController.php`
+  - `laravel-api/tests/Feature/Student/StudentDirectoryTest.php` (baru)
+  - `vue-app/src/views/pages/public/Student.vue`
+- What changed:
+  1. `GET /api/students` server-side: pagination 10/20/50/100 (default 20), pencarian nama/NIS/NISN, sort allowlist (`id|name|nis|nisn`) dengan pembeda stabil `id`, filter `placement` All/Placed/Unplaced + `rombel` + `school_year_id`, respons `data`/`meta`/`recap`. Validasi parameter English 422; `unplaced`+`rombel` ditolak 422.
+  2. Definisi bersama `StudentDirectory` (dipakai daftar & ekspor): keanggotaan aktif tahun terpilih, identitas `student_id` primer + fallback legacy `student_nik` (aman 03a), anti double-count via EXISTS, satu rombel aktif per siswa.
+  3. Atribut daftar minimum (`id, version, name, nis, nisn, gender, rombel, placement`); tanpa NIK/tanggal lahir/alamat/telepon/medis/penghasilan/alasan arsip. Rekap dihitung dari seluruh hasil filter (bukan halaman).
+  4. Ekspor memakai filter yang sama; `placement` default `placed`; `unplaced` mengisi kolom rombel kosong; batas baris tetap 422; leading zero & netralisasi formula tetap.
+  5. `only_archived=1` kini butuh `students.manage` (menutup kebocoran NIK/alasan arsip ke akun view-only); `with_archived` dihapus.
+  6. `Student.vue`: DataTable lazy server-driven, filter/placement/rombel, rekap server, guard respons usang `requestId`, loading/empty/error + Retry, pemulihan halaman terakhir kosong setelah archive, Export mengikuti filter; `tabItems` dijadikan computed murni.
+- Why: daftar siswa client-side lama tidak menemukan siswa tanpa rombel, tidak terpaginasi server, dan menampilkan field sensitif; DEC-22 menetapkan definisi All/Placed/Unplaced, rekap siswa unik, dan ekspor terfilter.
+- Validation (hasil aktual):
+  - `php artisan test` → **229 passed (1076 assertions)**; `tests/Feature/Student` + `StudentExportTest` → **88 passed (394 assertions)**.
+  - `./vendor/bin/pint --test` (4 berkas PHP 03c) → **PASS**.
+  - `node --test` (vue-app) → **15 passed**; `npm run build` → **PASS** (788 modules).
+  - `npx eslint` (blob LF) `Student.vue` → **20 errors/218 warnings** (dari baseline 22/228); tidak ada error baru.
+  - Browser UAT (Playwright, `school_access_uat`) → **PASS** (paginasi, sort, pencarian, All/Placed/Unplaced, create tanpa rombel + refresh, detail/edit, archive/restore, pemulihan halaman, rekap lintas halaman, ekspor terfilter, error/retry, empty, guard respons usang, kontrol izin).
+- Notes / risks: ESLint repo bukan PASS (20 error pre-existing tersisa); `status`/`entry` ekspor tidak lagi difilter; pengujian 03c berjalan pada SQLite in-memory (MariaDB konkurensi 03b tidak dijalankan ulang); kredensial akun UAT sintetis direset pada DB UAT disposable; tidak ada deployment.
+- Evidence: `reports/feature-update/PHASE-03C-STUDENT-DIRECTORY.md`, `PHASE-03C-MANUAL-REVIEW.md` (manual acceptance pending).
+
+## [2026-10-21] Subfase 03c — Keputusan pemilik (DEC-22)
+- Type: Docs
+- Scope / fase: Subfase 03c; keputusan DEC-22.
+- Files touched: `docs/DECISIONS.md`.
+- What changed: Mencatat 7 keputusan pemilik (batas siswa tak terarsip vs keanggotaan aktif; filter All/Placed/Unplaced; paginasi 10/20/50/100 default 20; ekspor wajib tahun + ikut filter + batas 422; penempatan rombel di luar 03c; arsip hanya dialog Archived; atribut daftar minimum).
+- Why: DEC-22 menghambat implementasi 03c; dicatat tersendiri sebelum implementasi.
+- Validation: `git diff --cached --check` exit 0; commit `4fa20c6` di-push ke `origin/main`.
+- Notes / risks: keputusan ini mempersempit scope 03c (tanpa aksi penempatan rombel).
+- Evidence: `docs/DECISIONS.md` (DEC-22), commit `4fa20c6`.
+
 ## [2026-10-21] Subfase 03c — Docs: audit source dan rencana daftar/rekap siswa
 - Type: Docs
 - Scope / fase: Subfase 03c (Daftar dan Rekap Siswa).

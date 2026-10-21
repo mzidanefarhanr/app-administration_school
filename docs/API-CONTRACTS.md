@@ -118,8 +118,38 @@ Kontrak CRUD siswa, optimistic locking, dan arsip administratif (DEC-21):
 - **Arsip administratif**: soft delete `students.deleted_at` + `archive_reason`; seluruh keanggotaan rombel aktif ditandai `archived_at`/`archive_reason` **tanpa** mengubah `student_status_id` (Mutasi Keluar) atau `latest_student_exit_date`. Riwayat mutasi tetap utuh.
 - **Restore**: tidak mengaktifkan kembali rombel lama (`archived_at` dipertahankan); menolak bila NIK/NIS/NISN sudah dipakai siswa aktif lain (`422`).
 - **Keunikan**: index unik `students` menyeluruh (termasuk record terarsip); NIK/NIS/NISN terarsip tidak dapat dipakai ulang tanpa pemulihan resmi.
-- **List arsip**: `GET /api/students?only_archived=1` (izin `students.view`). `with_archived=1` menyertakan yang terarsip.
+- **List arsip**: `GET /api/students?only_archived=1` kini **membutuhkan `students.manage`** (03c; sebelumnya `students.view` saja membocorkan NIK/alasan arsip ke akun hanya-baca). `with_archived` dihapus pada 03c.
 - **UI**: `Student.vue` (English) — create/edit/detail/archive/daftar arsip/restore, 422 inline, 409 + Reload Latest, loading/double-submit guard, tombol sesuai `students.view`/`students.manage`.
+
+## Perubahan Subfase 03c
+Daftar, rekap, dan ekspor siswa server-side (DEC-22). Definisi bersama `App\Support\StudentDirectory`.
+
+### `GET /api/students` (izin `students.view`)
+| Parameter | Aturan |
+|---|---|
+| `school_year_id` | wajib, integer, ada di `school_years` |
+| `search` | opsional, maks 100; cocok parsial nama/NIS/NISN (bukan NIK) |
+| `placement` | `all` (default) / `placed` / `unplaced` |
+| `rombel` | opsional, ID rombel **pada tahun terpilih**; ditolak `422` bila dikombinasikan dengan `placement=unplaced` |
+| `sort` | allowlist `id`, `name` (default), `nis`, `nisn`; `direction` `asc` (default)/`desc`; pembeda stabil `students.id` |
+| `per_page` | `10`/`20`/`50`/`100` (default `20`; selain itu `422`) |
+| `page` | integer ≥ 1 |
+
+- **Definisi**: siswa terarsip (`students.deleted_at`) tidak pernah muncul. *Placed* = keanggotaan **aktif** pada tahun terpilih (`student_rombels.deleted_at`/`archived_at` null, status Aktif/null, `latest_student_exit_date` null). *Unplaced* = tidak punya keanggotaan aktif tahun tersebut (termasuk yang hanya punya riwayat nonaktif/tahun lain atau belum pernah punya rombel). `all` = seluruh siswa tidak terarsip.
+- **Identitas**: `student_id` primer; baris legacy `student_id IS NULL` cocok hanya via `student_nik` = `students.nik` (resolusi aman 03a). Dihitung per siswa unik (EXISTS), tanpa duplikasi join.
+- **Respons** `200`: `data[]` hanya `id`, `version`, `name`, `nis`, `nisn`, `gender` (label), `rombel` (`{id,name}` aktif tahun terpilih atau `null`), `placement` (`placed`/`unplaced`); `meta` (`current_page`, `per_page`, `total`, `last_page`, `from`, `to`); `recap`.
+- **`recap`** dihitung dari **seluruh hasil filter** (bukan halaman): `total_matches` (sesuai `placement`), `placed_count`, `unplaced_count` (dari pencarian + rombel, sebelum placement), `by_gender[]` (`label`,`total`), `by_rombel[]` (`id`,`name`,`total`; siswa unik; kosong untuk `unplaced`).
+- **Tanpa** NIK, tanggal lahir, alamat, telepon, medis, penghasilan, atau alasan arsip pada daftar/rekap; detail melalui `GET /api/students/{id}`.
+- `GET /api/students?only_archived=1` mempertahankan perilaku 03b, kini wajib `students.manage`.
+
+### `GET /api/students/export` (izin `students.view` + `students.export`)
+- Parameter: `school_year_id` (wajib), `search`, `rombel`, `placement` (`all`/`placed`/`unplaced`; **default `placed`** agar perilaku ekspor per tahun ajaran tetap). Filter memakai definisi bersama daftar; mencakup seluruh hasil, bukan halaman aktif.
+- `unplaced`/`all`: siswa tanpa keanggotaan aktif ikut dengan kolom rombel/entry/status **kosong** (tidak mengarang rombel).
+- Batas baris `students.export_max_rows` → `422` (tanpa pemotongan diam-diam). Kolom, leading zero, CSV escape, dan netralisasi formula tidak berubah; tidak ada kolom sensitif baru.
+- Parameter lama `status` dan `entry` tidak lagi dipakai pada ekspor (status/entry kini atribut keanggotaan, bukan filter siswa).
+
+### Frontend
+`Student.vue`: DataTable lazy (pagination/sort/pencarian debounce 300 ms/placement/rombel server), rekap server, guard respons usang (`requestId`), loading/empty/error + Retry, halaman terakhir yang kosong mundur satu halaman, Export mengikuti filter aktif, filter rombel dinonaktifkan pada `Unplaced`. Aksi penempatan rombel di luar scope 03c.
 
 ## Aktual
 Resource di `/api`, dilindungi auth:sanctum: users, status-users, type-users, firstlogin; provinces/regencies/districts/villages; school-years/semesters/education-levels; genders/religions/blood-types/professions/family-status; education-schools/student-statuses/student-entries/student-majors/phase-statuses; students/school-levels/school-rombels/student-rombels; employee/employee-statuses/employee-types/employments/marital-statuses; school-profile/subjects/activities.
