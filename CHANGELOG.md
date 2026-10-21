@@ -17,6 +17,23 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-21] Subfase 03b — Docs: penerimaan manual pemilik (checklist #1–#13 APPROVED)
+- Type: Docs
+- Scope / fase: Subfase 03b (CRUD dan Form Siswa).
+- Files touched:
+  - `reports/feature-update/PHASE-03B-STUDENT-CRUD.md`
+  - `reports/feature-update/PHASE-03B-MANUAL-REVIEW.md`
+  - `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `roadmap/ROADMAP.md`, `CHANGELOG.md`
+- What changed:
+  1. Pemilik menyatakan pengujian manual #1–#13 **berhasil dan APPROVED** pada 21 Oktober 2026 WIB mengacu baseline `cbd25bd`; status Subfase 03b menjadi **DITERIMA PEMILIK**.
+  2. Ditambahkan perbandingan lint terarah baseline (`e77f335`) vs perubahan (`cbd25bd`) dengan konfigurasi sama: `Student.vue` 22→22 errors (172→228 warnings), `main.js` 0→0 errors (66→69 warnings) — jumlah error tidak bertambah.
+  3. Klasifikasi bukti dipertahankan: penerimaan manual pemilik terpisah dari bukti otomatis/browser agen; ESLint terakhir 22 errors/2609 warnings (**bukan PASS**); agen tidak menjalankan deploy; penerimaan bukan izin deployment/akses data operasional.
+  4. Penerimaan 03a dipertahankan; Fase 03 tetap **PARTIAL** karena 03c belum selesai.
+- Why: mencatat penerimaan manual pemilik pada commit dokumentasi tersendiri sesuai aturan repo, tanpa menyentuh commit implementasi.
+- Validation: `git diff --cached --check` = exit 0. Dokumentasi saja; tidak mengulang test/build.
+- Notes / risks: Penerimaan bukan otorisasi merge/force-push/deploy/scheduler. Rencana 03c diajukan pada commit tersendiri dan menunggu review pemilik.
+- Evidence: `reports/feature-update/PHASE-03B-STUDENT-CRUD.md` §6, `reports/feature-update/PHASE-03B-MANUAL-REVIEW.md` §5.
+
 ## [2026-10-21] Subfase 03b — Feature: UI CRUD siswa, optimistic locking, arsip administratif, dan bukti konkurensi
 - Type: Feature
 - Scope / fase: Subfase 03b (CRUD dan Form Siswa).

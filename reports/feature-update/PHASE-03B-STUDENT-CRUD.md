@@ -4,8 +4,9 @@
 - Subfase: **03b — CRUD dan Form Siswa**
 - Branch: `main`
 - Backend baseline: commit `e77f335` (sudah di-push, tidak di-amend)
-- Status keseluruhan Subfase 03b: **IN PROGRESS — implementasi UI selesai, verifikasi otomatis + browser UAT agen selesai, penerimaan manual pemilik PENDING**
-- Dokumen review manual: `reports/feature-update/PHASE-03B-MANUAL-REVIEW.md` (checklist #1–#13, status pemilik PENDING)
+- Deliverable UI baseline: commit `cbd25bd`
+- Status keseluruhan Subfase 03b: **DITERIMA PEMILIK** — penerimaan manual #1–#13 APPROVED 2026-10-21 WIB mengacu baseline `cbd25bd`
+- Dokumen review manual: `reports/feature-update/PHASE-03B-MANUAL-REVIEW.md` (checklist #1–#13, status pemilik APPROVED)
 
 ---
 
@@ -60,7 +61,7 @@ Tes konkurensi rombel 03a tetap ada dan bukan pengganti bukti di atas.
 | Pint file PHP berubah | `./vendor/bin/pint --test tests/Feature/Student/MariaDbStudentIntegrationTest.php` | **PASS** |
 | Unit test frontend | `node --test` (dari `vue-app`) | **15 passed (0 failed)** |
 | Build frontend | `npm run build` | **PASS** (788 modules; warning chunk size > 500 kB sudah ada sebelumnya) |
-| ESLint read-only | `npx eslint src/views/pages/public/Student.vue src/main.js` | **22 errors, 2609 warnings**. 22 error seluruhnya `no-unused-vars`/`vue/no-side-effects-in-computed-properties` pada baris lama (baseline). 0 error baru dari perubahan 03b. Warning didominasi Prettier CRLF pada berkas lama. |
+| ESLint read-only (`Student.vue`) | `npx eslint src/views/pages/public/Student.vue` | **22 errors, 2609 warnings** (working tree CRLF). Perbandingan blok commit (LF, konfigurasi sama, lihat §5) |
 
 Catatan: angka 53 (24+5+8+6+5+5) pada laporan sebelumnya sudah tidak berlaku setelah 2 integration test konkurensi 03b ditambahkan; total suite Student sekarang **55**.
 
@@ -93,10 +94,30 @@ Data UAT sintetis yang berubah selama UAT:
 
 ---
 
-## 5. Keterbatasan / NOT RUN
+## 5. Keterbatasan, Klasifikasi Bukti, dan Catatan
 
-- **Penerimaan manual pemilik: PENDING.** Status Subfase 03b belum "selesai" sampai checklist #1–#13 disetujui.
-- UI tidak membuat/mengubah keanggotaan rombel; pembuatan siswa baru belum otomatis muncul di daftar per tahun ajaran sampai ada keanggotaan rombel. Penempatan rombel bukan scope 03b.
+- **Klasifikasi bukti**: verifikasi otomatis backend/frontend dan browser UAT di atas dijalankan **oleh agen** pada server/DB UAT lokal. Ini **terpisah** dari penerimaan manual pemilik.
+- **Penerimaan manual pemilik**: **APPROVED** — checklist #1–#13 dinyatakan berhasil oleh pemilik pada 21 Oktober 2026 WIB mengacu baseline `cbd25bd`.
+- **ESLint**: hasil terakhir `npx eslint src/views/pages/public/Student.vue src/main.js` pada working tree = **22 errors, 2609 warnings — bukan PASS**. Perbandingan blok commit ada di §6.
+- **Deployment**: agen tidak menjalankan perintah deploy apa pun. Ketiadaan `.github/workflows` **tidak** dijadikan kesimpulan bahwa tidak ada auto-deploy.
+- **Penerimaan ini bukan izin deployment, bukan izin akses data operasional, dan bukan otorisasi merge/force-push/scheduler.**
+- UI tidak membuat/mengubah keanggotaan rombel; pembuatan siswa baru belum otomatis muncul di daftar per tahun ajaran sampai ada keanggotaan rombel. Penempatan rombel bukan scope 03b (diusulkan ditangani/deskripsikan pada 03c).
 - Pagination server dan rekap chart tetap scope 03c.
 - Tidak ada file tes Playwright di repo; UAT browser dijalankan melalui Playwright MCP pada server UAT yang sudah ada. Tidak menambah dependensi Playwright ke `package.json`.
 - `console.txt` dan `vue-app/test-results/` tetap untracked (artefak lokal).
+
+---
+
+## 6. Perbandingan Lint Terarah (baseline vs perubahan, konfigurasi sama)
+
+Dijalankan dari `vue-app` dengan konfigurasi ESLint repo yang sama, membandingkan **blob commit** (LF, agar setara) sehingga tidak terpengaruh konversi CRLF working tree.
+
+| Berkas | `e77f335` (sebelum UI) | `cbd25bd` (setelah UI) | Selisih |
+|---|---|---|---|
+| `src/views/pages/public/Student.vue` | 22 errors, 172 warnings | 22 errors, 228 warnings | errors **0**, warnings **+56** |
+| `src/main.js` | 0 errors, 66 warnings | 0 errors, 69 warnings | errors **0**, warnings **+3** |
+
+Kesimpulan berbasis perbandingan ini (bukan asumsi):
+- **Tidak ada error tambahan**; jumlah error tetap 22 pada `Student.vue` dan 0 pada `main.js`.
+- Warning bertambah 59, seluruhnya gaya Prettier/CRLF pada baris-baris baru.
+- Hasil tersebut bukan PASS. Perbaikan error terkait (mis. `no-unused-vars` lama) direncanakan sebagai pekerjaan tersendiri tanpa auto-format massal dan tanpa menonaktifkan aturan; belum dieksekusi.

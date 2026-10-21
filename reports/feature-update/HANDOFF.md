@@ -2,7 +2,7 @@
 
 Checkpoint terbaru: 2026-10-21 (WIB). Branch `main`.
 Baseline backend terakhir: `e77f335` ("feat(phase-03b): implement student CRUD with optimistic locking, administrative archive, and audit privacy").
-Perubahan UI/test/docs sesi ini **belum di-commit** saat dokumen ini ditulis; daftar ada di §3. Jangan menulis SHA commit yang belum ada.
+Baseline penerimaan manual 03b: `cbd25bd` ("feat(phase-03b): add student CRUD UI, archive/restore flows, and 03b concurrency tests").
 Kebijakan commit/push: commit dan push per fase/koreksi ke branch kerja aktif telah **diotorisasi**; merge, force-push, rewrite history, dan deploy manual **tetap tidak diotorisasi**.
 
 Catatan perubahan pemilik: `console.txt` dan `vue-app/test-results/` adalah artefak lokal dan **tidak** di-commit.
@@ -15,12 +15,11 @@ Catatan perubahan pemilik: `console.txt` dan `vue-app/test-results/` adalah arte
 - **Fase 02 — Integritas Operasional (Audit & Backup/Restore)**: **DITERIMA LENGKAP & DITUTUP** (02a, 02b, 02c).
 - **Fase 03 — Pendataan Siswa Lengkap dan Aman**: **IN PROGRESS / PARTIAL**:
   - **Subfase 03a** — Identitas dan membership migration: **DITERIMA PEMILIK** (checklist #1–#11 APPROVED 2026-10-21 WIB, baseline `37f7d79`).
-  - **Subfase 03b** — CRUD dan Form Siswa: **IN PROGRESS**.
-    - Backend: committed `e77f335` (CRUD, optimistic locking, arsip administratif, audit privacy).
-    - UI: **IMPLEMENTED** di `Student.vue` (create/edit/detail/archive/archived list/restore, 422 inline, 409 + Reload Latest, loading/double-submit guard, ability gating, English).
+  - **Subfase 03b** — CRUD dan Form Siswa: **DITERIMA PEMILIK**.
+    - Backend: `e77f335`; UI/deliverable: `cbd25bd`.
     - Verifikasi agen: suite Student **55 passed (228 assertions)**; regresi backend **209 passed (946 assertions)**; frontend unit **15 passed**; build **PASS**; browser UAT agen PASS.
-    - **Penerimaan manual pemilik: PENDING. Jangan menyatakan 03b selesai.**
-  - **Subfase 03c** — Daftar dan Rekap Siswa: NOT STARTED (belum diotorisasi).
+    - **Penerimaan manual pemilik: APPROVED** (checklist #1–#13, 2026-10-21 WIB, baseline `cbd25bd`).
+  - **Subfase 03c** — Daftar dan Rekap Siswa: NOT STARTED (implementasi belum diotorisasi).
 - **Keputusan Terbuka yang Masih OPEN (belum menghambat)**:
   1. Makna `status_user_id`.
   2. Deployment CORS/Sanctum produksi.
@@ -54,13 +53,13 @@ Catatan perubahan pemilik: `console.txt` dan `vue-app/test-results/` adalah arte
 
 ---
 
-## 3. Berkas yang Berubah Sesi Ini (belum commit saat penulisan)
-- `vue-app/src/views/pages/public/Student.vue`: UI 03b lengkap.
-- `vue-app/src/main.js`: registrasi directive `v-tooltip`.
-- `laravel-api/tests/Feature/Student/MariaDbStudentIntegrationTest.php`: 2 integration test konkurensi 03b.
-- `reports/feature-update/PHASE-03B-STUDENT-CRUD.md` (baru): laporan implementasi + bukti.
-- `reports/feature-update/PHASE-03B-MANUAL-REVIEW.md`: checklist #1–#13 diselaraskan dengan UI nyata (status PENDING).
-- `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `roadmap/ROADMAP.md`, `CHANGELOG.md`, `docs/DATABASE.md`, `docs/API-CONTRACTS.md`: sinkronisasi status/kontrak.
+## 3. Berkas yang Berubah (lihat commit)
+- Commit `cbd25bd` (implementasi UI 03b):
+  - `vue-app/src/views/pages/public/Student.vue`: UI 03b lengkap.
+  - `vue-app/src/main.js`: registrasi directive `v-tooltip`.
+  - `laravel-api/tests/Feature/Student/MariaDbStudentIntegrationTest.php`: 2 integration test konkurensi 03b.
+  - `reports/feature-update/PHASE-03B-STUDENT-CRUD.md` (baru), `PHASE-03B-MANUAL-REVIEW.md`, `INDEX.md`, `HANDOFF.md`, `roadmap/ROADMAP.md`, `CHANGELOG.md`, `docs/DATABASE.md`, `docs/API-CONTRACTS.md`.
+- Commit pencatatan penerimaan 03b (lihat CHANGELOG): `PHASE-03B-STUDENT-CRUD.md`, `PHASE-03B-MANUAL-REVIEW.md`, `INDEX.md`, `HANDOFF.md`, `roadmap/ROADMAP.md`, `CHANGELOG.md`.
 
 ---
 
@@ -69,7 +68,8 @@ Catatan perubahan pemilik: `console.txt` dan `vue-app/test-results/` adalah arte
 2. **UI create/edit/detail/archive/restore + 422/409/version/loading/izin/English**: IMPLEMENTED & DIVERIFIKASI agen.
 3. **Bukti konkurensi 03b**: SELESAI (2 integration test MariaDB disposable PASS).
 4. **Browser UAT**: PASS oleh agen pada server UAT lokal.
-5. **Penerimaan manual pemilik**: **PENDING**. Checklist #1–#13 di `PHASE-03B-MANUAL-REVIEW.md`.
+5. **Penerimaan manual pemilik**: **APPROVED** (checklist #1–#13, 2026-10-21 WIB, baseline `cbd25bd`). Status Subfase 03b: **DITERIMA PEMILIK**.
+6. **Catatan klasifikasi bukti**: penerimaan manual pemilik terpisah dari bukti otomatis/browser agen. ESLint terakhir 22 errors / 2609 warnings (**bukan PASS**). Penerimaan bukan izin deployment/akses data operasional.
 
 ---
 
@@ -89,6 +89,7 @@ Data sintetis yang berubah selama browser UAT:
 ---
 
 ## 6. Langkah Berikutnya
-1. Pemilik memeriksa checklist #1–#13 dan mengirim persetujuan manual.
-2. Setelah persetujuan dicatat pada commit dokumentasi tersendiri, status 03b dapat menjadi **DITERIMA PEMILIK**.
-3. **Jangan memulai 03c** sebelum diotorisasi.
+1. Subfase 03b **DITERIMA PEMILIK** (penerimaan manual #1–#13, baseline `cbd25bd`). Penerimaan 03a tetap dipertahankan.
+2. Rencana teknis **Subfase 03c** sedang disusun dan akan diajukan untuk review pemilik. Fase 03 tetap **PARTIAL** sampai 03c selesai.
+3. **Jangan memulai implementasi 03c** sebelum rencana disetujui pemilik.
+4. Keputusan pemilik yang dibutuhkan tercantum pada bagian keputusan di rencana 03c.
