@@ -100,6 +100,22 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
   - UI `Student.vue` menyediakan dialog form CRUD, penanganan inline 422, dialog konflik 409 dengan tombol reload data terbaru, konfirmasi archive dengan alasan administratif, dan tombol restore.
 - Status: APPROVED. Fase affected: 03b.
 
+### DEC-22 — Daftar siswa server-side, penempatan, rekap, dan ekspor terfilter (APPROVED, 2026-10-21 WIB)
+- Konteks: pelaksanaan Subfase 03c berdasarkan instruksi pemilik 21 Oktober 2026 WIB; melengkapi DEC-20/DEC-21 tanpa mengubah semantik arsip/restore.
+- Pilihan pemilik:
+  1. **Siswa tidak terarsip berbeda dari keanggotaan rombel aktif.** Rekap tahun ajaran menghitung **siswa unik tidak terarsip** yang memiliki keanggotaan aktif pada tahun tersebut; bukan seluruh siswa tidak terarsip.
+  2. **Filter All / Placed / Unplaced di halaman Students.** `Unplaced` = tidak memiliki keanggotaan aktif pada tahun terpilih (bukan berarti belum pernah punya rombel). Bila `Unplaced` dipilih, filter rombel dikosongkan/dinonaktifkan.
+  3. **Paginasi** default 20, pilihan 10/20/50/100, maksimum 100.
+  4. **Ekspor** wajib `school_year_id`, mengikuti pencarian/rombel/placement, mencakup seluruh hasil filter tanpa terikat halaman. Batas baris tetap menolak **422**, tanpa memotong diam-diam.
+  5. **Aksi penempatan rombel di luar 03c**; dicatat pada roadmap.
+  6. **Arsip tetap melalui dialog Archived.** Daftar utama/rekap tidak mencampurkan siswa terarsip.
+  7. **Atribut daftar** hanya `id`, `version`, nama, NIS, NISN, label gender, serta ID/nama rombel dan placement tahun terpilih. Tanpa NIK, birthdate, alamat, telepon, medis, penghasilan, atau alasan arsip. Detail melalui endpoint detail berizin.
+- Dampak API/UI:
+  - `GET /api/students` (tanpa `only_archived`) menjadi daftar server-side: `school_year_id` wajib, `search` (nama/NIS/NISN), `sort` (`id|name|nis|nisn`), `direction`, `placement` (`all|placed|unplaced`), `rombel`, `per_page` (10/20/50/100), `page`; respons memuat `data`, `meta`, dan `recap` (`total_matches`, `placed_count`, `unplaced_count`, `by_gender`, `by_rombel`). `only_archived=1` dipertahankan untuk dialog Archived.
+  - `GET /api/students/export` memakai definisi filter yang sama; `placement` opsional (default `placed` agar perilaku tahun ajaran tetap), `unplaced` menghasilkan rombel kosong tanpa mengarang data.
+  - `Student.vue` memakai pagination/pencarian/sort/filter server, rekap server, guard respons usang, serta state loading/empty/error.
+- Status: APPROVED. Fase affected: 03c.
+
 ### Keputusan yang masih OPEN (belum diputuskan)
 - Makna `status_user_id` (jangan disamakan dengan `status_active`), deployment CORS/Sanctum produksi, strategi pencabutan token vs sesi.
 
@@ -128,6 +144,7 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 | DEC-19 | Penjadwalan, retensi otomatis, dan monitoring backup | Jadwal 02:00 & 02:30 WIB; default schedule OFF; monitoring pasif API/JSON | APPROVED (2026-10-20) | 02c |
 | DEC-20 | Identitas siswa, keanggotaan rombel, audit pendataan | NIK opsional 16 digit, NIS unik sekolah, 1 rombel aktif/tahun, soft delete nonaktifkan rombel, audit minimal PII | APPROVED (2026-10-20 WIB) | 03a |
 | DEC-21 | Pengarsipan administratif, keunikan NIK/NIS, versioning | Arsip rombel via archived_at/reason terpisah dari mutasi, keunikan NIK/NIS unconditional, version check atomik | APPROVED (2026-10-21 WIB) | 03b |
+| DEC-22 | Daftar siswa server-side, placement, rekap, ekspor | All/Placed/Unplaced; paginasi 10/20/50/100 (default 20); rekap siswa unik; ekspor ikut filter + 422 limit; atribut daftar minimum | APPROVED (2026-10-21 WIB) | 03c |
 
 ## Format pencatatan keputusan
 Tanggal WIB; ID; konteks; alternatif; pilihan pemilik dan bukti instruksi; dampak schema/API/UI; fase affected; status OPEN/PROPOSED/APPROVED/SUPERSEDED. Pertahankan riwayat bila keputusan berubah.
