@@ -721,6 +721,283 @@ const search_Cat1 = (event) => {
     }, 250);
 };
 
+// ── 03b: Student CRUD (create / edit / detail / archive / restore) ─────────
+// Semua label & pesan English (DEC-14). Izin: students.view (baca) / students.manage (mutasi).
+const canManage    = computed(() => useAuthStore.can('students.manage'));
+const studentFormKeys = [
+    'name', 'nik', 'nis', 'nisn', 'birthplace', 'birthdate',
+    'gender_id', 'religion_id', 'education_level_id', 'blood_type_id', 'profession_id', 'family_status_id',
+    'village_id', 'zip_code', 'rt_num', 'rw_num', 'address', 'hp_num',
+    'kk', 'akta', 'child_order_to', 'child_order_total', 'body_height', 'body_weight', 'history_illness',
+    'father_name', 'father_nik', 'father_birthplace', 'father_birthdate', 'father_education_level_id', 'father_profession_id', 'father_income', 'father_hp_num',
+    'mother_name', 'mother_nik', 'mother_birthplace', 'mother_birthdate', 'mother_education_level_id', 'mother_profession_id', 'mother_income', 'mother_hp_num',
+    'guardian_name', 'guardian_nik', 'guardian_birthplace', 'guardian_birthdate', 'guardian_education_level_id', 'guardian_profession_id', 'guardian_income', 'guardian_hp_num',
+    'check_ppdbbersama', 'check_kjp', 'check_bpms', 'check_pip',
+];
+
+const studentFormDialog   = ref(false);
+const studentDetailDialog = ref(false);
+const archiveDialog       = ref(false);
+const archivedListDialog  = ref(false);
+const conflictDialog      = ref(false);
+const conflictMessage     = ref('');
+const conflictReloadAction = ref(null);
+const reloadingConflict   = ref(false);
+const isSubmitting        = ref(false);
+const submitted           = ref(false);
+const formErrors          = ref({});
+const studentForm         = ref({});
+const editTargetId        = ref(null);
+const detailStudent       = ref(null);
+const archiveTarget       = ref({});
+const archiveReason       = ref('');
+const archiveErrors       = ref({});
+const archivedStudents    = ref([]);
+const archivedLoading     = ref(false);
+const formOptions         = ref({ genders: [], religions: [], education_levels: [], blood_types: [], professions: [], family_statuses: [] });
+const formOptionsLoaded   = ref(false);
+
+const emptyStudentForm = () => {
+    const form = {};
+    studentFormKeys.forEach((key) => { form[key] = ['check_ppdbbersama', 'check_kjp', 'check_bpms', 'check_pip'].includes(key) ? false : null; });
+    form.name = '';
+    form.version = null;
+    return form;
+};
+
+const rowStudentId = (row) => row?.student_id ?? row?.student?.id ?? row?.student_nik?.id ?? null;
+
+const fetchStudentFormOptions = async () => {
+    if (formOptionsLoaded.value) return;
+    const [genders, religions, levels, bloodTypes, professions, familyStatuses] = await Promise.all([
+        apiLogin.get('/api/genders'),
+        apiLogin.get('/api/religions'),
+        apiLogin.get('/api/education-levels'),
+        apiLogin.get('/api/blood-types'),
+        apiLogin.get('/api/professions'),
+        apiLogin.get('/api/family-status'),
+    ]);
+    const normalize = (res) => (res.data.data ?? []).map((item) => ({ id: item.id, name: item.name }));
+    formOptions.value = {
+        genders: normalize(genders),
+        religions: normalize(religions),
+        education_levels: normalize(levels),
+        blood_types: normalize(bloodTypes),
+        professions: normalize(professions),
+        family_statuses: normalize(familyStatuses),
+    };
+    formOptionsLoaded.value = true;
+};
+
+const mapStudentToForm = (student) => {
+    const form = emptyStudentForm();
+    studentFormKeys.forEach((key) => {
+        if (student[key] !== undefined) form[key] = student[key];
+    });
+    form.name = student.name ?? '';
+    form.version = student.version ?? null;
+    return form;
+};
+
+const loadStudentIntoForm = async (id) => {
+    const res = await apiLogin.get(`/api/students/${id}`);
+    studentForm.value = mapStudentToForm(res.data.data);
+};
+
+const openCreateStudent = async () => {
+    await fetchStudentFormOptions();
+    studentForm.value = emptyStudentForm();
+    editTargetId.value = null;
+    formErrors.value = {};
+    submitted.value = false;
+    studentFormDialog.value = true;
+};
+
+const openEditStudent = async (row) => {
+    const id = rowStudentId(row);
+    if (!id) {
+        toast.add({ severity: 'error', summary: 'Edit Student', detail: 'Student record is not linked to a master record and cannot be edited.', life: 4000 });
+        return;
+    }
+    await fetchStudentFormOptions();
+    await loadStudentIntoForm(id);
+    editTargetId.value = id;
+    formErrors.value = {};
+    submitted.value = false;
+    studentFormDialog.value = true;
+};
+
+const viewStudentDetail = async (row) => {
+    const id = rowStudentId(row);
+    if (!id) {
+        toast.add({ severity: 'error', summary: 'Student Detail', detail: 'Student record is not linked to a master record.', life: 4000 });
+        return;
+    }
+    try {
+        const res = await apiLogin.get(`/api/students/${id}`);
+        detailStudent.value = res.data.data;
+        studentDetailDialog.value = true;
+    } catch (error) {
+        toast.add({ severity: 'error', summary: 'Student Detail', detail: error.response?.data?.message ?? 'Failed to load student details.', life: 4000 });
+    }
+};
+
+const buildStudentPayload = (form) => {
+    const payload = {};
+    studentFormKeys.forEach((key) => { payload[key] = form[key]; });
+    return payload;
+};
+
+const submitStudentForm = async () => {
+    if (isSubmitting.value) return;
+    submitted.value = true;
+    formErrors.value = {};
+
+    if (!studentForm.value.name || !String(studentForm.value.name).trim()) return;
+
+    isSubmitting.value = true;
+    try {
+        const payload = buildStudentPayload(studentForm.value);
+        if (editTargetId.value) {
+            payload.version = studentForm.value.version;
+            const res = await apiLogin.put(`/api/students/${editTargetId.value}`, payload);
+            toast.add({ severity: 'success', summary: 'Student Updated', detail: `${res.data.data.name} has been updated successfully.`, life: 4000 });
+            studentFormDialog.value = false;
+            if (studentDetailDialog.value && detailStudent.value?.id === editTargetId.value) {
+                detailStudent.value = res.data.data;
+            }
+        } else {
+            const res = await apiLogin.post('/api/students', payload);
+            toast.add({ severity: 'success', summary: 'Student Created', detail: `${res.data.data.name} has been created successfully.`, life: 4000 });
+            studentFormDialog.value = false;
+            detailStudent.value = res.data.data;
+            studentDetailDialog.value = true;
+        }
+    } catch (error) {
+        const status = error.response?.status;
+        if (status === 422) {
+            formErrors.value = error.response.data.errors ?? {};
+        } else if (status === 409) {
+            conflictMessage.value = error.response.data.message ?? 'Conflict: this student record was updated by another operator.';
+            conflictReloadAction.value = () => loadStudentIntoForm(editTargetId.value);
+            conflictDialog.value = true;
+        } else {
+            toast.add({ severity: 'error', summary: 'Save Failed', detail: error.response?.data?.message ?? 'An unexpected error occurred.', life: 4000 });
+        }
+    } finally {
+        isSubmitting.value = false;
+    }
+};
+
+const fieldError = (field) => formErrors.value?.[field]?.[0] ?? '';
+
+const reloadAfterConflict = async () => {
+    if (reloadingConflict.value) return;
+    reloadingConflict.value = true;
+    try {
+        if (conflictReloadAction.value) await conflictReloadAction.value();
+        formErrors.value = {};
+        conflictDialog.value = false;
+    } catch (error) {
+        toast.add({ severity: 'error', summary: 'Reload Failed', detail: error.response?.data?.message ?? 'Failed to reload the latest data.', life: 4000 });
+    } finally {
+        reloadingConflict.value = false;
+    }
+};
+
+const openArchiveStudent = async (row) => {
+    const id = rowStudentId(row);
+    if (!id) {
+        toast.add({ severity: 'error', summary: 'Archive Student', detail: 'Student record is not linked to a master record.', life: 4000 });
+        return;
+    }
+    try {
+        const res = await apiLogin.get(`/api/students/${id}`);
+        archiveTarget.value = { id, name: res.data.data.name, version: res.data.data.version };
+        archiveReason.value = '';
+        archiveErrors.value = {};
+        archiveDialog.value = true;
+    } catch (error) {
+        toast.add({ severity: 'error', summary: 'Archive Student', detail: error.response?.data?.message ?? 'Failed to load student data.', life: 4000 });
+    }
+};
+
+const confirmArchiveStudent = async () => {
+    if (isSubmitting.value) return;
+    archiveErrors.value = {};
+    if (!archiveReason.value || !archiveReason.value.trim()) {
+        archiveErrors.value = { archive_reason: ['An administrative archiving reason is required.'] };
+        return;
+    }
+    isSubmitting.value = true;
+    try {
+        await apiLogin.delete(`/api/students/${archiveTarget.value.id}`, {
+            data: { version: archiveTarget.value.version, archive_reason: archiveReason.value.trim() },
+        });
+        toast.add({ severity: 'success', summary: 'Student Archived', detail: `${archiveTarget.value.name} has been archived.`, life: 4000 });
+        archiveDialog.value = false;
+        if (school_years_now.value) fetchDataStudentRombels();
+    } catch (error) {
+        const status = error.response?.status;
+        if (status === 422) {
+            archiveErrors.value = error.response.data.errors ?? {};
+        } else if (status === 409) {
+            conflictMessage.value = error.response.data.message ?? 'Conflict: this student record was modified by another operator.';
+            conflictReloadAction.value = async () => {
+                const res = await apiLogin.get(`/api/students/${archiveTarget.value.id}`);
+                archiveTarget.value = { id: res.data.data.id, name: res.data.data.name, version: res.data.data.version };
+            };
+            archiveDialog.value = false;
+            conflictDialog.value = true;
+        } else {
+            toast.add({ severity: 'error', summary: 'Archive Failed', detail: error.response?.data?.message ?? 'An unexpected error occurred.', life: 4000 });
+        }
+    } finally {
+        isSubmitting.value = false;
+    }
+};
+
+const openArchivedList = async () => {
+    archivedListDialog.value = true;
+    await fetchArchivedStudents();
+};
+
+const fetchArchivedStudents = async () => {
+    archivedLoading.value = true;
+    try {
+        const res = await apiLogin.get('/api/students', { params: { only_archived: 1 } });
+        archivedStudents.value = res.data.data ?? [];
+    } catch (error) {
+        toast.add({ severity: 'error', summary: 'Archived Students', detail: error.response?.data?.message ?? 'Failed to load archived students.', life: 4000 });
+    } finally {
+        archivedLoading.value = false;
+    }
+};
+
+const restoreStudent = async (student) => {
+    if (isSubmitting.value) return;
+    isSubmitting.value = true;
+    try {
+        await apiLogin.post(`/api/students/${student.id}/restore`, { version: student.version });
+        toast.add({ severity: 'success', summary: 'Student Restored', detail: `${student.name} has been restored. Previous rombel membership stays inactive.`, life: 5000 });
+        archivedStudents.value = archivedStudents.value.filter((item) => item.id !== student.id);
+        if (school_years_now.value) fetchDataStudentRombels();
+    } catch (error) {
+        const status = error.response?.status;
+        if (status === 422) {
+            toast.add({ severity: 'error', summary: 'Restore Failed', detail: Object.values(error.response.data.errors ?? {}).flat().join(' ') || 'Cannot restore this student.', life: 5000 });
+            await fetchArchivedStudents();
+        } else if (status === 409) {
+            toast.add({ severity: 'warn', summary: 'Conflict', detail: error.response.data.message ?? 'The student record changed. Reloading the latest list.', life: 5000 });
+            await fetchArchivedStudents();
+        } else {
+            toast.add({ severity: 'error', summary: 'Restore Failed', detail: error.response?.data?.message ?? 'An unexpected error occurred.', life: 4000 });
+        }
+    } finally {
+        isSubmitting.value = false;
+    }
+};
+
 onMounted(() => {
     fetchDataUserRole();
     activeSub.value = groupItems[0].subItems[0].id;
@@ -895,6 +1172,12 @@ onMounted(() => {
                                 <Button v-if="useAuthStore.can('students.export')" icon="pi pi-external-link" label="Export" @click="exportCSV($event)" />
 
                             </div>
+                            <div class="flex flex-wrap gap-2" v-if="canManage">
+                                <Button icon="pi pi-user-plus" label="New Student" @click="openCreateStudent" />
+                            </div>
+                            <div class="flex flex-wrap gap-2" v-if="canManage">
+                                <Button icon="pi pi-inbox" label="Archived" severity="secondary" variant="outlined" @click="openArchivedList" />
+                            </div>
                             <div class="flex flex-wrap gap-2">
                                 <Button type="button" icon="pi pi-filter-slash" label="Clear" variant="outlined" @click="clearFilter()" />
                             </div>
@@ -1021,6 +1304,13 @@ onMounted(() => {
                                     </div>
                                 </template>
                             </MultiSelect>
+                        </template>
+                    </Column>
+                    <Column header="Action" :exportable="false" style="min-width: 10rem">
+                        <template #body="{ data }">
+                            <Button icon="pi pi-eye" variant="outlined" rounded class="mr-2" v-tooltip.top="'View Detail'" @click="viewStudentDetail(data)" />
+                            <Button v-if="canManage" icon="pi pi-pencil" variant="outlined" rounded class="mr-2" v-tooltip.top="'Edit Student'" @click="openEditStudent(data)" />
+                            <Button v-if="canManage" icon="pi pi-inbox" variant="outlined" rounded severity="danger" v-tooltip.top="'Archive Student'" @click="openArchiveStudent(data)" />
                         </template>
                     </Column>
 
@@ -2130,5 +2420,283 @@ onMounted(() => {
             </div>
 
         </div>
+    </Dialog>
+
+    <!-- ── 03b: Add / Edit Student Dialog ─────────────────────────────────────── -->
+    <Dialog v-model:visible="studentFormDialog" modal :style="{ width: '880px', maxWidth: '95vw' }" :draggable="false"
+            :header="editTargetId ? 'Edit Student Details' : 'Add New Student'">
+        <div class="flex flex-col gap-6 max-h-[70vh] overflow-y-auto pr-1">
+            <div>
+                <div class="font-bold border-b border-surface-200 dark:border-surface-700 pb-1 mb-3">Personal Details</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="sf-name" class="block font-bold mb-2">Full Name <span class="text-red-500">*</span></label>
+                        <InputText id="sf-name" v-model="studentForm.name" :invalid="submitted && !studentForm.name" fluid />
+                        <small v-if="submitted && !studentForm.name" class="text-red-500">Student name is required.</small>
+                        <small v-else-if="fieldError('name')" class="text-red-500">{{ fieldError('name') }}</small>
+                    </div>
+                    <div>
+                        <label for="sf-birthplace" class="block font-bold mb-2">Birthplace</label>
+                        <InputText id="sf-birthplace" v-model="studentForm.birthplace" fluid />
+                        <small v-if="fieldError('birthplace')" class="text-red-500">{{ fieldError('birthplace') }}</small>
+                    </div>
+                    <div>
+                        <label for="sf-birthdate" class="block font-bold mb-2">Birthdate (YYYY-MM-DD)</label>
+                        <InputText id="sf-birthdate" v-model="studentForm.birthdate" placeholder="2010-05-15" fluid />
+                        <small v-if="fieldError('birthdate')" class="text-red-500">{{ fieldError('birthdate') }}</small>
+                    </div>
+                    <div>
+                        <label for="sf-gender" class="block font-bold mb-2">Gender</label>
+                        <Select id="sf-gender" v-model="studentForm.gender_id" :options="formOptions.genders" optionLabel="name" optionValue="id" placeholder="Select Gender" showClear filter fluid />
+                        <small v-if="fieldError('gender_id')" class="text-red-500">{{ fieldError('gender_id') }}</small>
+                    </div>
+                    <div>
+                        <label for="sf-religion" class="block font-bold mb-2">Religion</label>
+                        <Select id="sf-religion" v-model="studentForm.religion_id" :options="formOptions.religions" optionLabel="name" optionValue="id" placeholder="Select Religion" showClear filter fluid />
+                        <small v-if="fieldError('religion_id')" class="text-red-500">{{ fieldError('religion_id') }}</small>
+                    </div>
+                    <div>
+                        <label for="sf-family-status" class="block font-bold mb-2">Family Status</label>
+                        <Select id="sf-family-status" v-model="studentForm.family_status_id" :options="formOptions.family_statuses" optionLabel="name" optionValue="id" placeholder="Select Family Status" showClear filter fluid />
+                        <small v-if="fieldError('family_status_id')" class="text-red-500">{{ fieldError('family_status_id') }}</small>
+                    </div>
+                    <div>
+                        <label for="sf-blood-type" class="block font-bold mb-2">Blood Type</label>
+                        <Select id="sf-blood-type" v-model="studentForm.blood_type_id" :options="formOptions.blood_types" optionLabel="name" optionValue="id" placeholder="Select Blood Type" showClear filter fluid />
+                        <small v-if="fieldError('blood_type_id')" class="text-red-500">{{ fieldError('blood_type_id') }}</small>
+                    </div>
+                    <div>
+                        <label for="sf-profession" class="block font-bold mb-2">Profession</label>
+                        <Select id="sf-profession" v-model="studentForm.profession_id" :options="formOptions.professions" optionLabel="name" optionValue="id" placeholder="Select Profession" showClear filter fluid />
+                        <small v-if="fieldError('profession_id')" class="text-red-500">{{ fieldError('profession_id') }}</small>
+                    </div>
+                    <div>
+                        <label for="sf-education-level" class="block font-bold mb-2">Education Level</label>
+                        <Select id="sf-education-level" v-model="studentForm.education_level_id" :options="formOptions.education_levels" optionLabel="name" optionValue="id" placeholder="Select Education Level" showClear filter fluid />
+                        <small v-if="fieldError('education_level_id')" class="text-red-500">{{ fieldError('education_level_id') }}</small>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="font-bold border-b border-surface-200 dark:border-surface-700 pb-1 mb-3">Identification & Documents</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="sf-nik" class="block font-bold mb-2">NIK (16 digits)</label>
+                        <InputText id="sf-nik" v-model="studentForm.nik" fluid />
+                        <small v-if="fieldError('nik')" class="text-red-500">{{ fieldError('nik') }}</small>
+                    </div>
+                    <div>
+                        <label for="sf-kk" class="block font-bold mb-2">KK Number (16 digits)</label>
+                        <InputText id="sf-kk" v-model="studentForm.kk" fluid />
+                        <small v-if="fieldError('kk')" class="text-red-500">{{ fieldError('kk') }}</small>
+                    </div>
+                    <div>
+                        <label for="sf-nis" class="block font-bold mb-2">NIS</label>
+                        <InputText id="sf-nis" v-model="studentForm.nis" fluid />
+                        <small v-if="fieldError('nis')" class="text-red-500">{{ fieldError('nis') }}</small>
+                    </div>
+                    <div>
+                        <label for="sf-nisn" class="block font-bold mb-2">NISN (10 digits)</label>
+                        <InputText id="sf-nisn" v-model="studentForm.nisn" fluid />
+                        <small v-if="fieldError('nisn')" class="text-red-500">{{ fieldError('nisn') }}</small>
+                    </div>
+                    <div>
+                        <label for="sf-akta" class="block font-bold mb-2">Birth Certificate Number</label>
+                        <InputText id="sf-akta" v-model="studentForm.akta" fluid />
+                        <small v-if="fieldError('akta')" class="text-red-500">{{ fieldError('akta') }}</small>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="font-bold border-b border-surface-200 dark:border-surface-700 pb-1 mb-3">Address & Contact</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label for="sf-address" class="block font-bold mb-2">Full Address</label>
+                        <Textarea id="sf-address" v-model="studentForm.address" rows="2" autoResize fluid />
+                        <small v-if="fieldError('address')" class="text-red-500">{{ fieldError('address') }}</small>
+                    </div>
+                    <div>
+                        <label for="sf-rt" class="block font-bold mb-2">RT Number</label>
+                        <InputText id="sf-rt" v-model="studentForm.rt_num" fluid />
+                    </div>
+                    <div>
+                        <label for="sf-rw" class="block font-bold mb-2">RW Number</label>
+                        <InputText id="sf-rw" v-model="studentForm.rw_num" fluid />
+                    </div>
+                    <div>
+                        <label for="sf-zip" class="block font-bold mb-2">ZIP Code</label>
+                        <InputText id="sf-zip" v-model="studentForm.zip_code" fluid />
+                        <small v-if="fieldError('zip_code')" class="text-red-500">{{ fieldError('zip_code') }}</small>
+                    </div>
+                    <div>
+                        <label for="sf-hp" class="block font-bold mb-2">Phone Number</label>
+                        <InputText id="sf-hp" v-model="studentForm.hp_num" fluid />
+                        <small v-if="fieldError('hp_num')" class="text-red-500">{{ fieldError('hp_num') }}</small>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="font-bold border-b border-surface-200 dark:border-surface-700 pb-1 mb-3">Parents & Guardian</div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="sf-father-name" class="block font-bold mb-2">Father Name</label>
+                        <InputText id="sf-father-name" v-model="studentForm.father_name" fluid />
+                    </div>
+                    <div>
+                        <label for="sf-father-nik" class="block font-bold mb-2">Father NIK</label>
+                        <InputText id="sf-father-nik" v-model="studentForm.father_nik" fluid />
+                        <small v-if="fieldError('father_nik')" class="text-red-500">{{ fieldError('father_nik') }}</small>
+                    </div>
+                    <div>
+                        <label for="sf-father-hp" class="block font-bold mb-2">Father Phone</label>
+                        <InputText id="sf-father-hp" v-model="studentForm.father_hp_num" fluid />
+                    </div>
+                    <div>
+                        <label for="sf-mother-name" class="block font-bold mb-2">Mother Name</label>
+                        <InputText id="sf-mother-name" v-model="studentForm.mother_name" fluid />
+                    </div>
+                    <div>
+                        <label for="sf-mother-nik" class="block font-bold mb-2">Mother NIK</label>
+                        <InputText id="sf-mother-nik" v-model="studentForm.mother_nik" fluid />
+                        <small v-if="fieldError('mother_nik')" class="text-red-500">{{ fieldError('mother_nik') }}</small>
+                    </div>
+                    <div>
+                        <label for="sf-mother-hp" class="block font-bold mb-2">Mother Phone</label>
+                        <InputText id="sf-mother-hp" v-model="studentForm.mother_hp_num" fluid />
+                    </div>
+                    <div>
+                        <label for="sf-guardian-name" class="block font-bold mb-2">Guardian Name</label>
+                        <InputText id="sf-guardian-name" v-model="studentForm.guardian_name" fluid />
+                    </div>
+                    <div>
+                        <label for="sf-guardian-nik" class="block font-bold mb-2">Guardian NIK</label>
+                        <InputText id="sf-guardian-nik" v-model="studentForm.guardian_nik" fluid />
+                        <small v-if="fieldError('guardian_nik')" class="text-red-500">{{ fieldError('guardian_nik') }}</small>
+                    </div>
+                    <div>
+                        <label for="sf-guardian-hp" class="block font-bold mb-2">Guardian Phone</label>
+                        <InputText id="sf-guardian-hp" v-model="studentForm.guardian_hp_num" fluid />
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="font-bold border-b border-surface-200 dark:border-surface-700 pb-1 mb-3">Assistance & Welfare</div>
+                <div class="flex flex-wrap gap-6">
+                    <div class="flex items-center gap-2">
+                        <Checkbox v-model="studentForm.check_ppdbbersama" inputId="sf-ppdb" :binary="true" />
+                        <label for="sf-ppdb">PPDB Bersama</label>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <Checkbox v-model="studentForm.check_kjp" inputId="sf-kjp" :binary="true" />
+                        <label for="sf-kjp">KJP</label>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <Checkbox v-model="studentForm.check_bpms" inputId="sf-bpms" :binary="true" />
+                        <label for="sf-bpms">BPMS</label>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <Checkbox v-model="studentForm.check_pip" inputId="sf-pip" :binary="true" />
+                        <label for="sf-pip">PIP</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <template #footer>
+            <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="isSubmitting" @click="studentFormDialog = false" />
+            <Button :label="editTargetId ? 'Save Changes' : 'Save Student'" icon="pi pi-check" :loading="isSubmitting" :disabled="isSubmitting" @click="submitStudentForm" />
+        </template>
+    </Dialog>
+
+    <!-- ── 03b: Student Detail Dialog ─────────────────────────────────────────── -->
+    <Dialog v-model:visible="studentDetailDialog" modal :style="{ width: '720px', maxWidth: '95vw' }" :draggable="false" header="Student Detail">
+        <div v-if="detailStudent" class="flex flex-col gap-4 text-sm">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Full Name</span><span class="font-medium">{{ detailStudent.name ?? '-' }}</span></div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">NIK</span><span class="font-medium">{{ detailStudent.nik ?? '-' }}</span></div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">NIS</span><span class="font-medium">{{ detailStudent.nis ?? '-' }}</span></div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">NISN</span><span class="font-medium">{{ detailStudent.nisn ?? '-' }}</span></div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Gender</span><span class="font-medium">{{ detailStudent.gender?.name ?? '-' }}</span></div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Religion</span><span class="font-medium">{{ detailStudent.religion?.name ?? '-' }}</span></div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Birthplace</span><span class="font-medium">{{ detailStudent.birthplace ?? '-' }}</span></div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Birthdate</span><span class="font-medium">{{ detailStudent.birthdate ?? '-' }}</span></div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Family Status</span><span class="font-medium">{{ detailStudent.family_status?.name ?? '-' }}</span></div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Blood Type</span><span class="font-medium">{{ detailStudent.blood_type?.name ?? '-' }}</span></div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Address</span><span class="font-medium text-right">{{ detailStudent.address ?? '-' }}</span></div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Phone</span><span class="font-medium">{{ detailStudent.hp_num ?? '-' }}</span></div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Father Name</span><span class="font-medium">{{ detailStudent.father_name ?? '-' }}</span></div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Mother Name</span><span class="font-medium">{{ detailStudent.mother_name ?? '-' }}</span></div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Guardian Name</span><span class="font-medium">{{ detailStudent.guardian_name ?? '-' }}</span></div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Record Version</span><span class="font-medium">{{ detailStudent.version ?? '-' }}</span></div>
+            </div>
+            <div v-if="detailStudent.deleted_at" class="text-red-500">This student is archived. Reason: {{ detailStudent.archive_reason ?? '-' }}</div>
+        </div>
+        <template #footer>
+            <Button label="Close" icon="pi pi-times" text severity="secondary" @click="studentDetailDialog = false" />
+        </template>
+    </Dialog>
+
+    <!-- ── 03b: Archive Confirmation Dialog ───────────────────────────────────── -->
+    <Dialog v-model:visible="archiveDialog" modal :style="{ width: '520px', maxWidth: '95vw' }" :draggable="false" header="Archive Student">
+        <div class="flex flex-col gap-4">
+            <div class="flex items-center gap-4">
+                <i class="pi pi-exclamation-triangle !text-3xl text-red-500" />
+                <span>Are you sure you want to archive <b>{{ archiveTarget.name }}</b>? Active rombel memberships will be deactivated administratively (not recorded as a transfer-out).</span>
+            </div>
+            <div>
+                <label for="archive-reason" class="block font-bold mb-2">Administrative Reason <span class="text-red-500">*</span></label>
+                <Textarea id="archive-reason" v-model="archiveReason" rows="3" autoResize fluid />
+                <small v-if="archiveErrors.archive_reason" class="text-red-500">{{ archiveErrors.archive_reason[0] }}</small>
+            </div>
+        </div>
+        <template #footer>
+            <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="isSubmitting" @click="archiveDialog = false" />
+            <Button label="Archive Student" icon="pi pi-check" severity="danger" :loading="isSubmitting" :disabled="isSubmitting" @click="confirmArchiveStudent" />
+        </template>
+    </Dialog>
+
+    <!-- ── 03b: Archived Students Dialog ──────────────────────────────────────── -->
+    <Dialog v-model:visible="archivedListDialog" modal :style="{ width: '820px', maxWidth: '95vw' }" :draggable="false" header="Archived Students">
+        <DataTable :value="archivedStudents" :loading="archivedLoading" dataKey="id" paginator :rows="10" showGridlines
+                   paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                   currentPageReportTemplate="Showing {first} to {last} of {totalRecords} archived students">
+            <template #empty> No archived students found. </template>
+            <template #loading> Loading archived students. Please wait. </template>
+            <Column header="No" style="width: 3rem">
+                <template #body="slotProps">{{ slotProps.index + 1 }}</template>
+            </Column>
+            <Column field="name" header="Name" sortable style="min-width: 12rem" />
+            <Column field="nik" header="NIK" style="min-width: 10rem" />
+            <Column field="nis" header="NIS" style="min-width: 8rem" />
+            <Column field="archive_reason" header="Archive Reason" style="min-width: 12rem" />
+            <Column header="Action" :exportable="false" style="min-width: 8rem">
+                <template #body="{ data }">
+                    <Button label="Restore" icon="pi pi-refresh" size="small" severity="success" variant="outlined"
+                            :loading="isSubmitting" :disabled="isSubmitting" @click="restoreStudent(data)" />
+                </template>
+            </Column>
+        </DataTable>
+        <template #footer>
+            <Button label="Close" icon="pi pi-times" text severity="secondary" @click="archivedListDialog = false" />
+        </template>
+    </Dialog>
+
+    <!-- ── 03b: Optimistic Locking Conflict Dialog (HTTP 409) ─────────────────── -->
+    <Dialog v-model:visible="conflictDialog" modal :style="{ width: '520px', maxWidth: '95vw' }" :draggable="false" header="Data Conflict Detected">
+        <div class="flex items-start gap-4">
+            <i class="pi pi-exclamation-triangle !text-3xl text-orange-500" />
+            <div>
+                <p class="mb-2">{{ conflictMessage }}</p>
+                <p class="text-surface-500 text-sm">Your input is preserved. Click "Reload Latest" to fetch the newest data from the server, or "Keep Editing" to continue with your current input.</p>
+            </div>
+        </div>
+        <template #footer>
+            <Button label="Keep Editing" icon="pi pi-pencil" text severity="secondary" :disabled="reloadingConflict" @click="conflictDialog = false" />
+            <Button label="Reload Latest" icon="pi pi-refresh" :loading="reloadingConflict" :disabled="reloadingConflict" @click="reloadAfterConflict" />
+        </template>
     </Dialog>
 </template>

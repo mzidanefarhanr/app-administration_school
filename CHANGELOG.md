@@ -17,6 +17,33 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-21] Subfase 03b — Feature: UI CRUD siswa, optimistic locking, arsip administratif, dan bukti konkurensi
+- Type: Feature
+- Scope / fase: Subfase 03b (CRUD dan Form Siswa).
+- Files touched:
+  - `vue-app/src/views/pages/public/Student.vue`
+  - `vue-app/src/main.js`
+  - `laravel-api/tests/Feature/Student/MariaDbStudentIntegrationTest.php`
+  - `reports/feature-update/PHASE-03B-STUDENT-CRUD.md` (baru)
+  - `reports/feature-update/PHASE-03B-MANUAL-REVIEW.md`
+  - `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `roadmap/ROADMAP.md`, `docs/DATABASE.md`, `docs/API-CONTRACTS.md`, `CHANGELOG.md`
+- What changed:
+  1. UI `Student.vue`: tombol New Student & Archived (`students.manage`), kolom Action (View/Edit/Archive), dialog Add/Edit (section English), dialog Detail, dialog Archive dengan alasan wajib, dialog Archived + Restore, error 422 inline per field, dialog 409 (Data Conflict Detected) dengan input dipertahankan + Reload Latest, `isSubmitting` anti double-submit, dan tombol View untuk `students.view`.
+  2. `main.js`: registrasi directive PrimeVue `v-tooltip`.
+  3. 2 integration test MariaDB disposable: update dengan expected version sama (satu menang/409/versi naik sekali/audit konsisten) dan arsip vs aktivasi rombel (siswa terarsip berakhir 0 keanggotaan aktif).
+  4. Sinkronisasi dokumentasi status 03b = IN PROGRESS, penerimaan manual PENDING.
+- Why: menuntaskan scope 03b yang diotorisasi (backend sudah di `e77f335`) dengan deliverable UI nyata, bukti konkurensi khusus 03b, dan verifikasi browser tanpa mengklaim 03b selesai sebelum persetujuan pemilik.
+- Validation:
+  - `php artisan test tests/Feature/Student` → 55 passed (228 assertions).
+  - `php artisan test` → 209 passed (946 assertions).
+  - `./vendor/bin/pint --test tests/Feature/Student/MariaDbStudentIntegrationTest.php` → PASS.
+  - `node --test` (vue-app) → 15 passed.
+  - `npm run build` → PASS.
+  - `npx eslint src/views/pages/public/Student.vue src/main.js` → 22 errors (seluruhnya baseline) + 2609 warnings.
+  - Browser UAT Playwright MCP: create/422/detail/edit/409/archive/daftar arsip/restore/kontrol izin → PASS (agent evidence).
+- Notes / risks: Status Subfase 03b tetap **IN PROGRESS**; penerimaan manual pemilik PENDING. UI tidak membuat keanggotaan rombel; siswa baru belum tampil di daftar per tahun ajaran sampai ditempatkan. Pagination server & chart tetap scope 03c.
+- Evidence: `reports/feature-update/PHASE-03B-STUDENT-CRUD.md`, `reports/feature-update/PHASE-03B-MANUAL-REVIEW.md`.
+
 ## [2026-10-21] Subfase 03b — Docs: perencanaan teknis CRUD siswa, optimistic locking, dan validasi form
 - Type: Docs
 - Scope / fase: Subfase 03b (CRUD dan Form Siswa).

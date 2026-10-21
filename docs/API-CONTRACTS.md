@@ -103,6 +103,24 @@ Kontrak keanggotaan rombel dan identitas siswa (DEC-20):
 - **Ekspor Siswa (`GET /api/students/export`)**:
   - Eager load dan resolusi atribut siswa kini mendukung relasi `student` (utama) maupun `studentNik` (fallback).
 
+## Perubahan Subfase 03b
+Kontrak CRUD siswa, optimistic locking, dan arsip administratif (DEC-21):
+
+| Method | Endpoint | Izin | Request | Respons |
+|---|---|---|---|---|
+| POST | `/api/students` | `students.manage` | Field siswa (whitelist; `id`/`age`/timestamp diabaikan) | `201` objek siswa (`version=1`) |
+| GET | `/api/students/{id}` | `students.view` | — | `200` detail siswa + relasi + membership aktif (termasuk menyertakan record terarsip) |
+| PUT | `/api/students/{id}` | `students.manage` | Field siswa + `version` wajib | `200`; `409` bila version usang; `422` bila siswa terarsip (restore dulu) |
+| DELETE | `/api/students/{id}` | `students.manage` | `version` + `archive_reason` wajib | `200` arsip; `409` versi usang; `422` validasi |
+| POST | `/api/students/{id}/restore` | `students.manage` | `version` wajib | `200` pulih; `409` versi usang; `422` bentrok identitas/NIK/NIS/NISN |
+
+- **Optimistic locking**: `version` divalidasi atomik (row lock + guard) pada update/arsip/restore; versi usang → `409` dengan `current_version`. Pesan error dalam Bahasa English.
+- **Arsip administratif**: soft delete `students.deleted_at` + `archive_reason`; seluruh keanggotaan rombel aktif ditandai `archived_at`/`archive_reason` **tanpa** mengubah `student_status_id` (Mutasi Keluar) atau `latest_student_exit_date`. Riwayat mutasi tetap utuh.
+- **Restore**: tidak mengaktifkan kembali rombel lama (`archived_at` dipertahankan); menolak bila NIK/NIS/NISN sudah dipakai siswa aktif lain (`422`).
+- **Keunikan**: index unik `students` menyeluruh (termasuk record terarsip); NIK/NIS/NISN terarsip tidak dapat dipakai ulang tanpa pemulihan resmi.
+- **List arsip**: `GET /api/students?only_archived=1` (izin `students.view`). `with_archived=1` menyertakan yang terarsip.
+- **UI**: `Student.vue` (English) — create/edit/detail/archive/daftar arsip/restore, 422 inline, 409 + Reload Latest, loading/double-submit guard, tombol sesuai `students.view`/`students.manage`.
+
 ## Aktual
 Resource di `/api`, dilindungi auth:sanctum: users, status-users, type-users, firstlogin; provinces/regencies/districts/villages; school-years/semesters/education-levels; genders/religions/blood-types/professions/family-status; education-schools/student-statuses/student-entries/student-majors/phase-statuses; students/school-levels/school-rombels/student-rombels; employee/employee-statuses/employee-types/employments/marital-statuses; school-profile/subjects/activities.
 `/api/user` mengambil actor. `/api/check-auth` mengembalikan authenticated + user atau null. Route auth web mencakup login/logout/register/forgot-password/reset-password dan email verification. Daftar route bukan bukti semua handler lengkap.

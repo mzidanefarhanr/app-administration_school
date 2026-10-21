@@ -356,3 +356,162 @@ test('mariadb integration: legacy row with student_id null blocks second active 
     expect($secondInsertFailed)->toBeTrue();
     expect($secondInsertMsg)->toContain('Student already has an active rombel membership in this academic year');
 });
+
+test('mariadb integration: version-guarded updates accept exactly one writer, bump version once, and keep audit consistent', function () {
+    $conn = DB::connection('mariadb_test');
+    $pdo = $conn->getPdo();
+
+    $nik = str_pad((string) mt_rand(10000000, 99999999).mt_rand(10000000, 99999999), 16, '0', STR_PAD_LEFT);
+    $pdo->exec("INSERT INTO students (name, nik, version, created_at, updated_at) VALUES ('VG Target', '{$nik}', 1, NOW(), NOW())");
+    $studentId = (int) $pdo->lastInsertId();
+
+    // Meniru StudentController::update (03b): SELECT ... FOR UPDATE + penjaga version + audit dalam transaksi.
+    $attempt = function (int $expected, string $newName) use ($pdo, $studentId) {
+        $before = $pdo->query("SELECT version FROM students WHERE id = {$studentId} FOR UPDATE")->fetch(PDO::FETCH_ASSOC);
+
+        if ((int) $before['version'] !== $expected) {
+            return ['status' => 409, 'current_version' => (int) $before['version']];
+        }
+
+        $stmt = $pdo->prepare('UPDATE students SET name = ?, version = version + 1 WHERE id = ? AND version = ?');
+        $stmt->execute([$newName, $studentId, $expected]);
+
+        if ($stmt->rowCount() === 0) {
+            return ['status' => 409, 'current_version' => $expected + 1];
+        }
+
+        $pdo->prepare("INSERT INTO activities (user_id, table_name, record_id, information, `after`, created_at, updated_at) VALUES (NULL, 'students', ?, 'Updated', ?, NOW(), NOW())")
+            ->execute([$studentId, json_encode(['name' => $newName])]);
+
+        return ['status' => 200, 'current_version' => $expected + 1];
+    };
+
+    // Dua request update dengan expected version yang sama (1)
+    $first = $attempt(1, 'Winner Update');
+    $second = $attempt(1, 'Loser Stale Update');
+
+    expect($first['status'])->toBe(200);
+    expect($second['status'])->toBe(409);
+    expect($second['current_version'])->toBe(2);
+
+    // Version naik tepat sekali, perubahan pemenang yang bertahan
+    $row = $conn->table('students')->where('id', $studentId)->first();
+    expect($row->name)->toBe('Winner Update');
+    expect((int) $row->version)->toBe(2);
+
+    // Audit konsisten: hanya pemenang yang tercatat; data pemenang tersimpan
+    $audits = $conn->table('activities')
+        ->where('table_name', 'students')
+        ->where('record_id', $studentId)
+        ->where('information', 'Updated')
+        ->get();
+    expect($audits)->toHaveCount(1);
+    expect(json_decode($audits->first()->after, true)['name'])->toBe('Winner Update');
+    expect(json_encode($audits->all()))->not->toContain('Loser Stale Update');
+});
+
+test('mariadb integration: archived student never ends with an active rombel membership', function () {
+    $conn = DB::connection('mariadb_test');
+
+    $uniq = uniqid();
+    $yearId = $conn->table('school_years')->insertGetId([
+        'name' => 'Archive Vs Activate Year '.$uniq,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $levelId = $conn->table('school_levels')->insertGetId([
+        'name' => 'Level '.$uniq,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $rombel1 = $conn->table('school_rombels')->insertGetId([
+        'name' => 'AR-1 '.$uniq,
+        'school_year_id' => $yearId,
+        'school_level_id' => $levelId,
+        'version' => 1,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $rombel2 = $conn->table('school_rombels')->insertGetId([
+        'name' => 'AR-2 '.$uniq,
+        'school_year_id' => $yearId,
+        'school_level_id' => $levelId,
+        'version' => 1,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $nik = str_pad((string) mt_rand(10000000, 99999999).mt_rand(10000000, 99999999), 16, '0', STR_PAD_LEFT);
+    $studentId = $conn->table('students')->insertGetId([
+        'name' => 'Archive Vs Activate Student',
+        'nik' => $nik,
+        'version' => 1,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    // Keanggotaan aktif awal di Rombel 1
+    $conn->table('student_rombels')->insert([
+        'student_id' => $studentId,
+        'student_nik' => $nik,
+        'school_rombel' => $rombel1,
+        'student_status_id' => 1,
+        'version' => 1,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    // Pengarsipan administratif (meniru StudentController::destroy): soft delete siswa
+    // dan tandai keanggotaan aktif dengan archived_at tanpa mengubah status/tanggal keluar.
+    $conn->table('students')->where('id', $studentId)->update([
+        'deleted_at' => now(),
+        'archive_reason' => 'Administrative cleanup',
+        'version' => 2,
+    ]);
+    $conn->table('student_rombels')
+        ->where('student_id', $studentId)
+        ->whereNull('archived_at')
+        ->whereNull('deleted_at')
+        ->where(function ($q) {
+            $q->where('student_status_id', 1)->orWhereNull('student_status_id');
+        })
+        ->whereNull('latest_student_exit_date')
+        ->update(['archived_at' => now(), 'archive_reason' => 'Administrative archive: Administrative cleanup', 'version' => 2]);
+
+    // Upaya mengaktifkan keanggotaan rombel baru untuk siswa terarsip HARUS DITOLAK
+    $activationFailed = false;
+    $activationMsg = '';
+    try {
+        $conn->table('student_rombels')->insert([
+            'student_id' => $studentId,
+            'student_nik' => $nik,
+            'school_rombel' => $rombel2,
+            'student_status_id' => 1,
+            'version' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    } catch (\Throwable $e) {
+        $activationFailed = true;
+        $activationMsg = $e->getMessage();
+    }
+
+    expect($activationFailed)->toBeTrue();
+    expect($activationMsg)->toContain('Cannot create active rombel membership for an archived student');
+
+    // Bukti akhir: siswa terarsip tidak memiliki keanggotaan aktif apa pun
+    $activeCount = $conn->table('student_rombels')
+        ->where('student_id', $studentId)
+        ->whereNull('deleted_at')
+        ->whereNull('archived_at')
+        ->where(function ($q) {
+            $q->where('student_status_id', 1)->orWhereNull('student_status_id');
+        })
+        ->whereNull('latest_student_exit_date')
+        ->count();
+
+    expect($activeCount)->toBe(0);
+});

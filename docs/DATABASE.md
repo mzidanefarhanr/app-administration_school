@@ -11,9 +11,9 @@ Nama tahun pada migration mencapai 2029; Laravel menentukan urutan dari nama fil
 |---|---|---|
 | users | name, email, username, password, nik, type_user_id, status_user_id, version, first_login_at, status_active | email/username/nik unique; dua field terakhir boolean; soft delete |
 | type_users / status_users | name | Seeder Admin/User dan Aktif/Tidak Aktif |
-| students | nik, nis, nisn, birthdate, age; gender/religion/education/blood/profession/village FK; keluarga; check_kjp/pip/ppdbbersama/bpms | Identitas unique nullable; umur dihitung dinamis dari birthdate (Asia/Jakarta, DEC-20); soft delete |
+| students | nik, nis, nisn, birthdate, age; gender/religion/education/blood/profession/village FK; keluarga; check_kjp/pip/ppdbbersama/bpms; archive_reason (Fase 03b) | Identitas unique nullable (termasuk record terarsip); umur dihitung dinamis dari birthdate (Asia/Jakarta, DEC-20); soft delete; `archive_reason` = alasan arsip administratif (Fase 03b) |
 | school_rombels | school_level_id, school_year_id, student_major_id, class_teach_id, name, version | Wali kelas terkait users.id |
-| student_rombels | student_id → students.id (Fase 03a); student_nik (legacy nullable); school_rombel → school_rombels.id; status/entry/exit/graduation | Relasi primer student_id; trigger DB menegakkan max 1 rombel aktif per siswa/tahun (DEC-20); soft delete |
+| student_rombels | student_id → students.id (Fase 03a); student_nik (legacy nullable); school_rombel → school_rombels.id; status/entry/exit/graduation; archived_at + archive_reason (Fase 03b) | Relasi primer student_id; trigger DB menegakkan max 1 rombel aktif per siswa/tahun (DEC-20) dan menolak keanggotaan aktif untuk siswa terarsip (DEC-21); `archived_at` menonaktifkan keanggotaan secara administratif tanpa mengubah status/mutasi keluar; soft delete |
 | employees | user_nik → users.nik; employee status/type/employment/subject, religion/district/marital/gender; biodata dan pendidikan | Banyak FK required; subject tunggal; tidak memiliki version baseline |
 | school_profiles | pendidikan sekolah, kepala sekolah, tahun ajaran, nomor/kontak sekolah | Detail sumber migration dan SchoolProfile model |
 | subjects | name, description | Referensi mata pelajaran, bukan jurnal |
@@ -37,6 +37,7 @@ Nama tahun pada migration mencapai 2029; Laravel menentukan urutan dari nama fil
 
 ## Usulan migration & status implementasi
 - **Subfase 03a (SELESAI)**: Penambahan `student_id` pada `student_rombels` (FK restrictOnDelete, cascadeOnUpdate); pelonggaran nullability `student_nik`; backfill idempotent berbasis NIK tunggal; dan penegakan trigger database 1 rombel aktif per siswa per tahun ajaran.
+- **Subfase 03b (IMPLEMENTED, manual PENDING)**: Migration `2029_07_23_000002` menambahkan `students.archive_reason` serta `student_rombels.archived_at` + `student_rombels.archive_reason`, dan memperbarui trigger agar mengabaikan baris `archived_at IS NOT NULL` serta menolak keanggotaan aktif untuk siswa terarsip (`deleted_at IS NOT NULL`). Arsip administratif tidak mengubah `student_status_id` maupun `latest_student_exit_date`.
 - Evaluasi user_id/akun opsional pada employees. Profil pegawai bukan akun login; migrasi hubungan membutuhkan keputusan DEC-04 (Fase 04).
 - Identitas bernama tetap string. Null/blank dinormalisasi. Unique NIS lingkup sekolah (DEC-20).
 - Constraint keanggotaan rombel: telah ditegakkan via database trigger MariaDB dan SQLite pada Fase 03a.

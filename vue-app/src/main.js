@@ -13,6 +13,7 @@ import PrimeVue from 'primevue/config';
 import ConfirmationService from 'primevue/confirmationservice';
 import StyleClass from 'primevue/styleclass';
 import ToastService from 'primevue/toastservice';
+import Tooltip from 'primevue/tooltip';
 
 import '@/assets/styles.scss';
 
@@ -36,6 +37,8 @@ app.use(ToastService);
 app.use(ConfirmationService);
 // Register the PrimeVue StyleClass directive used by v-styleclass in the layout.
 app.directive('styleclass', StyleClass);
+// Register Tooltip directive used by student CRUD action buttons (03b).
+app.directive('tooltip', Tooltip);
 
 // Register centralized auth error handlers to decouple apiLogin from router/store imports
 registerAuthHandlers({
