@@ -87,6 +87,19 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
   - Model `Student` dan `StudentRombel` menyelaraskan relasi dan trait `Loggable` dengan allowlist audit yang meminimalkan data pribadi.
 - Status: APPROVED. Fase affected: 03 (03a, 03b, 03c).
 
+### DEC-21 — Pengarsipan administratif siswa, keunikan identitas, dan kontrol konkurensi (APPROVED, 2026-10-21 WIB)
+- Konteks: pelaksanaan implementasi Subfase 03b berdasarkan instruksi pemilik 21 Oktober 2026 WIB.
+- Pilihan pemilik:
+  1. **Pengarsipan administratif terpisah dari Mutasi Keluar**: Soft delete siswa menonaktifkan seluruh keanggotaan rombel yang masih aktif tanpa mengubah status menjadi Mutasi Keluar (`student_status_id`) dan tanpa mengubah tanggal keluar sekolah (`latest_student_exit_date`). Waktu dan alasan pengarsipan disimpan terpisah (kolom `archived_at` dan `archive_reason` pada `student_rombels`, serta `archive_reason` pada `students`). Restore siswa tidak otomatis mengaktifkan kembali rombel lama (tetap nonaktif).
+  2. **Keunikan NIK/NIS mencakup record terarsip**: Unconditional unique index pada tabel `students` dipertahankan sesuai skema aktual tanpa pelemahan; siswa aktif maupun terarsip tidak boleh memiliki NIK/NIS yang berbentrok.
+  3. **Pemeriksaan versi (version check)**: Expected version divalidasi dan dinaikkan atomik pada operasi update, archive (soft delete), dan restore untuk mencegah race condition / lost update.
+- Dampak schema/API/UI:
+  - Additive migration menambahkan `archive_reason` pada `students`, serta `archived_at` dan `archive_reason` pada `student_rombels`.
+  - Trigger single-active rombel MariaDB & SQLite diselaraskan (`archived_at IS NULL`), serta menolak aktivasi rombel baru untuk siswa terarsip.
+  - Endpoint `PUT /api/students/{id}`, `DELETE /api/students/{id}`, dan `POST /api/students/{id}/restore` menegakkan expected version dan atomisitas transaksi.
+  - UI `Student.vue` menyediakan dialog form CRUD, penanganan inline 422, dialog konflik 409 dengan tombol reload data terbaru, konfirmasi archive dengan alasan administratif, dan tombol restore.
+- Status: APPROVED. Fase affected: 03b.
+
 ### Keputusan yang masih OPEN (belum diputuskan)
 - Makna `status_user_id` (jangan disamakan dengan `status_active`), deployment CORS/Sanctum produksi, strategi pencabutan token vs sesi.
 
@@ -114,6 +127,7 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 | DEC-18 | Operasional backup manual dan restore drill | Target drill `school_restore_drill_uat`; `backup.manage` default admin-sistem | APPROVED (2026-10-19) | 02b |
 | DEC-19 | Penjadwalan, retensi otomatis, dan monitoring backup | Jadwal 02:00 & 02:30 WIB; default schedule OFF; monitoring pasif API/JSON | APPROVED (2026-10-20) | 02c |
 | DEC-20 | Identitas siswa, keanggotaan rombel, audit pendataan | NIK opsional 16 digit, NIS unik sekolah, 1 rombel aktif/tahun, soft delete nonaktifkan rombel, audit minimal PII | APPROVED (2026-10-20 WIB) | 03a |
+| DEC-21 | Pengarsipan administratif, keunikan NIK/NIS, versioning | Arsip rombel via archived_at/reason terpisah dari mutasi, keunikan NIK/NIS unconditional, version check atomik | APPROVED (2026-10-21 WIB) | 03b |
 
 ## Format pencatatan keputusan
 Tanggal WIB; ID; konteks; alternatif; pilihan pemilik dan bukti instruksi; dampak schema/API/UI; fase affected; status OPEN/PROPOSED/APPROVED/SUPERSEDED. Pertahankan riwayat bila keputusan berubah.

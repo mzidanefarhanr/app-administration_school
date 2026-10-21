@@ -176,48 +176,41 @@ try {
 ### D. Mekanisme Soft Delete dan Restore Atomik
 
 1. **Soft Delete (`DELETE /api/students/{id}`)**:
-   - Dijalankan dalam transaksi database:
+   - Dijalankan dalam transaksi database dengan expected version check:
      ```php
-     DB::transaction(function () use ($student) {
-         // 1. Soft delete siswa
-         $student->delete();
-
-         // 2. Nonaktifkan keanggotaan rombel aktif siswa pada tahun berjalan (DEC-20)
-         // Menandai tanggal keluar dan status non-aktif (misal status 2 'Mutasi Keluar')
+     DB::transaction(function () use ($id, $expectedVersion, $reason) {
+         // 1. Update atomik version dan deleted_at pada siswa
+         // 2. Nonaktifkan keanggotaan rombel aktif siswa pada tahun berjalan secara administratif (DEC-21):
+         // Menandai archived_at = now() dan archive_reason = $reason
+         // Tanpa mengubah student_status_id menjadi Mutasi Keluar dan tanpa mengubah latest_student_exit_date
          StudentRombel::where('student_id', $student->id)
              ->whereNull('deleted_at')
+             ->whereNull('archived_at')
              ->where(fn($q) => $q->where('student_status_id', 1)->orWhereNull('student_status_id'))
              ->whereNull('latest_student_exit_date')
              ->update([
-                 'student_status_id' => 2,
-                 'latest_student_exit_date' => now()->toDateString(),
-                 'latest_information' => 'Student archived / soft-deleted.',
+                 'archived_at' => now(),
+                 'archive_reason' => $reason,
              ]);
      });
      ```
-   - Riwayat mutasi rombel lama **tidak dihapus** dari database, melainkan ditandai keluar/non-aktif, sehingga kronologi kelas siswa tetap terpelihara utuh.
+   - Riwayat mutasi rombel lama **tidak dihapus** dari database dan tanggal keluar sekolah tidak dipalsukan, sehingga kronologi kelas siswa tetap terpelihara utuh.
 2. **Restore Siswa (`POST /api/students/{id}/restore`)**:
-   - Dijalankan dalam transaksi database:
+   - Dijalankan dalam transaksi database dengan expected version check:
      ```php
-     DB::transaction(function () use ($id) {
+     DB::transaction(function () use ($id, $expectedVersion) {
          $student = Student::onlyTrashed()->findOrFail($id);
 
-         // Periksa potensi konflik identitas terhadap record aktif lain
-         // (Menolak restore jika NIK/NIS/NISN telah digunakan oleh siswa aktif lain)
-         if ($student->nik && Student::where('nik', $student->nik)->whereNull('deleted_at')->exists()) {
-             throw ValidationException::withMessages(['nik' => 'Cannot restore: NIK is already used by an active student.']);
-         }
-         if ($student->nis && Student::where('nis', $student->nis)->whereNull('deleted_at')->exists()) {
-             throw ValidationException::withMessages(['nis' => 'Cannot restore: NIS is already used by an active student.']);
-         }
-
+         // Periksa potensi konflik identitas terhadap record lain
+         // (Keunikan NIK/NIS mencakup record aktif maupun terarsip sesuai constraint aktual DEC-21)
          // Pulihkan siswa
          $student->restore();
          $student->version = $student->version + 1;
+         $student->archive_reason = null;
          $student->save();
 
-         // Keanggotaan rombel lama TIDAK diaktifkan otomatis (DEC-20)
-         // Siswa berstatus dipulihkan tanpa kelas aktif hingga operator menempatkannya kembali secara eksplisit.
+         // Keanggotaan rombel lama TIDAK diaktifkan otomatis (DEC-21)
+         // archived_at pada student_rombels TIDAK dihapus, sehingga rombel lama tetap non-aktif.
      });
      ```
 
@@ -301,13 +294,16 @@ try {
 
 ---
 
-## 5. Pertanyaan Keputusan Pemilik yang Terkait (DEC-21)
+## 5. Keputusan Pemilik yang Ditetapkan (DEC-21 — APPROVED 2026-10-21 WIB)
 
-Sebelum implementasi Subfase 03b dieksekusi, satu hal operasional perlu konfirmasi pemilik:
+Berdasarkan instruksi pemilik pada 21 Oktober 2026 WIB, keputusan operasional Subfase 03b telah disahkan:
 
-### Pertanyaan Operasional: Status Rombel Saat Siswa Di-Soft Delete
-- **Konteks**: Saat seorang siswa di-soft delete (diarsipkan), keanggotaan rombel aktif siswa tersebut di tahun ajaran berjalan wajib dinonaktifkan dalam satu transaksi atomik.
-- **Pilihan Usulan**:
-  - **Opsi A (Direkomendasikan)**: Ubah `student_status_id` ke ID 2 ('Mutasi Keluar') dan isi `latest_student_exit_date = hari ini` dengan catatan `'Student archived'`. Rombel lama tetap tercatat dalam riwayat mutasi tanpa berstatus aktif.
-  - **Opsi B**: Cukup isi `latest_student_exit_date = hari ini` tanpa mengubah `student_status_id`.
-- *Rekomendasi*: **Opsi A** (status dan tanggal keluar selaras mencerminkan siswa tidak lagi aktif di kelas tersebut).
+1. **Pengarsipan Administratif Terpisah dari Mutasi Keluar**:
+   - Soft delete siswa menonaktifkan seluruh keanggotaan rombel yang masih aktif secara administratif, tanpa mengubah status menjadi Mutasi Keluar (`student_status_id`) dan tanpa mengubah tanggal keluar sekolah (`latest_student_exit_date`).
+   - Waktu dan alasan pengarsipan disimpan terpisah menggunakan kolom additive `archived_at` dan `archive_reason` pada `student_rombels`, serta `archive_reason` pada `students`.
+   - Restore siswa tidak otomatis mengaktifkan kembali rombel lama (keanggotaan lama tetap non-aktif dengan `archived_at` tidak dihapus).
+2. **Keunikan NIK/NIS Mencakup Record Terarsip**:
+   - Unconditional unique index pada tabel `students` dipertahankan sesuai indeks aktual database tanpa pelemahan diam-diam.
+   - Siswa aktif maupun terarsip tidak boleh memiliki NIK/NIS yang berbentrok.
+3. **Pemeriksaan Versi (Version Check)**:
+   - Expected version divalidasi dan dinaikkan atomik pada mutasi update, archive (soft delete), dan restore untuk mencegah *race condition* dan *lost update*. Versi usang ditolak dengan HTTP 409 Conflict.
