@@ -160,6 +160,9 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/students/export', [StudentExportController::class, 'export'])
         ->middleware('can:students.view');
 
+    Route::post('/students/{id}/restore', [StudentController::class, 'restore'])
+        ->middleware('can:students.manage');
+
     Route::apiResource('/students', StudentController::class)
         ->only(['index', 'show'])->middleware('can:students.view');
     Route::apiResource('/students', StudentController::class)

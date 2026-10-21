@@ -127,6 +127,7 @@ class StudentRombelController extends Controller
             'latestStudentExitSchool.educationLevel',
             'latestStudentExitSchool.district.regency.province',
         ])
+            ->whereNull('archived_at')
             ->whereHas('schoolRombel', function ($query) use ($id) {
                 $query->where('school_year_id', $id);
             })

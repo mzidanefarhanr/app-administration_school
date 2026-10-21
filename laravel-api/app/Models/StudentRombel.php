@@ -29,6 +29,7 @@ class StudentRombel extends Model
         'school_rombel',
         'student_status_id',
         'student_entry_id',
+        'archived_at',
         'version',
     ];
 
@@ -50,6 +51,8 @@ class StudentRombel extends Model
         'latest_student_exit_school_id',
         'latest_student_graduation_date',
         'latest_information',
+        'archived_at',
+        'archive_reason',
         'check_dapodik',
         'informations_dapodik',
         // 'student_major_id',
@@ -71,12 +74,22 @@ class StudentRombel extends Model
                 }
             }
 
-            // Penegakan aturan: maksimal 1 keanggotaan rombel aktif per siswa per tahun ajaran (DEC-20)
+            // Penegakan aturan: maksimal 1 keanggotaan rombel aktif per siswa per tahun ajaran (DEC-20, DEC-21)
             $isActive = is_null($model->deleted_at)
+                && is_null($model->archived_at)
                 && (is_null($model->student_status_id) || (int) $model->student_status_id === 1)
                 && is_null($model->latest_student_exit_date);
 
             if ($isActive && ($model->student_id || $model->student_nik)) {
+                // Keanggotaan aktif baru tidak boleh merujuk siswa terarsip (DEC-21)
+                $targetStudent = $model->student_id
+                    ? Student::withTrashed()->find($model->student_id)
+                    : ($model->student_nik ? Student::withTrashed()->where('nik', $model->student_nik)->first() : null);
+
+                if ($targetStudent && $targetStudent->trashed()) {
+                    throw new \DomainException('Cannot create active rombel membership for an archived student.');
+                }
+
                 $targetRombel = SchoolRombel::find($model->school_rombel);
                 if ($targetRombel && $targetRombel->school_year_id) {
                     $effStudentId = $model->student_id;
@@ -91,6 +104,7 @@ class StudentRombel extends Model
                     $query = static::query()
                         ->whereHas('schoolRombel', fn ($q) => $q->where('school_year_id', $targetRombel->school_year_id))
                         ->whereNull('deleted_at')
+                        ->whereNull('archived_at')
                         ->where(fn ($q) => $q->where('student_status_id', 1)->orWhereNull('student_status_id'))
                         ->whereNull('latest_student_exit_date');
 

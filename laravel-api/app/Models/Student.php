@@ -107,6 +107,7 @@ class Student extends Model
         'check_kjp',
         'check_bpms',
         'check_pip',
+        'archive_reason',
     ];
 
     /**

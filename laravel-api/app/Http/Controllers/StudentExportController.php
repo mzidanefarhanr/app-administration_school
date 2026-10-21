@@ -145,6 +145,7 @@ class StudentExportController extends Controller
                 'studentEntry',
                 'studentStatus',
             ])
+            ->whereNull('student_rombels.archived_at')
             ->whereHas('schoolRombel', function (Builder $q) use ($filters) {
                 $q->where('school_year_id', $filters['school_year_id']);
             });

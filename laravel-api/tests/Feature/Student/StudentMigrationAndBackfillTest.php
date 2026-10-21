@@ -159,6 +159,7 @@ test('backfill leaves ambiguous duplicate NIK in students table unresolved witho
             $table->unsignedBigInteger('version')->default(1);
             $table->string('name');
             $table->string('nik')->nullable(); // non-unique for ambiguity test
+            $table->softDeletes();
             $table->timestamps();
         });
         DB::statement('INSERT INTO students (id, version, name, nik, created_at, updated_at) SELECT id, version, name, nik, created_at, updated_at FROM students_temp');
