@@ -68,4 +68,4 @@ Baca [prompt OpenCode](../docs/OPENCODE-WORKFLOW.md), jalankan 00a–00b audit s
 - [x] Keputusan DEC-20 (kebijakan identitas siswa, keanggotaan rombel, audit) APPROVED 2026-10-20 WIB.
 - [x] Subfase 03a — Identitas dan membership migration: DITERIMA PEMILIK (checklist #1–#11 APPROVED 2026-10-21 WIB mengacu baseline 37f7d79; laporan PHASE-03A-STUDENT-IDENTITY.md).
 - [x] Subfase 03b — CRUD dan form siswa: **DITERIMA PEMILIK** (checklist #1–#13 APPROVED 2026-10-21 WIB mengacu baseline `cbd25bd`; backend `e77f335` + UI `cbd25bd`; 55 test Student/228 assertions, 209 test penuh/946 assertions, 15 unit frontend, build PASS, browser UAT agen PASS; laporan PHASE-03B-STUDENT-CRUD.md).
-- [ ] Subfase 03c — Daftar dan rekap siswa: NOT STARTED (belum diotorisasi).
+- [ ] Subfase 03c — Daftar dan rekap siswa: RENCANA DISUSUN, menunggu review pemilik (laporan PHASE-03C-PLAN.md); implementasi belum diotorisasi.

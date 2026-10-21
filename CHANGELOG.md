@@ -17,6 +17,22 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-21] Subfase 03c — Docs: audit source dan rencana daftar/rekap siswa
+- Type: Docs
+- Scope / fase: Subfase 03c (Daftar dan Rekap Siswa).
+- Files touched:
+  - `reports/feature-update/PHASE-03C-PLAN.md` (baru)
+  - `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `roadmap/ROADMAP.md`, `CHANGELOG.md`
+- What changed:
+  1. Audit source aktual: `StudentController::index` (belum terpaginasi), `StudentRombelController::show` (daftar per tahun, siswa tanpa rombel tidak muncul), `StudentExportController` (batas baris 422 tanpa pemotongan), dan DataTable client-side `Student.vue`.
+  2. Rencana teknis 03c: server pagination/pencarian/sort/filter, definisi tegas siswa aktif/terarsip/unplaced/keanggotaan aktif-nonaktif, rekap anti double-count (siswa unik), ekspor mengikuti filter + `students.export` + batas 422, atribut minimum, kompatibilitas CRUD/archive/restore + `version` 03b, UI English + loading/empty/error + guard respons usang, matriks tes backend & browser UAT sintetis.
+  3. Rencana lint terarah dengan pembanding blob commit (bukan PASS otomatis; tanpa auto-format massal / menonaktifkan aturan).
+  4. Daftar keputusan pemilik yang diperlukan sebelum implementasi (definisi aktif/rekap, mode unplaced, paginasi, ekspor, penempatan rombel, visibilitas arsip, atribut minimum).
+- Why: mematuhi tata kelola repo — audit source dan rencana sebelum implementasi subfase berikutnya.
+- Validation: `git diff --cached --check` = exit 0. Dokumentasi saja; tidak mengulang test/build.
+- Notes / risks: Implementasi 03c belum diotorisasi dan **tidak** dimulai. Fase 03 tetap PARTIAL. Tidak ada perubahan skema.
+- Evidence: `reports/feature-update/PHASE-03C-PLAN.md`.
+
 ## [2026-10-21] Subfase 03b — Docs: penerimaan manual pemilik (checklist #1–#13 APPROVED)
 - Type: Docs
 - Scope / fase: Subfase 03b (CRUD dan Form Siswa).

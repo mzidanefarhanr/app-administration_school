@@ -19,7 +19,7 @@ Catatan perubahan pemilik: `console.txt` dan `vue-app/test-results/` adalah arte
     - Backend: `e77f335`; UI/deliverable: `cbd25bd`.
     - Verifikasi agen: suite Student **55 passed (228 assertions)**; regresi backend **209 passed (946 assertions)**; frontend unit **15 passed**; build **PASS**; browser UAT agen PASS.
     - **Penerimaan manual pemilik: APPROVED** (checklist #1–#13, 2026-10-21 WIB, baseline `cbd25bd`).
-  - **Subfase 03c** — Daftar dan Rekap Siswa: NOT STARTED (implementasi belum diotorisasi).
+  - **Subfase 03c** — Daftar dan Rekap Siswa: NOT STARTED. Rencana teknis disusun (`reports/feature-update/PHASE-03C-PLAN.md`) dan menunggu review pemilik; implementasi belum diotorisasi.
 - **Keputusan Terbuka yang Masih OPEN (belum menghambat)**:
   1. Makna `status_user_id`.
   2. Deployment CORS/Sanctum produksi.
@@ -60,6 +60,7 @@ Catatan perubahan pemilik: `console.txt` dan `vue-app/test-results/` adalah arte
   - `laravel-api/tests/Feature/Student/MariaDbStudentIntegrationTest.php`: 2 integration test konkurensi 03b.
   - `reports/feature-update/PHASE-03B-STUDENT-CRUD.md` (baru), `PHASE-03B-MANUAL-REVIEW.md`, `INDEX.md`, `HANDOFF.md`, `roadmap/ROADMAP.md`, `CHANGELOG.md`, `docs/DATABASE.md`, `docs/API-CONTRACTS.md`.
 - Commit pencatatan penerimaan 03b (lihat CHANGELOG): `PHASE-03B-STUDENT-CRUD.md`, `PHASE-03B-MANUAL-REVIEW.md`, `INDEX.md`, `HANDOFF.md`, `roadmap/ROADMAP.md`, `CHANGELOG.md`.
+- Commit rencana 03c (lihat CHANGELOG): `PHASE-03C-PLAN.md` (baru), `INDEX.md`, `HANDOFF.md`, `roadmap/ROADMAP.md`, `CHANGELOG.md`.
 
 ---
 
@@ -90,6 +91,6 @@ Data sintetis yang berubah selama browser UAT:
 
 ## 6. Langkah Berikutnya
 1. Subfase 03b **DITERIMA PEMILIK** (penerimaan manual #1–#13, baseline `cbd25bd`). Penerimaan 03a tetap dipertahankan.
-2. Rencana teknis **Subfase 03c** sedang disusun dan akan diajukan untuk review pemilik. Fase 03 tetap **PARTIAL** sampai 03c selesai.
+2. Rencana teknis **Subfase 03c** disusun (`reports/feature-update/PHASE-03C-PLAN.md`) dan menunggu review pemilik. Fase 03 tetap **PARTIAL** sampai 03c selesai.
 3. **Jangan memulai implementasi 03c** sebelum rencana disetujui pemilik.
 4. Keputusan pemilik yang dibutuhkan tercantum pada bagian keputusan di rencana 03c.
