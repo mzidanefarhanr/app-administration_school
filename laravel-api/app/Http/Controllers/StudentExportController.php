@@ -50,13 +50,13 @@ class StudentExportController extends Controller
     public function __construct()
     {
         $this->columns = [
-            'name' => ['Name', fn (StudentRombel $r) => ($r->student ?? $r->studentNik)?->name],
-            'gender' => ['Gender', fn (StudentRombel $r) => ($r->student?->gender ?? $r->studentNik?->gender)?->name],
-            'birthplace' => ['Birthplace', fn (StudentRombel $r) => ($r->student ?? $r->studentNik)?->birthplace],
-            'birthdate' => ['Birthdate', fn (StudentRombel $r) => ($r->student ?? $r->studentNik)?->birthdate],
-            'nik' => ['NIK', fn (StudentRombel $r) => ($r->student ?? $r->studentNik)?->nik],
-            'nis' => ['NIS', fn (StudentRombel $r) => ($r->student ?? $r->studentNik)?->nis],
-            'nisn' => ['NISN', fn (StudentRombel $r) => ($r->student ?? $r->studentNik)?->nisn],
+            'name' => ['Name', fn (StudentRombel $r) => $r->resolveStudent()?->name],
+            'gender' => ['Gender', fn (StudentRombel $r) => $r->resolveStudent()?->gender?->name],
+            'birthplace' => ['Birthplace', fn (StudentRombel $r) => $r->resolveStudent()?->birthplace],
+            'birthdate' => ['Birthdate', fn (StudentRombel $r) => $r->resolveStudent()?->birthdate],
+            'nik' => ['NIK', fn (StudentRombel $r) => $r->resolveStudent()?->nik],
+            'nis' => ['NIS', fn (StudentRombel $r) => $r->resolveStudent()?->nis],
+            'nisn' => ['NISN', fn (StudentRombel $r) => $r->resolveStudent()?->nisn],
             'school_rombel' => ['School Rombel', fn (StudentRombel $r) => $r->schoolRombel?->name],
             'student_entry' => ['Student Entry', fn (StudentRombel $r) => $r->studentEntry?->name],
             'student_status' => ['Student Status', fn (StudentRombel $r) => $r->studentStatus?->name],

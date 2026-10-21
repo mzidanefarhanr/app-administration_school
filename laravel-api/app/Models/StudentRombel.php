@@ -79,6 +79,15 @@ class StudentRombel extends Model
             if ($isActive && ($model->student_id || $model->student_nik)) {
                 $targetRombel = SchoolRombel::find($model->school_rombel);
                 if ($targetRombel && $targetRombel->school_year_id) {
+                    $effStudentId = $model->student_id;
+                    $effStudentNik = $model->student_nik;
+                    if (! $effStudentId && $effStudentNik) {
+                        $effStudentId = Student::where('nik', $effStudentNik)->value('id');
+                    }
+                    if (! $effStudentNik && $effStudentId) {
+                        $effStudentNik = Student::where('id', $effStudentId)->value('nik');
+                    }
+
                     $query = static::query()
                         ->whereHas('schoolRombel', fn ($q) => $q->where('school_year_id', $targetRombel->school_year_id))
                         ->whereNull('deleted_at')
@@ -89,12 +98,16 @@ class StudentRombel extends Model
                         $query->where('id', '!=', $model->id);
                     }
 
-                    $query->where(function ($q) use ($model) {
-                        if ($model->student_id) {
-                            $q->where('student_id', $model->student_id);
-                        } else {
-                            $q->where('student_nik', $model->student_nik);
-                        }
+                    $query->where(function ($q) use ($effStudentId, $effStudentNik) {
+                        $q->where(function ($sub) use ($effStudentId) {
+                            if ($effStudentId) {
+                                $sub->where('student_id', $effStudentId);
+                            }
+                        })->orWhere(function ($sub) use ($effStudentNik) {
+                            if ($effStudentNik) {
+                                $sub->where('student_nik', $effStudentNik);
+                            }
+                        });
                     });
 
                     if ($query->exists()) {
@@ -116,6 +129,29 @@ class StudentRombel extends Model
     public function studentNik(): BelongsTo
     {
         return $this->belongsTo(Student::class, 'student_nik', 'nik');
+    }
+
+    /**
+     * Resolusi siswa yang aman dan anti-ambigu (DEC-20):
+     * 1. Jika student_id tersedia, student_id adalah sumber kebenaran mutlak.
+     * 2. Jika student_id belum tersedia (data legacy), gunakan student_nik HANYA
+     *    bila pasangan NIK dapat ditentukan secara tunggal (tepat 1 siswa).
+     * 3. Jika NIK tidak cocok atau ambigu (> 1 siswa), kembalikan null (tidak mengambil kandidat pertama).
+     */
+    public function resolveStudent(): ?Student
+    {
+        if ($this->student_id) {
+            return $this->relationLoaded('student') ? $this->student : Student::find($this->student_id);
+        }
+
+        if (! empty($this->student_nik)) {
+            $matches = Student::where('nik', $this->student_nik)->get();
+            if ($matches->count() === 1) {
+                return $matches->first();
+            }
+        }
+
+        return null;
     }
 
     public function schoolRombel(): BelongsTo

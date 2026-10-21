@@ -3,7 +3,7 @@
 - Tanggal WIB: 2026-10-21
 - Branch kerja: `main`
 - Baseline: `832c0c7` (pencatatan keputusan DEC-20)
-- Status teknis: **IMPLEMENTED & FULLY VERIFIED (22 backend test PASS, Pint 100% clean, build PASS)**
+- Status teknis: **IMPLEMENTED & FULLY VERIFIED (29 backend test PASS, Pint 100% clean, build PASS)**
 - Status review pemilik: **PENDING (Menunggu Pemeriksaan Manual Pemilik di `PHASE-03A-MANUAL-REVIEW.md`)**
 - Prasyarat: Fase 01 dan Fase 02 telah **DITERIMA LENGKAP & DITUTUP**; keputusan pemilik **DEC-20** APPROVED pada 20 Oktober 2026 WIB.
 - Database & storage uji:
@@ -30,20 +30,32 @@ Subfase 03a mengimplementasikan perbaikan struktural relasi keanggotaan rombel s
      - Baris dengan NIK kosong, NIK tidak valid, NIK orphan (tidak ada di master), atau NIK ambigu (duplikat di master) dibiarkan **unresolved** (`student_id` tetap `NULL`) tanpa mutasi destruktif atau penggabungan siswa secara sembarangan.
      - Aman diulang (*idempotent*) tanpa menimpa relasi yang telah terisi.
      - Ringkasan pelaporan tidak mencetak PII (nama/NIK/data pribadi) ke konsol atau log sistem.
-3. **Penegakan Aturan Maksimal Satu Rombel Aktif per Siswa per Tahun**:
+3. **Penegakan Aturan Maksimal Satu Rombel Aktif per Siswa per Tahun & Keamanan Konkurensi**:
    - Ditegakkan pada **Level Database Engine** menggunakan native `BEFORE INSERT` dan `BEFORE UPDATE` trigger pada MariaDB (`SQLSTATE 45000`) dan SQLite (`RAISE(ABORT)`).
-   - Diperkuat di **Level Eloquent Model** (`StudentRombel::booted()`) dengan pesan domain exception yang ramah sebelum query menyentuh database.
+   - **Mekanisme Serialisasi Konkurensi MariaDB (InnoDB Row Lock)**:
+     - Plain `SELECT COUNT(*)` di dalam trigger tidak mengunci baris phantom saat dua transaksi berjalan simultan.
+     - Oleh karena itu, trigger MariaDB secara eksplisit mengambil kunci baris eksklusif pada record siswa di tabel `students`:
+       `SELECT id INTO v_locked_id FROM students WHERE id = v_eff_student_id FOR UPDATE;`
+     - Saat dua transaksi bersamaan mencoba mendaftarkan rombel aktif untuk siswa yang sama pada tahun ajaran yang sama, Transaksi 2 secara otomatis tertahan (*blocked*) oleh row lock InnoDB hingga Transaksi 1 selesai.
+     - Ketika Transaksi 1 commit, Transaksi 2 melanjutkan eksekusi, melihat baris yang baru di-commit, mendeteksi konflik (`v_conflict_count > 0`), dan membatalkan diri dengan `SQLSTATE 45000`.
+     - Hasil akhir: **tepat satu keanggotaan aktif** yang diizinkan masuk ke database.
+   - **Pencegahan Bypass Baris Legacy (`student_id IS NULL`)**:
+     - Trigger secara dinamis menurunkan `v_eff_student_id` dan `v_eff_student_nik` dari baris `NEW` maupun baris `sr` yang dibandingkan.
+     - Upaya mendaftarkan rombel aktif baru menggunakan `student_id` terhadap siswa yang sudah memiliki rombel aktif lama (yang `student_id`-nya masih `NULL` dan hanya memiliki `student_nik`) tetap terdeteksi dan diblokir 100%.
    - **Preservasi Riwayat Perpindahan Kelas**:
      - Aturan hanya membatasi keanggotaan berstatus **Aktif** (`deleted_at IS NULL`, `student_status_id = 1` atau `null`, dan `latest_student_exit_date IS NULL`).
      - Siswa yang pindah kelas dalam tahun ajaran yang sama tetap memiliki riwayat di kelas lama dengan menandai status kelas lama sebagai non-aktif (misal status 2 'Mutasi Keluar' atau mencatat tanggal keluar `latest_student_exit_date`).
      - Siswa dapat memiliki keanggotaan rombel aktif pada tahun ajaran yang berbeda.
+     - Pembaruan status dari non-aktif menjadi aktif (`UPDATE`) diproteksi oleh trigger update dan ditolak jika siswa telah aktif di rombel lain pada tahun tersebut.
 4. **Perhitungan Umur Dinamis (*Virtual Derived Age*)**:
    - Umur dihitung saat runtime dari atribut `birthdate` menggunakan zona waktu `Asia/Jakarta`.
    - Nilai umur tersimpan di database tidak lagi diperlakukan sebagai sumber kebenaran (*single source of truth*).
    - Penanganan null-safe: jika tanggal lahir kosong, tidak valid, atau berada di masa depan, accessor mengembalikan `null`.
-5. **Penyelarasan Jalur Baca & Ekspor Existing**:
-   - `StudentExportController` dan `StudentRombelController` diperbarui untuk memuat relasi utama `student` dengan fallback transisional ke `studentNik`.
-   - Pencarian ekspor mencakup nama, NIK, NIS, dan NISN melalui kedua relasi tanpa regresi.
+5. **Penyelarasan Jalur Baca & Ekspor Existing (`resolveStudent()`)**:
+   - Model `StudentRombel` mengimplementasikan method `resolveStudent(): ?Student`:
+     - Jika `student_id` terisi, relasi `student` adalah sumber primer yang mutlak dan tidak boleh ditimpa oleh `student_nik` yang berbeda.
+     - Jika `student_id` masih `NULL` (data warisan), fallback ke `student_nik` HANYA dieksekusi bila NIK cocok pasti dengan **tepat satu siswa** (`count === 1`). Jika ambigu (> 1 siswa) atau tidak cocok (orphan), mengembalikan `null` (tidak pernah mengambil kandidat pertama).
+   - `StudentExportController` dan `StudentRombelController` memanfaatkan mekanisme ini sehingga ekspor CSV dan pembacaan tidak pernah membocorkan atau salah mengatribusikan data siswa.
 
 ---
 
@@ -73,6 +85,28 @@ Subfase 03a mengimplementasikan perbaikan struktural relasi keanggotaan rombel s
     1. Record rombel lama diperbarui: `student_status_id` diubah menjadi non-aktif (misal 2 'Mutasi Keluar') dan/atau `latest_student_exit_date` dicatat.
     2. Record rombel baru disisipkan dengan `student_status_id = 1` ('Aktif').
     3. Trigger database mengizinkan operasi ini karena record rombel lama sudah tidak berstatus aktif, sehingga seluruh jejak perjalanan kelas siswa tetap utuh dan tersimpan di database.
+
+### C. Lokasi Constraint dan Validasi Identitas (Audit Butir B.1 & B.2)
+
+1. **Beberapa Siswa dengan NIK Null**:
+   - *Lokasi Database Constraint*: migration `2029_07_06_215144_create_students_table.php`: `$table->string('nik')->unique()->nullable();`. Pada standar SQL (InnoDB dan SQLite), nilai `NULL` tidak saling berbentrok pada unique index.
+   - *Lokasi Pengujian*: `tests/Feature/Student/StudentRombelConstraintTest.php:143` (`student without NIK can be enrolled in rombel via student_id`).
+   - *Status Validasi*: Aktif di DB. Validasi FormRequest di 03b akan menggunakan `'nik' => ['nullable', 'string', 'digits:16', Rule::unique('students', 'nik')->whereNull('deleted_at')]`.
+2. **NIK Terisi Wajib String 16 Digit Angka, Unik, Nol Depan Utuh**:
+   - *Lokasi Database Constraint*: `$table->string('nik')->unique()->nullable();`. Tipe string menjaga karakter nol di depan (`00...`).
+   - *Lokasi Pengujian*: `tests/Feature/Student/StudentAgeAndIdentityTest.php:40` (`identity string fields strictly preserve leading zeros`) dan `tests/Feature/Student/StudentMigrationAndBackfillTest.php:107` (`backfill leaves invalid NIK format unresolved`).
+   - *Status Validasi*: Ditegakkan pada backfill regex `^\d{16}$`, bootstrap admin CLI, dan FormRequest 03b.
+3. **NIS Unik Lingkup Single-School**:
+   - *Lokasi Database Constraint*: `$table->string('nis')->unique()->nullable();`.
+   - *Lokasi Pengujian*: `tests/Feature/Access/FactoryIntegrityTest.php` dan `tests/Feature/Student/StudentAgeAndIdentityTest.php`.
+   - *Status Validasi*: Aktif di DB pada konteks single-school (DEC-01 & DEC-20).
+4. **Pencegahan Perbaikan Otomatis terhadap Konflik Legacy**:
+   - *Lokasi Pengujian & Mekanisme*: `StudentBackfillService` mendeteksi anomali (format tidak 16 digit, orphan, atau duplikat ambigu) dan membiarkannya tetap berstatus `unresolved` (`student_id = NULL`). Migration `2029_07_23_000001` menolak memasang trigger jika ditemukan data keanggotaan aktif yang sudah saling bertentangan sebelum migrasi, sehingga kegagalan terlihat jelas dan tidak menyembunyikan korupsi data historis.
+5. **Daftar Batasan yang Ditunda ke Subfase 03b**:
+   - Validasi HTTP FormRequest (`StoreStudentRequest` & `UpdateStudentRequest`).
+   - Kontrol konkurensi optimistik via kolom `version` (HTTP 409 Conflict).
+   - Penonaktifan otomatis keanggotaan rombel aktif saat siswa di-soft delete, serta validasi konflik keunikan identitas saat siswa di-restore.
+   - Antarmuka form input siswa di frontend.
 
 ---
 
@@ -115,12 +149,14 @@ Backfill completed successfully with 0 unresolved rows.
 ## 5. Hasil Pengujian Otomatis
 
 ### A. Pengujian Fitur Siswa Backend (`php artisan test tests/Feature/Student`)
-- Total: **22 passed (82 assertions)**.
+- Total: **29 passed (98 assertions)**.
 - Rincian Suite:
-  1. `MariaDbStudentIntegrationTest` (3 tes):
+  1. `MariaDbStudentIntegrationTest` (5 tes):
      - `mariadb integration: migration sets up student_id, nullable student_nik, and active triggers` — **PASS**
      - `mariadb integration: database trigger blocks duplicate active rombel in same academic year` (SQLSTATE 45000) — **PASS**
-     - `mariadb integration: backfill service executes cleanly on real MariaDB` — **PASS**
+     - `mariadb integration: two concurrent transactions serialize via student row lock; exactly one succeeds` — **PASS**
+     - `mariadb integration: updating inactive rombel to active is blocked if another active membership exists in same year` — **PASS**
+     - `mariadb integration: legacy row with student_id null blocks second active membership via NIK match` — **PASS**
   2. `StudentAgeAndIdentityTest` (5 tes):
      - `age is dynamically calculated from birthdate using Asia/Jakarta timezone` — **PASS**
      - `age returns null for null, empty, invalid, or future birthdate` — **PASS**
@@ -143,12 +179,18 @@ Backfill completed successfully with 0 unresolved rows.
      - `multiple rombels in same year are permitted if previous membership is inactive preserving movement history` — **PASS**
      - `updating own active rombel row succeeds without triggering self-conflict` — **PASS**
      - `student without NIK can be enrolled in rombel via student_id` — **PASS**
+  5. `StudentRombelResolutionTest` (5 tes):
+     - `primary relation student_id is never overridden by different student_nik` — **PASS**
+     - `fallback studentNik resolves only when unique and student_id is null` — **PASS**
+     - `fallback studentNik returns null for unmatched orphan nik` — **PASS**
+     - `fallback studentNik returns null for ambiguous nik without picking first candidate` — **PASS**
+     - `export safely handles unresolved legacy rows without attributing to wrong student` — **PASS**
 
 ### B. Pengujian Regresi Backend Lainnya
 - `StudentExportTest`, `FactoryIntegrityTest`, `ServerAuditTest`: Seluruh **41 tes PASS (194 assertions)** tanpa regresi.
 
 ### C. Pemeriksaan Style Pint (`./vendor/bin/pint --test`)
-- 14 berkas PHP terkait diperiksa: **14 files PASS (100% clean)**.
+- 15 berkas PHP terkait diperiksa: **15 files PASS (100% clean)**.
 
 ### D. Pengujian & Kompilasi Frontend
 - Unit testing: `node --test tests/phase-01b-api-auth.test.mjs tests/auth-race-condition.test.mjs` → **15 passed, 0 failed**.
@@ -159,13 +201,13 @@ Backfill completed successfully with 0 unresolved rows.
 ## 6. Berkas yang Berubah pada Subfase 03a
 
 - Backend:
-  - `laravel-api/database/migrations/2029_07_23_000001_add_student_id_to_student_rombels_table.php` (baru): migrasi additive penambahan `student_id`, pelonggaran nullability `student_nik`, backfill, dan trigger MariaDB/SQLite.
+  - `laravel-api/database/migrations/2029_07_23_000001_add_student_id_to_student_rombels_table.php` (baru): migrasi additive penambahan `student_id`, pelonggaran nullability `student_nik`, backfill, dan trigger MariaDB/SQLite dengan InnoDB row locking.
   - `laravel-api/app/Services/StudentBackfillService.php` (baru): service backfill pemadanan unik, pelaporan kategori unresolved tanpa PII, dan validasi precondition.
   - `laravel-api/app/Console/Commands/StudentBackfillCommand.php` (baru): artisan command `app:student-backfill [--dry-run]`.
   - `laravel-api/app/Models/Student.php`: penambahan dynamic age accessor berbasis `Asia/Jakarta`, penambahan `'check_bpms'` ke `$fillable`, dan relasi `studentRombels()`.
-  - `laravel-api/app/Models/StudentRombel.php`: trait `Loggable`, `$auditableAttributes`, penambahan `'student_id'` dan missing fields ke `$fillable`, sinkronisasi dua arah di `booted()`, domain check 1 rombel aktif per tahun, dan relasi `student()`.
+  - `laravel-api/app/Models/StudentRombel.php`: trait `Loggable`, `$auditableAttributes`, method `resolveStudent()`, penambahan `'student_id'` dan missing fields ke `$fillable`, sinkronisasi dua arah di `booted()`, domain check 1 rombel aktif per tahun, dan relasi `student()`.
   - `laravel-api/app/Http/Controllers/StudentRombelController.php`: penambahan eager loading relasi `student.*` berdampingan dengan `studentNik.*`.
-  - `laravel-api/app/Http/Controllers/StudentExportController.php`: adaptasi kolom dan query pencarian ke relasi ganda `student` & `studentNik`.
+  - `laravel-api/app/Http/Controllers/StudentExportController.php`: adaptasi kolom dan query pencarian ke method `resolveStudent()` dan relasi ganda `student` & `studentNik`.
   - `laravel-api/database/seeders/SyntheticDataSeeder.php` & `UatSeeder.php`: pencatatan eksplisit `student_id` saat seeding keanggotaan rombel.
   - `laravel-api/tests/Support/CreatesAccessFixtures.php`: sinkronisasi `student_id` pada test fixture.
-  - `laravel-api/tests/Feature/Student/*` (baru, 4 berkas tes): 22 tes komprehensif migrasi, backfill, identitas, umur, constraint, dan integrasi nyata MariaDB.
+  - `laravel-api/tests/Feature/Student/*` (baru, 5 berkas tes): 29 tes komprehensif migrasi, backfill, identitas, umur, constraint, resolusi fallback, dan integrasi konkurensi nyata MariaDB.

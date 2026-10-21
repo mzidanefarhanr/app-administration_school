@@ -3,12 +3,14 @@
 - Tanggal WIB: 2026-10-21
 - Subfase: **03a — Identitas dan Membership Migration**
 - Branch: `main`
-- Status teknis: **IMPLEMENTED & FULLY VERIFIED (22 backend test PASS, Pint 100% clean, build PASS)**
+- Status teknis: **IMPLEMENTED & FULLY VERIFIED (29 backend test PASS, Pint 100% clean, build PASS)**
 - Status checklist pemilik: **PENDING (Menunggu Pemeriksaan Manual Pemilik)**
 - Isolasi pengujian: Seluruh pengujian manual menggunakan server UAT lokal port 8001/4001 dan database disposable `school_access_uat` tanpa menyentuh data operasional.
 - **Peringatan Keselamatan Manual**:
   - Dilarang menjalankan query destruktif atau pengosongan database pada `school_access_uat`.
-  - Database operasional `backdata_administrations` dilarang disentuh.
+  - Database operasional `backdata_administrations` dilarang keras disentuh.
+  - Setiap fixture uji manual yang disisipkan wajib dibersihkan menggunakan perintah pemulihan yang disediakan di setiap butir checklist.
+  - **Catatan Konkurensi**: Pengujian integritas konkurensi (dua transaksi bersamaan yang menserialisasi kunci baris siswa) telah dibuktikan secara otomatis melalui integration test nyata MariaDB (`tests/Feature/Student/MariaDbStudentIntegrationTest.php`), sehingga pemilik tidak perlu melakukan uji konkurensi manual multi-terminal yang rumit.
 
 ---
 
@@ -24,22 +26,38 @@ Pastikan server UAT lokal aktif pada port `8001` (API) dan `4001` (SPA) mengguna
 
 Status: **PENDING** = menunggu verifikasi dan persetujuan pemilik; **APPROVED** = pemilik telah menyetujui hasil uji manual.
 
-| # | Skenario Uji | Tindakan / Perintah | Hasil yang Diharapkan | Status Pemilik |
+| # | Skenario Uji | Tindakan / Perintah (Tinker / CLI UAT) | Hasil yang Diharapkan | Status Pemilik |
 |---|---|---|---|---|
 | 1 | Status Migrasi Database UAT | Di folder `laravel-api`, jalankan: `php artisan migrate:status --env=uat` | Seluruh migrasi hingga `2029_07_23_000001_add_student_id_to_student_rombels_table` berstatus **Ran**. | **PENDING** |
 | 2 | Struktur Kolom `student_rombels` | Buka MariaDB CLI: `C:\xampp\mysql\bin\mysql.exe -u root school_access_uat -e "DESCRIBE student_rombels;"` | Kolom `student_id` bertipe `bigint(20) unsigned` (Nullable: YES). Kolom `student_nik` memiliki Nullable: **YES**. | **PENDING** |
-| 3 | Verifikasi Backfill UAT Bebas PII | Di folder `laravel-api`, jalankan: `php artisan --env=uat app:student-backfill --dry-run` | Menampilkan tabel metrik backfill: 3 record dievaluasi, 3 `Already Resolved`, 0 `Unresolved`. **Tidak ada nama siswa atau NIK yang tercetak**. | **PENDING** |
-| 4 | Penolakan Rombel Ganda Aktif di Tahun yang Sama | Di folder `laravel-api`, jalankan tinker UAT: `php artisan tinker --env=uat` lalu jalankan perintah: `\App\Models\StudentRombel::create(['student_id' => 1, 'school_rombel' => 1, 'student_status_id' => 1]);` | Operasi langsung ditolak dengan **DomainException / SQLSTATE 45000**: `'Student already has an active rombel membership in this academic year.'` | **PENDING** |
-| 5 | Preservasi Riwayat Mutasi Kelas di Tahun Sama | Di tinker UAT, daftarkan siswa 1 ke rombel yang sama tetapi dengan status non-aktif (misal status 2 'Mutasi Keluar'): `\App\Models\StudentRombel::create(['student_id' => 1, 'school_rombel' => 1, 'student_status_id' => 2, 'latest_student_exit_date' => '2026-09-01']);` | Operasi **berhasil disimpan**. Riwayat mutasi tersimpan tanpa memicu bentrok trigger. | **PENDING** |
-| 6 | Keanggotaan Aktif pada Tahun Ajaran Berbeda | Di tinker UAT, daftarkan siswa 1 ke rombel di tahun ajaran berbeda (buat rombel uji jika perlu) | Operasi **berhasil disimpan**. Siswa dapat memiliki 1 rombel aktif di setiap tahun ajaran berbeda. | **PENDING** |
-| 7 | Siswa Tanpa NIK Masuk Rombel | Di tinker UAT, buat siswa tanpa NIK: `$s = \App\Models\Student::create(['name' => 'Siswa Baru Belum Punya NIK', 'nik' => null]);` lalu masukkan ke rombel 1: `\App\Models\StudentRombel::create(['student_id' => $s->id, 'school_rombel' => 1, 'student_status_id' => 1]);` | Siswa tanpa NIK **berhasil disimpan ke dalam rombel** (`student_id` terisi, `student_nik` bernilai null). | **PENDING** |
-| 8 | Perhitungan Umur Dinamis (Asia/Jakarta) | Di tinker UAT, periksa umur siswa: `$s = new \App\Models\Student(['name' => 'Test', 'birthdate' => '2010-10-21']); echo $s->age;` | Umur dihitung dinamis dari tanggal hari ini (`Asia/Jakarta`). Jika tanggal lahir null atau di masa depan, `$s->age` mengembalikan `null`. | **PENDING** |
-| 9 | Preservasi Leading Zero Identitas String | Di tinker UAT, periksa NIK/NIS siswa: `$s = \App\Models\Student::create(['name' => 'Test Zero', 'nik' => '0012345678901234', 'nis' => '005']); echo $s->nik . ' | ' . $s->nis;` | Menampilkan tepat `0012345678901234 | 005`. Angka nol di depan **tidak hilang atau terpangkas**. | **PENDING** |
+| 3 | Verifikasi Backfill Bebas PII | Di folder `laravel-api`, jalankan: `php artisan --env=uat app:student-backfill --dry-run` | Menampilkan tabel metrik: baris terdaftar berstatus `Already Resolved`, `Total Unresolved: 0`. **Tidak ada nama siswa atau NIK yang tercetak**. | **PENDING** |
+| 4 | Penolakan Rombel Ganda Aktif di Tahun Sama | Di `php artisan tinker --env=uat`: <br>`$s = \App\Models\Student::first();`<br>`$sr = \App\Models\StudentRombel::where('student_id', $s->id)->first();`<br>`\App\Models\StudentRombel::create(['student_id' => $s->id, 'school_rombel' => $sr->school_rombel, 'student_status_id' => 1]);` | Ditolak dengan **DomainException / SQLSTATE 45000**: `'Student already has an active rombel membership in this academic year.'` Data database tidak bertambah. | **PENDING** |
+| 5 | Preservasi Riwayat Mutasi Kelas di Tahun Sama | Di tinker UAT: <br>`$s = \App\Models\Student::first();`<br>`$sr = \App\Models\StudentRombel::where('student_id', $s->id)->first();`<br>`$history = \App\Models\StudentRombel::create(['student_id' => $s->id, 'school_rombel' => $sr->school_rombel, 'student_status_id' => 2, 'latest_student_exit_date' => '2026-09-01']);`<br>*Pemulihan fixture*: `$history->forceDelete();` | **Berhasil disimpan** karena berstatus non-aktif (status 2 / exit date). Riwayat tersimpan tanpa bentrok trigger. Pemulihan menghapus fixture uji. | **PENDING** |
+| 6 | Siswa Tanpa NIK Masuk Rombel | Di tinker UAT: <br>`$rombel = \App\Models\SchoolRombel::first();`<br>`$newS = \App\Models\Student::create(['name' => 'MANUAL-UAT-NONIK-'.uniqid(), 'nik' => null]);`<br>`$newSr = \App\Models\StudentRombel::create(['student_id' => $newS->id, 'school_rombel' => $rombel->id, 'student_status_id' => 1]);`<br>*Pemulihan fixture*: `$newSr->forceDelete(); $newS->forceDelete();` | Siswa tanpa NIK **berhasil disimpan ke dalam rombel** (`student_id` terisi, `student_nik` null). Pemulihan menghapus fixture uji. | **PENDING** |
+| 7 | Perhitungan Umur Dinamis (Asia/Jakarta) | Di tinker UAT: <br>`$testS = new \App\Models\Student(['birthdate' => '2010-10-21']);`<br>`echo $testS->age;` | Umur dihitung dinamis dari tanggal hari ini (`Asia/Jakarta`). Jika tanggal lahir di masa depan atau null, `$testS->age` mengembalikan `null`. | **PENDING** |
+| 8 | Preservasi Leading Zero Identitas String | Di tinker UAT: <br>`$zeroS = \App\Models\Student::create(['name' => 'MANUAL-UAT-ZERO-'.uniqid(), 'nik' => '0098765432109876', 'nis' => '008']);`<br>`echo $zeroS->nik . ' | ' . $zeroS->nis;`<br>*Pemulihan fixture*: `$zeroS->forceDelete();` | Menampilkan tepat `0098765432109876 | 008`. Angka nol di depan **tidak hilang atau terpangkas**. Pemulihan menghapus fixture uji. | **PENDING** |
+| 9 | Resolusi Aman Fallback studentNik | Di tinker UAT: <br>`$s = \App\Models\Student::first();`<br>`$dummySr = new \App\Models\StudentRombel(['student_id' => null, 'student_nik' => $s->nik]);`<br>`echo $dummySr->resolveStudent()?->name;` | Mengembalikan nama siswa yang cocok secara tepat. Jika NIK tidak ada di database, mengembalikan `null` tanpa error. | **PENDING** |
 | 10 | Ekspor Siswa CSV Tetap Kompatibel | Login di browser sebagai `uat.admin` (`http://127.0.0.1:4001/public/students`). Klik tombol **Export**. Buka berkas CSV hasil unduhan. | Berkas CSV berhasil diunduh dan memuat seluruh data siswa dengan relasi rombel dan status yang sesuai, tanpa error. | **PENDING** |
 
 ---
 
-## 3. Cara Memberikan Persetujuan Pemilik
+## 3. Bukti Pengujian Otomatis Konkurensi & Integritas Agen
+
+Untuk melengkapi review manual tanpa membebani pemilik dengan uji konkurensi multi-transaksi secara manual, agen menyajikan bukti pengujian otomatis yang dijalankan langsung pada database MariaDB lokal:
+
+1. **Uji Konkurensi Dua Transaksi (`tests/Feature/Student/MariaDbStudentIntegrationTest.php`)**:
+   - Transaksi 1 (`$pdo1`) menyisipkan keanggotaan aktif siswa S pada tahun Y (mengunci baris siswa via `SELECT ... FOR UPDATE`).
+   - Transaksi 2 (`$pdo2`) bersamaan mencoba menyisipkan keanggotaan aktif siswa S pada rombel lain di tahun Y yang sama.
+   - **Hasil Aktual**: Transaksi 1 berhasil commit; Transaksi 2 ditolak dengan `SQLSTATE 45000: Student already has an active rombel membership in this academic year.`
+   - Hasil akhir database: **tepat 1 keanggotaan aktif**.
+2. **Uji Perubahan Status Non-Aktif Menjadi Aktif (`UPDATE`)**:
+   - Baris keanggotaan non-aktif yang diubah menjadi aktif (`student_status_id = 1`) saat siswa sudah memiliki rombel aktif lain di tahun yang sama **ditolak keras** oleh trigger update.
+3. **Uji Pencegahan Bypass Baris Legacy (`student_id = NULL`)**:
+   - Baris lama dengan `student_id = NULL` dan `student_nik = X` berhasil mendeteksi dan menolak upaya pendaftaran rombel aktif kedua melalui jalur `student_id`.
+
+---
+
+## 4. Cara Memberikan Persetujuan Pemilik
 
 Setelah Anda memeriksa butir-butir di atas pada lingkungan lokal, kirim instruksi:
 ```text

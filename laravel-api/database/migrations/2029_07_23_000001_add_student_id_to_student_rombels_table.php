@@ -93,8 +93,27 @@ return new class extends Migration
                 BEGIN
                     DECLARE v_year_id BIGINT UNSIGNED;
                     DECLARE v_conflict_count INT DEFAULT 0;
+                    DECLARE v_locked_id BIGINT UNSIGNED;
+                    DECLARE v_eff_student_id BIGINT UNSIGNED;
+                    DECLARE v_eff_student_nik VARCHAR(255);
 
                     IF NEW.deleted_at IS NULL AND (NEW.student_status_id = 1 OR NEW.student_status_id IS NULL) AND NEW.latest_student_exit_date IS NULL THEN
+                        SET v_eff_student_id = NEW.student_id;
+                        SET v_eff_student_nik = NEW.student_nik;
+
+                        IF v_eff_student_id IS NULL AND v_eff_student_nik IS NOT NULL THEN
+                            SELECT id INTO v_eff_student_id FROM students WHERE nik = v_eff_student_nik LIMIT 1;
+                        END IF;
+
+                        IF v_eff_student_nik IS NULL AND v_eff_student_id IS NOT NULL THEN
+                            SELECT nik INTO v_eff_student_nik FROM students WHERE id = v_eff_student_id LIMIT 1;
+                        END IF;
+
+                        -- Kunci baris siswa (InnoDB row lock) untuk menserialisasi transaksi bersamaan pada siswa yang sama
+                        IF v_eff_student_id IS NOT NULL THEN
+                            SELECT id INTO v_locked_id FROM students WHERE id = v_eff_student_id FOR UPDATE;
+                        END IF;
+
                         SELECT school_year_id INTO v_year_id FROM school_rombels WHERE id = NEW.school_rombel;
 
                         IF v_year_id IS NOT NULL THEN
@@ -106,8 +125,12 @@ return new class extends Migration
                               AND (sr.student_status_id = 1 OR sr.student_status_id IS NULL)
                               AND sr.latest_student_exit_date IS NULL
                               AND (
-                                  (NEW.student_id IS NOT NULL AND sr.student_id = NEW.student_id)
-                                  OR (NEW.student_id IS NULL AND NEW.student_nik IS NOT NULL AND sr.student_nik = NEW.student_nik)
+                                  (v_eff_student_id IS NOT NULL AND sr.student_id = v_eff_student_id)
+                                  OR (v_eff_student_nik IS NOT NULL AND sr.student_nik = v_eff_student_nik)
+                                  OR (v_eff_student_id IS NOT NULL AND sr.student_id IS NULL AND sr.student_nik IS NOT NULL
+                                      AND sr.student_nik = v_eff_student_nik)
+                                  OR (v_eff_student_nik IS NOT NULL AND sr.student_id IS NOT NULL AND sr.student_nik IS NULL
+                                      AND sr.student_id = v_eff_student_id)
                               );
 
                             IF v_conflict_count > 0 THEN
@@ -126,8 +149,27 @@ return new class extends Migration
                 BEGIN
                     DECLARE v_year_id BIGINT UNSIGNED;
                     DECLARE v_conflict_count INT DEFAULT 0;
+                    DECLARE v_locked_id BIGINT UNSIGNED;
+                    DECLARE v_eff_student_id BIGINT UNSIGNED;
+                    DECLARE v_eff_student_nik VARCHAR(255);
 
                     IF NEW.deleted_at IS NULL AND (NEW.student_status_id = 1 OR NEW.student_status_id IS NULL) AND NEW.latest_student_exit_date IS NULL THEN
+                        SET v_eff_student_id = NEW.student_id;
+                        SET v_eff_student_nik = NEW.student_nik;
+
+                        IF v_eff_student_id IS NULL AND v_eff_student_nik IS NOT NULL THEN
+                            SELECT id INTO v_eff_student_id FROM students WHERE nik = v_eff_student_nik LIMIT 1;
+                        END IF;
+
+                        IF v_eff_student_nik IS NULL AND v_eff_student_id IS NOT NULL THEN
+                            SELECT nik INTO v_eff_student_nik FROM students WHERE id = v_eff_student_id LIMIT 1;
+                        END IF;
+
+                        -- Kunci baris siswa (InnoDB row lock) untuk menserialisasi transaksi bersamaan pada siswa yang sama
+                        IF v_eff_student_id IS NOT NULL THEN
+                            SELECT id INTO v_locked_id FROM students WHERE id = v_eff_student_id FOR UPDATE;
+                        END IF;
+
                         SELECT school_year_id INTO v_year_id FROM school_rombels WHERE id = NEW.school_rombel;
 
                         IF v_year_id IS NOT NULL THEN
@@ -140,8 +182,12 @@ return new class extends Migration
                               AND (sr.student_status_id = 1 OR sr.student_status_id IS NULL)
                               AND sr.latest_student_exit_date IS NULL
                               AND (
-                                  (NEW.student_id IS NOT NULL AND sr.student_id = NEW.student_id)
-                                  OR (NEW.student_id IS NULL AND NEW.student_nik IS NOT NULL AND sr.student_nik = NEW.student_nik)
+                                  (v_eff_student_id IS NOT NULL AND sr.student_id = v_eff_student_id)
+                                  OR (v_eff_student_nik IS NOT NULL AND sr.student_nik = v_eff_student_nik)
+                                  OR (v_eff_student_id IS NOT NULL AND sr.student_id IS NULL AND sr.student_nik IS NOT NULL
+                                      AND sr.student_nik = v_eff_student_nik)
+                                  OR (v_eff_student_nik IS NOT NULL AND sr.student_id IS NOT NULL AND sr.student_nik IS NULL
+                                      AND sr.student_id = v_eff_student_id)
                               );
 
                             IF v_conflict_count > 0 THEN
@@ -171,7 +217,11 @@ return new class extends Migration
                           AND sr.latest_student_exit_date IS NULL
                           AND (
                               (NEW.student_id IS NOT NULL AND sr.student_id = NEW.student_id)
-                              OR (NEW.student_id IS NULL AND NEW.student_nik IS NOT NULL AND sr.student_nik = NEW.student_nik)
+                              OR (NEW.student_nik IS NOT NULL AND sr.student_nik = NEW.student_nik)
+                              OR (NEW.student_id IS NOT NULL AND sr.student_id IS NULL AND sr.student_nik IS NOT NULL
+                                  AND sr.student_nik = (SELECT nik FROM students WHERE id = NEW.student_id))
+                              OR (NEW.student_nik IS NOT NULL AND sr.student_id IS NOT NULL AND sr.student_nik IS NULL
+                                  AND sr.student_id = (SELECT id FROM students WHERE nik = NEW.student_nik))
                           )
                     );
                 END;
@@ -196,7 +246,11 @@ return new class extends Migration
                           AND sr.latest_student_exit_date IS NULL
                           AND (
                               (NEW.student_id IS NOT NULL AND sr.student_id = NEW.student_id)
-                              OR (NEW.student_id IS NULL AND NEW.student_nik IS NOT NULL AND sr.student_nik = NEW.student_nik)
+                              OR (NEW.student_nik IS NOT NULL AND sr.student_nik = NEW.student_nik)
+                              OR (NEW.student_id IS NOT NULL AND sr.student_id IS NULL AND sr.student_nik IS NOT NULL
+                                  AND sr.student_nik = (SELECT nik FROM students WHERE id = NEW.student_id))
+                              OR (NEW.student_nik IS NOT NULL AND sr.student_id IS NOT NULL AND sr.student_nik IS NULL
+                                  AND sr.student_id = (SELECT id FROM students WHERE nik = NEW.student_nik))
                           )
                     );
                 END;

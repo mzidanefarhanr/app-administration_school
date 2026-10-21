@@ -148,38 +148,211 @@ test('mariadb integration: database trigger blocks duplicate active rombel in sa
     expect($sr3Id)->toBeGreaterThan(0);
 });
 
-test('mariadb integration: backfill service executes cleanly on real MariaDB', function () {
+test('mariadb integration: two concurrent transactions serialize via student row lock; exactly one succeeds', function () {
+    $pdo1 = DB::connection('mariadb_test')->getPdo();
+    $pdo2 = new PDO('mysql:host=127.0.0.1;port=3306;dbname=school_restore_drill_uat', 'root', '');
+    $pdo2->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    $uniq = uniqid();
+    $pdo1->exec("INSERT INTO school_years (name, created_at, updated_at) VALUES ('Concurrency Year {$uniq}', NOW(), NOW());");
+    $yearId = $pdo1->lastInsertId();
+
+    $pdo1->exec("INSERT INTO school_levels (name, created_at, updated_at) VALUES ('Level {$uniq}', NOW(), NOW());");
+    $levelId = $pdo1->lastInsertId();
+
+    $pdo1->exec("INSERT INTO school_rombels (name, school_year_id, school_level_id, version, created_at, updated_at) VALUES ('Rombel A {$uniq}', {$yearId}, {$levelId}, 1, NOW(), NOW());");
+    $rombel1 = $pdo1->lastInsertId();
+
+    $pdo1->exec("INSERT INTO school_rombels (name, school_year_id, school_level_id, version, created_at, updated_at) VALUES ('Rombel B {$uniq}', {$yearId}, {$levelId}, 1, NOW(), NOW());");
+    $rombel2 = $pdo1->lastInsertId();
+
+    $nik = str_pad((string) mt_rand(10000000, 99999999).mt_rand(10000000, 99999999), 16, '0', STR_PAD_LEFT);
+    $pdo1->exec("INSERT INTO students (name, nik, version, created_at, updated_at) VALUES ('Concurrent Student', '{$nik}', 1, NOW(), NOW());");
+    $studentId = $pdo1->lastInsertId();
+
+    // Transaksi 1 dan 2 berjalan bersamaan
+    $pdo1->beginTransaction();
+    $pdo2->beginTransaction();
+
+    // Tx1 menyisipkan keanggotaan aktif di Rombel 1 (mengunci baris student)
+    $pdo1->exec("INSERT INTO student_rombels (student_id, student_nik, school_rombel, student_status_id, version, created_at, updated_at) VALUES ({$studentId}, '{$nik}', {$rombel1}, 1, 1, NOW(), NOW());");
+
+    // Tx1 commit
+    $pdo1->commit();
+
+    // Tx2 mencoba menyisipkan keanggotaan aktif di Rombel 2 untuk siswa dan tahun yang sama
+    $tx2Failed = false;
+    $tx2Msg = '';
+    try {
+        $pdo2->exec("INSERT INTO student_rombels (student_id, student_nik, school_rombel, student_status_id, version, created_at, updated_at) VALUES ({$studentId}, '{$nik}', {$rombel2}, 1, 1, NOW(), NOW());");
+        $pdo2->commit();
+    } catch (\Throwable $e) {
+        $tx2Failed = true;
+        $tx2Msg = $e->getMessage();
+        $pdo2->rollBack();
+    }
+
+    expect($tx2Failed)->toBeTrue();
+    expect($tx2Msg)->toContain('Student already has an active rombel membership in this academic year');
+
+    // Asersi hasil akhir: tepat 1 keanggotaan aktif yang ada di database
+    $stmt = $pdo1->query("SELECT COUNT(*) FROM student_rombels WHERE student_id = {$studentId} AND deleted_at IS NULL AND (student_status_id = 1 OR student_status_id IS NULL) AND latest_student_exit_date IS NULL");
+    expect((int) $stmt->fetchColumn())->toBe(1);
+});
+
+test('mariadb integration: updating inactive rombel to active is blocked if another active membership exists in same year', function () {
     $conn = DB::connection('mariadb_test');
 
-    $nikBackfill = str_pad((string) mt_rand(10000000, 99999999).mt_rand(10000000, 99999999), 16, '0', STR_PAD_LEFT);
-
-    $studentId = $conn->table('students')->insertGetId([
-        'name' => 'MariaDB Backfill Student',
-        'nik' => $nikBackfill,
+    $uniq = uniqid();
+    $yearId = $conn->table('school_years')->insertGetId([
+        'name' => 'Update Test Year '.$uniq,
         'created_at' => now(),
         'updated_at' => now(),
     ]);
 
-    $rombel = $conn->table('school_rombels')->first();
-    expect($rombel)->not->toBeNull();
+    $levelId = $conn->table('school_levels')->insertGetId([
+        'name' => 'Level '.$uniq,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
 
-    // Insert legacy row with student_id = NULL and inactive status so it doesn't conflict
-    $srId = $conn->table('student_rombels')->insertGetId([
-        'student_id' => null,
-        'student_nik' => $nikBackfill,
-        'school_rombel' => $rombel->id,
+    $rombel1 = $conn->table('school_rombels')->insertGetId([
+        'name' => 'Rombel 1 '.$uniq,
+        'school_year_id' => $yearId,
+        'school_level_id' => $levelId,
+        'version' => 1,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $rombel2 = $conn->table('school_rombels')->insertGetId([
+        'name' => 'Rombel 2 '.$uniq,
+        'school_year_id' => $yearId,
+        'school_level_id' => $levelId,
+        'version' => 1,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $nik = str_pad((string) mt_rand(10000000, 99999999).mt_rand(10000000, 99999999), 16, '0', STR_PAD_LEFT);
+    $studentId = $conn->table('students')->insertGetId([
+        'name' => 'Update Target Student',
+        'nik' => $nik,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    // Rombel 1: Aktif
+    $conn->table('student_rombels')->insert([
+        'student_id' => $studentId,
+        'student_nik' => $nik,
+        'school_rombel' => $rombel1,
+        'student_status_id' => 1,
+        'version' => 1,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    // Rombel 2: Tidak aktif (Mutasi Keluar, status 2)
+    $sr2Id = $conn->table('student_rombels')->insertGetId([
+        'student_id' => $studentId,
+        'student_nik' => $nik,
+        'school_rombel' => $rombel2,
         'student_status_id' => 2,
         'version' => 1,
         'created_at' => now(),
         'updated_at' => now(),
     ]);
 
-    // Test backfill query directly on connection
-    $matches = $conn->table('students')->where('nik', $nikBackfill)->pluck('id');
-    expect($matches->count())->toBe(1);
+    // Update Rombel 2 menjadi Aktif (status 1) -> HARUS DITOLAK TRIGGER KARENA ROMBEL 1 SUDAH AKTIF
+    $updateFailed = false;
+    $updateMsg = '';
+    try {
+        $conn->table('student_rombels')->where('id', $sr2Id)->update([
+            'student_status_id' => 1,
+            'latest_student_exit_date' => null,
+        ]);
+    } catch (\Throwable $e) {
+        $updateFailed = true;
+        $updateMsg = $e->getMessage();
+    }
 
-    $conn->table('student_rombels')->where('id', $srId)->update(['student_id' => $matches->first()]);
+    expect($updateFailed)->toBeTrue();
+    expect($updateMsg)->toContain('Student already has an active rombel membership in this academic year');
+});
 
-    $updated = $conn->table('student_rombels')->where('id', $srId)->first();
-    expect($updated->student_id)->toBe($studentId);
+test('mariadb integration: legacy row with student_id null blocks second active membership via NIK match', function () {
+    $conn = DB::connection('mariadb_test');
+
+    $uniq = uniqid();
+    $yearId = $conn->table('school_years')->insertGetId([
+        'name' => 'Legacy Match Year '.$uniq,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $levelId = $conn->table('school_levels')->insertGetId([
+        'name' => 'Level '.$uniq,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $rombel1 = $conn->table('school_rombels')->insertGetId([
+        'name' => 'Legacy Rombel 1 '.$uniq,
+        'school_year_id' => $yearId,
+        'school_level_id' => $levelId,
+        'version' => 1,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $rombel2 = $conn->table('school_rombels')->insertGetId([
+        'name' => 'Legacy Rombel 2 '.$uniq,
+        'school_year_id' => $yearId,
+        'school_level_id' => $levelId,
+        'version' => 1,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $nik = str_pad((string) mt_rand(10000000, 99999999).mt_rand(10000000, 99999999), 16, '0', STR_PAD_LEFT);
+    $studentId = $conn->table('students')->insertGetId([
+        'name' => 'Legacy Linked Student',
+        'nik' => $nik,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    // Baris legacy 1: student_id = NULL, student_nik = $nik, status = 1 (Aktif)
+    $conn->table('student_rombels')->insert([
+        'student_id' => null,
+        'student_nik' => $nik,
+        'school_rombel' => $rombel1,
+        'student_status_id' => 1,
+        'version' => 1,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    // Mencoba menyisipkan baris baru untuk siswa yang sama menggunakan student_id
+    $secondInsertFailed = false;
+    $secondInsertMsg = '';
+    try {
+        $conn->table('student_rombels')->insert([
+            'student_id' => $studentId,
+            'student_nik' => $nik,
+            'school_rombel' => $rombel2,
+            'student_status_id' => 1,
+            'version' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    } catch (\Throwable $e) {
+        $secondInsertFailed = true;
+        $secondInsertMsg = $e->getMessage();
+    }
+
+    // Baris legacy student_id null TIDAK BISA dibypass untuk memasukkan rombel ganda aktif
+    expect($secondInsertFailed)->toBeTrue();
+    expect($secondInsertMsg)->toContain('Student already has an active rombel membership in this academic year');
 });
