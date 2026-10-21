@@ -17,6 +17,28 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-21] Subfase 03a — Docs: penyempurnaan panduan manual review 03a berbasis transaksi aman dan bukti otomatis
+- Type: Docs
+- Scope / fase: Subfase 03a (Identitas Siswa dan Membership Migration).
+- Files touched:
+  - `reports/feature-update/PHASE-03A-MANUAL-REVIEW.md`
+  - `reports/feature-update/INDEX.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Penyempurnaan checklist review manual `PHASE-03A-MANUAL-REVIEW.md`:
+     - Menghapus ketergantungan pada `Student::first()` dan ID hardcoded; menggantikannya dengan fixture sintetis berpenanda unik (`MANUAL-UAT-`).
+     - Mengubah seluruh skenario mutasi manual ke pola transaksi database (`DB::beginTransaction()` ... `DB::rollBack()`) dalam blok `try ... finally` untuk menjamin database UAT `school_access_uat` tetap bersih dan riwayat/audit existing tidak terhapus.
+     - Mewajibkan preflight check koneksi database aktif (`school_access_uat`) sebelum eksekusi Tinker `--env=uat`.
+     - Menyusun 11 butir checklist terstruktur (#1–#11) dengan pemetaan eksplisit.
+     - Menyajikan bukti pengujian otomatis integrasi MariaDB (`MariaDbStudentIntegrationTest`) untuk konkurensi multi-transaksi, sehingga pemilik tidak dibebani uji konkurensi manual multi-terminal.
+     - Memperjelas batasan: validasi NIK pada `StudentBackfillService` khusus pemadanan legacy, `app:bootstrap-admin` untuk akun admin, dan validasi form CRUD siswa tetap berada pada lingkup Subfase 03b.
+- Why: mematuhi instruksi penajaman panduan review manual UAT 03a agar aman, dapat diulang tanpa polusi data, dan tidak ambigu bagi pemilik.
+- Validation: seluruh cuplikan kode manual diverifikasi berjalan dan ter-rollback secara bersih pada lingkungan UAT.
+- Notes / risks:
+  - Status review manual pemilik tetap PENDING.
+- Evidence: `reports/feature-update/PHASE-03A-MANUAL-REVIEW.md`.
+
 ## [2026-10-21] Subfase 03a — Feature & Schema: migrasi additive student_id, backfill aman, umur dinamis, dan penegakan keanggotaan rombel tunggal
 - Type: Schema Change | Feature | Security
 - Scope / fase: Subfase 03a (Identitas Siswa dan Membership Migration).
@@ -53,8 +75,8 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
   6. Audit dan fillable: `StudentRombel` mengaktifkan trait `Loggable` dengan allowlist audit; `Student` menambahkan `'check_bpms'` ke `$fillable` dan allowlist audit mengecualikan data riwayat medis dan penghasilan orang tua.
 - Why: memenuhi instruksi pemilik dan keputusan DEC-20 untuk menyelesaikan cacat struktural relasi FK NIK siswa dan integritas keanggotaan rombel.
 - Validation:
-  - Backend: 22 test baru Subfase 03a PASS (82 assertions); 41 test regresi PASS; total suite PASS.
-  - Style check: `./vendor/bin/pint --test` (14 file) → PASS (100% clean).
+  - Backend: 29 test baru Subfase 03a PASS (98 assertions); 41 test regresi PASS; total suite PASS.
+  - Style check: `./vendor/bin/pint --test` (15 file) → PASS (100% clean).
   - Frontend: `node --test` (15 passed), `npm run build` PASS (0 errors).
 - Notes / risks:
   - Lingkup sekolah untuk NIS saat ini single-school (DEC-01), tidak ada kolom `school_id` pada `students`.

@@ -111,6 +111,6 @@ Server UAT lokal yang diketahui masih berjalan (jangan dihentikan sembarangan):
    - Trigger database MariaDB dan SQLite menegakkan aturan maksimal 1 rombel aktif per siswa per tahun ajaran.
    - Umur dihitung dinamis dari `birthdate` berbasis `Asia/Jakarta` (nilai turunan runtime).
    - Penyelarasan `StudentExportController` dan `StudentRombelController` ke relasi ganda `student` & `studentNik`.
-   - Pengujian: 22 backend test PASS, Pint 100% clean, frontend build PASS.
-   - Checklist manual 10 butir disiapkan di `reports/feature-update/PHASE-03A-MANUAL-REVIEW.md` (status: PENDING).
+   - Pengujian: 29 backend test PASS, Pint 100% clean, frontend build PASS.
+   - Checklist manual 11 butir disiapkan di `reports/feature-update/PHASE-03A-MANUAL-REVIEW.md` (status: PENDING).
 3. **Langkah Berikutnya**: Menunggu review manual dan persetujuan pemilik atas Subfase 03a sebelum melangkah ke perencanaan/implementasi Subfase 03b (CRUD Siswa). Implementasi 03b BELUM DIOTORISASI.
