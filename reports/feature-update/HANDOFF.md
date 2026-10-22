@@ -4,6 +4,7 @@ Checkpoint terbaru: 2026-10-21 (WIB). Branch `main`.
 Baseline backend terakhir: `e77f335` ("feat(phase-03b): implement student CRUD with optimistic locking, administrative archive, and audit privacy").
 Baseline penerimaan manual 03b: `cbd25bd` ("feat(phase-03b): add student CRUD UI, archive/restore flows, and 03b concurrency tests").
 Baseline implementasi 03c: `0a15325`; keputusan 03c (DEC-22): `4fa20c6` ("docs(phase-03c): record owner decisions for list, placement, recap, and export").
+Baseline pemeriksaan akhir 03c: `472ce9b` (implementasi + laporan 03c).
 Kebijakan commit/push: commit dan push per fase/koreksi ke branch kerja aktif telah **diotorisasi**; merge, force-push, rewrite history, dan deploy manual **tetap tidak diotorisasi**.
 
 Catatan perubahan pemilik: `console.txt` dan `vue-app/test-results/` adalah artefak lokal dan **tidak** di-commit.
@@ -74,10 +75,11 @@ Catatan perubahan pemilik: `console.txt` dan `vue-app/test-results/` adalah arte
 2. **Backend daftar/rekap + validasi + anti double-count + atribut minimum**: SELESAI (`StudentDirectory`, `StudentController::index`); `only_archived` kini butuh `students.manage`.
 3. **Backend ekspor terfilter (unplaced, batas 422, leading zero, audit tidak berubah)**: SELESAI (`StudentExportController`).
 4. **Frontend lazy table + filter + rekap + stale guard + state + pemulihan halaman kosong**: SELESAI (`Student.vue`).
-5. **Verifikasi**: backend **229 passed (1076 assertions)**; Student+Export **88 passed (394 assertions)**; frontend **15 passed**; build **PASS**; Pint **PASS**; browser UAT **PASS**.
-6. **Lint terarah**: `Student.vue` blob LF 22 errors/228 warnings → **20 errors/218 warnings** (tidak ada error baru; sisa pre-existing).
-7. **Penerimaan manual pemilik**: **PENDING** (checklist #1–#23). Fase 03 tetap PARTIAL; 03a–03b tetap DITERIMA.
-8. **Catatan klasifikasi bukti**: bukti agen (test/build/browser) terpisah dari penerimaan manual. ESLint repo **bukan PASS** (20 errors/218 warnings tersisa). Tidak ada deployment; penerimaan bukan izin deployment/akses data operasional.
+5. **Verifikasi**: backend **229 passed (1076 assertions)**; Student+Export **88 passed (394 assertions)**; frontend **18 passed**; build **PASS**; Pint **PASS**; browser UAT **PASS**. Pemeriksaan akhir (backend tidak berubah): ESLint `Student.vue` **0 errors/217 warnings** (LF; dari 20/218), smoke ekspor All/Placed PASS.
+6. **Lint terarah**: 20 error `no-unused-vars` diperbaiki (hapus import/ref/fungsi mati; tanpa `eslint-disable`/auto-format). Warning 217 kosmetik/pre-existing — bukan PASS bersih.
+7. **Ekspor placement**: `buildStudentExportParams()` selalu mengirim `placement` (fallback `all`), dikunci 3 test unit; request All terbukti `placement=all`.
+8. **Penerimaan manual pemilik**: **PENDING** (checklist #1–#23). Fase 03 tetap PARTIAL; 03a–03b tetap DITERIMA.
+9. **Catatan klasifikasi bukti**: bukti agen (test/build/browser) terpisah dari penerimaan manual. ESLint repo **bukan PASS bersih** (0 errors/217 warnings tersisa, kosmetik/pre-existing). Tidak ada deployment; penerimaan bukan izin deployment/akses data operasional.
 
 ---
 

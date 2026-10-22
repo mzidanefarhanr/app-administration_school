@@ -17,7 +17,7 @@
 
 - API UAT `http://127.0.0.1:8001`; SPA UAT `http://127.0.0.1:4001`.
 - Akun sintetis: `uat.operator` (view+manage+export), `uat.kepsek` (view+export, tanpa manage).
-- Kata sandi UAT berlaku; bila lupa, reset hanya akun sintetis lewat Tinker (`--env=uat`), jangan tulis kata sandi ke dokumen terlacak.
+- Kata sandi UAT **sudah diubah** saat uji 03c (akun sintetis `uat.operator`/`uat.kepsek`; kata sandi tidak dicetak di dokumen). Pemilik dapat menetapkan kata sandi lokal tanpa mengubah lagi di luar kebutuhan: isi `UAT_SEED_PASSWORD` pada `.env.uat`/lingkungan shell lalu jalankan seeder UAT, atau reset hanya akun sintetis lewat Tinker `--env=uat`. Jangan tulis kata sandi ke dokumen terlacak.
 - Preflight: `php artisan tinker --env=uat` → `DB::connection()->getDatabaseName();` **wajib** `school_access_uat`.
 
 ---
@@ -40,7 +40,7 @@
 | 12 | Detail/Edit tetap 03b | View, lalu Edit (uji NISN invalid → valid) | Dialog detail; 422 inline; simpan sukses → daftar refresh |
 | 13 | Archive/restore tetap 03b | Arsip dengan alasan (dialog) lalu Restore dari dialog Archived | Arsip hilang dari daftar; restore mengembalikan; rombel lama tetap nonaktif |
 | 14 | Halaman terakhir jadi kosong | Isi halaman terakhir dengan 1 siswa → arsipkan | Aplikasi mundur ke halaman sebelumnya, bukan menampilkan 0 |
-| 15 | Ekspor mengikuti filter | Set filter (placement/pencarian/rombel) → Export | CSV = seluruh hasil filter (bukan hanya halaman aktif); `unplaced` kolom rombel kosong; leading zero utuh |
+| 15 | Ekspor mengikuti filter (termasuk All) | Set filter (placement/pencarian/rombel) → Export; uji All, Placed, Unplaced | Request ekspor **selalu** memuat `placement` (All → `placement=all`, bukan default `placed`); CSV = seluruh hasil filter (bukan halaman aktif); baris All = total daftar All; `unplaced` kolom rombel kosong; leading zero utuh |
 | 16 | Ekspor tanpa izin | `uat.kepsek` tanpa `students.export` (bila dicabut admin) | `403` |
 | 17 | Batas ekspor | Turunkan `students.export_max_rows`; ekspor melebihi batas | `422` (bukan dipotong) |
 | 18 | Error + Retry | Putuskan jaringan pada request daftar (DevTools throttle/offline) lalu pilih filter | Pesan error + tombol Retry; Retry memuat ulang |
@@ -54,7 +54,9 @@
 
 ## 2. Hasil agen (hasil aktual)
 
-Seluruh #1–#23 diuji/diverifikasi agen sesuai laporan teknis §4–§5: 229 test backend PASS, 15 unit frontend PASS, build PASS, Pint PASS, dan browser UAT PASS (#1–#20 kecuali #22 konflik 409 yang sudah ditutup test 03b/03c automated; #23 terkonfirmasi tidak dibangun).
+Seluruh #1–#23 diuji/diverifikasi agen sesuai laporan teknis §4–§5: 229 test backend PASS, **18 unit frontend PASS**, build PASS, Pint PASS, dan browser UAT PASS (#1–#20 kecuali #22 konflik 409 yang sudah ditutup test 03b/03c automated; #23 terkonfirmasi tidak dibangun).
+
+Pemeriksaan akhir (baseline `472ce9b`, backend tidak berubah): ESLint `Student.vue` **0 errors** (dari 20)/217 warnings (LF blob); smoke ekspor membuktikan UI mengirim `placement=all` (CSV 27 = total All) dan `placement=placed` (CSV 12 = recap Placed); `studentExportParams.mjs` + test-nya 0 error. Tidak mengulang suite backend/MariaDB karena backend tidak berubah.
 
 ## 3. Persetujuan pemilik
 

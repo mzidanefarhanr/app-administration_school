@@ -48,6 +48,9 @@ Query daftar memakai kolom eksplisit; `count()`/`EXISTS` (bukan `get()` penuh) u
 - Tab `tabItems` dijadikan computed murni (efek samping pilih-tab dipindah ke `updateChartData`) — memperbaiki `vue/no-side-effects-in-computed-properties`.
 - Aksi **penempatan rombel tidak dibangun** (di luar 03c, DEC-22 #5).
 
+### Ekspor selalu mengirim `placement`
+UI membangun parameter ekspor lewat `vue-app/src/views/pages/public/studentExportParams.mjs` (`buildStudentExportParams`), yang **selalu** menyertakan `placement` dan memakai `all` bila nilai tidak tersedia — sehingga default backend `placed` tidak pernah dipakai diam-diam saat daftar berada pada All. Dikunci oleh `vue-app/tests/student-export-params.test.mjs` (3 test) dan diverifikasi browser (lihat §5).
+
 ## 4. Bukti pengujian (hasil aktual)
 
 Backend (dari `laravel-api`, DB uji terisolasi; `phpunit.xml` memaksa SQLite in-memory):
@@ -63,16 +66,18 @@ guest 401; tanpa `students.view` 403; dengan view 200; tahun wajib & invalid 422
 Frontend:
 
 - `npm run build` → **PASS** (788 modules; Student chunk `Student-CCLJsLdh.js` 101.83 kB).
-- `node --test` → **15 passed / 0 fail**.
+- `node --test` → **18 passed / 0 fail** (15 lama + 3 test parameter ekspor 03c).
 
 Lint terarah (blob commit, LF, konfigurasi repo sama):
 
-| Berkas | Baseline `0a15325` | 03c (working tree, LF) |
-|---|---|---|
-| `vue-app/src/views/pages/public/Student.vue` | 22 errors / 228 warnings | **20 errors / 218 warnings** |
-| `vue-app/src/main.js` | 0 errors / 66 warnings | tidak disentuh (tidak berubah) |
+| Berkas | Baseline `0a15325` | Setelah implementasi | **Final (pemeriksaan akhir, baseline `472ce9b`)** |
+|---|---|---|---|
+| `vue-app/src/views/pages/public/Student.vue` | 22 errors / 228 warnings | 20 errors / 218 warnings | **0 errors / 217 warnings** |
+| `vue-app/src/main.js` | 0 errors / 66 warnings | tidak disentuh | tidak disentuh |
+| `studentExportParams.mjs` (baru) + `tests/student-export-params.test.mjs` (baru) | — | — | **0 errors / 0 warnings** |
 
-Error tersisa semuanya pre-existing `no-unused-vars` (mis. `reactive`, `useRoute`, `CustomerService`, `viewStudentProfile`, deklarasi bootstrap modal lama) yang berada di luar baris yang disentuh 03c. Tidak ada error/warning **baru** dari perubahan 03c; `students` (unused) dihapus; efek samping `tabItems` diperbaiki. Tidak ada auto-format massal dan tidak ada aturan ESLint yang dinonaktifkan. ESLint repo **bukan PASS** (20 errors / 218 warnings tetap ada) — dilaporkan apa adanya.
+Koreksi pemeriksaan akhir: **20 error `no-unused-vars` diperbaiki terarah** dengan menghapus import/ref/fungsi mati (`reactive`, `watch`, `useRoute`, `RouterLink`, `useLayout`, `useConfirm`+`confirm`, `useRouter`+`router`, `CustomerService`, `all_students`, `saveCompany`, `titleWarning`, `fieldWarning`, `titleWaiting`, `fieldWaiting`, `visibleStaticBackdropWarnings/Dangers/Waitings/Successs`, `saveValidContinue`, `validContinue`, `viewStudentProfile`). Tidak ada `eslint-disable`, tidak menonaktifkan aturan, tidak menjalankan auto-format massal. Perilaku CRUD/filter/rekap/ekspor tidak berubah (dibuktikan build + browser smoke). Warning tersisa (217) bersifat kosmetik/pre-existing (termasuk Prettier) — dicatat sebagai keterbatasan, bukan PASS bersih.
+
 
 ## 5. Browser UAT (Playwright, UAT sintetis `school_access_uat`)
 
@@ -92,6 +97,7 @@ Halaman `/public/students`, API `http://127.0.0.1:8001`, SPA `http://127.0.0.1:4
 | Error + Retry | route /api/students di-abort → pesan error + tombol Retry; Retry memuat ulang |
 | Empty state | pencarian tanpa hasil → "No students match the current filters." |
 | Export | unduhan `students_1.csv`; Unplaced 14 baris rombel kosong; Placed 12 baris semua ada rombel; leading zero (`0000000000000001`, `001`) terjaga |
+| Export placement (pemeriksaan akhir) | All → request `...&placement=all`, CSV **27 baris = total daftar All 27**; Placed → `...&placement=placed`, CSV **12 = recap Placed 12** dan semua berisi rombel; Unplaced → recap 15, Rombel disabled |
 | Detail/Edit | dialog detail tampil (Record Version); edit NISN tidak valid → 422 inline (perilaku 03b tetap); setelah NISN valid → tersimpan & daftar refresh |
 | Archive/Restore | arsip dari dialog (wajib alasan); restore mengembalikan siswa (daftar 26→27); rombel lama tetap nonaktif |
 | Izin operator (`uat.operator`) | New Student & Archived tampil; aksi baris View/Edit/Archive |
@@ -101,11 +107,12 @@ Catatan: dua hasil awal yang tampak gagal adalah artefak skrip uji (teks alasan 
 
 ## 6. Keterbatasan & catatan
 
-- **Kredensial akun UAT disetel ulang.** Kata sandi `uat.operator`/`uat.kepsek` pada DB UAT disposable direset ke nilai sintetis sesi ini (kata sandi tidak ditulis ke dokumen terlacak). Hanya akun UAT sintetis; bukan akun operasional.
+- **Kredensial akun UAT berubah.** Kata sandi `uat.operator`/`uat.kepsek` pada DB UAT disposable (`school_access_uat`) direset saat uji karena kata sandi sesi sebelumnya tidak tersedia. Kata sandi **tidak** ditulis pada dokumen ini. Cara pemilik menetapkan kata sandi lokal (tanpa mengubah lagi di luar kebutuhan): jalankan seeder UAT dengan env `UAT_SEED_PASSWORD` di `.env.uat`/lingkungan shell, lalu login; atau reset hanya akun sintetis lewat Tinker `--env=uat`. Hanya akun UAT sintetis; bukan akun operasional.
 - **Data UAT ditambah.** Seed siswa sintetis bertanda `UAT03C Bulk 01–25` (10 placed, 15 unplaced; NIK `90000000000002xx`) pada tahun `2026/2027` untuk menguji paginasi; sebagian diarsipkan/restore selama uji. Tidak menyentuh DB operasional `backdata_administrations`.
 - **Tidak ada deployment.** Tidak menjalankan deploy; ketiadaan `.github/workflows` tidak disimpulkan sebagai "tidak ada auto-deploy".
-- **NOT RUN:** pengujian MariaDB khusus 03c (test 03c berjalan pada SQLite in-memory sesuai `phpunit.xml`; test konkuransi MariaDB 03b tidak dijalankan ulang pada sesi ini), dan pemeriksaan manual pemilik.
+- **NOT RUN:** pengujian MariaDB khusus 03c (test 03c berjalan pada SQLite in-memory sesuai `phpunit.xml`; test konkurensi MariaDB 03b tidak dijalankan ulang), suite backend diulang (backend tidak berubah pada pemeriksaan akhir), dan pemeriksaan manual pemilik.
 - `status`/`entry` pada ekspor tidak lagi difilter (kini atribut keanggotaan, bukan filter siswa) dan `with_archived` dihapus; tidak ada consumer Vue yang memakai keduanya saat perubahan ini.
+- **Warning ESLint tersisa 217** (kosmetik/pre-existing). Bukan PASS bersih; tidak diperbaiki massal agar diff tetap terarah.
 
 ## 7. Berkas berubah (implementasi)
 
@@ -114,6 +121,8 @@ Catatan: dua hasil awal yang tampak gagal adalah artefak skrip uji (teks alasan 
 - `laravel-api/app/Http/Controllers/StudentExportController.php`
 - `laravel-api/tests/Feature/Student/StudentDirectoryTest.php` (baru)
 - `vue-app/src/views/pages/public/Student.vue`
+- `vue-app/src/views/pages/public/studentExportParams.mjs` (baru; pemeriksaan akhir)
+- `vue-app/tests/student-export-params.test.mjs` (baru; pemeriksaan akhir)
 
 ## 8. Langkah berikutnya
 

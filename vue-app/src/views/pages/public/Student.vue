@@ -1,18 +1,13 @@
 <script setup>
-import { ref, reactive, onMounted, watch, computed } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import Button from 'primevue/button';
-import { useRouter, useRoute, RouterLink } from 'vue-router';
-import { useLayout } from '@/layout/composables/layout';
 import { authStore } from '@/stores/authStore';
-import { useConfirm } from "primevue/useconfirm";
 import { useToast } from "primevue/usetoast";
 import apiLogin from '@/apiLogin';
 import gifSuccess from '@/assets/gif/success.gif';
-import { CustomerService } from '@/service/CustomerService';
+import { buildStudentExportParams } from './studentExportParams.mjs';
 
-const confirm = useConfirm();
 const toast = useToast();
-const router = useRouter();
 const doughnutData = ref(null);
 const ChartStudentsData = ref(null);
 const barData = ref(null);
@@ -32,7 +27,6 @@ const school_years_now = ref('');
 const school_years_pick = ref([]);
 const searchQuery = ref([]);
 const filtered_Cat1 = ref([]);
-const all_students = ref('');
 const active_students = ref('');
 const mutation_students = ref('');
 const dropout_students = ref('');
@@ -59,12 +53,8 @@ const placementOptions = [
 ];
 
 const saveUser = ref([]);
-const saveCompany = ref([]);
 
 const visibleStaticBackdropWarning = ref(false);
-const validContinue = ref(false);
-var titleWarning = ref('');
-var fieldWarning = ref('');
 const visibleStaticBackdropDanger = ref(false);
 var titleDanger = ref('');
 var fieldDanger = ref('');
@@ -72,32 +62,6 @@ const visibleStaticBackdropSuccess = ref(false);
 var titleSuccess = ref('');
 var fieldSuccess = ref('');
 const visibleStaticBackdropWaiting = ref(false);
-var titleWaiting = ref('');
-var fieldWaiting = ref('');
-
-//function visibleStaticBackdropWarnings
-function visibleStaticBackdropWarnings() {
-    visibleStaticBackdropWarning.value = !visibleStaticBackdropWarning.value;
-}
-
-//function visibleStaticBackdropDangers
-function visibleStaticBackdropDangers() {
-    visibleStaticBackdropDanger.value = !visibleStaticBackdropDanger.value;
-}
-
-//function visibleStaticBackdropWaitings
-function visibleStaticBackdropWaitings() {
-    visibleStaticBackdropWaiting.value = !visibleStaticBackdropWaiting.value;
-}
-
-//function visibleStaticBackdropSuccesss
-function visibleStaticBackdropSuccesss() {
-    visibleStaticBackdropSuccess.value = !visibleStaticBackdropSuccess.value;
-}
-//function saveValidContinue
-function saveValidContinue() {
-    validContinue.value = !validContinue.value;
-}
 
 //method fetchDataSchoolYears
 const fetchDataSchoolYears = async () => {
@@ -265,7 +229,6 @@ const fetchDataStudentRombels = async () => {
             graduation_students.value = 0;
 
         }
-        // console.log(all_students.value);
         // console.log(school_years_pick.value);
     });
     fetchRombelOptions();
@@ -347,12 +310,12 @@ const exportCSV = async () => {
         return;
     }
     try {
-        const params = {
-            school_year_id: school_years_now.value.id,
+        const params = buildStudentExportParams({
+            schoolYearId: school_years_now.value.id,
             placement: listPlacement.value,
-            search: listSearch.value.trim() || undefined,
-            rombel: listPlacement.value !== 'unplaced' && listRombelId.value ? listRombelId.value : undefined,
-        };
+            search: listSearch.value,
+            rombelId: listRombelId.value,
+        });
         const response = await apiLogin.get('/api/students/export', {
             params,
             responseType: 'blob'
@@ -741,11 +704,6 @@ const rekapData = computed(() => {
 // ── Profile Student ────────────────────────────────────────────────────────
 const selectedStudent   = ref(null);
 const profileDialog     = ref(false);
-
-const viewStudentProfile = (studentRombel) => {
-    selectedStudent.value = studentRombel;
-    profileDialog.value   = true;
-};
 
 const printProfile = () => {
     const el = document.getElementById('student-profile-print');

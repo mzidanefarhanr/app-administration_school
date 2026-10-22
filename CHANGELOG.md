@@ -17,6 +17,28 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-22] Subfase 03c — Pemeriksaan akhir: ESLint 0 error dan guard placement ekspor
+- Type: Fix
+- Scope / fase: Subfase 03c (pemeriksaan akhir; baseline `472ce9b`). Tidak melanjutkan fase berikutnya.
+- Files touched:
+  - `vue-app/src/views/pages/public/Student.vue`
+  - `vue-app/src/views/pages/public/studentExportParams.mjs` (baru)
+  - `vue-app/tests/student-export-params.test.mjs` (baru)
+  - `reports/feature-update/PHASE-03C-STUDENT-DIRECTORY.md`, `PHASE-03C-MANUAL-REVIEW.md`, `HANDOFF.md`, `CHANGELOG.md`
+- What changed:
+  1. Menghapus 20 error `no-unused-vars` secara terarah (import/ref/fungsi mati: `reactive`, `watch`, `useRoute`, `RouterLink`, `useLayout`, `useConfirm`/`confirm`, `useRouter`/`router`, `CustomerService`, `all_students`, `saveCompany`, `titleWarning`, `fieldWarning`, `titleWaiting`, `fieldWaiting`, `visibleStaticBackdropWarnings/Dangers/Waitings/Successs`, `saveValidContinue`, `validContinue`, `viewStudentProfile`). Tanpa `eslint-disable`, tanpa menonaktifkan aturan, tanpa auto-format massal.
+  2. Ekstraksi `buildStudentExportParams()` yang **selalu** mengirim `placement` (fallback `all`), sehingga CSV tidak berbeda dari daftar All hanya karena parameter absen (backend default `placed`).
+  3. Menambah 3 test unit parameter ekspor; browser smoke memverifikasi request ekspor `placement=all`/`placement=placed` dan baris CSV sesuai total daftar/rekap.
+- Why: menyelesaikan temuan lint final 03c dan menutup risiko ekspor All tertukar dengan default `placed`.
+- Validation (hasil aktual):
+  - `npx eslint` (blob LF) `Student.vue` → **0 errors / 217 warnings** (baseline 20/218); helper+test 0/0.
+  - `node --test` (vue-app) → **18 passed / 0 fail**.
+  - `npm run build` → **PASS**.
+  - Browser smoke (UAT, operator): All → `placement=all`, CSV 27 = Total 27; Placed → `placement=placed`, CSV 12 = recap 12, semua berisi rombel; Unplaced recap 15, Rombel disabled → **PASS**.
+  - Backend tidak berubah → suite backend/MariaDB tidak diulang.
+- Notes / risks: 217 warning ESLint tersisa bersifat kosmetik/pre-existing (bukan PASS bersih). Kredensial akun UAT sintetis berubah; kata sandi tidak dicetak (pemilik dapat menetapkan ulang lewat `UAT_SEED_PASSWORD`/Tinker `--env=uat`).
+- Evidence: `reports/feature-update/PHASE-03C-STUDENT-DIRECTORY.md` §4–§5, `PHASE-03C-MANUAL-REVIEW.md` #15/#2.
+
 ## [2026-10-21] Subfase 03c — Implementasi daftar, rekap, dan ekspor siswa server-side
 - Type: Feature
 - Scope / fase: Subfase 03c (Daftar dan Rekap Siswa), DEC-22.
