@@ -17,6 +17,30 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-22] Containment akses Apache untuk direktori proyek sekolah
+- Type: Security | Chore
+- Scope / fase: Containment host Apache; **tidak** melanjutkan DB, pengujian aplikasi, remediasi dependency, atau fitur. Baseline laporan `2e2e557`.
+- Files touched:
+  - `C:/xampp/apache/conf/extra/httpd-school-containment.conf` (baru, di luar repo)
+  - `C:/xampp/apache/conf/httpd.conf` (satu `Include`)
+  - `reports/feature-update/APACHE-SCHOOL-CONTAINMENT.md` (baru)
+  - `reports/feature-update/ENVIRONMENT-SCHOOL-COMPAT.md` (addendum)
+  - `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `CHANGELOG.md`, `roadmap/ROADMAP.md`
+- What changed:
+  1. Menambahkan aturan server-level scoped ke direktori fisik sekolah: seluruh akses ditolak, directory listing off, `AllowOverride None` agar `.htaccess` tidak melemahkan aturan.
+  2. Menambahkan satu `Include` di akhir `httpd.conf`; tidak mengubah App Gudang, SSL/XAMPP, vhost, PHP global, firewall, atau resource aplikasi lain.
+  3. Mencadangkan `httpd.conf` ke lokasi privat di luar web root; mencatat hash sebelum/sesudah.
+  4. `httpd -t` PASS. `httpd -k restart` tidak tersedia karena Apache berjalan sebagai console application tanpa service; Apache dihentikan/dimulai ulang pada PID yang terbukti dengan downtime ~3-5 detik.
+  5. Memverifikasi status 403 loopback HTTP/HTTPS untuk root sekolah, `.env`, `.git/HEAD`, log, `public/`, junction storage, dan `backdata-administration`.
+- Why: menutup akses HTTP langsung ke repository sekolah dan berkas sensitif tanpa mengubah host-wide policy atau aplikasi lain.
+- Validation (hasil aktual):
+  - `httpd -t -f C:\xampp\apache\conf\httpd.conf` -> `Syntax OK`, exit 0; include terdaftar di `httpd.conf:573`.
+  - `curl -I` loopback: seluruh target sekolah -> **403**; HTTPS 443 juga 403; `/` -> 302; `/appgudang/` -> 403.
+  - Hash `httpd-appgudang-access.conf`, `httpd-ssl.conf`, `httpd-xampp.conf`, dan seluruh `conf/extra` lain tidak berubah.
+  - Listener 80/443, 3306, 8000, 8001 tetap aktif; API sekolah 8000/8001 tidak dihentikan.
+- Notes / risks: containment tidak membuktikan tidak pernah ada akses sebelumnya; rotasi kredensial dan audit log historis belum dilakukan; `APP_KEY` tidak diubah. LAN/internet **NOT TESTED**; loopback 403 bukan bukti LAN. Penerimaan manual 03c #1-#23 tetap PENDING; Fase 03 tetap PARTIAL.
+- Evidence: `reports/feature-update/APACHE-SCHOOL-CONTAINMENT.md`.
+
 ## [2026-10-22] Preflight keamanan lingkungan dan runtime uji sekolah terisolasi
 - Type: Security | Docs | Chore
 - Scope / fase: Lingkungan kompatibilitas keamanan; **tidak** melanjutkan fitur atau menutup Fase 03. Checkpoint kode `224529f`.

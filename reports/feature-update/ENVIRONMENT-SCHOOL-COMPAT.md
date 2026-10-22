@@ -10,6 +10,13 @@ Penerimaan manual 03c #1-#23 tetap **PENDING**. Approval 01-02 dan 03a-03b tidak
 > HTTP 200 dari Apache port 80. Tidak ada perubahan Apache/XAMPP/firewall yang dilakukan.
 > Lihat bagian 3 dan 8.
 
+> **Addendum 2026-10-22:** containment Apache scoped untuk direktori sekolah sudah
+> diterapkan pada sesi terpisah (baseline laporan `2e2e557`). Akses loopback HTTP/HTTPS
+> ke root proyek, `.env`, `.git/HEAD`, log, dan `public/` kini 403. Ini tidak membuktikan
+> tidak pernah ada akses sebelumnya; LAN/internet belum diuji. Detail, hash, backup, dan
+> batas bukti: [`APACHE-SCHOOL-CONTAINMENT.md`](APACHE-SCHOOL-CONTAINMENT.md).
+> Bagian 3 dan 8 di bawah tetap merupakan catatan historis preflight.
+
 ---
 
 ## 1. Batas dan hasil singkat

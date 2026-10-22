@@ -35,6 +35,20 @@ Catatan perubahan pemilik: `console.txt` dan `vue-app/test-results/` adalah arte
 
 ---
 
+## 0b. Checkpoint Containment Apache (2026-10-22, sesi terpisah)
+
+- **Scope**: containment direktori sekolah saja. Tidak ada DB/test aplikasi/remediasi dependency/fitur.
+- **Baseline laporan**: `2e2e557`; branch `main`.
+- **Perubahan**: file scoped `conf/extra/httpd-school-containment.conf` (Directory fisik sekolah, akses ditolak, listing off, `AllowOverride None`) + satu `Include` di akhir `httpd.conf`. Backup privat di `%TEMP%\opencode\apache-containment-backup-20261022-231712` (di luar web root; tidak di-commit).
+- **Hash**: `httpd.conf` `D4E2DB1A...` -> `A24BE18C...`; file containment `4C3D07A6...`; App Gudang/SSL/XAMPP dan seluruh `conf/extra` lain tidak berubah.
+- **Penerapan**: `httpd -t` **Syntax OK**; `httpd -k restart` gagal karena tidak ada service Apache2.4; Apache console dihentikan/dimulai ulang pada PID yang terbukti (parent 3364 -> 9360), downtime ~3-5 detik.
+- **Verifikasi**: HTTP/HTTPS loopback root sekolah, `.env`, `.git/HEAD`, log, `public/`, junction `public/storage`, dan `backdata-administration` -> **403**. `/` -> 302 dan `/appgudang/` -> 403 (config App Gudang tetap). LAN/internet **NOT TESTED**.
+- **Risiko**: eksposur 200 sebelum containment tidak membuktikan tidak ada akses; rotasi kredensial dan audit log historis belum dilakukan. APP_KEY tidak diubah.
+- **Laporan**: `reports/feature-update/APACHE-SCHOOL-CONTAINMENT.md`.
+- **Langkah berikutnya**: review laporan; uji LAN/firewall dan audit log/rotasi sebagai pekerjaan terpisah; 03c tetap PENDING.
+
+---
+
 ## 1. Status Fase
 - **Fase 00 — Audit baseline**: PARTIAL (source & environment audit selesai; sebagian browser NOT RUN).
 - **Fase 01 — Hak akses, autentikasi dan lingkungan aman**: **DITERIMA LENGKAP & DITUTUP** (01a, 01b, 01c).
