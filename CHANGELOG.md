@@ -17,6 +17,27 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-22] Preflight keamanan lingkungan dan runtime uji sekolah terisolasi
+- Type: Security | Docs | Chore
+- Scope / fase: Lingkungan kompatibilitas keamanan; **tidak** melanjutkan fitur atau menutup Fase 03. Checkpoint kode `224529f`.
+- Files touched:
+  - `reports/feature-update/ENVIRONMENT-SCHOOL-COMPAT.md` (baru)
+  - `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `CHANGELOG.md`, `roadmap/ROADMAP.md`
+- What changed:
+  1. Preflight read-only Windows: inventaris PHP 8.1.25 CLI/web, Apache 2.4.58 + mod_php, Node 24.18.0/npm 11.4.2, proses/listener, DocumentRoot/Alias/Directory/AllowOverride/Indexes, firewall.
+  2. Diverifikasi exposure repository sekolah lewat parent `C:/xampp/htdocs`: `laravel-api/.env`, `.git/HEAD`, dan `laravel-api/storage/logs/laravel.log` merespons HTTP 200. Tidak ada isi rahasia yang dibaca/dicetak; tidak ada perubahan Apache.
+  3. Menyiapkan runtime terisolasi di luar web root: PHP 8.3.36 NTS x64 dan Node 24.22.1 portable, checksum resmi cocok; checkout clone `224529f` tanpa `.env`; storage/cache/session/log, cache Composer/npm, dan profil browser terpisah; port 18021/14021 kosong.
+  4. Menjalankan instalasi dari lock (`composer install --no-scripts --no-plugins`, `npm ci`), `composer validate`/`check-platform-reqs`, frontend test/build, dan ESLint non-mutasi. DB, migrasi, seeder, backend test, server, browser, dan smoke **NOT RUN**.
+  5. Menyajikan konfigurasi target sintetis + daftar perintah untuk review, termasuk peringatan cookie lintas port dan opsi DB terpisah.
+- Why: menyiapkan lingkungan uji kompatibilitas keamanan tanpa mengubah host bersama, sekaligus mendokumentasikan risiko exposure dan dependency sebelum ada otorisasi DB/perbaikan host.
+- Validation (hasil aktual):
+  - PHP 8.3.36 `-v`/`--ini`/`-m` PASS; checksum PHP dan Node cocok dengan sumber resmi.
+  - Composer install 125 paket PASS; `composer validate --strict` PASS; `check-platform-reqs` seluruhnya success; lock tidak berubah.
+  - `node --test` 18 passed/0 failed; `npm run build` PASS (789 modules, 27.85s); ESLint `Student.vue`+`main.js` **0 errors / 2574 warnings** (CRLF), bukan PASS bersih.
+  - `composer audit --locked` 48 advisory/14 paket; `npm audit --omit=dev` 20 vulnerability (1 critical/16 high/3 moderate).
+- Notes / risks: exposure `.env`/`.git`/log adalah risiko host bersama yang **belum** diselesaikan; versi PHP web 8.1.25 mendahului perbaikan 8.3.36; dependency lock belum di-update. Penerimaan manual 03c #1-#23 tetap PENDING; Fase 03 tetap PARTIAL.
+- Evidence: `reports/feature-update/ENVIRONMENT-SCHOOL-COMPAT.md`.
+
 ## [2026-10-22] Subfase 03c — Pemeriksaan akhir: ESLint 0 error dan guard placement ekspor
 - Type: Fix
 - Scope / fase: Subfase 03c (pemeriksaan akhir; baseline `472ce9b`). Tidak melanjutkan fase berikutnya.

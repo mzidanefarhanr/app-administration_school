@@ -23,6 +23,18 @@ Catatan perubahan pemilik: `console.txt` dan `vue-app/test-results/` adalah arte
 
 ---
 
+## 0a. Checkpoint Lingkungan Keamanan (2026-10-22, sesi terpisah)
+
+- **Scope**: preflight read-only + penyiapan runtime/checkout uji terisolasi. **Bukan** kelanjutan fitur dan **bukan** penutupan Fase 03.
+- **HEAD kode**: `224529f`; branch `main`; working tree hanya berisi dokumen sesi ini + artefak lokal `console.txt`/`vue-app/test-results/` (tidak di-commit).
+- **Temuan kritis**: repository sekolah di `C:/xampp/htdocs` dapat diakses lewat parent DocumentRoot; `.env`, `.git/HEAD`, dan `storage/logs/laravel.log` mengembalikan HTTP 200. Apache listen `0.0.0.0:80/443`; rule firewall Apache aktif pada profil Public. **Belum diperbaiki**; perubahan path-specific/vhost perlu instruksi pemilik.
+- **Runtime uji**: PHP 8.3.36 NTS x64 dan Node 24.22.1 portable di `%TEMP%\opencode\school-sec-env` (di luar web root), checkout clone @ `224529f` tanpa `.env`, storage/cache/session/log terpisah, port 18021/14021 kosong. PHP/Node checksum resmi cocok. Scheduler/worker OFF.
+- **Hasil**: Composer install dari lock PASS (125 paket, `--no-scripts --no-plugins`); `check-platform-reqs` PASS; frontend `node --test` 18 passed; build PASS; ESLint 0 errors/2574 warnings (CRLF). Audit: Composer 48 advisory/14 paket; npm 20 vulnerability. Backend test/DB/migrasi/seeder/smoke/browser **NOT RUN**.
+- **Laporan**: `reports/feature-update/ENVIRONMENT-SCHOOL-COMPAT.md`.
+- **Langkah berikutnya**: review exposure Apache, keputusan DB sintetis, lalu otorisasi DB/migrasi/smoke. 03c #1-#23 tetap PENDING.
+
+---
+
 ## 1. Status Fase
 - **Fase 00 — Audit baseline**: PARTIAL (source & environment audit selesai; sebagian browser NOT RUN).
 - **Fase 01 — Hak akses, autentikasi dan lingkungan aman**: **DITERIMA LENGKAP & DITUTUP** (01a, 01b, 01c).
