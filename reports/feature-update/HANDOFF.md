@@ -1,13 +1,25 @@
 # Handoff pengembangan aplikasi sekolah
 
-Checkpoint terbaru: 2026-10-21 (WIB). Branch `main`.
+Checkpoint penutupan sesi: 2026-10-22 (WIB). Branch `main`.
 Baseline backend terakhir: `e77f335` ("feat(phase-03b): implement student CRUD with optimistic locking, administrative archive, and audit privacy").
 Baseline penerimaan manual 03b: `cbd25bd` ("feat(phase-03b): add student CRUD UI, archive/restore flows, and 03b concurrency tests").
 Baseline implementasi 03c: `0a15325`; keputusan 03c (DEC-22): `4fa20c6` ("docs(phase-03c): record owner decisions for list, placement, recap, and export").
-Baseline pemeriksaan akhir 03c: `472ce9b` (implementasi + laporan 03c).
+Baseline pemeriksaan akhir 03c: `472ce9b`; baseline implementasi terakhir: `e15f028` ("fix(phase-03c): clear eslint errors and always send export placement").
 Kebijakan commit/push: commit dan push per fase/koreksi ke branch kerja aktif telah **diotorisasi**; merge, force-push, rewrite history, dan deploy manual **tetap tidak diotorisasi**.
 
 Catatan perubahan pemilik: `console.txt` dan `vue-app/test-results/` adalah artefak lokal dan **tidak** di-commit.
+
+---
+
+## 0. Checkpoint Penutupan Sesi (2026-10-22)
+
+- **HEAD/remote**: `e15f028`, branch `main`, sinkron `origin/main`. Working tree bersih selain artefak lokal `console.txt` dan `vue-app/test-results/` (tidak di-commit).
+- **Status**: Fase 01–02 ditutup; 03a–03b DITERIMA PEMILIK; 03c **IMPLEMENTED & VERIFIED (AGEN)**, penerimaan manual **#1–#23 PENDING**. Fase 03 **tidak** ditutup.
+- **Bukti terakhir 03c (`e15f028`)**: ESLint `Student.vue` **0 errors / 217 warnings** (LF blob); frontend tests **18 passed**; build **PASS**; ekspor UI selalu mengirim `placement` termasuk `placement=all`; browser smoke All/Placed PASS. Suite backend tidak diulang karena backend tidak berubah.
+- **Alasan jeda**: pemilik memeriksa aplikasi lain terkait laporan kerentanan PHP dengan identifier **CVE-2026-109618** dan **CVE-2026-109619**. Identifier ini **informasi dari pemilik yang BELUM diverifikasi** pada sesi ini; jangan menyimpulkan versi terdampak, tingkat keparahan, atau keterpaparan aplikasi sekolah.
+- **Belum diotorisasi**: audit keamanan, upgrade PHP/dependency, dan perubahan konfigurasi aplikasi sekolah. Tunggu instruksi terpisah.
+- **Melanjutkan sesi**: (1) baca `AGENTS.md` dan dokumen workflow; (2) periksa HEAD aktual serta perubahan sejak `e15f028` (branch, remote, working tree); (3) lanjut hanya sesuai instruksi pemilik berikutnya; jangan menutup Fase 03 atau memulai fase berikutnya tanpa perintah.
+- **Selama jeda**: jangan menjalankan server, test/build ulang, migrasi, seeder, backup/restore, deploy, atau aktivasi scheduler tanpa instruksi.
 
 ---
 
