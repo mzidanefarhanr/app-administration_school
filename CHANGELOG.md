@@ -17,6 +17,26 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-23] Penghentian server UAT sekolah 127.0.0.1:8001
+- Type: Chore | Ops
+- Scope / fase: Hanya penghentian server UAT sekolah di 8001 dan pencatatan hasil; tidak ada DB, test aplikasi, dependency audit, cutover global, atau fitur.
+- Files touched:
+  - `reports/feature-update/UAT-SERVER-STOP-8001.md` (baru)
+  - `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `CHANGELOG.md`, `roadmap/ROADMAP.md`
+- What changed:
+  1. Memverifikasi listener 8001 milik PID 20444, executable `C:\xampp\php\php.exe`, command `php -S 127.0.0.1:8001 ...server.php`, parent cmd 17428, parent Artisan 13828 (`artisan serve --port=8001 --env=uat`), cwd checkout sekolah, dan `.env.uat`.
+  2. Menghentikan parent Artisan lebih dulu, lalu cmd/php child pada 2026-10-23 15:07:31 +07:00; tidak ada terminal pemilik yang tersedia.
+  3. Memverifikasi port 8001 tanpa listener, PID terkait hilang, dan tidak ada respawn setelah 10+ detik.
+  4. Mencatat insiden di luar target: setelah stop, seluruh `php.exe` hilang dan listener 8000 (PID 2384 sebelum stop) juga hilang; tidak ada restart.
+- Why: mengoordinasikan cutover PHP global dengan menghentikan server UAT lama tanpa menyentuh data/session atau runtime lain.
+- Validation (hasil aktual):
+  - Listener 8001 sebelum: 1 (PID 20444); sesudah: 0.
+  - PID 13828/17428/20444: tidak ada; tidak ada respawn.
+  - Apache 80/443 tetap aktif (PID 9360/15464); MariaDB 3306 tetap aktif (PID 1840).
+  - Tidak ada request endpoint Laravel/DB; `.env`, `.env.uat`, session, log, dan artefak UAT tidak diubah/dihapus.
+- Notes / risks: listener 8000 hilang sebagai dampak collateral di luar target; penyebab pasti belum terbukti (kemungkinan shared console/job cleanup). Server 8000 tidak dijalankan ulang. 03c #1-#23 tetap PENDING; Fase 03 tetap PARTIAL.
+- Evidence: `reports/feature-update/UAT-SERVER-STOP-8001.md`.
+
 ## [2026-10-22] Containment akses Apache untuk direktori proyek sekolah
 - Type: Security | Chore
 - Scope / fase: Containment host Apache; **tidak** melanjutkan DB, pengujian aplikasi, remediasi dependency, atau fitur. Baseline laporan `2e2e557`.

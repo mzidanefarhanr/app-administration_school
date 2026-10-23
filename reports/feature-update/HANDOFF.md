@@ -49,6 +49,18 @@ Catatan perubahan pemilik: `console.txt` dan `vue-app/test-results/` adalah arte
 
 ---
 
+## 0c. Checkpoint Penghentian Server UAT 8001 (2026-10-23, sesi terpisah)
+
+- **Scope**: hanya menghentikan server UAT sekolah `127.0.0.1:8001` dan mencatat hasil; tidak ada DB/test/cutover/fitur.
+- **Identitas terverifikasi**: listener 8001 -> PID `20444` (`C:\xampp\php\php.exe -S 127.0.0.1:8001 ...\laravel-api\vendor\...\server.php`); parent `cmd.exe` `17428`; parent Artisan `13828` (`php artisan serve --host=127.0.0.1 --port=8001 --env=uat`); cwd Artisan `...\laravel-api`, cwd child `...\laravel-api\public`; `.env.uat` ada (isi tidak dibaca).
+- **Metode/waktu**: tidak ada terminal pemilik; parent Artisan dihentikan lebih dulu, lalu cmd/php child. Waktu **2026-10-23 15:07:31 +07:00**.
+- **Hasil**: port 8001 **0 listener**; PID 13828/17428/20444 hilang; tidak ada respawn setelah 10+ detik. Data/session/log/tidak dihapus; tidak ada restart server.
+- **Insiden**: setelah stop, seluruh proses `php.exe` hilang; listener **8000** (PID 2384 sebelum stop) juga hilang meski bukan target dan tidak dihentikan langsung. Penyebab pasti belum terbukti (kemungkinan shared console/job cleanup). Server 8000 **tidak** dijalankan ulang.
+- **Laporan**: `reports/feature-update/UAT-SERVER-STOP-8001.md`.
+- **Status**: UAT 8001 dihentikan; kelanjutan runtime menunggu cutover PHP global; pemulihan 8000 menunggu keputusan pemilik. 03c #1-#23 PENDING; Fase 03 PARTIAL.
+
+---
+
 ## 1. Status Fase
 - **Fase 00 — Audit baseline**: PARTIAL (source & environment audit selesai; sebagian browser NOT RUN).
 - **Fase 01 — Hak akses, autentikasi dan lingkungan aman**: **DITERIMA LENGKAP & DITUTUP** (01a, 01b, 01c).
