@@ -791,6 +791,21 @@ const archivedLoading     = ref(false);
 const formOptions         = ref({ genders: [], religions: [], education_levels: [], blood_types: [], professions: [], family_statuses: [] });
 const formOptionsLoaded   = ref(false);
 
+// 03d: Assign & Transfer Rombel
+const placementDialog        = ref(false);
+const placementMode          = ref('assign');
+const placementTarget        = ref({});
+const placementForm          = ref({ target_rombel_id: null, reason: '' });
+const placementErrors        = ref({});
+const isSubmittingPlacement  = ref(false);
+
+const availablePlacementRombels = computed(() => {
+    if (placementMode.value === 'transfer') {
+        return rombelOptions.value.filter((r) => r.id !== placementTarget.value.rombelId);
+    }
+    return rombelOptions.value;
+});
+
 const emptyStudentForm = () => {
     const form = {};
     studentFormKeys.forEach((key) => { form[key] = ['check_ppdbbersama', 'check_kjp', 'check_bpms', 'check_pip'].includes(key) ? false : null; });
@@ -1035,6 +1050,115 @@ const restoreStudent = async (student) => {
     }
 };
 
+const openAssignRombel = async (row) => {
+    const id = rowStudentId(row);
+    if (!id) return;
+    try {
+        const res = await apiLogin.get(`/api/students/${id}`);
+        const student = res.data.data;
+        placementTarget.value = {
+            id: student.id,
+            name: student.name,
+            nis: student.nis ?? '-',
+            version: student.version,
+            rombelId: null,
+            rombelName: null,
+            membershipVersion: null
+        };
+        placementMode.value = 'assign';
+        placementForm.value = { target_rombel_id: null, reason: '' };
+        placementErrors.value = {};
+        placementDialog.value = true;
+    } catch (error) {
+        toast.add({ severity: 'error', summary: 'Assign Rombel', detail: error.response?.data?.message ?? 'Failed to load student data.', life: 4000 });
+    }
+};
+
+const openTransferRombel = async (row) => {
+    const id = rowStudentId(row);
+    if (!id) return;
+    try {
+        const res = await apiLogin.get(`/api/students/${id}`);
+        const student = res.data.data;
+        const currentYearId = school_years_now.value?.id;
+        const activeMembership = (student.student_rombels ?? []).find(
+            (sr) => sr.school_rombel?.school_year_id === currentYearId && !sr.deleted_at && !sr.archived_at && !sr.latest_student_exit_date
+        );
+
+        placementTarget.value = {
+            id: student.id,
+            name: student.name,
+            nis: student.nis ?? '-',
+            version: student.version,
+            rombelId: activeMembership?.school_rombel?.id ?? row.rombel?.id ?? null,
+            rombelName: activeMembership?.school_rombel?.name ?? row.rombel?.name ?? '-',
+            membershipVersion: activeMembership?.version ?? 1
+        };
+        placementMode.value = 'transfer';
+        placementForm.value = { target_rombel_id: null, reason: '' };
+        placementErrors.value = {};
+        placementDialog.value = true;
+    } catch (error) {
+        toast.add({ severity: 'error', summary: 'Transfer Rombel', detail: error.response?.data?.message ?? 'Failed to load student data.', life: 4000 });
+    }
+};
+
+const confirmPlacement = async () => {
+    if (isSubmittingPlacement.value) return;
+    placementErrors.value = {};
+
+    if (!placementForm.value.target_rombel_id) {
+        placementErrors.value = { target_rombel_id: ['Target rombel is required.'] };
+        return;
+    }
+
+    isSubmittingPlacement.value = true;
+    try {
+        if (placementMode.value === 'assign') {
+            await apiLogin.post(`/api/students/${placementTarget.value.id}/assign-rombel`, {
+                school_year_id: school_years_now.value.id,
+                school_rombel_id: placementForm.value.target_rombel_id,
+                expected_student_version: placementTarget.value.version
+            });
+            toast.add({ severity: 'success', summary: 'Placement Success', detail: `${placementTarget.value.name} has been assigned to rombel.`, life: 4000 });
+        } else {
+            await apiLogin.post(`/api/students/${placementTarget.value.id}/transfer-rombel`, {
+                school_year_id: school_years_now.value.id,
+                target_rombel_id: placementForm.value.target_rombel_id,
+                expected_student_version: placementTarget.value.version,
+                expected_membership_version: placementTarget.value.membershipVersion,
+                reason: placementForm.value.reason?.trim() || null
+            });
+            toast.add({ severity: 'success', summary: 'Transfer Success', detail: `${placementTarget.value.name} has been transferred to new rombel.`, life: 4000 });
+        }
+        placementDialog.value = false;
+        if (school_years_now.value) fetchDataStudentRombels();
+    } catch (error) {
+        const status = error.response?.status;
+        if (status === 422) {
+            placementErrors.value = error.response.data.errors ?? {};
+            if (error.response.data.message && !error.response.data.errors) {
+                toast.add({ severity: 'error', summary: 'Validation Error', detail: error.response.data.message, life: 4000 });
+            }
+        } else if (status === 409) {
+            conflictMessage.value = error.response.data.message ?? 'Conflict: student or rombel membership was modified by another operator.';
+            conflictReloadAction.value = async () => {
+                if (placementMode.value === 'assign') {
+                    await openAssignRombel({ id: placementTarget.value.id });
+                } else {
+                    await openTransferRombel({ id: placementTarget.value.id, rombel: { id: placementTarget.value.rombelId } });
+                }
+            };
+            placementDialog.value = false;
+            conflictDialog.value = true;
+        } else {
+            toast.add({ severity: 'error', summary: 'Action Failed', detail: error.response?.data?.message ?? 'An unexpected error occurred.', life: 4000 });
+        }
+    } finally {
+        isSubmittingPlacement.value = false;
+    }
+};
+
 onMounted(() => {
     fetchDataUserRole();
     activeSub.value = groupItems[0].subItems[0].id;
@@ -1259,10 +1383,12 @@ onMounted(() => {
                             <Tag :value="data.placement === 'placed' ? 'Placed' : 'Unplaced'" :severity="data.placement === 'placed' ? 'success' : 'warn'" />
                         </template>
                     </Column>
-                    <Column header="Action" :exportable="false" style="min-width: 10rem">
+                    <Column header="Action" :exportable="false" style="min-width: 12rem">
                         <template #body="{ data }">
                             <Button icon="pi pi-eye" variant="outlined" rounded class="mr-2" v-tooltip.top="'View Detail'" @click="viewStudentDetail(data)" />
                             <Button v-if="canManage" icon="pi pi-pencil" variant="outlined" rounded class="mr-2" v-tooltip.top="'Edit Student'" @click="openEditStudent(data)" />
+                            <Button v-if="canManage && data.placement === 'unplaced'" icon="pi pi-user-plus" variant="outlined" rounded severity="info" class="mr-2" v-tooltip.top="'Assign Rombel'" @click="openAssignRombel(data)" />
+                            <Button v-if="canManage && data.placement === 'placed'" icon="pi pi-arrow-right-arrow-left" variant="outlined" rounded severity="warn" class="mr-2" v-tooltip.top="'Transfer Rombel'" @click="openTransferRombel(data)" />
                             <Button v-if="canManage" icon="pi pi-inbox" variant="outlined" rounded severity="danger" v-tooltip.top="'Archive Student'" @click="openArchiveStudent(data)" />
                         </template>
                     </Column>
@@ -2634,6 +2760,61 @@ onMounted(() => {
         </DataTable>
         <template #footer>
             <Button label="Close" icon="pi pi-times" text severity="secondary" @click="archivedListDialog = false" />
+        </template>
+    </Dialog>
+
+    <!-- ── 03d: Assign & Transfer Rombel Dialog ────────────────────────── -->
+    <Dialog v-model:visible="placementDialog" modal :style="{ width: '500px', maxWidth: '95vw' }" :draggable="false"
+            :header="placementMode === 'assign' ? 'Assign to Rombel' : 'Transfer Class Rombel'">
+        <div class="flex flex-col gap-4">
+            <div class="bg-surface-50 dark:bg-surface-800 p-3 rounded-border flex flex-col gap-1 text-sm border border-surface-200 dark:border-surface-700">
+                <div class="flex justify-between">
+                    <span class="text-surface-500 font-medium">Student Name:</span>
+                    <span class="font-semibold">{{ placementTarget.name }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-surface-500 font-medium">NIS:</span>
+                    <span>{{ placementTarget.nis }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-surface-500 font-medium">Academic Year:</span>
+                    <span class="font-medium text-primary">{{ school_years_now?.name ?? '-' }}</span>
+                </div>
+                <div v-if="placementMode === 'transfer'" class="flex justify-between">
+                    <span class="text-surface-500 font-medium">Current Class:</span>
+                    <span class="font-semibold text-orange-600 dark:text-orange-400">{{ placementTarget.rombelName }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-surface-500 font-medium">Effective Date:</span>
+                    <span class="text-surface-600 dark:text-surface-400 font-mono text-xs">Today (Asia/Jakarta server time)</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-1">
+                <label for="targetRombelSelect" class="font-medium text-sm">
+                    Target Class Rombel <span class="text-red-500">*</span>
+                </label>
+                <Select id="targetRombelSelect" v-model="placementForm.target_rombel_id" :options="availablePlacementRombels"
+                        optionLabel="name" optionValue="id" placeholder="Select target rombel"
+                        :class="{ 'p-invalid': placementErrors.target_rombel_id || placementErrors.school_rombel_id }" />
+                <small v-if="placementErrors.target_rombel_id" class="text-red-500 text-xs">{{ placementErrors.target_rombel_id[0] }}</small>
+                <small v-if="placementErrors.school_rombel_id" class="text-red-500 text-xs">{{ placementErrors.school_rombel_id[0] }}</small>
+            </div>
+
+            <div v-if="placementMode === 'transfer'" class="flex flex-col gap-1">
+                <label for="transferReason" class="font-medium text-sm">Transfer Reason (Optional)</label>
+                <Textarea id="transferReason" v-model="placementForm.reason" rows="3" autoResize placeholder="Enter reason for class transfer..."
+                          :class="{ 'p-invalid': placementErrors.reason }" />
+                <small v-if="placementErrors.reason" class="text-red-500 text-xs">{{ placementErrors.reason[0] }}</small>
+            </div>
+        </div>
+        <template #footer>
+            <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="isSubmittingPlacement" @click="placementDialog = false" />
+            <Button :label="placementMode === 'assign' ? 'Assign Rombel' : 'Transfer Student'"
+                    :icon="placementMode === 'assign' ? 'pi pi-user-plus' : 'pi pi-arrow-right-arrow-left'"
+                    :severity="placementMode === 'assign' ? 'info' : 'warn'"
+                    :loading="isSubmittingPlacement" :disabled="isSubmittingPlacement"
+                    @click="confirmPlacement" />
         </template>
     </Dialog>
 

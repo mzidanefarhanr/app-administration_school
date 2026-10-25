@@ -17,6 +17,40 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-26] Subfase 03d — Implementasi penempatan dan perpindahan rombel via UI
+- Type: Feature | Docs | Test
+- Scope / fase: Subfase 03d (Penempatan dan Perpindahan Rombel via UI); scope tambahan yang diotorisasi pemilik (DEC-23).
+- Files touched:
+  - `laravel-api/routes/api.php`
+  - `laravel-api/app/Http/Controllers/StudentRombelController.php`
+  - `laravel-api/app/Http/Requests/AssignStudentRombelRequest.php` (baru)
+  - `laravel-api/app/Http/Requests/TransferStudentRombelRequest.php` (baru)
+  - `laravel-api/app/Policies/StudentRombelPolicy.php`
+  - `vue-app/src/views/pages/public/Student.vue`
+  - `laravel-api/tests/Feature/Student/StudentRombelAssignmentTest.php` (baru)
+  - `laravel-api/tests/Feature/Student/MariaDbRombelConcurrencyTest.php` (baru)
+  - `reports/feature-update/PHASE-03D-STUDENT-PLACEMENT.md` (baru)
+  - `reports/feature-update/PHASE-03D-MANUAL-REVIEW.md` (baru)
+  - `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `roadmap/ROADMAP.md`, `CHANGELOG.md`
+- What changed:
+  1. Backend endpoints `POST /api/students/{id}/assign-rombel` dan `POST /api/students/{id}/transfer-rombel` dengan proteksi `can:students.manage`.
+  2. Logika transaksi atomik ber-row-lock InnoDB (`Student::lockForUpdate`) untuk mencegah race condition. Tanggal efektif ditentukan server menggunakan tanggal hari berjalan pada timezone `Asia/Jakarta`.
+  3. Preservasi riwayat keanggotaan lama pada transfer: `latest_student_exit_date = $todayWib` diisi, `student_status_id` dipertahankan (tidak diubah ke Mutasi Keluar).
+  4. Optimistic concurrency control (HTTP 409 Conflict) menggunakan `expected_student_version` dan `expected_membership_version`.
+  5. UI `Student.vue`: tombol aksi kondisional (Assign Rombel untuk Unplaced, Transfer Rombel untuk Placed), dialog interaktif `placementDialog`, double-submit guard, error handling 409 & 422, dan refresh instan tabel & rekap server.
+  6. Suite pengujian otomatis SQLite in-memory murni (14 skenario di `StudentRombelAssignmentTest.php`) dan pengujian integrasi MariaDB pada database disposable `school_03d_integration` (2 skenario di `MariaDbRombelConcurrencyTest.php`).
+- Why: Memenuhi keputusan pemilik DEC-23 untuk melengkapi alur operasional siswa tanpa rombel (Unplaced) dan perpindahan rombel di UI.
+- Validation (hasil aktual):
+  - Suite backend SQLite-only: **235 passed (1099 assertions)** across 28 test files in 235.78s.
+  - Suite integrasi MariaDB disposable (`school_03d_integration`): **2 passed (6 assertions)** in 2.11s.
+  - Frontend unit tests: **18 passed** in 1090ms.
+  - Frontend production build: **PASS** (789 modules in 1m 9s).
+  - Frontend lint terarah tanpa `--fix`: **0 errors, 2750 warnings** (CRLF).
+  - Pint: **PASS** (100% clean pada seluruh berkas PHP yang dimodifikasi).
+  - UAT smoke test (16 skenario): **PASS** pada server loopback 18021/14021.
+- Notes / risks: Subfase 03d berstatus IMPLEMENTED & FULLY VERIFIED (AGEN) / MANUAL ACCEPTANCE PENDING (checklist manual #1–#15 menunggu review pemilik); Fase 01, 02, dan 03 tetap DITERIMA LENGKAP & DITUTUP; risiko advisory dependency, EOL framework, dan eksposur historis tetap OPEN.
+- Evidence: `reports/feature-update/PHASE-03D-STUDENT-PLACEMENT.md`, `reports/feature-update/PHASE-03D-MANUAL-REVIEW.md`.
+
 ## [2026-10-26] Subfase 03d — Pencatatan keputusan pemilik (DEC-23) dan otorisasi implementasi
 - Type: Docs
 - Scope / fase: Subfase 03d (Penempatan dan Perpindahan Rombel via UI); pencatatan keputusan pemilik DEC-23 dan otorisasi implementasi.

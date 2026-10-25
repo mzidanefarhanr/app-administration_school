@@ -92,7 +92,10 @@ Catatan perubahan pemilik: `console.txt` dan `vue-app/test-results/` adalah arte
   - **Subfase 03a** — Identitas dan membership migration: **DITERIMA PEMILIK** (checklist #1–#11 APPROVED 2026-10-21 WIB, baseline `37f7d79`).
   - **Subfase 03b** — CRUD dan Form Siswa: **DITERIMA PEMILIK** (checklist #1–#13 APPROVED 2026-10-21 WIB, baseline `cbd25bd`).
   - **Subfase 03c** — Daftar, Rekap & Ekspor Siswa (server-side): **DITERIMA PEMILIK** (checklist #1–#23 APPROVED 2026-10-26 WIB mengacu baseline fitur `e15f028` dan lingkungan `933e71c`; laporan `PHASE-03C-STUDENT-DIRECTORY.md`).
-  - **Subfase 03d (kandidat)** — Aksi penempatan/penyesuaian keanggotaan rombel via UI: **BELUM DIOTORISASI** (di luar scope 03c, DEC-22 #5). Posisi dibahas pada rencana fase berikutnya.
+  - **Subfase 03d (tambahan)** — Aksi penempatan/pemindahan rombel via UI: **IMPLEMENTED & FULLY VERIFIED (AGEN) / MANUAL ACCEPTANCE PENDING**.
+    - Keputusan **DEC-23** disetujui pemilik 2026-10-26 WIB; baseline implementasi `01c953e`.
+    - Verifikasi agen: `php artisan test` **235 passed (1099 assertions)** (28 files SQLite in-memory); MariaDB concurrency test **2 passed (6 assertions)** pada DB disposable `school_03d_integration`; frontend `node --test` **18 passed**; `npm run build` **PASS**; Pint **PASS**; targeted lint **0 errors**; browser UAT smoke (16 skenario) **PASS**.
+    - Laporan: `PHASE-03D-STUDENT-PLACEMENT.md`; checklist manual `PHASE-03D-MANUAL-REVIEW.md` (#1–#15) **menunggu review pemilik**.
 - **Keputusan Terbuka yang Masih OPEN (belum menghambat)**:
   1. Makna `status_user_id`.
   2. Deployment CORS/Sanctum produksi.
@@ -168,7 +171,9 @@ Data sintetis yang berubah selama browser UAT:
 
 ## 6. Langkah Berikutnya
 1. Subfase 03c telah **DITERIMA PEMILIK** (checklist #1–#23 APPROVED pada 2026-10-26 WIB); **Fase 03 DITUTUP LENGKAP**.
-2. Subfase tambahan **03d (Penempatan dan Perpindahan Rombel via UI)** telah **DIOTORISASI PEMILIK (DEC-23, 2026-10-26 WIB)**.
-3. Rencana teknis 03d diselaraskan dengan DEC-23 di `reports/feature-update/PHASE-03D-PLAN.md` (Assign & Transfer saja, tanpa koreksi; tahun ajaran terpilih; tanggal Asia/Jakarta server; preservasi riwayat keluar; students.manage; versioning atomik).
-4. Implementasi backend, tes SQLite & MariaDB terisolasi, UI `Student.vue`, dan browser UAT segera dilaksanakan.
-5. Fase 04a dan keputusan DEC-04 tetap belum diputuskan, menunggu penyelesaian Subfase 03d.
+2. Subfase tambahan **03d (Penempatan dan Perpindahan Rombel via UI)** telah selesai diimplementasikan dan diverifikasi agen:
+   - Status: **IMPLEMENTED & FULLY VERIFIED (AGEN) / MANUAL ACCEPTANCE PENDING**.
+   - Pemilik meninjau checklist manual di `reports/feature-update/PHASE-03D-MANUAL-REVIEW.md` (#1–#15) pada server UAT aktif `http://127.0.0.1:14021`.
+3. Setelah penerimaan manual 03d diselesaikan, pemilik dapat menentukan pemilihan fase berikutnya sesuai `NEXT-STEPS-PLAN.md` (Fase 04 Guru dan Pegawai).
+4. Server UAT terisolasi pada `127.0.0.1:18021` (API) dan `127.0.0.1:14021` (SPA) tetap berjalan di loopback untuk keperluan peninjauan lokal pemilik.
+5. Menunggu instruksi dan review pemilik sebelum memulai pekerjaan implementasi berikutnya.

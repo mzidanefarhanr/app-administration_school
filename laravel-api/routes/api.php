@@ -163,6 +163,12 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::post('/students/{id}/restore', [StudentController::class, 'restore'])
         ->middleware('can:students.manage');
 
+    // Subfase 03d (DEC-23) - Penempatan dan perpindahan rombel siswa
+    Route::post('/students/{id}/assign-rombel', [StudentRombelController::class, 'assignRombel'])
+        ->middleware('can:students.manage');
+    Route::post('/students/{id}/transfer-rombel', [StudentRombelController::class, 'transferRombel'])
+        ->middleware('can:students.manage');
+
     Route::apiResource('/students', StudentController::class)
         ->only(['index', 'show'])->middleware('can:students.view');
     Route::apiResource('/students', StudentController::class)

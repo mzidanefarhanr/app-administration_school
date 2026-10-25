@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\StudentRombel;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class StudentRombelPolicy
 {
@@ -13,7 +12,7 @@ class StudentRombelPolicy
      */
     public function viewAny(User $user): bool
     {
-        //
+        return $user->hasAbility('students.view');
     }
 
     /**
@@ -21,7 +20,7 @@ class StudentRombelPolicy
      */
     public function view(User $user, StudentRombel $studentRombel): bool
     {
-        //
+        return $user->hasAbility('students.view');
     }
 
     /**
@@ -29,7 +28,7 @@ class StudentRombelPolicy
      */
     public function create(User $user): bool
     {
-        //
+        return $user->hasAbility('students.manage');
     }
 
     /**
@@ -37,7 +36,7 @@ class StudentRombelPolicy
      */
     public function update(User $user, StudentRombel $studentRombel): bool
     {
-        //
+        return $user->hasAbility('students.manage');
     }
 
     /**
@@ -45,7 +44,7 @@ class StudentRombelPolicy
      */
     public function delete(User $user, StudentRombel $studentRombel): bool
     {
-        //
+        return $user->hasAbility('students.manage');
     }
 
     /**
@@ -53,14 +52,15 @@ class StudentRombelPolicy
      */
     public function restore(User $user, StudentRombel $studentRombel): bool
     {
-        //
+        return $user->hasAbility('students.manage');
     }
 
     /**
      * Determine whether the user can permanently delete the model.
+     * Force delete is strictly prohibited per repository rules.
      */
     public function forceDelete(User $user, StudentRombel $studentRombel): bool
     {
-        //
+        return false;
     }
 }
