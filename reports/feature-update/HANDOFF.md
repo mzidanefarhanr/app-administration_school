@@ -61,6 +61,24 @@ Catatan perubahan pemilik: `console.txt` dan `vue-app/test-results/` adalah arte
 
 ---
 
+## 0d. Checkpoint Audit Kompatibilitas PHP 8.2 Global (2026-10-26, sesi terpisah)
+
+- **Scope**: Audit awal read-only kompatibilitas PHP 8.2 global pasca-cutover dan perancangan UAT/runtime sekolah. Tidak ada eksekusi server, DB, tes, migrasi, atau fitur.
+- **Runtime terverifikasi**: PHP CLI global `C:\xampp\php82-operational\php.exe` (PHP 8.2.35 ZTS x64); Apache SAPI memuat `php8apache2_4.dll` dari direktori yang sama (error.log mencatat `PHP/8.2.35 configured`); Composer 2.8.2 via `composer.bat` menggunakan PHP 8.2.35. Runtime rollback `C:\xampp\php` (PHP 8.1.25) tidak aktif di PATH. Node global `v24.18.0` (npm 11.4.2); portable `%TEMP%\...\school-sec-env\runtime` memuat Node `v24.22.1` (npm 11.19.1).
+- **Hasil audit backend**: Platform requirement `composer.lock` 125 paket **100% success** di atas PHP 8.2.35. Ekstensi non-manifest `pdo_mysql`, `pdo_sqlite`, `sqlite3`, `zip` (AES-256), `proc_open` seluruhnya tersedia. Script `composer install` memanggil `package:discover` sehingga wajib `--no-scripts --no-plugins` saat instalasi awal.
+- **Hasil audit frontend**: SPA statis murni (Vite 6.3.5 + Vue 3.4.34), tanpa SSR/server Node. Script `dev` mengikat `0.0.0.0` (risiko eksposur LAN); usulan UAT wajib loopback `127.0.0.1` dengan `--strictPort`. Script `lint` mengandung `--fix` (peringatan read-only).
+- **Status advisory**: PHP 8.2.35 memuat patch CVE-2026-109618/CVE-2026-109619. PHP 8.2 security support berakhir 31 Des 2026. Node Brotli CVE-2026-111497 risiko rendah untuk local dev SPA. Laravel 10 berstatus EOL sejak Feb 2025. Lockfile mencatat 48 advisory Composer & 20 vulnerability npm (pre-existing, bukan blocker).
+- **Status containment**: Apache containment sekolah aktif (`httpd-school-containment.conf`), seluruh akses loopback sekolah 403 Forbidden. Listener 8000 dan 8001 tetap FREE; Apache 80/443 & MariaDB 3306 aktif.
+- **Rencana Tiga Jalur**:
+  - Jalur A (Minimum Dev/UAT): Gunakan PHP 8.2 global, tidak perlu runtime portable permanen, port terisolasi usulan 18021/14021.
+  - Jalur B (Modernisasi Jangka Panjang): Upgrade terencana Laravel 10 -> 11, koordinasi keseragaman lintas aplikasi.
+  - Jalur C (Kelanjutan Fitur): Baseline 03c `e15f028` tetap; checklist #1–#23 PENDING review pemilik; Fase 03 tetap PARTIAL; 03d belum diotorisasi.
+- **Rancangan UAT (BELUM DIJALANKAN)**: Usulan DB disposable `school_compat_uat`, fail-safe pre-bootstrap guard, port API `127.0.0.1:18021` dan SPA `127.0.0.1:14021`, cookie `school_compat_session`, profil browser terpisah, SQLite-first test.
+- **Laporan**: `reports/feature-update/PHP82-COMPATIBILITY-AUDIT.md`.
+- **Langkah berikutnya**: Menunggu review pemilik atas laporan audit & rencana kompatibilitas sebelum otorisasi pembuatan DB sintetis / pembukaan server.
+
+---
+
 ## 1. Status Fase
 - **Fase 00 — Audit baseline**: PARTIAL (source & environment audit selesai; sebagian browser NOT RUN).
 - **Fase 01 — Hak akses, autentikasi dan lingkungan aman**: **DITERIMA LENGKAP & DITUTUP** (01a, 01b, 01c).
