@@ -17,27 +17,34 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
-## [2026-10-26] Koreksi audit kompatibilitas PHP 8.2, triase keamanan & rencana UAT terisolasi
-- Type: Security | Docs | Chore
-- Scope / fase: Koreksi laporan kompatibilitas, triase keamanan minimum, dan penguatan isolasi pra-UAT. Mode READ-ONLY terhadap source/config/runtime/data; tidak ada DB, test aplikasi, instalasi/update dependency, server start, atau fitur baru. Baseline laporan: `d5ab436`.
+## [2026-10-26] Persiapan dan pengujian kompatibilitas UAT sintetis khusus sekolah (PHP 8.2 & Node 24)
+- Type: Security | Test | Ops | Docs
+- Scope / fase: Persiapan dan pengujian kompatibilitas UAT sintetis khusus sekolah di checkout terisolasi; bukan penerimaan manual 03c dan bukan penyelesaian seluruh risiko keamanan. Baseline laporan: `27eca92`.
 - Files touched:
+  - `laravel-api/scripts/verify-isolation.php` (baru)
+  - `laravel-api/.env.uat.example` (baru)
+  - `vue-app/.env.uat.example` (baru)
   - `reports/feature-update/PHP82-COMPATIBILITY-AUDIT.md`
   - `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `CHANGELOG.md`, `roadmap/ROADMAP.md`
 - What changed:
-  1. Koreksi bukti kompatibilitas: membedakan requirement PHP root (`^8.1`), requirement paket lockfile, dan runtime terpasang (PHP 8.2.35); verifikasi platform lockfile berbasis `--lock --no-plugins --no-scripts` (100% success; bukan bukti pengujian perilaku aplikasi); membedakan constraint `vue: ^3.4.34` dari versi terkunci konkret `vue: 3.5.13` & `@vue/server-renderer: 3.5.13`; memisahkan bukti build/test historis dari sesi read-only ini.
-  2. Koreksi runtime frontend: menetapkan Node portable 24.22.1 resmi (memuat cherry-pick patch Google Brotli CVE-2026-111497 commit `0ed4268` & 4 CVE High lain); merancang launcher eksplisit tanpa fallback ke 24.18.0; mengoreksi simpulan aman SPA (Vite dev server & build toolchain tetap rentan jika tidak dipatch).
-  3. Triase keamanan minimum: menganalisis reachability temuan critical (`form-data 4.0.3` unreachable di client SPA) dan temuan high (`axios 1.10.0` reachable namun termitigasi di UAT loopback; `vue/@vue/server-renderer` unreachable di CSR; `laravel/framework` CRLF email termitigasi driver log; `symfony/http-foundation` unreachable untuk otorisasi berbasis Gate PHP; `guzzlehttp/*` dan `league/commonmark` unreachable karena 0 pemanggilan di source sekolah; build toolchain dev-only). Mengidentifikasi blocker UAT nyata (NIHIL) dan risiko terbuka yang membutuhkan keputusan pemilik.
-  4. Koreksi rencana modernisasi: menetapkan Laravel 12 sebagai target utama kompatibel PHP 8.2 (didukung aktif s.d. akhir 2026, security s.d. Feb 2027; kompatibel skeleton lama); Laravel 11 hanya jembatan transisi sementara (EOL security Maret 2026); Laravel 13 opsi koordinasi lintas aplikasi; tanpa kewajiban Pest v3 / restrukturisasi skeleton sebelum panduan upgrade diverifikasi.
-  5. Penguatan isolasi pra-bootstrap: spesifikasi Pre-Flight Guard fail-closed dengan allowlist eksak (`DB_DATABASE === 'school_compat_uat'`), pemeriksaan precedence variable environment proses OS, penolakan jika config cache ada, cookie unik `school_compat_session`, profil browser terpisah, port usulan 18021/14021 (belum diizinkan start), dan inventaris eksplisit 2 tes integrasi MariaDB (`MariaDbIntegrationTest.php` dan `MariaDbStudentIntegrationTest.php`) untuk diexclude pada suite SQLite-only.
-  6. Menyusun draft prompt implementasi UAT untuk review pemilik.
-- Why: Memenuhi koreksi pemilik atas bukti platform check, menutup celah runtime Node global, mentriase risiko advisory secara terukur, dan memperketat guard isolasi agar tidak ada kebocoran ke database atau proses lain.
+  1. Koreksi dokumentasi: mencatat status EOL keamanan Laravel 11 (berakhir Maret 2026; target utama modernisasi adalah Laravel 12); membatasi klaim reachability advisory pada bukti actual kode (bukan jaminan mutlak seluruh jalur transitif unreached); mencatat loopback sebagai isolasi jaringan, bukan mitigasi universal parser/build tool; risiko advisory, eksposur historis, dan rotasi rahasia tetap OPEN.
+  2. Lingkungan checkout uji disiapkan di luar web root Apache (`%TEMP%\...\school-sec-env\staging\checkout`) dan disinkronkan ke baseline `e15f028` (commit `27eca92`). Menggunakan PHP global `C:\xampp\php82-operational\php.exe` (PHP 8.2.35) dan Node portable patched `v24.22.1` (npm 11.19.1).
+  3. Mengimplementasikan script fail-closed Pre-Flight Guard (`laravel-api/scripts/verify-isolation.php`) untuk profil `testing` (SQLite :memory:) dan `uat` (allowlist eksak `school_compat_uat`, host loopback, port 3306, user non-root `school_compat_app`, penolakan variable proses OS overrides, penolakan config cache).
+  4. Membuat database baru `school_compat_uat` di MariaDB port 3306 dan dedicated user `school_compat_app` dengan hak terbatas pada database tersebut (tanpa menyentuh `backdata_administrations`, DB UAT lama, atau App Gudang; kredensial disimpan privat di temp lokal).
+  5. Menjalankan 42 file migrasi normal dan `UatSeeder` sintetis (password disuplai privat via `UAT_SEED_PASSWORD`).
+  6. Menjalankan suite tes backend SQLite-only: **221 passed (1038 assertions)** in 178.05s, secara eksplisit mengecualikan 2 tes integrasi MariaDB (`MariaDbIntegrationTest.php` dan `MariaDbStudentIntegrationTest.php`).
+  7. Menjalankan frontend unit tests: **18 passed** in 961ms via Node 24.22.1 portable; production build: **PASS** (Vite 6.3.5, 789 modules in 1m 14s); targeted lint: **0 errors**, 2574 warnings (CRLF).
+  8. Memverifikasi port 18021 dan 14021 bebas, lalu menyalakan server UAT terisolasi: API port `18021` (PID parent 3812 / child 15960) dan SPA port `14021` strict port (PID 17964).
+  9. Menjalankan 16 skenario smoke test terarah: CSRF 204, login operator 204, check-auth abilities, student list & recap (school_year_id=1), filter placed/unplaced, search formula, detail, edit version 1->2, stale edit 409 conflict, archive version 2->3, archived list view, restore version 3->4, export CSV, logout 204, kepsek role checks (view 200, create 403, archived 403, export 200), waka role checks (view 200, export 403). Seluruhnya PASS. UI penempatan rombel tidak diklaim tersedia.
+  10. Menyediakan panduan akses lokal bagi pemilik (cara membaca kredensial privat atau reset via Tinker) dan prosedur start/stop terverifikasi.
+- Why: Membuktikan kompatibilitas penuh aplikasi sekolah pada runtime PHP 8.2 global di lingkungan UAT terisolasi, menyiapkan instans review untuk checklist manual 03c, serta memperkuat guard isolasi tanpa merusak database operasional atau aplikasi lain.
 - Validation (hasil aktual):
-  - `composer check-platform-reqs --lock --no-plugins --no-scripts` -> 100% success untuk seluruh 125 paket.
-  - Pengecekan kapabilitas SQLite, Zip AES-256, proc_open -> seluruhnya YES.
-  - Pengecekan status containment loopback: HTTP/HTTPS target sekolah seluruhnya 403 Forbidden.
-  - Listener port 8000, 8001, 18021, 14021 seluruhnya FREE.
-  - Tidak ada server yang dinyalakan, tidak ada query DB, tidak ada build/test/npm yang dieksekusi pada sesi ini.
-- Notes / risks: EOL Laravel 10 dan PHP 8.2 (akhir 2026) tetap OPEN; advisory lockfile 48 Composer & 20 npm tetap OPEN; risiko eksposur historis host sebelum containment tetap ada (rotasi kredensial produksi belum dilakukan); checklist manual 03c #1–#23 tetap PENDING; Fase 03 tetap PARTIAL.
+  - Pre-flight guard: PASS untuk `testing` dan `uat`.
+  - Backend automated tests: 221 passed (1038 assertions) in 178.05s.
+  - Frontend unit tests: 18 passed in 961ms; build: PASS; lint: 0 errors.
+  - Smoke tests UAT: 16 skenario seluruhnya PASS.
+  - Port 18021 dan 14021 aktif secara strict; Apache containment tetap aktif (loopback 403); MariaDB tetap aktif.
+- Notes / risks: Server UAT 18021/14021 dibiarkan aktif untuk review pemilik; checklist manual 03c #1–#23 tetap PENDING; Fase 03 tetap PARTIAL; risiko advisory dependency, EOL framework, dan eksposur historis tetap OPEN.
 - Evidence: `reports/feature-update/PHP82-COMPATIBILITY-AUDIT.md`.
 
 ## [2026-10-23] Penghentian server UAT sekolah 127.0.0.1:8001
