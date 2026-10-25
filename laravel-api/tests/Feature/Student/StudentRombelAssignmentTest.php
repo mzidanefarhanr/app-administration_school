@@ -57,6 +57,10 @@ beforeEach(function () {
     $this->viewer->roles()->attach($viewRole->id, ['assigned_by' => $this->viewer->id]);
 });
 
+afterEach(function () {
+    Activity::$testCreatingHook = null;
+});
+
 test('unauthenticated guest is denied assign and transfer with 401', function () {
     $student = Student::create(['name' => 'Guest Target', 'version' => 1]);
 
@@ -369,4 +373,116 @@ test('transfer for archived student is rejected with 422', function () {
 
     $response->assertStatus(422)
         ->assertJsonPath('message', 'Cannot transfer rombel for an archived student.');
+});
+
+test('audit insert failure during assign rolls back new membership and student version', function () {
+    $decoyStudent = Student::create(['name' => 'Decoy Student Assign', 'version' => 1]);
+    $decoyMembership = StudentRombel::create([
+        'student_id' => $decoyStudent->id,
+        'school_rombel' => $this->rombelA->id,
+        'student_status_id' => 1,
+        'version' => 1,
+    ]);
+
+    $student = Student::create(['name' => 'Failing Assign Target', 'version' => 1]);
+    Sanctum::actingAs($this->operator);
+
+    // Fail deliberately on student audit insert, which executes AFTER StudentRombel::create inside the transaction
+    Activity::$testCreatingHook = function ($activity) use ($student) {
+        if ($activity->table_name === 'students' && (int) $activity->record_id === (int) $student->id) {
+            throw new \RuntimeException('Simulated audit insert failure for students during assign');
+        }
+    };
+
+    try {
+        $response = $this->postJson("/api/students/{$student->id}/assign-rombel", [
+            'school_year_id' => $this->year->id,
+            'school_rombel_id' => $this->rombelB->id,
+            'expected_student_version' => 1,
+        ]);
+        $response->assertStatus(500);
+    } finally {
+        Activity::$testCreatingHook = null;
+    }
+
+    $student->refresh();
+    expect($student->version)->toBe(1);
+    expect(StudentRombel::where('student_id', $student->id)->count())->toBe(0);
+
+    $partialAudit = Activity::where('table_name', 'student_rombels')
+        ->where('new->student_id', $student->id)
+        ->exists();
+    expect($partialAudit)->toBeFalse();
+
+    $decoyStudent->refresh();
+    $decoyMembership->refresh();
+    expect($decoyStudent->version)->toBe(1);
+    expect($decoyMembership->version)->toBe(1);
+    expect($decoyMembership->school_rombel)->toBe($this->rombelA->id);
+});
+
+test('audit insert failure during transfer rolls back source membership closure and target membership creation', function () {
+    $decoyStudent = Student::create(['name' => 'Decoy Student Transfer', 'version' => 1]);
+    $decoyMembership = StudentRombel::create([
+        'student_id' => $decoyStudent->id,
+        'school_rombel' => $this->rombelA->id,
+        'student_status_id' => 1,
+        'version' => 1,
+    ]);
+
+    $student = Student::create(['name' => 'Failing Transfer Target', 'version' => 1]);
+    $oldMembership = StudentRombel::create([
+        'student_id' => $student->id,
+        'school_rombel' => $this->rombelA->id,
+        'student_status_id' => 1,
+        'latest_student_entry_date' => '2026-07-15',
+        'latest_student_exit_date' => null,
+        'latest_information' => null,
+        'version' => 1,
+    ]);
+
+    Sanctum::actingAs($this->operator);
+
+    // Fail deliberately on student audit insert, which executes AFTER old membership is closed and new membership is created
+    Activity::$testCreatingHook = function ($activity) use ($student) {
+        if ($activity->table_name === 'students' && (int) $activity->record_id === (int) $student->id) {
+            throw new \RuntimeException('Simulated audit insert failure for students during transfer');
+        }
+    };
+
+    try {
+        $response = $this->postJson("/api/students/{$student->id}/transfer-rombel", [
+            'school_year_id' => $this->year->id,
+            'target_rombel_id' => $this->rombelB->id,
+            'expected_student_version' => 1,
+            'expected_membership_version' => 1,
+            'reason' => 'Transfer that will fail audit',
+        ]);
+        $response->assertStatus(500);
+    } finally {
+        Activity::$testCreatingHook = null;
+    }
+
+    $oldMembership->refresh();
+    expect($oldMembership->latest_student_exit_date)->toBeNull()
+        ->and($oldMembership->student_status_id)->toBe(1)
+        ->and($oldMembership->latest_information)->toBeNull()
+        ->and($oldMembership->version)->toBe(1);
+
+    expect(StudentRombel::where('student_id', $student->id)->where('school_rombel', $this->rombelB->id)->exists())->toBeFalse();
+
+    $student->refresh();
+    expect($student->version)->toBe(1);
+
+    $partialAudits = Activity::where('table_name', 'student_rombels')
+        ->where('record_id', $oldMembership->id)
+        ->where('information', 'Updated')
+        ->exists();
+    expect($partialAudits)->toBeFalse();
+
+    $decoyStudent->refresh();
+    $decoyMembership->refresh();
+    expect($decoyStudent->version)->toBe(1);
+    expect($decoyMembership->version)->toBe(1);
+    expect($decoyMembership->school_rombel)->toBe($this->rombelA->id);
 });

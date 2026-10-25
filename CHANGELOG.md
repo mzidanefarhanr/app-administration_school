@@ -17,6 +17,35 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-26] Subfase 03d — Penguatan bukti pengujian rollback audit dan konkurensi MariaDB
+- Type: Test | Docs
+- Scope / fase: Subfase 03d (Penguatan bukti pengujian penempatan dan perpindahan rombel); diotorisasi pemilik sesuai gap review.
+- Files touched:
+  - `laravel-api/tests/Feature/Student/StudentRombelAssignmentTest.php`
+  - `laravel-api/tests/Feature/Student/MariaDbRombelConcurrencyTest.php`
+  - `laravel-api/tests/Support/concurrency_worker.php` (baru)
+  - `reports/feature-update/PHASE-03D-STUDENT-PLACEMENT.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `reports/feature-update/INDEX.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Menambahkan tes rollback kegagalan audit pada `StudentRombelAssignmentTest.php` untuk Assign dan Transfer via `Activity::$testCreatingHook`. Membuktikan bahwa kegagalan audit membatalkan mutasi keanggotaan dan increment versi siswa secara utuh.
+  2. Mengimplementasikan test harness worker proses independen `concurrency_worker.php` yang menjalankan controller mutasi aplikasi nyata (`assignRombel`, `transferRombel`, `destroy`) pada database disposable `school_03d_integration`.
+  3. Memperluas `MariaDbRombelConcurrencyTest.php` menjadi 7 skenario (43 assertions, 10.55s):
+     - Dua transfer simultan konkuren (1 sukses 200, 1 konflik 409).
+     - Penolakan siswa terarsip pre-existing (non-race).
+     - Race Archive vs Assign (kedua urutan lock: Assign duluan [200/409] & Archive duluan [200/422]).
+     - Race Archive vs Transfer (kedua urutan lock: Transfer duluan [200/409] & Archive duluan [200/422]).
+     - Bukti deterministik tumpang tindih lock InnoDB via `SHOW FULL PROCESSLIST` / `innodb_lock_waits` / `innodb_trx`.
+- Why: Menutup seluruh celah pembuktian konkurensi dan atomisitas rollback audit sesuai instruksi eksplisit pemilik tanpa mengubah arsitektur atau memperluas fitur.
+- Validation:
+  - `php artisan test tests/Feature/Student/StudentRombelAssignmentTest.php` -> 16 passed (78 assertions).
+  - `php artisan test tests/Feature/Student/MariaDbRombelConcurrencyTest.php` -> 7 passed (43 assertions).
+  - Regresi Student SQLite (`StudentDirectoryTest`, `StudentCrudTest`, `StudentAgeAndIdentityTest`, `StudentRombelResolutionTest`, `StudentRombelConstraintTest`, `StudentMigrationAndBackfillTest`) -> 68 passed (333 assertions).
+  - `./vendor/bin/pint --test` pada file PHP yang berubah/baru -> PASS (3 files clean).
+- Notes / risks: Checklist manual `reports/feature-update/PHASE-03D-MANUAL-REVIEW.md` (#1–#15) tetap PENDING menunggu peninjauan pemilik.
+- Evidence: `reports/feature-update/PHASE-03D-STUDENT-PLACEMENT.md`, `reports/feature-update/HANDOFF.md`.
+
 ## [2026-10-26] Subfase 03d — Implementasi penempatan dan perpindahan rombel via UI
 - Type: Feature | Docs | Test
 - Scope / fase: Subfase 03d (Penempatan dan Perpindahan Rombel via UI); scope tambahan yang diotorisasi pemilik (DEC-23).

@@ -24,14 +24,20 @@ Status fase:
 ## 1. Bukti Aktual Subfase 03d (Hasil Agen)
 
 1. **Backend Automated Tests (SQLite In-Memory Murni)**:
-   - `php artisan test <28-test-files>` -> **235 passed (0 failed)** across 28 test files, total **1099 assertions** dalam 235.78s di atas PHP 8.2.35.
+   - `php artisan test <28-test-files>` -> **237 passed (0 failed)** across 28 test files, total **1117 assertions** di atas PHP 8.2.35.
    - Pengecualian eksplisit: `MariaDbIntegrationTest.php`, `MariaDbStudentIntegrationTest.php`, dan `MariaDbRombelConcurrencyTest.php` diexclude dari suite SQLite agar tidak membuka koneksi MariaDB.
-   - Cakupan khusus `StudentRombelAssignmentTest.php`: **14 passed (60 assertions)** mencakup validasi input 422, otorisasi 401/403, penolakan siswa terarsip, conflict 409, dan transaksi atomik.
+   - Cakupan khusus `StudentRombelAssignmentTest.php`: **16 passed (78 assertions)** mencakup validasi input 422, otorisasi 401/403, penolakan siswa terarsip, conflict 409, transaksi atomik, dan **rollback kegagalan audit** (assign dan transfer atomik).
 2. **MariaDB Concurrency Integration Tests**:
-   - Dijalankan pada database disposable khusus `school_03d_integration` pada MariaDB port 3306 (user `school_compat_app`).
-   - `MariaDbRombelConcurrencyTest.php` -> **2 passed (6 assertions)** dalam 2.11s:
-     - Serialisasi dua Assign konkuren dengan `expected_student_version` sama via row lock: tepat satu 200/commit, satu 409 Conflict.
-     - Penolakan penempatan siswa terarsip via trigger `trg_student_rombels_single_active_insert` (SQLSTATE 45000).
+   - Dijalankan pada database disposable khusus `school_03d_integration` pada MariaDB port 3306 (user `school_compat_app` dengan guard koneksi eksak).
+   - Eksekusi worker nyata melalui pipeline controller aktual (`concurrency_worker.php`) dengan verifikasi tumpang tindih lock InnoDB (`SHOW FULL PROCESSLIST` / `information_schema.innodb_trx` / `innodb_lock_waits`).
+   - `MariaDbRombelConcurrencyTest.php` -> **7 passed (43 assertions)** dalam 10.55s:
+     - Dua Assign konkuren serial via row lock (1 commit 200, 1 ditolak 409 conflict).
+     - Penolakan siswa terarsip pre-existing (non-race) via trigger MariaDB.
+     - Dua Transfer konkuren simultan pada siswa/membership yang sama (1 commit 200, 1 ditolak 409 conflict).
+     - Race Archive vs Assign (Assign menang lock: Assign 200, Archive 409).
+     - Race Archive vs Assign (Archive menang lock: Archive 200, Assign 422).
+     - Race Archive vs Transfer (Transfer menang lock: Transfer 200, Archive 409).
+     - Race Archive vs Transfer (Archive menang lock: Archive 200, Transfer 422).
 3. **Frontend Tests, Build & Lint**:
    - Unit tests: `node --test` (Node portable v24.22.1) -> **18 passed (0 failed)** dalam 1090ms.
    - Production build: `npm run build` -> **PASS** (Vite 6.3.5, 789 modules transformed dalam 1m 9s).
@@ -45,21 +51,17 @@ Status fase:
 
 ---
 
-## 2. Catatan Review Source & Bukti untuk Sesi Berikutnya
+## 2. Catatan Rekonsiliasi Bukti yang Telah Diselesaikan
 
-Sesi berikutnya disarankan melakukan review mendalam terhadap source dan rekonsiliasi bukti sebelum menutup 03d:
-1. **Penyelarasan Istilah Tahun Ajaran**:
-   - Periksa konsistensi antara istilah keputusan *"tahun ajaran terpilih"* dengan implementasi yang terkadang menggunakan label *"tahun ajaran aktif"*. Pastikan tidak ada pembatasan bisnis tambahan yang mengunci tahun masa lalu jika tidak diinstruksikan pemilik.
-2. **Verifikasi Jalur Mutasi & Rollback**:
-   - Audit kembali verifikasi versi siswa (`students.version`) vs versi membership (`student_rombels.version`).
-   - Verifikasi preservasi riwayat keanggotaan lama (`latest_student_exit_date = $todayWib`, `student_status_id` tetap Aktif/1, bukan Mutasi Keluar).
-   - Verifikasi atomisitas transaksi: kegagalan insert membership baru atau audit log harus me-rollback penutupan keanggotaan lama secara utuh.
-3. **Rekonsiliasi Matriks Konkurensi (Bukti Aktual vs Target Rencana)**:
-   - **Dua Assign konkuren**: TERBUKTI pada `MariaDbRombelConcurrencyTest` (tepat 1 sukses, 1 konflik 409).
-   - **Dua Transfer konkuren**: **NOT RUN / PENDING** pada database MariaDB.
-   - **Race Archive vs Assign**: Uji saat ini baru membuktikan penolakan siswa yang *sudah* terarsip (`deleted_at IS NOT NULL`), **bukan bukti race condition simultan** saat transaksi Archive dan Assign dieksekusi bersamaan di dua thread konkuren. Status: **NOT RUN / PENDING**.
-   - **Race Archive vs Transfer**: **NOT RUN / PENDING** pada database MariaDB.
-   - *Catatan Penting:* Skenario yang belum dibuktikan secara deterministik di atas **TIDAK BOLEH diklaim PASS** hanya berdasarkan dua tes yang dilaporkan.
+Gap pengujian yang diidentifikasi pada checkpoint sebelumnya telah dibuktikan secara deterministik:
+1. **Rollback Kegagalan Audit**:
+   - Terbukti pada `StudentRombelAssignmentTest.php`: kegagalan audit pada Assign dan Transfer membatalkan seluruh perubahan domain (membership baru batal tersimpan, membership sumber batal ditutup, versi siswa dan membership tetap utuh, tidak ada audit parsial).
+2. **Matriks Konkurensi MariaDB Lengkap (7 Skenario PASS)**:
+   - **Dua Assign konkuren**: TERBUKTI (1 sukses 200, 1 konflik 409).
+   - **Dua Transfer konkuren**: TERBUKTI (1 sukses 200, 1 konflik 409).
+   - **Race Archive vs Assign (kedua urutan lock)**: TERBUKTI (Assign duluan -> Archive ditolak 409; Archive duluan -> Assign ditolak 422).
+   - **Race Archive vs Transfer (kedua urutan lock)**: TERBUKTI (Transfer duluan -> Archive ditolak 409; Archive duluan -> Transfer ditolak 422).
+   - **Pemisahan Tes Non-Race vs Race Aktual**: Pengujian penolakan trigger terhadap data terarsip pre-existing secara tegas dipisahkan dari pengujian race condition simultan.
 
 ---
 

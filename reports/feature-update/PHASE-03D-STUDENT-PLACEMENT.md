@@ -54,8 +54,9 @@ Subfase 03d melengkapi alur operasional siswa di antarmuka `Student.vue` pasca-p
 | `laravel-api/app/Policies/StudentRombelPolicy.php` | Modifikasi | Menegakkan method policy `viewAny`/`view` (`students.view`) dan `create`/`update`/`delete`/`restore` (`students.manage`). |
 | `laravel-api/app/Http/Controllers/StudentRombelController.php` | Modifikasi | Mengimplementasikan method `assignRombel()` dan `transferRombel()`, row lock InnoDB `Student::lockForUpdate`, penanganan tanggal Asia/Jakarta, verifikasi konkurensi 409, dan preservasi status. |
 | `vue-app/src/views/pages/public/Student.vue` | Modifikasi | Menambahkan tombol Assign/Transfer di kolom Action, dialog `placementDialog`, state manajemen form, double-submit guard, pemanggilan API 03d, error handling 409 & 422. |
-| `laravel-api/tests/Feature/Student/StudentRombelAssignmentTest.php` | Baru | Suite pengujian otomatis SQLite in-memory: 14 skenario (auth 401/403, assign unplaced, validasi tahun/rombel, penolakan arsip 422, conflict 409, transfer atomik, audit privacy). |
-| `laravel-api/tests/Feature/Student/MariaDbRombelConcurrencyTest.php` | Baru | Pengujian integrasi MariaDB pada database disposable `school_03d_integration`: dua assign konkuren serial via row lock (tepat satu 200, satu 409), archive vs assign race. |
+| `laravel-api/tests/Feature/Student/StudentRombelAssignmentTest.php` | Baru | Suite pengujian otomatis SQLite in-memory: 16 skenario (auth 401/403, assign unplaced, validasi tahun/rombel, penolakan arsip 422, conflict 409, transfer atomik, audit privacy, rollback kegagalan audit assign & transfer). |
+| `laravel-api/tests/Feature/Student/MariaDbRombelConcurrencyTest.php` | Baru | Pengujian integrasi MariaDB pada database disposable `school_03d_integration`: 7 skenario (dua assign konkuren, penolakan siswa terarsip non-race, dua transfer konkuren, archive vs assign [2 urutan lock], archive vs transfer [2 urutan lock]). |
+| `laravel-api/tests/Support/concurrency_worker.php` | Baru | Harness worker proses independen untuk eksekusi endpoint nyata dan sinkronisasi deterministik lock InnoDB MariaDB. |
 | `reports/feature-update/PHASE-03D-STUDENT-PLACEMENT.md` | Baru | Laporan implementasi teknis dan verifikasi Subfase 03d. |
 | `reports/feature-update/PHASE-03D-MANUAL-REVIEW.md` | Baru | Panduan checklist manual peninjauan pemilik (#1–#15, status PENDING). |
 
@@ -66,14 +67,22 @@ Subfase 03d melengkapi alur operasional siswa di antarmuka `Student.vue` pasca-p
 ### 3.1 Backend SQLite Automated Tests
 - Eksekusi: `C:\xampp\php82-operational\php.exe artisan test <28-test-files>`
 - Pengecualian eksplisit: `MariaDbIntegrationTest.php`, `MariaDbStudentIntegrationTest.php`, `MariaDbRombelConcurrencyTest.php` (dikecualikan agar suite murni SQLite in-memory dan tidak menyentuh socket MariaDB).
-- Hasil Aktual: **235 passed (0 failed)** across 28 test files, total **1099 assertions** dalam 235.78s di atas PHP 8.2.35 ZTS x64.
-- Cakupan khusus `StudentRombelAssignmentTest.php`: **14 passed (60 assertions)** mencakup seluruh jalur validasi 422, otorisasi 401/403, conflict 409, dan transaksi atomik.
+- Hasil Aktual Keseluruhan: **237 passed (0 failed)** across 28 test files, total **1117 assertions** di atas PHP 8.2.35 ZTS x64.
+- Cakupan khusus `StudentRombelAssignmentTest.php`: **16 passed (78 assertions)** mencakup seluruh validasi 422, otorisasi 401/403, conflict 409, transaksi atomik, dan **rollback kegagalan audit**:
+  1. `audit insert failure during assign rolls back new membership and student version`: disimulasikan via `Activity::$testCreatingHook` pada event insert siswa yang berjalan setelah insert membership; membuktikan membership tidak tersimpan, versi siswa tetap 1, tidak ada audit parsial, dan record pembanding utuh.
+  2. `audit insert failure during transfer rolls back source membership closure and target membership creation`: disimulasikan via `Activity::$testCreatingHook` saat update siswa setelah mutasi membership; membuktikan membership lama tetap aktif (exit_date kembali NULL, status tetap 1, versi tetap 1), membership target tidak tersimpan, versi siswa tetap 1, tidak ada audit parsial, dan record pembanding utuh.
 
 ### 3.2 MariaDB Concurrency Integration Tests
-- Target database: `school_03d_integration` (database disposable khusus yang dibuat terpisah pada MariaDB port 3306; user `school_compat_app`).
-- Hasil Aktual: `MariaDbRombelConcurrencyTest.php` -> **2 passed (6 assertions)** dalam 2.11s:
-  1. Dua transaksi Assign konkuren dengan `expected_student_version` sama: tepat satu transaksi berhasil (HTTP 200/commit), transaksi kedua ditolak 409 Conflict karena versi siswa telah dinaikkan. Versi akhir siswa tepat 2; jumlah keanggotaan aktif tepat 1.
-  2. Siswa terarsip (`deleted_at IS NOT NULL`) dicoba ditempatkan ke rombel: trigger MariaDB `trg_student_rombels_single_active_insert` memblokir operasi (`SQLSTATE 45000`); siswa terarsip tidak pernah berakhir dengan keanggotaan rombel aktif.
+- Target database: `school_03d_integration` (database disposable khusus pada MariaDB port 3306; user `school_compat_app` dengan guard koneksi eksak).
+- Harness: `tests/Support/concurrency_worker.php` menjalankan worker proses nyata (`proc_open`) yang memanggil request pipeline/controller aktual (`assignRombel`, `transferRombel`, `destroy`), membuktikan tumpang tindih transaksi / lock wait secara deterministik via `SHOW FULL PROCESSLIST` / `information_schema.innodb_trx` / `innodb_lock_waits` (bukan sekadar `sleep`).
+- Hasil Aktual: `MariaDbRombelConcurrencyTest.php` -> **7 passed (43 assertions)** dalam 10.55s:
+  1. **Dua Assign Konkuren Serial via Row Lock**: tepat satu transaksi commit 200, satu ditolak 409 Conflict. Versi siswa akhir 2; jumlah keanggotaan aktif tepat 1.
+  2. **Penolakan Siswa Terarsip (Non-Race)**: siswa dengan kondisi pre-existing `deleted_at IS NOT NULL` ditolak oleh trigger DB `trg_student_rombels_single_active_insert` (SQLSTATE 45000); tidak ada keanggotaan aktif yang tercipta.
+  3. **Dua Transfer Konkuren Simultan**: dua worker transfer pada siswa/membership/expected version yang sama bertumpang tindih deterministik; tepat satu berhasil 200 (keanggotaan lama ditutup, keanggotaan baru tercipta), transaksi kedua ditolak 409 Conflict karena versi telah naik. Total keanggotaan aktif tepat 1, riwayat lama terpelihara dengan status 1 (DEC-23 #5).
+  4. **Archive vs Assign Race (Assign Menang Lock Pertama)**: Assign selesai 200 OK dan menaikkan versi siswa ke 2; Archive yang memegang expected version 1 unblock dan ditolak **409 Conflict**. Siswa `deleted_at` tetap NULL (tidak terarsip), rombel aktif 1.
+  5. **Archive vs Assign Race (Archive Menang Lock Pertama)**: Archive selesai 200 OK (siswa di-soft-delete, rombel dinonaktifkan); Assign yang unblock mendeteksi `Student::trashed()` dan ditolak **422 Unprocessable Entity** ("Cannot assign rombel to an archived student"). Siswa terarsip, total rombel aktif 0.
+  6. **Archive vs Transfer Race (Transfer Menang Lock Pertama)**: Transfer selesai 200 OK (rombel lama ditutup, rombel baru aktif, versi naik ke 2); Archive dengan expected version 1 unblock dan ditolak **409 Conflict**. Siswa `deleted_at` tetap NULL, total rombel aktif 1 (pada rombel tujuan).
+  7. **Archive vs Transfer Race (Archive Menang Lock Pertama)**: Archive selesai 200 OK (siswa di-soft-delete, keanggotaan aktif ditandai `archived_at`); Transfer yang unblock mendeteksi `Student::trashed()` dan ditolak **422 Unprocessable Entity** ("Cannot transfer rombel for an archived student"). Siswa terarsip, total rombel aktif 0.
 
 ### 3.3 Frontend Unit Tests, Build & Lint
 - Unit tests: `& $node --test` (Node portable v24.22.1) -> **18 passed (0 failed)** dalam 1090ms.
