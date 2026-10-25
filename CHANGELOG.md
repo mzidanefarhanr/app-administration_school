@@ -17,6 +17,30 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-26] Subfase 03d — Pencatatan keputusan pemilik (DEC-23) dan otorisasi implementasi
+- Type: Docs
+- Scope / fase: Subfase 03d (Penempatan dan Perpindahan Rombel via UI); pencatatan keputusan pemilik DEC-23 dan otorisasi implementasi.
+- Files touched:
+  - `docs/DECISIONS.md`
+  - `reports/feature-update/PHASE-03D-PLAN.md`
+  - `reports/feature-update/INDEX.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `roadmap/ROADMAP.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Mencatat keputusan pemilik DEC-23 di `docs/DECISIONS.md`:
+     a. Implementasikan Assign Rombel dan Transfer Rombel saja; fitur koreksi/`is_correction` ditunda (tanpa checkbox koreksi).
+     b. Menggunakan tahun ajaran aktif terpilih pada halaman Students (`school_year_id`); server memvalidasi rombel tujuan.
+     c. Transfer strictly antar-rombel dalam tahun ajaran yang sama; transfer lintas tahun ditunda ke Fase 06.
+     d. Tanggal efektif ditentukan server hari berjalan di timezone `Asia/Jakarta`; tanggal mundur/terjadwal tidak didukung.
+     e. Transfer menutup keanggotaan lama (`latest_student_exit_date = $today`) sebagai riwayat; `student_status_id` tidak diubah ke Mutasi Keluar.
+     f. Otorisasi ditegakkan seragam mengikuti kemampuan `students.manage`.
+     g. Kontrol konkurensi atomik via `expected_student_version` dan `expected_membership_version` (HTTP 409 Conflict).
+  2. Menyelaraskan dokumen rencana `reports/feature-update/PHASE-03D-PLAN.md` dengan status DIOTORISASI PEMILIK (DEC-23).
+  3. Memperbarui `INDEX.md`, `HANDOFF.md`, dan `roadmap/ROADMAP.md` dengan status otorisasi 03d.
+- Why: Memenuhi instruksi pemilik Bagian 1 untuk mencatat keputusan DEC-23 secara resmi dalam commit terpisah sebelum eksekusi kode.
+- Evidence: `docs/DECISIONS.md`, `reports/feature-update/PHASE-03D-PLAN.md`.
+
 ## [2026-10-26] Rencana rinci Subfase 03d (kandidat penempatan & perpindahan rombel UI)
 - Type: Docs
 - Scope / fase: Perencanaan rinci Subfase 03d (Penempatan dan Perpindahan Rombel via UI); dokumentasi dan audit source saja, belum diotorisasi untuk implementasi.

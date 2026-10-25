@@ -116,6 +116,21 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
   - `Student.vue` memakai pagination/pencarian/sort/filter server, rekap server, guard respons usang, serta state loading/empty/error.
 - Status: APPROVED. Fase affected: 03c.
 
+### DEC-23 — Penempatan dan perpindahan rombel siswa (APPROVED, 2026-10-26 WIB)
+- Konteks: pelaksanaan implementasi Subfase tambahan 03d berdasarkan instruksi pemilik 26 Oktober 2026 WIB; melengkapi alur penempatan siswa di UI setelah Subfase 03c ditutup.
+- Pilihan pemilik:
+  1. **Assign dan Transfer saja**: Hanya mengimplementasikan Assign Rombel (untuk siswa Unplaced) dan Transfer Rombel (untuk siswa Placed). Fitur koreksi/`is_correction` ditunda; jangan menampilkan checkbox koreksi di UI.
+  2. **Tahun ajaran terpilih**: Menggunakan tahun ajaran aktif yang sedang dipilih pada halaman Students (`school_year_id`). Server memvalidasi rombel tujuan wajib terdaftar pada tahun ajaran tersebut; tidak mengganti diam-diam dengan tahun lain.
+  3. **Transfer dalam tahun ajaran yang sama**: Transfer rombel dibatasi hanya antar-rombel dalam tahun ajaran yang sama. Perpindahan lintas tahun ajaran ditunda ke Fase 06.
+  4. **Tanggal efektif hari berjalan (Asia/Jakarta)**: Server menentukan tanggal efektif penempatan/perpindahan berdasarkan tanggal hari ini di timezone `Asia/Jakarta`. Tanggal mundur atau terjadwal dari input pengguna tidak didukung.
+  5. **Preservasi riwayat keanggotaan**: Transfer rombel menutup keanggotaan lama dengan mencatat `latest_student_exit_date = $today` (sehingga trigger DB tidak lagi menganggapnya aktif) dan membuat keanggotaan baru. `student_status_id` keanggotaan lama **tidak diubah** menjadi Mutasi Keluar karena siswa hanya berpindah kelas, bukan keluar sekolah.
+  6. **Otorisasi berbasis kemampuan**: Otorisasi ditegakkan secara seragam menggunakan kemampuan `students.manage`, bukan pengecekan nama atau ID peran.
+  7. **Kontrol konkurensi atomik**: Setiap operasi Assign dan Transfer mewajibkan parameter `expected_student_version` dan menaikkan versi siswa (`students.version`) dalam satu transaksi atomik ber-row-lock InnoDB (`Student::lockForUpdate`). Pada Transfer, `expected_membership_version` juga divalidasi.
+- Dampak schema/API/UI:
+  - Penambahan endpoint `POST /api/students/{id}/assign-rombel` dan `POST /api/students/{id}/transfer-rombel`.
+  - UI `Student.vue`: tombol Assign Rombel (Unplaced) dan Transfer Rombel (Placed) pada kolom Action; dialog `placementDialog` interaktif; double-submit guard; update instan tabel & rekap.
+- Status: APPROVED. Fase affected: 03d.
+
 ### Keputusan yang masih OPEN (belum diputuskan)
 - Makna `status_user_id` (jangan disamakan dengan `status_active`), deployment CORS/Sanctum produksi, strategi pencabutan token vs sesi.
 
@@ -126,7 +141,7 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 | DEC-01 | Cakupan sekolah | Satu sekolah untuk awal; multi-sekolah di luar scope | PROPOSED | 00 |
 | DEC-02 | Lingkungan operasional | Local/LAN atau hosting; lokasi DB/storage; batas biaya | APPROVED (2026-10-17) | 01b/02 |
 | DEC-03 | Role dan kemampuan | Admin, Operator, Kepala sekolah, Guru/wali kelas; siapa boleh sign/approve/export | APPROVED (2026-10-15) | 01a |
-| DEC-04 | Hubungan pegawai–akun | Profil boleh tanpa login; teacher assignment memakai profil pegawai | PROPOSED | 04a |
+| DEC-04 | Hubungan pegawai—akun | Profil boleh tanpa login; teacher assignment memakai profil pegawai | PROPOSED | 04a |
 | DEC-05 | Identitas dan keanggotaan | NIK boleh kosong; satu rombel aktif per siswa/periode; NIS unik lingkup sekolah | APPROVED (2026-10-20, disahkan DEC-20) | 03a/06a |
 | DEC-06 | Format nomor dan persetujuan surat | Format, reset counter, pejabat penandatangan, kapan nomor diterbitkan | OPEN | 07b |
 | DEC-07 | Jenis dan approval izin | Siswa/guru, approver, delegasi, perubahan/pembatalan keputusan | OPEN | 08a |
@@ -145,6 +160,7 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 | DEC-20 | Identitas siswa, keanggotaan rombel, audit pendataan | NIK opsional 16 digit, NIS unik sekolah, 1 rombel aktif/tahun, soft delete nonaktifkan rombel, audit minimal PII | APPROVED (2026-10-20 WIB) | 03a |
 | DEC-21 | Pengarsipan administratif, keunikan NIK/NIS, versioning | Arsip rombel via archived_at/reason terpisah dari mutasi, keunikan NIK/NIS unconditional, version check atomik | APPROVED (2026-10-21 WIB) | 03b |
 | DEC-22 | Daftar siswa server-side, placement, rekap, ekspor | All/Placed/Unplaced; paginasi 10/20/50/100 (default 20); rekap siswa unik; ekspor ikut filter + 422 limit; atribut daftar minimum | APPROVED (2026-10-21 WIB) | 03c |
+| DEC-23 | Penempatan dan perpindahan rombel siswa | Assign & Transfer rombel; tanpa koreksi/is_correction; tahun ajaran terpilih; tanggal Asia/Jakarta server; preservasi riwayat keluar; students.manage | APPROVED (2026-10-26 WIB) | 03d |
 
 ## Format pencatatan keputusan
 Tanggal WIB; ID; konteks; alternatif; pilihan pemilik dan bukti instruksi; dampak schema/API/UI; fase affected; status OPEN/PROPOSED/APPROVED/SUPERSEDED. Pertahankan riwayat bila keputusan berubah.
