@@ -17,6 +17,24 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-26] Rencana rinci Subfase 03d (kandidat penempatan & perpindahan rombel UI)
+- Type: Docs
+- Scope / fase: Perencanaan rinci Subfase 03d (Penempatan dan Perpindahan Rombel via UI); dokumentasi dan audit source saja, belum diotorisasi untuk implementasi.
+- Files touched:
+  - `reports/feature-update/PHASE-03D-PLAN.md` (baru)
+  - `reports/feature-update/INDEX.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `roadmap/ROADMAP.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Audit source aktual: menganalisis `StudentRombel.php`, event `saving`, dan database triggers MariaDB/SQLite existing yang menegakkan maksimal 1 keanggotaan rombel aktif per siswa per tahun; mencatat `StudentRombelController.php` masih berupa scaffold kosong.
+  2. Merancang alur operasional: penempatan siswa Unplaced ke rombel tahun aktif, perpindahan rombel siswa Placed dengan pencatatan riwayat keluar, penolakan siswa terarsip, dan perumusan kebijakan koreksi salah input vs mutasi resmi.
+  3. Merancang kontrak API: endpoint `POST /api/students/{id}/assign-rombel` dan `POST /api/students/{id}/transfer-rombel`, payload minimum, validasi 422 English, otorisasi `can:students.manage`, respons 409 Conflict, dan transaksi atomik dengan row lock InnoDB (`FOR UPDATE`).
+  4. Merancang integrasi antarmuka di `Student.vue`: tombol kondisional `Assign Rombel` / `Change Rombel` pada kolom Action, dialog interaktif `placementDialog`, double-submit guard, dan refresh instan data tabel & rekap server (100% English).
+  5. Menyusun matriks pengujian lengkap (SQLite validation & permission, MariaDB concurrency serialisasi penempatan simultan di database `school_compat_uat`, dan browser UAT) serta daftar 3 pertanyaan keputusan pemilik sebelum implementasi.
+- Why: Menyajikan rancangan teknis komprehensif bagi kandidat Subfase 03d untuk ditinjau pemilik sebelum otorisasi implementasi.
+- Evidence: `reports/feature-update/PHASE-03D-PLAN.md`.
+
 ## [2026-10-26] Rencana pekerjaan sekolah berikutnya pasca-Fase 03
 - Type: Docs
 - Scope / fase: Rencana fase berikutnya (analisis posisi kandidat 03d vs Fase 04 Guru dan Pegawai, pemisahan jalur modernisasi). Tanpa implementasi kode.

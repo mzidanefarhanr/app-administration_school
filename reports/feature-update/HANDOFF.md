@@ -168,9 +168,10 @@ Data sintetis yang berubah selama browser UAT:
 
 ## 6. Langkah Berikutnya
 1. Subfase 03c telah **DITERIMA PEMILIK** (checklist #1–#23 APPROVED pada 2026-10-26 WIB); **Fase 03 DITUTUP LENGKAP**.
-2. Pemilik meninjau rancangan rencana pekerjaan berikutnya di `reports/feature-update/NEXT-STEPS-PLAN.md`:
-   - **Opsi 1 (Rekomendasi)**: Subfase **03d (Aksi Penempatan Rombel UI)** untuk melengkapi alur siswa unplaced dan mutasi kelas di `Student.vue` sebelum beralih modul.
-   - **Opsi 2**: Langsung ke **Fase 04a (Guru dan Pegawai: Schema Profil & Hubungan Akun)** sesuai urutan roadmap numerik.
-3. Jalur fitur dipisahkan tegas dari jalur modernisasi (upgrade framework Laravel 12 & dependency updates).
-4. Server UAT terisolasi pada `127.0.0.1:18021` (API) dan `127.0.0.1:14021` (SPA) tetap berjalan di loopback untuk keperluan peninjauan lokal pemilik.
-5. Menunggu instruksi dan review pemilik sebelum memulai pekerjaan implementasi berikutnya.
+2. Rencana rinci kandidat Subfase 03d telah disusun di `reports/feature-update/PHASE-03D-PLAN.md` (audit source, alur unplaced/placed/koreksi, kontrak API `assign-rombel` & `transfer-rombel`, transaksi atomik & row lock, rancangan UI `Student.vue`, dan matriks tes konkurensi).
+3. Pemilik meninjau rancangan rencana pekerjaan berikutnya di `reports/feature-update/NEXT-STEPS-PLAN.md` dan `reports/feature-update/PHASE-03D-PLAN.md`:
+   - **Opsi 1 (Rekomendasi)**: Otorisasi Subfase **03d (Aksi Penempatan Rombel UI)** untuk melengkapi alur siswa unplaced dan mutasi kelas di `Student.vue` sebelum beralih modul.
+   - **Opsi 2**: Langsung buka **Fase 04a (Guru dan Pegawai: Schema Profil & Hubungan Akun, DEC-04)** sesuai urutan roadmap numerik.
+4. Jalur fitur dipisahkan tegas dari jalur modernisasi (upgrade framework Laravel 12 & dependency updates).
+5. Server UAT terisolasi pada `127.0.0.1:18021` (API) dan `127.0.0.1:14021` (SPA) tetap berjalan di loopback untuk keperluan peninjauan lokal pemilik.
+6. Menunggu instruksi dan review pemilik sebelum memulai pekerjaan implementasi berikutnya.
