@@ -14,8 +14,8 @@ Catatan perubahan pemilik: `console.txt` dan `vue-app/test-results/` adalah arte
 ## 0. Checkpoint Penutupan Sesi (2026-10-22)
 
 - **HEAD/remote**: `e15f028`, branch `main`, sinkron `origin/main`. Working tree bersih selain artefak lokal `console.txt` dan `vue-app/test-results/` (tidak di-commit).
-- **Status**: Fase 01–02 ditutup; 03a–03b DITERIMA PEMILIK; 03c **IMPLEMENTED & VERIFIED (AGEN)**, penerimaan manual **#1–#23 PENDING**. Fase 03 **tidak** ditutup.
-- **Bukti terakhir 03c (`e15f028`)**: ESLint `Student.vue` **0 errors / 217 warnings** (LF blob); frontend tests **18 passed**; build **PASS**; ekspor UI selalu mengirim `placement` termasuk `placement=all`; browser smoke All/Placed PASS. Suite backend tidak diulang karena backend tidak berubah.
+- **Status**: Fase 01, 02, dan 03 **DITERIMA LENGKAP & DITUTUP**; Subfase 03a–03c seluruhnya **DITERIMA PEMILIK** (03c checklist manual #1–#23 APPROVED pada 2026-10-26 WIB). Subfase kandidat 03d tetap **BELUM DIOTORISASI**.
+- **Bukti terakhir 03c (`e15f028`)**: ESLint `Student.vue` **0 errors / 217 warnings** (LF blob); frontend tests **18 passed**; build **PASS**; ekspor UI selalu mengirim `placement` termasuk `placement=all`; browser smoke All/Placed PASS; UAT sintetis terisolasi PASS (16 skenario). Penerimaan manual pemilik: **APPROVED #1–#23**.
 - **Alasan jeda**: pemilik memeriksa aplikasi lain terkait laporan kerentanan PHP dengan identifier **CVE-2026-109618** dan **CVE-2026-109619**. Identifier ini **informasi dari pemilik yang BELUM diverifikasi** pada sesi ini; jangan menyimpulkan versi terdampak, tingkat keparahan, atau keterpaparan aplikasi sekolah.
 - **Belum diotorisasi**: audit keamanan, upgrade PHP/dependency, dan perubahan konfigurasi aplikasi sekolah. Tunggu instruksi terpisah.
 - **Melanjutkan sesi**: (1) baca `AGENTS.md` dan dokumen workflow; (2) periksa HEAD aktual serta perubahan sejak `e15f028` (branch, remote, working tree); (3) lanjut hanya sesuai instruksi pemilik berikutnya; jangan menutup Fase 03 atau memulai fase berikutnya tanpa perintah.
@@ -88,17 +88,11 @@ Catatan perubahan pemilik: `console.txt` dan `vue-app/test-results/` adalah arte
 - **Fase 00 — Audit baseline**: PARTIAL (source & environment audit selesai; sebagian browser NOT RUN).
 - **Fase 01 — Hak akses, autentikasi dan lingkungan aman**: **DITERIMA LENGKAP & DITUTUP** (01a, 01b, 01c).
 - **Fase 02 — Integritas Operasional (Audit & Backup/Restore)**: **DITERIMA LENGKAP & DITUTUP** (02a, 02b, 02c).
-- **Fase 03 — Pendataan Siswa Lengkap dan Aman**: **IN PROGRESS / PARTIAL**:
+- **Fase 03 — Pendataan Siswa Lengkap dan Aman**: **DITERIMA LENGKAP & DITUTUP** (03a, 03b, 03c seluruhnya DITERIMA PEMILIK):
   - **Subfase 03a** — Identitas dan membership migration: **DITERIMA PEMILIK** (checklist #1–#11 APPROVED 2026-10-21 WIB, baseline `37f7d79`).
-  - **Subfase 03b** — CRUD dan Form Siswa: **DITERIMA PEMILIK**.
-    - Backend: `e77f335`; UI/deliverable: `cbd25bd`.
-    - Verifikasi agen: suite Student **55 passed (228 assertions)**; regresi backend **209 passed (946 assertions)**; frontend unit **15 passed**; build **PASS**; browser UAT agen PASS.
-    - **Penerimaan manual pemilik: APPROVED** (checklist #1–#13, 2026-10-21 WIB, baseline `cbd25bd`).
-  - **Subfase 03c** — Daftar, Rekap & Ekspor Siswa (server-side): **IMPLEMENTED & VERIFIED (AGEN) / MANUAL ACCEPTANCE PENDING**.
-    - Keputusan **DEC-22** disetujui pemilik 2026-10-21 WIB (commit `4fa20c6`); baseline implementasi `0a15325`.
-    - Verifikasi agen: `php artisan test` **229 passed (1076 assertions)**; `tests/Feature/Student` + `StudentExportTest` **88 passed (394 assertions)**; frontend `node --test` **15 passed**; `npm run build` **PASS**; Pint **PASS**; browser UAT **PASS**.
-    - Laporan: `PHASE-03C-STUDENT-DIRECTORY.md`; checklist `PHASE-03C-MANUAL-REVIEW.md` (#1–#23) **menunggu review pemilik**.
-  - **Subfase 03d (kandidat)** — Aksi penempatan/penyesuaian keanggotaan rombel via UI: **BELUM DIOTORISASI** (di luar scope 03c).
+  - **Subfase 03b** — CRUD dan Form Siswa: **DITERIMA PEMILIK** (checklist #1–#13 APPROVED 2026-10-21 WIB, baseline `cbd25bd`).
+  - **Subfase 03c** — Daftar, Rekap & Ekspor Siswa (server-side): **DITERIMA PEMILIK** (checklist #1–#23 APPROVED 2026-10-26 WIB mengacu baseline fitur `e15f028` dan lingkungan `933e71c`; laporan `PHASE-03C-STUDENT-DIRECTORY.md`).
+  - **Subfase 03d (kandidat)** — Aksi penempatan/penyesuaian keanggotaan rombel via UI: **BELUM DIOTORISASI** (di luar scope 03c, DEC-22 #5). Posisi dibahas pada rencana fase berikutnya.
 - **Keputusan Terbuka yang Masih OPEN (belum menghambat)**:
   1. Makna `status_user_id`.
   2. Deployment CORS/Sanctum produksi.

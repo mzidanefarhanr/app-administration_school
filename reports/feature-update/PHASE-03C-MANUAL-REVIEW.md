@@ -5,7 +5,10 @@
 - Branch: `main`
 - Baseline laporan: `0a15325`; keputusan `4fa20c6` (DEC-22)
 - Status implementasi: **IMPLEMENTED & VERIFIED (AGEN)**
-- Status keseluruhan 03c: **MANUAL ACCEPTANCE PENDING**
+- Status keseluruhan 03c: **DITERIMA PEMILIK (APPROVED SELURUH NOMOR #1–#23)**
+- Tanggal pencatatan penerimaan WIB: 2026-10-26
+- Baseline lingkungan: `933e71cbbfb8f332e307161e1a67e33479d04c4d`
+- Baseline fitur 03c: `e15f028`
 - Laporan teknis: `reports/feature-update/PHASE-03C-STUDENT-DIRECTORY.md`
 - Rencana: `reports/feature-update/PHASE-03C-PLAN.md`
 
@@ -60,8 +63,14 @@ Pemeriksaan akhir (baseline `472ce9b`, backend tidak berubah): ESLint `Student.v
 
 ## 3. Persetujuan pemilik
 
-Status: **PENDING**. Isi setelah review:
+Status: **APPROVED**.
 
-- [ ] Seluruh nomor disetujui.
-- Tanggal WIB:
-- Catatan/pengecualian:
+- [x] Seluruh nomor disetujui (#1–#23 APPROVED).
+- Tanggal pencatatan WIB: 2026-10-26.
+- Catatan pemilik: Pemilik mengonfirmasi telah menjalankan seluruh checklist manual #1–#23 pada lingkungan UAT dan menyatakan semuanya APPROVED. Tanggal pelaksanaan pengujian tidak dinyatakan secara terpisah oleh pemilik.
+- Batasan penerimaan yang dicatat:
+  - UAT sintetis dieksekusi menggunakan PHP global 8.2.35 (`C:\xampp\php82-operational\php.exe`) dan Node portable 24.22.1 pada port 18021/14021.
+  - Dua file integrasi MariaDB (`MariaDbIntegrationTest.php` dan `MariaDbStudentIntegrationTest.php`) tetap NOT RUN pada sesi pengujian kompatibilitas.
+  - Advisory dependency lockfile, status EOL framework Laravel 10, paparan historis host sebelum containment, dan tindak lanjut rotasi rahasia produksi tetap berstatus OPEN.
+  - Penerimaan ini bukan security clearance, bukan izin deployment produksi, dan bukan approval modernisasi framework/dependency.
+- Status fase: Seluruh deliverable wajib Fase 03 (03a, 03b, 03c) telah diterima lengkap. **Fase 03 DITUTUP LENGKAP**. Kandidat 03d (aksi penempatan rombel via UI) tetap **BELUM DIOTORISASI**.

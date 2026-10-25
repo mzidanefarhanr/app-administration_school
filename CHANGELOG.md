@@ -17,6 +17,26 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-26] Subfase 03c — Penerimaan manual pemilik dan penutupan Fase 03
+- Type: Docs
+- Scope / fase: Subfase 03c (Daftar, Rekap, dan Ekspor Siswa) dan penutupan Fase 03 (Pendataan Siswa Lengkap dan Aman).
+- Files touched:
+  - `reports/feature-update/PHASE-03C-MANUAL-REVIEW.md`
+  - `reports/feature-update/PHASE-03C-STUDENT-DIRECTORY.md`
+  - `roadmap/phases/PHASE-03-STUDENTS.md`
+  - `roadmap/ROADMAP.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `reports/feature-update/INDEX.md`
+  - `reports/feature-update/PHP82-COMPATIBILITY-AUDIT.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Mencatat konfirmasi penerimaan manual pemilik untuk seluruh checklist `PHASE-03C-MANUAL-REVIEW.md` #1–#23 (**APPROVED**). Baseline lingkungan: `933e71cbbfb8f332e307161e1a67e33479d04c4d`; baseline fitur: `e15f028`. Tanggal pencatatan WIB: 2026-10-26 (tanggal pengujian tidak dinyatakan secara terpisah oleh pemilik).
+  2. Menutup scope Fase 03 yang telah diotorisasi karena seluruh deliverable wajib (03a: identitas & membership migration, 03b: CRUD & form siswa, 03c: daftar, rekap & ekspor server-side) telah diterima lengkap oleh pemilik.
+  3. Menegaskan bahwa kandidat 03d (aksi penempatan rombel via UI) tetap **BELUM DIOTORISASI** dan bukan bagian dari scope yang ditutup.
+  4. Mencatat batasan penerimaan: UAT sintetis berjalan di atas PHP global 8.2.35 dan Node portable 24.22.1; 2 tes integrasi MariaDB tetap NOT RUN pada sesi kompatibilitas; advisory dependency, status EOL framework Laravel 10, dan paparan historis host sebelum containment tetap OPEN; bukan security clearance, bukan izin deployment produksi, dan bukan approval modernisasi.
+- Why: Mencatat approval manual pemilik secara resmi sesuai alur kerja repositori tanpa mencampuradukkan bukti otomatis agen dengan penerimaan pemilik.
+- Evidence: `reports/feature-update/PHASE-03C-MANUAL-REVIEW.md`, `reports/feature-update/PHASE-03C-STUDENT-DIRECTORY.md`.
+
 ## [2026-10-26] Persiapan dan pengujian kompatibilitas UAT sintetis khusus sekolah (PHP 8.2 & Node 24)
 - Type: Security | Test | Ops | Docs
 - Scope / fase: Persiapan dan pengujian kompatibilitas UAT sintetis khusus sekolah di checkout terisolasi; bukan penerimaan manual 03c dan bukan penyelesaian seluruh risiko keamanan. Baseline laporan: `27eca92`.

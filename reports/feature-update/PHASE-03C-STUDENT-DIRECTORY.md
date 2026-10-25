@@ -5,8 +5,9 @@
 - Branch: `main`
 - Baseline laporan: `0a15325` (HEAD saat implementasi dimulai)
 - Commit keputusan: `4fa20c6` — `docs(phase-03c): record owner decisions for list, placement, recap, and export`
-- Status: **IMPLEMENTED & VERIFIED (AGEN) / MANUAL ACCEPTANCE PENDING**
-- Status fase: 03a–03b tetap **DITERIMA PEMILIK**; Fase 03 tetap **PARTIAL** (belum ditutup)
+- Status: **DITERIMA LENGKAP OLEH PEMILIK (Checklist manual #1–#23 APPROVED pada 2026-10-26 WIB)**
+- Status fase: **Fase 03 (03a, 03b, 03c) DITUTUP LENGKAP**. Seluruh deliverable wajib telah diterima lengkap oleh pemilik.
+- Baseline implementasi fitur: `e15f028`; baseline lingkungan penerimaan: `933e71cbbfb8f332e307161e1a67e33479d04c4d`
 - Keputusan: **DEC-22** (APPROVED, 2026-10-21 WIB) — `docs/DECISIONS.md`
 - Rencana acuan: `reports/feature-update/PHASE-03C-PLAN.md`
 
@@ -126,6 +127,7 @@ Catatan: dua hasil awal yang tampak gagal adalah artefak skrip uji (teks alasan 
 
 ## 8. Langkah berikutnya
 
-1. Review pemilik checklist `reports/feature-update/PHASE-03C-MANUAL-REVIEW.md`.
-2. Setelah persetujuan manual: update status 03c → **DITERIMA PEMILIK** dan tutup Fase 03 bila seluruh subfase selesai.
-3. Aksi penempatan rombel via UI belum dibangun (di luar 03c) — kandidat subfase berikutnya.
+1. Penerimaan manual checklist #1–#23 telah APPROVED pada 2026-10-26 WIB. Status 03c: **DITERIMA PEMILIK**.
+2. Seluruh deliverable wajib Fase 03 selesai: **Fase 03 DITUTUP LENGKAP**.
+3. Aksi penempatan rombel via UI (kandidat 03d, DEC-22 #5) tetap **BELUM DIOTORISASI** dan posisinya akan dibahas terhadap rencana fase berikutnya.
+4. Lanjutkan ke perencanaan pekerjaan sekolah berikutnya sesuai roadmap setelah review pemilik.

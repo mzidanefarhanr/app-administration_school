@@ -1,11 +1,12 @@
 # Fase 03 — Pendataan siswa lengkap dan aman
 
-Status teknis: 03a IMPLEMENTED & FULLY VERIFIED (29 test backend PASS, Pint 100%, build PASS); 03b & 03c NOT STARTED.
-Status review: 03a DITERIMA PEMILIK (Checklist #1–#11 APPROVED pada 21 Oktober 2026 WIB mengacu baseline 37f7d79); Fase 03 keseluruhan PARTIAL / IN PROGRESS.
-Dependensi: 01; 02; DEC-05; DEC-20 (APPROVED 2026-10-20 WIB). Laporan subfase: reports/feature-update/PHASE-03A-STUDENT-IDENTITY.md.
+Status teknis: **IMPLEMENTED & FULLY VERIFIED** (03a, 03b, 03c selesai; 229 test backend PASS, 18 unit test frontend PASS, build PASS, Pint PASS, browser UAT agen & smoke PASS).
+Status review: **DITERIMA LENGKAP & DITUTUP** (03a APPROVED 2026-10-21; 03b APPROVED 2026-10-21; 03c APPROVED 2026-10-26 WIB).
+Dependensi: 01; 02; DEC-05; DEC-20 (APPROVED 2026-10-20 WIB); DEC-21 (APPROVED 2026-10-21 WIB); DEC-22 (APPROVED 2026-10-21 WIB).
+Laporan subfase: `PHASE-03A-STUDENT-IDENTITY.md`, `PHASE-03B-STUDENT-CRUD.md`, `PHASE-03C-STUDENT-DIRECTORY.md`.
 
 ## Tujuan dan scope
-Pendataan siswa lengkap dan aman. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Subfase 03a telah DITERIMA LENGKAP OLEH PEMILIK; Subfase 03b dan 03c menunggu otorisasi terpisah.
+Pendataan siswa lengkap dan aman. Seluruh subfase yang diotorisasi (03a, 03b, 03c) telah selesai dan DITERIMA LENGKAP OLEH PEMILIK. Fase 03 resmi DITUTUP. Subfase kandidat 03d (aksi penempatan rombel via UI) tetap BELUM DIOTORISASI.
 
 ## Subfase
 
@@ -30,40 +31,17 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 ```
 
 ### 03b — CRUD dan form siswa
-Scope: Implementasikan store/show/update/arsip/restore dengan FormRequest sah, validator server, resources minimal/sensitif berizin, transaksi audit, version atomik. UI detail/biodata/keluarga/alamat dan pesan error; tidak membuat akun login siswa otomatis.
-
-Kriteria penerimaan: Tambah/ubah/arsip/restore nyata; nama sama diterima; identitas duplikat/invalid/FK tidak sah ditolak; stale update 409; record lain utuh; parent/guardian tersimpan benar.
-
-Prompt setelah subfase ini dipilih:
-```text
-Baca AGENTS.md, ROADMAP, HANDOFF dan PHASE-03-STUDENTS.md.
-Kerjakan subfase 03b saja: CRUD dan form siswa sesuai scope dan kriteria dokumen.
-Audit HEAD dan consumer/kontrak aktual sebelum edit; keputusan terkait belum
-APPROVED jangan ditebak bila menentukan perilaku. Scope ini belum memberi izin
-commit/push/merge/deploy atau mutasi data operasional.
-Gunakan fixture/DB/storage terisolasi; jalankan verifikasi relevan dan catat hasil
-aktual. Jika browser tidak tersedia, jelaskan dan berikan checklist manual.
-Sinkronkan kontrak affected, CHANGELOG, laporan, INDEX, HANDOFF dan ROADMAP.
-Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
-```
+Status: **DITERIMA PEMILIK** (Review Pemilik: APPROVED pada 21 Oktober 2026 WIB, checklist #1–#13 di `reports/feature-update/PHASE-03B-MANUAL-REVIEW.md` mengacu baseline `cbd25bd`; backend `e77f335` + UI `cbd25bd`).
+Laporan: `reports/feature-update/PHASE-03B-STUDENT-CRUD.md`.
+Scope selesai: Implementasi store/show/update/arsip/restore dengan FormRequest sah, validator server, optimistic concurrency locking 409 atomik (`version`), soft delete & penonaktifan rombel atomik, restore dengan pemeriksaan konflik identitas aktif, audit privacy (strip data medis/finansial/alasan arsip), dan UI English lengkap di `Student.vue`. (55 Student test PASS; 209 backend full PASS; 15 unit frontend PASS; build PASS; browser UAT agen PASS).
 
 ### 03c — Daftar dan rekap siswa
-Scope: Pagination/search/filter server; pertahankan filter tahun/rombel/status; empty state tahun aktif tidak tersedia; agregasi chart sesuai filter; ekspor berizin diselaraskan fase05.
+Status: **DITERIMA PEMILIK** (Review Pemilik: APPROVED pada 2026-10-26 WIB, checklist #1–#23 di `reports/feature-update/PHASE-03C-MANUAL-REVIEW.md`; baseline fitur `e15f028`, baseline lingkungan `933e71c`).
+Laporan: `reports/feature-update/PHASE-03C-STUDENT-DIRECTORY.md`.
+Scope selesai: Pagination/search/sort server-side via `StudentDirectory` dan `StudentController::index`; filter All/Placed/Unplaced + rombel + school_year_id; rekap server anti double-count; ekspor CSV terfilter terproteksi yang selalu menyertakan `placement` (`StudentExportController` + `studentExportParams.mjs`); penutupan kebocoran `only_archived` (wajib `students.manage`); DataTable lazy, debounce search, stale response guard (`listRequestId`), error retry, pemulihan halaman terakhir kosong di `Student.vue`. (229 backend test PASS; 18 unit frontend PASS; build PASS; Pint PASS; UAT browser & smoke PASS).
 
-Kriteria penerimaan: Jumlah tabel/chart sesuai dataset/filter; data sensitif tidak bocor; tahun tanpa data tidak crash; light/dark dan mobile diuji atau manual NOT RUN jelas.
-
-Prompt setelah subfase ini dipilih:
-```text
-Baca AGENTS.md, ROADMAP, HANDOFF dan PHASE-03-STUDENTS.md.
-Kerjakan subfase 03c saja: Daftar dan rekap siswa sesuai scope dan kriteria dokumen.
-Audit HEAD dan consumer/kontrak aktual sebelum edit; keputusan terkait belum
-APPROVED jangan ditebak bila menentukan perilaku. Scope ini belum memberi izin
-commit/push/merge/deploy atau mutasi data operasional.
-Gunakan fixture/DB/storage terisolasi; jalankan verifikasi relevan dan catat hasil
-aktual. Jika browser tidak tersedia, jelaskan dan berikan checklist manual.
-Sinkronkan kontrak affected, CHANGELOG, laporan, INDEX, HANDOFF dan ROADMAP.
-Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
-```
+### 03d (Kandidat) — Aksi penempatan rombel via UI
+Status: **BELUM DIOTORISASI** (di luar scope 03c, DEC-22 #5). Posisi dan dependensinya akan dibahas terhadap rencana fase berikutnya.
 
 ## Batas pekerjaan
 Belum membangun kenaikan kelas massal, portal siswa/orang tua, atau sinkronisasi pemerintah.
