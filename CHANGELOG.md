@@ -17,6 +17,22 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-26] Rencana pekerjaan sekolah berikutnya pasca-Fase 03
+- Type: Docs
+- Scope / fase: Rencana fase berikutnya (analisis posisi kandidat 03d vs Fase 04 Guru dan Pegawai, pemisahan jalur modernisasi). Tanpa implementasi kode.
+- Files touched:
+  - `reports/feature-update/NEXT-STEPS-PLAN.md` (baru)
+  - `reports/feature-update/INDEX.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Menganalisis posisi kandidat 03d (aksi penempatan rombel via UI) terhadap urutan roadmap: Opsi 1 (rekomendasi: menyelesaikan 03d terlebih dahulu agar alur siswa unplaced dan mutasi kelas tuntas) vs Opsi 2 (langsung membuka Fase 04a Guru dan Pegawai).
+  2. Menyusun scope teknis, dependensi, kriteria penerimaan, dan pertanyaan keputusan pemilik untuk Subfase 03d dan Subfase 04a (hubungan akun-pegawai DEC-04 dan nullability `subject_id`).
+  3. Memisahkan jalur fitur domain sekolah dari jalur modernisasi jangka panjang (upgrade terencana ke Laravel 12 dan targeted package update).
+  4. Merancang arsitektur pengujian sintetis untuk fase berikutnya (SQLite-first + MariaDB triggers terarah + UAT strict port).
+- Why: Menyajikan rekomendasi strategis terstruktur untuk review pemilik sebelum otorisasi implementasi subfase berikutnya.
+- Evidence: `reports/feature-update/NEXT-STEPS-PLAN.md`.
+
 ## [2026-10-26] Subfase 03c — Penerimaan manual pemilik dan penutupan Fase 03
 - Type: Docs
 - Scope / fase: Subfase 03c (Daftar, Rekap, dan Ekspor Siswa) dan penutupan Fase 03 (Pendataan Siswa Lengkap dan Aman).
