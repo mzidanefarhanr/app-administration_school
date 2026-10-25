@@ -17,28 +17,27 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
-## [2026-10-26] Audit kompatibilitas PHP 8.2 global dan rencana runtime sekolah
+## [2026-10-26] Koreksi audit kompatibilitas PHP 8.2, triase keamanan & rencana UAT terisolasi
 - Type: Security | Docs | Chore
-- Scope / fase: Audit awal read-only kompatibilitas PHP 8.2 global pasca-cutover; tidak ada DB, test aplikasi, instalasi/update dependency, server start, atau fitur baru. Baseline laporan: `d5ab436`.
+- Scope / fase: Koreksi laporan kompatibilitas, triase keamanan minimum, dan penguatan isolasi pra-UAT. Mode READ-ONLY terhadap source/config/runtime/data; tidak ada DB, test aplikasi, instalasi/update dependency, server start, atau fitur baru. Baseline laporan: `d5ab436`.
 - Files touched:
-  - `reports/feature-update/PHP82-COMPATIBILITY-AUDIT.md` (baru)
+  - `reports/feature-update/PHP82-COMPATIBILITY-AUDIT.md`
   - `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `CHANGELOG.md`, `roadmap/ROADMAP.md`
 - What changed:
-  1. Memverifikasi kondisi runtime aktual: PHP CLI global `C:\xampp\php82-operational\php.exe` (PHP 8.2.35 ZTS x64, OpenSSL, pdo_mysql, pdo_sqlite, sqlite3, zip AES-256); Apache SAPI memuat `php8apache2_4.dll` (PHP 8.2.35); Composer 2.8.2 via `composer.bat` menggunakan PHP 8.2.35; Node global v24.18.0 / portable v24.22.1; port 8000/8001/18021/14021 FREE; tidak ada proses `php.exe` aktif di host; containment Apache sekolah tetap aktif (loopback 403).
-  2. Audit kompatibilitas backend: pengecekan platform non-mutasi Composer terhadap 125 paket lockfile mengembalikan 100% success di atas PHP 8.2.35; ekstensi non-manifest `pdo_sqlite`, `sqlite3`, `zip` (AES-256), `proc_open` terverifikasi aktif.
-  3. Audit frontend: mengonfirmasi SPA statis murni (Vite 6.3.5 + Vue 3.4.34) tanpa SSR; analisis script mengidentifikasi dev server mengikat 0.0.0.0 (risiko LAN) dan perlunya strict port loopback untuk UAT; script lint memiliki flag `--fix` mutatif (peringatan).
-  4. Evaluasi advisory: patch CVE-2026-109618/109619 terbukti ada di PHP 8.2.35; risiko Brotli CVE-2026-111497 rendah untuk dev SPA; status EOL Laravel 10 (Feb 2025) dan PHP 8.2 (Des 2026); pencatatan 48 advisory Composer & 20 vulnerability npm (pre-existing, bukan blocker).
-  5. Menyusun rencana 3 jalur (Jalur A: minimum dev/UAT via PHP 8.2 global; Jalur B: modernisasi Laravel 10->11 terkoordinasi; Jalur C: kelanjutan fitur berbasis baseline 03c `e15f028` dengan manual #1-#23 PENDING).
-  6. Merancang arsitektur pengujian dan UAT terisolasi (DB disposable `school_compat_uat`, fail-safe pre-bootstrap guard, port usulan 18021/14021, browser profile terpisah) sebagai desain review-only tanpa eksekusi.
-- Why: Membuktikan kompatibilitas aplikasi sekolah terhadap PHP 8.2 global pasca-cutover tanpa mengorbankan isolasi, serta menyiapkan jalur UAT dan modernisasi terukur sebelum eksekusi.
+  1. Koreksi bukti kompatibilitas: membedakan requirement PHP root (`^8.1`), requirement paket lockfile, dan runtime terpasang (PHP 8.2.35); verifikasi platform lockfile berbasis `--lock --no-plugins --no-scripts` (100% success; bukan bukti pengujian perilaku aplikasi); membedakan constraint `vue: ^3.4.34` dari versi terkunci konkret `vue: 3.5.13` & `@vue/server-renderer: 3.5.13`; memisahkan bukti build/test historis dari sesi read-only ini.
+  2. Koreksi runtime frontend: menetapkan Node portable 24.22.1 resmi (memuat cherry-pick patch Google Brotli CVE-2026-111497 commit `0ed4268` & 4 CVE High lain); merancang launcher eksplisit tanpa fallback ke 24.18.0; mengoreksi simpulan aman SPA (Vite dev server & build toolchain tetap rentan jika tidak dipatch).
+  3. Triase keamanan minimum: menganalisis reachability temuan critical (`form-data 4.0.3` unreachable di client SPA) dan temuan high (`axios 1.10.0` reachable namun termitigasi di UAT loopback; `vue/@vue/server-renderer` unreachable di CSR; `laravel/framework` CRLF email termitigasi driver log; `symfony/http-foundation` unreachable untuk otorisasi berbasis Gate PHP; `guzzlehttp/*` dan `league/commonmark` unreachable karena 0 pemanggilan di source sekolah; build toolchain dev-only). Mengidentifikasi blocker UAT nyata (NIHIL) dan risiko terbuka yang membutuhkan keputusan pemilik.
+  4. Koreksi rencana modernisasi: menetapkan Laravel 12 sebagai target utama kompatibel PHP 8.2 (didukung aktif s.d. akhir 2026, security s.d. Feb 2027; kompatibel skeleton lama); Laravel 11 hanya jembatan transisi sementara (EOL security Maret 2026); Laravel 13 opsi koordinasi lintas aplikasi; tanpa kewajiban Pest v3 / restrukturisasi skeleton sebelum panduan upgrade diverifikasi.
+  5. Penguatan isolasi pra-bootstrap: spesifikasi Pre-Flight Guard fail-closed dengan allowlist eksak (`DB_DATABASE === 'school_compat_uat'`), pemeriksaan precedence variable environment proses OS, penolakan jika config cache ada, cookie unik `school_compat_session`, profil browser terpisah, port usulan 18021/14021 (belum diizinkan start), dan inventaris eksplisit 2 tes integrasi MariaDB (`MariaDbIntegrationTest.php` dan `MariaDbStudentIntegrationTest.php`) untuk diexclude pada suite SQLite-only.
+  6. Menyusun draft prompt implementasi UAT untuk review pemilik.
+- Why: Memenuhi koreksi pemilik atas bukti platform check, menutup celah runtime Node global, mentriase risiko advisory secara terukur, dan memperketat guard isolasi agar tidak ada kebocoran ke database atau proses lain.
 - Validation (hasil aktual):
-  - PHP 8.2.35 CLI `-v`, `--ini`, extension list PASS.
-  - `composer check-platform-reqs --no-plugins` -> 100% success untuk seluruh 125 paket.
+  - `composer check-platform-reqs --lock --no-plugins --no-scripts` -> 100% success untuk seluruh 125 paket.
   - Pengecekan kapabilitas SQLite, Zip AES-256, proc_open -> seluruhnya YES.
-  - Pengecekan listener port: 8000, 8001, 18021, 14021 seluruhnya FREE.
-  - Pengecekan containment loopback: HTTP/HTTPS target sekolah seluruhnya 403 Forbidden.
-  - Tidak ada server yang dinyalakan, tidak ada query DB, tidak ada build/test/npm yang dieksekusi.
-- Notes / risks: Laravel 10 berstatus EOL; PHP 8.2 mendekati batas akhir dukungan keamanan (31 Des 2026); 48 advisory Composer dan 20 advisory npm tersisa pada lockfile; risiko eksposur historis sebelum containment tetap ada (rotasi kredensial belum dijalankan); penerimaan manual 03c #1–#23 tetap PENDING; Fase 03 tetap PARTIAL.
+  - Pengecekan status containment loopback: HTTP/HTTPS target sekolah seluruhnya 403 Forbidden.
+  - Listener port 8000, 8001, 18021, 14021 seluruhnya FREE.
+  - Tidak ada server yang dinyalakan, tidak ada query DB, tidak ada build/test/npm yang dieksekusi pada sesi ini.
+- Notes / risks: EOL Laravel 10 dan PHP 8.2 (akhir 2026) tetap OPEN; advisory lockfile 48 Composer & 20 npm tetap OPEN; risiko eksposur historis host sebelum containment tetap ada (rotasi kredensial produksi belum dilakukan); checklist manual 03c #1–#23 tetap PENDING; Fase 03 tetap PARTIAL.
 - Evidence: `reports/feature-update/PHP82-COMPATIBILITY-AUDIT.md`.
 
 ## [2026-10-23] Penghentian server UAT sekolah 127.0.0.1:8001

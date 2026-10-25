@@ -1,218 +1,291 @@
-# Audit Kompatibilitas PHP 8.2 Global dan Rencana Runtime Sekolah
+# Audit Kompatibilitas PHP 8.2 Global, Triase Keamanan & Rencana UAT Terisolasi
 
-Tanggal: 2026-10-26 (WIB). Branch `main`.
-Baseline kode: `d5ab43677776a1f1fcec12520e34199b61934206` (pencatatan penghentian server UAT 8001).
+Tanggal: 2026-10-26 (WIB). Branch: `main`.
+Baseline laporan: `b906be9c9828faffd4e0296dc17b0acc91e10adb`.
 Baseline implementasi akhir 03c: `e15f028`.
 Status subfase: Fase 01–02 DITUTUP LENGKAP; Subfase 03a–03b DITERIMA PEMILIK; Subfase 03c IMPLEMENTED & VERIFIED (AGEN), checklist manual #1–#23 **PENDING**. Fase 03 tetap **PARTIAL**.
-Status tindakan sesi ini: **AUDIT AWAL READ-ONLY SELESAI; RENCANA KOMPATIBILITAS DISUSUN; TIDAK ADA SERVER/DB/TEST YANG DIJALANKAN.**
+Status tindakan: **READ-ONLY AUDIT SELESAI; TIDAK ADA SERVER, DB, MIGRATION, ATAU TEST YANG DIJALANKAN.**
 
 ---
 
-## 1. Status Fakta dan Bukti Verifikasi (TERBUKTI / DUGAAN / NOT RUN)
+## 1. Matriks Bukti Kompatibilitas yang Dikoreksi
 
-| Komponen | Status | Bukti / Catatan |
+### 1.1 Tabel Status Fakta (TERBUKTI / DUGAAN / NOT RUN)
+
+| Komponen | Status | Rincian dan Batas Bukti |
 |---|---|---|
-| PHP CLI global terminal | **TERBUKTI** | `where.exe php` me-resolve `C:\xampp\php82-operational\php.exe`. Versi: **PHP 8.2.35 (cli) ZTS x64** (built Oct 20 2026 04:17:59). `php.ini` dimuat dari `C:\xampp\php82-operational\php.ini`, scanned ini: none. |
+| PHP CLI global terminal | **TERBUKTI** | `where.exe php` me-resolve `C:\xampp\php82-operational\php.exe`. Versi: **PHP 8.2.35 (cli) ZTS x64** (build 2026-10-20). Loaded configuration file: `C:\xampp\php82-operational\php.ini`, scanned ini: none. |
 | Runtime rollback `C:\xampp\php` | **TERBUKTI** | Masih ada di disk, versi **PHP 8.1.25 (cli) ZTS x64**. Tidak aktif pada PATH terminal saat ini. |
-| Runtime stageb `C:\xampp\php82-stageb` | **TERBUKTI** | Ada di direktori XAMPP; artefak transisi cutover, bukan runtime aktif terminal. |
-| Launcher Composer | **TERBUKTI** | `C:\ProgramData\ComposerSetup\bin\composer.bat` mengeksekusi `php "%~dp0composer.phar" %*`. Menjalankan Composer 2.8.2 di atas `C:\xampp\php82-operational\php.exe` (PHP 8.2.35). |
-| Apache web PHP SAPI | **TERBUKTI** | Apache berjalan (PID 16684, child 16108). `httpd-xampp.conf` memuat `php_module` dari `C:/xampp/php82-operational/php8apache2_4.dll`, `PHPINIDir C:/xampp/php82-operational`. Startup log Apache error.log mencatat: `AH00455: Apache/2.4.58 (Win64) OpenSSL/3.1.3 PHP/8.2.35 configured -- resuming normal operations`. |
+| Runtime transisi `C:\xampp\php82-stageb` | **TERBUKTI** | Ada di direktori `C:\xampp`, artefak transisi cutover, bukan runtime aktif terminal. |
+| Launcher Composer | **TERBUKTI** | `C:\ProgramData\ComposerSetup\bin\composer.bat` menjalankan `php "%~dp0composer.phar" %*`. Menjalankan Composer 2.8.2 di atas `C:\xampp\php82-operational\php.exe` (PHP 8.2.35). |
+| Apache web PHP SAPI | **TERBUKTI** | Apache berjalan (PID 16684, child 16108). `httpd-xampp.conf` memuat `php_module` dari `C:/xampp/php82-operational/php8apache2_4.dll`, `PHPINIDir C:/xampp/php82-operational`. Startup log Apache `logs/error.log` mencatat: `AH00455: Apache/2.4.58 (Win64) OpenSSL/3.1.3 PHP/8.2.35 configured -- resuming normal operations`. |
 | Containment Apache sekolah | **TERBUKTI** | `Include "conf/extra/httpd-school-containment.conf"` aktif di `httpd.conf:573`. Pemeriksaan loopback HTTP/HTTPS ke `app-administration_school/`, `.env`, `.git/HEAD`, log, dan `public/` seluruhnya mengembalikan **403 Forbidden**. |
-| Listener port aplikasi | **TERBUKTI** | Port 80 (Apache PID 16684), Port 443 (Apache PID 16684), Port 3306 (MariaDB PID 1840). Port 8000 (operational), 8001 (UAT lama), 3307, 8081, 4001, 18021, 14021: seluruhnya **FREE** (0 listener). Tidak ada proses `php.exe` berjalan di host saat audit. |
-| Node.js dan npm global | **TERBUKTI** | `node.exe` di `C:\Program Files\nodejs\node.exe` versi **v24.18.0**; `npm` versi **11.4.2**. Runtime portable sekolah di `%TEMP%\opencode\school-sec-env\runtime` memuat Node **v24.22.1** (npm 11.19.1). |
-| Scheduled Task sekolah | **TERBUKTI** | Tidak ditemukan scheduled task Windows yang terkait dengan `school`, `laravel`, `artisan`, atau backup sekolah (`Get-ScheduledTask`). |
-| Launcher / script khusus sekolah | **TERBUKTI** | Tidak ada file `.bat`, `.cmd`, `.ps1`, atau `.sh` di direktori proyek sekolah selain bawaan dependency. Konfigurasi editor `.vscode/settings.json` hanya berisi format-on-save Prettier/ESLint, tanpa path PHP hardcode. |
-| Perilaku runtime Laravel sekolah di PHP 8.2.35 | **NOT RUN** | Aplikasi tidak di-bootstrap, tidak ada endpoint atau artisan yang dipanggil pada sesi ini. |
-| Database / migrasi sekolah | **NOT RUN** | Database tidak dibuka, tidak ada query atau koneksi DB yang dijalankan. |
+| Listener port aplikasi | **TERBUKTI** | Port 80 (Apache PID 16684), Port 443 (Apache PID 16684), Port 3306 (MariaDB PID 1840). Port 8000, 8001, 18021, 14021: seluruhnya **FREE** (0 listener). Tidak ada proses `php.exe` berjalan di host saat audit. |
+| Node.js global vs portable | **TERBUKTI** | Node global di `C:\Program Files\nodejs\node.exe` adalah **v24.18.0** (npm 11.4.2). Node portable sekolah di `%TEMP%\opencode\school-sec-env\runtime\node-v24.22.1\node-v24.22.1-win-x64\node.exe` adalah **v24.22.1** (npm 11.19.1). |
+| Scheduled Task sekolah | **TERBUKTI** | Tidak ditemukan task Windows terkait `school`, `laravel`, `artisan`, atau backup sekolah (`Get-ScheduledTask`). |
+| Launcher khusus sekolah | **TERBUKTI** | Tidak ada script launcher `.bat`/`.ps1` di repo sekolah. `.vscode/settings.json` hanya berisi format-on-save Prettier/ESLint, tanpa path runtime hardcode. |
+| Perilaku runtime Laravel sekolah di PHP 8.2.35 | **NOT RUN** | Aplikasi tidak di-bootstrap, tidak ada endpoint atau command artisan yang dipanggil pada sesi ini. |
+| Database / migrasi sekolah | **NOT RUN** | Database tidak dibuka, tidak ada koneksi DB atau migrasi yang dijalankan pada sesi ini. |
 
 ---
 
-## 2. Audit Kompatibilitas Backend dari File
+### 1.2 Pembedaan Tingkat Requirement dan Versi Terpasang (Backend)
 
-### 2.1 Manifest dan Lockfile (`composer.json` & `composer.lock`)
-- Framework: `laravel/framework v10.48.29` (constraint root: `^8.1`).
-- Autentikasi API: `laravel/sanctum v3.3.3` (constraint: `^8.0.2`).
-- CLI tool: `laravel/tinker v2.10.1` (constraint: `^7.2.5|^8.0`).
-- HTTP client: `guzzlehttp/guzzle 7.9.3` (constraint: `^7.2.5 || ^8.0`).
-- Testing: `pestphp/pest v2.36.0` (constraint: `^8.1.0`), `pestphp/pest-plugin-laravel v2.4.0` (`^8.1.0`), `phpunit/phpunit 10.5.36` (`>=8.1`), `brianium/paratest v7.3.1` (`~8.1.0 || ~8.2.0 || ~8.3.0`).
-- Dev tools: `laravel/breeze v1.29.1` (`^8.1.0`), `laravel/pint v1.20.0` (`^8.1.0`), `spatie/laravel-ignition 2.9.1` (`^8.1`).
-
-### 2.2 Pengecekan Platform Requirement Composer
-Dijalankan non-mutasi: `C:\xampp\php82-operational\php.exe composer.phar check-platform-reqs --no-plugins --working-dir=laravel-api`:
-- `php 8.2.35`: **success**
-- Seluruh 125 paket locked memenuhi constraint PHP 8.2 (tidak ada conflict atau batasan versi maksimal yang dilanggar).
-- Ekstensi manifest: `ctype`, `curl`, `dom`, `fileinfo`, `filter`, `hash`, `iconv`, `json`, `libxml`, `mbstring`, `openssl`, `pcre`, `phar`, `reflection`, `session`, `simplexml`, `tokenizer`, `xml`, `xmlwriter`: seluruhnya **success** (8.2.35).
-
-### 2.3 Kebutuhan Source di Luar Manifest
-Diverifikasi langsung pada `C:\xampp\php82-operational\php.ini`:
-- `pdo_mysql`: **YES** (tersedia untuk koneksi MariaDB/MySQL).
-- `pdo_sqlite` & `sqlite3`: **YES** (tersedia; fail-safe `phpunit.xml` / `tests/CreatesApplication.php` mewajibkan sqlite in-memory untuk automated testing).
-- `zip`: **YES**; `ZipArchive::EM_AES_256`: **YES** (tersedia; standar enkripsi AES-256 backup Fase 02b didukung penuh).
-- `proc_open`: **YES**; `disable_functions`: kosong (tidak membatasi subprocess Symfony/Process).
-- `memory_limit`: `512M` (mencukupi untuk build/test).
-
-### 2.4 Script Composer dan Plugin
-- Plugin: `pestphp/pest-plugin` dan `php-http/discovery` diizinkan di `composer.json`.
-- Script: `post-autoload-dump` memanggil `@php artisan package:discover --ansi`.
-- Risiko: jika `composer install` dijalankan tanpa opsi `--no-scripts`, Artisan akan langsung di-bootstrap. Oleh karena itu, instalasi harus selalu memakai `--no-scripts --no-plugins` sampai environment siap.
+| Level | Nilai / Constraint | Catatan Kritis |
+|---|---|---|
+| **Root requirement** (`composer.json`) | `php: ^8.1` | Mengizinkan PHP `>= 8.1.0` hingga `< 9.0.0`. PHP 8.2.35 sah secara semantik root. |
+| **Package requirements** (`composer.lock`) | Bervariasi per paket | Mayoritas `^8.1`, `>=8.1`, `^8.0`, `^7.4 || ^8.0`. Paket dengan batasan atas eksplisit: `nette/schema` (`8.1 - 8.4`), `nette/utils` (`8.0 - 8.4`), `brianium/paratest` (`~8.1.0 || ~8.2.0 || ~8.3.0`). Tidak ada paket yang menolak PHP 8.2. |
+| **Versi terpasang aktif** | PHP 8.2.35 (cli) ZTS x64 | Dijalankan dari `C:\xampp\php82-operational\php.exe`. |
+| **Hasil platform check lockfile** | **100% SUCCESS** | Diverifikasi via `composer check-platform-reqs --lock --no-plugins --no-scripts` langsung terhadap lockfile: seluruh 22 platform requirements (PHP dan 20 ekstensi) berstatus `success`. |
+| **Batas klaim verifikasi** | **Metadata Lock Only** | `check-platform-reqs --lock` **HANYA** memverifikasi kecocokan batasan versi/ekstensi dari lockfile; **BUKAN** bukti berfungsinya aplikasi secara runtime atau ketiadaan deprecation/bug logika. |
 
 ---
 
-## 3. Audit Frontend Terpisah (`vue-app`)
+### 1.3 Pembedaan Frontend (Constraint vs Versi Terkunci vs Runtime)
 
-### 3.1 Karakteristik Arsitektur
-- **SPA Statis Murni**: Dibangun menggunakan Vite 6.3.5 dan Vue 3.4.34.
-- Tidak ada SSR, Nuxt, Nitro, Express, atau server runtime Node di sisi produksi. Output build berupa file statis di `dist/` (`index.html`, bundle JS, CSS, aset).
-- Server Node hanya dipakai saat development (`vite dev server`) atau unit test runner (`node --test`).
-
-### 3.2 Kompatibilitas Engine Node
-- `package.json` tidak memiliki batasan ketat `engines`.
-- Vite 6.3.5 kompatibel penuh dengan Node 24.x (telah diverifikasi pada build test sebelumnya).
-- Runtime Node global `v24.18.0` dan portable `v24.22.1` keduanya mampu menjalankan `node --test` dan `npm run build`.
-
-### 3.3 Analisis Script Frontend
-- `dev`: `vite --host`.
-  - **Risiko**: `--host` tanpa parameter bind mengikat ke `0.0.0.0` (seluruh interface jaringan). Port default 4000 tidak menggunakan `--strictPort`, sehingga dapat bergeser ke 4001, 4002 jika terisi.
-- `dev:uat`: `vite --mode uat --host 127.0.0.1 --port 4001`.
-  - Mengikat ke loopback `127.0.0.1` pada port 4001.
-  - Memuat file environment mode UAT (`.env.uat`).
-  - Belum memiliki flag `--strictPort` (perlu ditambahkan agar gagal jika port terisi, bukan berpindah diam-diam).
-- `build`: `vite build`. Menghasilkan bundel produksi ke `dist/`.
-- `preview`: `vite preview`. Menjalankan server preview statis lokal.
-- `lint`: `eslint --fix . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore`.
-  - **PERINGATAN**: Mengandung `--fix` mutatif; dilarang digunakan untuk pemeriksaan read-only. Pemeriksaan lint harus memakai `npx eslint <target>` terarah tanpa `--fix`.
-
-### 3.4 Validasi Environment di Source
-- `vue-app/src/apiLogin/index.js:7` mewajibkan `VITE_API_BASE_URL` terdefinisi dan valid (`http:` atau `https:`). Bila tidak valid, melemparkan error konfigurasi dan tidak mengirim request HTTP fallback.
+| Komponen | Constraint `package.json` | Versi Terkunci `package-lock.json` | Status / Catatan |
+|---|---|---|---|
+| `vue` | `^3.4.34` | **3.5.13** | Semver `^3.4.34` mengizinkan resolusi ke Vue 3.5.x; lockfile mengunci versi konkret 3.5.13. |
+| `@vue/server-renderer` | Tidak ada di root | **3.5.13** | Dependency transitif dari `vue` dan `@vitejs/plugin-vue` untuk kompilasi SFC; tidak dieksekusi sebagai server SSR. |
+| `vite` | `^6.3.5` | **6.3.5** | Dev server & bundler SPA client. |
+| `axios` | `^1.10.0` | **1.10.0** | HTTP client browser di `apiLogin/index.js`. |
+| Bukti build/test historis | N/A | N/A | Hasil `node --test` (18 passed) dan `npm run build` (789 modules) pada laporan 2026-10-22 adalah bukti historis di checkout staging temp, **BUKAN** dieksekusi ulang pada sesi read-only ini. |
 
 ---
 
-## 4. Evaluasi Advisory dan Risiko Tersisa
+## 2. Keputusan dan Rancangan Runtime Frontend
 
-### 4.1 Patch Runtime PHP dan Node
-1. **PHP CVE-2026-109618 & CVE-2026-109619**:
-   - Status: Kerentanan RCE via OOM longjmp bailout state memory corruption.
-   - Versi terdampak: `<8.2.35`, `8.3.0 - <8.3.36`, `8.4.0 - <8.4.27`.
-   - Versi aktual: **PHP 8.2.35**. Telah diverifikasi bahwa PHP 8.2.35 memuat patch untuk `GHSA-w8hw-w9fx-j79w` dan `GHSA-6wmf-4rv5-p3rp` ("Avoid state corruption via bailout"). Runtime global operasional saat ini berada pada versi perbaikan.
-2. **Node.js CVE-2026-111497**:
-   - Status: Buffer overflow pada decoder Google Brotli versi 1.0.3 s.d. 1.2.0.
-   - Node aktual: v24.18.0 dan v24.22.1 keduanya mengemas `brotli: 1.2.0`.
-   - Dampak pada aplikasi sekolah: Rendah. Sekolah adalah SPA client-side. Node hanya digunakan sebagai CLI tool build/dev loopback tanpa dekompresi stream eksternal yang tidak dipercaya.
+### 2.1 Penetapan Node Portable Patched v24.22.1
+- **Node global (`v24.18.0`) TIDAK digunakan** untuk rencana eksekusi build/dev/UAT sekolah berikutnya.
+- **Node portable patched (`v24.22.1`)** yang sudah tersedia di `%TEMP%\opencode\school-sec-env\runtime\node-v24.22.1\node-v24.22.1-win-x64\node.exe` ditetapkan sebagai runtime resmi frontend sekolah.
+- **Alasan teknis**:
+  1. Node.js v24.22.1 (rilis keamanan 2026-10-21) secara resmi memuat cherry-pick patch keamanan Google Brotli `CVE-2026-111497` (commit `0ed4268a4401abcb44720963` pada deps/brotli). Meskipun `process.versions.brotli` di kedua binary tetap mencetak string `'1.2.0'`, binary 24.22.1 memuat mitigasi buffer overflow tersebut, sedangkan 24.18.0 rentan.
+  2. Node.js v24.22.1 juga menutup 4 kerentanan High lainnya: `CVE-2026-106069` & `CVE-2026-106072` (TLS IP non-canonical bypass), `CVE-2026-105482` (DNS null byte validation), dan `CVE-2026-105483` (TLS IP normalization regression).
+  3. Argumen "aman/rendah karena SPA tanpa SSR" **dikoreksi**: toolchain build Vite, parser CSS/JS, dan Vite dev server mengeksekusi kode lokal dan membuka socket jaringan; mengabaikan patch runtime hanya karena output akhirnya SPA adalah kesimpulan yang keliru.
 
-### 4.2 Lifecycle Dukungan Framework dan Runtime
-1. **PHP 8.2**: Rilis 8 Des 2022. Dukungan aktif berakhir 31 Des 2024. Dukungan keamanan berakhir **31 Des 2026** (tersisa ~2 bulan).
-2. **PHP 8.3**: Dukungan aktif hingga 31 Des 2025; keamanan hingga 31 Des 2027.
-3. **Laravel 10**: Rilis Feb 2023. Dukungan bugfix berakhir Agustus 2024; dukungan keamanan berakhir **Februari 2025** (sudah berstatus EOL / End-of-Life).
-
-### 4.3 Advisory Dependency Tersimpan (Bukti Audit 2026-10-22)
-- **Composer**: 48 advisories pada 14 paket (termasuk `laravel/framework`, `guzzlehttp/*`, `symfony/*`, `league/commonmark`).
-- **npm** (`--omit=dev`): 20 vulnerability (1 critical `form-data`, 16 high termasuk `axios`, `vue`).
-- Status: Pre-existing pada lockfile yang dipertahankan. Bukan blocker kompatibilitas engine PHP 8.2, tetapi menjadi target modernisasi bertahap.
-
-### 4.4 Paparan Sensitif dan Rahasia Host
-- Containment Apache menolak akses ke root sekolah, `.env`, `.git/HEAD`, dan log (403 loopback).
-- Risiko historis tetap terbuka: file-file tersebut pernah mengembalikan 200 sebelum containment diterapkan. Penanganan rotasi kredensial (DB, SMTP/token, session) dan pemeriksaan log historis tetap merupakan pekerjaan terpisah. Jangan merotasi `APP_KEY` tanpa analisis data terenkripsi.
+### 2.2 Desain Launcher Frontend Eksplisit Tanpa Fallback
+Untuk mencegah fallback diam-diam ke Node global `v24.18.0`:
+1. Launcher wajib menetapkan path absolut executable portable:
+   ```powershell
+   $nodeExe = "C:\Users\LENOVO\AppData\Local\Temp\opencode\school-sec-env\runtime\node-v24.22.1\node-v24.22.1-win-x64\node.exe"
+   $npmCli  = "C:\Users\LENOVO\AppData\Local\Temp\opencode\school-sec-env\runtime\node-v24.22.1\node-v24.22.1-win-x64\node_modules\npm\bin\npm-cli.js"
+   $nodeDir = Split-Path -Parent $nodeExe
+   ```
+2. Modifikasi PATH proses lokal secara terisolasi (tanpa mengubah PATH sistem/user global):
+   ```powershell
+   $env:PATH = "$nodeDir;$env:PATH"
+   ```
+3. Verifikasi pra-eksekusi wajib (fail-closed):
+   ```powershell
+   $resolvedNode = & where.exe node | Select-Object -First 1
+   $nodeVersion  = & $nodeExe -v
+   if ($resolvedNode -ne $nodeExe -or $nodeVersion -ne 'v24.22.1') {
+       throw "ABORT: Node runtime mismatch! Resolved: $resolvedNode, Expected: $nodeExe"
+   }
+   ```
+4. Subprocess npm dan Vite dijalankan melalui `$nodeExe $npmCli <args>` sehingga child process mewarisi Node 24.22.1.
 
 ---
 
-## 5. Rencana Kompatibilitas Tiga Jalur
+## 3. Triase Minimum Advisory Keamanan
+
+Klasifikasi temuan pre-existing dari audit 2026-10-22 (48 Composer advisories, 20 npm vulnerabilities). Tidak ada yang diabaikan hanya karena status "pre-existing". Dilakukan analisis reachability dan evaluasi blocker UAT nyata.
+
+### 3.1 Temuan Kritis (Critical)
+
+#### 1. `form-data 4.0.3` (npm)
+- **CVE / GHSA**: GHSA-fjxv-7rqg-78g4 (unsafe random function untuk boundary selection); GHSA-hmw2-7cc7-3qxx (CRLF injection via multipart field names/filenames).
+- **Klasifikasi**: Transitive production dependency (ditarik oleh `axios: 1.10.0`).
+- **Sumber Primer**: [GitHub Advisory GHSA-fjxv-7rqg-78g4](https://github.com/advisories/GHSA-fjxv-7rqg-78g4).
+- **Prasyarat Eksploitasi**: Aplikasi menjalankan HTTP client di Node.js yang mengirim request multipart/form-data ke server eksternal menggunakan pustaka `form-data`.
+- **Penggunaan pada Source Sekolah**: Sekolah adalah client SPA. Seluruh pengiriman data/file (mis. form siswa) di browser menggunakan objek native `window.FormData`, bukan pustaka Node `form-data`.
+- **Status Reachability**: **UNREACHABLE di browser runtime**. Pustaka `form-data` adalah dead-code pada bundel browser client.
+- **Fixed Version**: `form-data >= 4.0.6` (atau via update `axios`).
+- **Kandidat Update Terarah**: Update `axios` ke versi yang melepaskan dependency `form-data` usang. Bukan blocker UAT loopback.
+
+---
+
+### 3.2 Kelompok High Prioritas (Auth, HTTP Client, Parser, Input)
+
+#### 2. `axios 1.10.0` (npm)
+- **CVE / GHSA**: GHSA-w9j2-pvgh-6h63 (Prototype pollution merge strategy), GHSA-xx6v-rp6x-q39c (XSRF Token leakage via boolean coercion), GHSA-4hjh-wcwx-xvwj (DoS data size check).
+- **Klasifikasi**: Direct production dependency (`vue-app/package.json`).
+- **Sumber Primer**: [GitHub Advisory GHSA-w9j2-pvgh-6h63](https://github.com/advisories/GHSA-w9j2-pvgh-6h63).
+- **Prasyarat Eksploitasi**: Penyerang mampu memanipulasi `Object.prototype` melalui input JSON yang tidak tersanitasi, atau mengarahkan redirect cross-origin saat request membawa header autentikasi.
+- **Penggunaan pada Source Sekolah**: `src/apiLogin/index.js` mengonfigurasi instance tunggal `apiLogin` dengan `withCredentials: true`, `withXSRFToken: true`, dan `baseURL` yang divalidasi ketat ke host loopback API.
+- **Status Reachability**: **POTENTIALLY REACHABLE di browser runtime**, namun mitigasi lokal aktif: URL divalidasi ketat (tanpa redirect cross-origin) dan aplikasi tidak melakukan deep object merge pada input pengguna yang belum tersanitasi.
+- **Fixed Version**: `axios >= 1.20.0` (atau rilis 1.x patch mutakhir).
+- **Risiko & Keputusan**: Bukan blocker untuk UAT loopback terisolasi. Update terarah ke `axios` versi aman disarankan sebagai paket tersendiri setelah UAT 03c selesai.
+
+#### 3. `vue 3.5.13` & `@vue/server-renderer 3.5.13` (npm)
+- **CVE / GHSA**: GHSA-g2v6-rqmx-r4w6 (XSS via missing CR in attribute-name blacklist pada `@vue/server-renderer <=3.5.41`).
+- **Klasifikasi**: Direct production (`vue`) & transitive (`@vue/server-renderer`).
+- **Sumber Primer**: [GitHub Advisory GHSA-g2v6-rqmx-r4w6](https://github.com/advisories/GHSA-g2v6-rqmx-r4w6).
+- **Prasyarat Eksploitasi**: Aplikasi menjalankan SSR (Server-Side Rendering) di Node.js dan me-render atribut HTML dinamis dari input pengguna tanpa sanitasi.
+- **Penggunaan pada Source Sekolah**: Aplikasi sekolah 100% Client-Side Rendering (CSR). `@vue/server-renderer` hanya dipanggil oleh compiler `@vitejs/plugin-vue` pada fase build.
+- **Status Reachability**: **UNREACHABLE di runtime**.
+- **Fixed Version**: `vue >= 3.5.42`.
+- **Risiko & Keputusan**: Bukan blocker UAT.
+
+#### 4. `laravel/framework v10.48.29` (Composer)
+- **CVE / GHSA**: GHSA-5vg9-5847-vvmq (CVE-2026-48019 - CRLF injection pada default email validation rule).
+- **Klasifikasi**: Direct production dependency (`laravel-api/composer.json`).
+- **Sumber Primer**: [GitHub Advisory GHSA-5vg9-5847-vvmq](https://github.com/advisories/GHSA-5vg9-5847-vvmq).
+- **Prasyarat Eksploitasi**: Pengguna mengirim string email berisi karakter CRLF (`\r\n`) yang lolos validasi `email` bawaan dan kemudian digunakan sebagai header email SMTP.
+- **Penggunaan pada Source Sekolah**: Email hanya digunakan pada alur forgot password dan user management. Pada environment development/UAT, mailer disetel ke `MAIL_MAILER=log` (tidak ada socket SMTP aktif). Register publik telah ditutup (DEC-14).
+- **Status Reachability**: **THEORETICAL / MITIGATED di UAT** (karena mail driver log dan register publik tertutup).
+- **Fixed Version**: Ditutup pada Laravel 12.60.0 / 13.10.0 (atau via custom validator regex).
+- **Risiko & Keputusan**: Bukan blocker UAT loopback; menjadi driver kuat untuk rencana modernisasi framework.
+
+#### 5. `symfony/http-foundation v6.4.23` (Composer)
+- **CVE / GHSA**: CVE-2025-64500 (Incorrect parsing of PATH_INFO leads to limited authorization bypass); CVE-2026-108082 (ReDoS HeaderUtils::split via Cache-Control header).
+- **Klasifikasi**: Transitive production dependency (via Laravel).
+- **Sumber Primer**: [Symfony Advisory CVE-2025-64500](https://symfony.com/blog/cve-2025-64500-incorrect-parsing-of-path-info-can-lead-to-limited-authorization-bypass).
+- **Prasyarat Eksploitasi**: Otorisasi mengandalkan prefix URL pada reverse proxy (mis. Apache path-based access) yang dapat dikecoh oleh ambiguasi PATH_INFO.
+- **Penggunaan pada Source Sekolah**: Otorisasi sekolah ditegakkan di level controller/middleware menggunakan Laravel Gate bernama (`can:students.manage`, dll.) berdasarkan objek user terotentikasi, **bukan** berdasarkan URL matching di reverse proxy.
+- **Status Reachability**: **UNREACHABLE untuk bypass otorisasi sekolah**.
+- **Fixed Version**: `symfony/http-foundation >= 6.4.29` (CVE-2025-64500) dan `>= 6.4.46` (CVE-2026-108082).
+- **Risiko & Keputusan**: Bukan blocker UAT loopback.
+
+#### 6. `guzzlehttp/guzzle 7.9.3` & `guzzlehttp/psr7 2.7.1` (Composer)
+- **CVE / GHSA**: GHSA-v5mv-p594-2x33 (CVE-2026-69246 - Noncanonical host check bypass), GHSA-h95v-h523-3mw8 (Referer header fragment disclosure), CRLF injection.
+- **Klasifikasi**: Transitive production dependency.
+- **Sumber Primer**: [GitHub Advisory GHSA-v5mv-p594-2x33](https://github.com/advisories/GHSA-v5mv-p594-2x33).
+- **Prasyarat Eksploitasi**: Aplikasi melakukan request outbound HTTP ke host eksternal berdasarkan input pengguna.
+- **Penggunaan pada Source Sekolah**: Verifikasi kode `laravel-api/app` menunjukkan **0 pemanggilan outbound HTTP** (tidak ada `Http::`, `GuzzleHttp\Client`). Aplikasi sekolah bersifat self-contained.
+- **Status Reachability**: **UNREACHABLE di aplikasi sekolah**.
+- **Fixed Version**: `guzzlehttp/guzzle >= 7.15.2`, `guzzlehttp/psr7 >= 2.12.3`.
+- **Risiko & Keputusan**: Bukan blocker UAT.
+
+#### 7. `league/commonmark 2.7.0` (Composer)
+- **CVE / GHSA**: 14 advisories (ReDoS via crafted markdown tables, footnotes, attributes, XML nesting).
+- **Klasifikasi**: Transitive production dependency (via Laravel).
+- **Penggunaan pada Source Sekolah**: Verifikasi kode `laravel-api/app` menunjukkan **0 penggunaan parser Markdown**.
+- **Status Reachability**: **UNREACHABLE di aplikasi sekolah**.
+- **Fixed Version**: `league/commonmark >= 2.10.2`.
+- **Risiko & Keputusan**: Bukan blocker UAT.
+
+#### 8. Toolchain Dev/Build Frontend (`postcss`, `brace-expansion`, `defu`, `picomatch`, `nanoid`)
+- **Klasifikasi**: Development & build-only (`devDependencies` / compiler toolchain).
+- **Status Reachability**: Hanya aktif saat `vite build` atau `vite dev server` lokal.
+- **Mitigasi**: Dev server UAT wajib loopback `127.0.0.1` strict port; tidak diekspos ke jaringan LAN/internet.
+
+---
+
+### 3.3 Ringkasan Blocker UAT Nyata vs Risiko Tersisa
+
+| Kategori | Item | Dampak pada UAT Terisolasi | Tindakan / Rekomendasi |
+|---|---|---|---|
+| **Blocker UAT Nyata** | **NIHIL** | Tidak ada blocker teknis yang menghalangi boot aplikasi pada PHP 8.2 loopback. | UAT terisolasi dapat diotorisasi setelah database sintetis dan guard siap. |
+| **Risiko Terbuka #1** | Eksposur Historis Host Apache | Kredensial lama berpotensi terekspos sebelum containment 403 aktif. | UAT wajib menggunakan database dan user sintetis baru; rotasi kredensial produksi dilakukan terpisah. |
+| **Risiko Terbuka #2** | EOL Framework Laravel 10 | Laravel 10 tidak lagi menerima patch keamanan upstream sejak Feb 2025. | Jalankan rencana modernisasi ke Laravel 12 (Jalur B). |
+| **Risiko Terbuka #3** | EOL PHP 8.2 (31 Des 2026) | Dukungan keamanan PHP 8.2 berakhir dalam ~2 bulan. | Koordinasi upgrade PHP global ke 8.3/8.4 bersama Qoder/App Gudang. |
+| **Risiko Terbuka #4** | Advisory Client Axios (High) | Prototype pollution & XSRF token edge cases. | Update terarah `axios` disiapkan sebagai paket upgrade terpisah. |
+
+---
+
+## 4. Koreksi Rencana Modernisasi Jangka Panjang
 
 ```
-+-----------------------------------------------------------------------------------+
-| JALUR A: MINIMUM DEV / UAT (Prioritas Dekat)                                      |
-| - Gunakan PHP 8.2.35 global (C:\xampp\php82-operational)                         |
-| - Tidak perlu PHP portable permanen (karena PHP 8.2 memenuhi platform reqs)       |
-| - Node 24 global / portable kompatibel untuk dev & build                          |
-| - Pertahankan containment Apache (403) & port terisolasi (18021 / 14021)          |
-| - Lockfile tetap; tidak ada update massal                                         |
-+-----------------------------------------------------------------------------------+
-                                         |
-+----------------------------------------v------------------------------------------+
-| JALUR C: KELANJUTAN FITUR (Setelah Kompatibilitas Terbukti & Diizinkan)           |
-| - Baseline implementasi 03c tetap e15f028                                         |
-| - Checklist penerimaan manual 03c #1-#23 tetap PENDING review pemilik             |
-| - Fase 03 tetap PARTIAL; Subfase 03d (UI penempatan rombel) belum diotorisasi     |
-| - Selesaikan review manual 03c sebelum melangkah ke fitur baru                    |
-+-----------------------------------------------------------------------------------+
-                                         |
-+----------------------------------------v------------------------------------------+
-| JALUR B: MODERNISASI JANGKA PANJANG (Terkoordinasi)                               |
-| - Rencana upgrade framework bertahap: Laravel 10 -> Laravel 11                    |
-| - PHP 8.2 EOL Dec 2026 -> persiapan transisi ke PHP 8.3 / 8.4                     |
-| - Koordinasi dengan pemilik dan Qoder untuk keseragaman lintas aplikasi           |
-| - Targeted update dependensi Composer & npm berisiko tinggi                       |
-+-----------------------------------------------------------------------------------+
++-----------------------------------------------------------------------------------------+
+| EVOLUSI FRAMEWORK LARAVEL SEKOLAH                                                       |
+|                                                                                         |
+|  [Laravel 10.48] (Aktif, EOL Feb 2025)                                                  |
+|        |                                                                                |
+|        v (Langkah transisi bila breaking changes memerlukan tahapan)                    |
+|  [Laravel 11.x]  (EOL Security Mar 2026, ~5 bulan tersisa)                              |
+|        |                                                                                |
+|        v (TARGET UTAMA MODERNISASI - Kompatibel PHP 8.2.35)                             |
+|  [Laravel 12.x]  (Didukung aktif s.d. 2026, Security s.d. Feb 2027, PHP >= 8.2)        |
+|        |                                                                                |
+|        v (Target koordinasi lintas aplikasi bersama Qoder & Pemilik)                    |
+|  [Laravel 13.x]  (Memerlukan PHP >= 8.3 / 8.4; menunggu cutover PHP berikutnya)        |
++-----------------------------------------------------------------------------------------+
 ```
 
-### Jalur A: Minimum untuk Development dan UAT
-1. **PHP Runtime**: Menggunakan PHP global yang telah diverifikasi: `C:\xampp\php82-operational\php.exe` (PHP 8.2.35). Runtime portable sekolah di temp tidak perlu dipertahankan permanen karena platform requirements lockfile terbukti 100% terpenuhi oleh PHP 8.2 global.
-2. **Sanitasi Launcher**: Pastikan tidak ada launcher atau script lokal yang merujuk kembali ke `C:\xampp\php` lama.
-3. **Node Runtime**: Menggunakan Node global v24.18.0 atau portable v24.22.1 untuk build frontend.
-4. **Lockfile**: Dipertahankan tanpa modifikasi atau `--ignore-platform-reqs`.
-
-### Jalur B: Modernisasi Jangka Panjang
-1. **Upgrade Framework Terencana**:
-   - Mengingat Laravel 10 berstatus EOL dan PHP 8.2 mendekati batas akhir dukungan keamanan (31 Des 2026), modernisasi ke Laravel 11 direncanakan sebagai fase tersendiri setelah Fase 03 selesai.
-   - Langkah: verifikasi compatibility matrix Laravel 11, upgrade `laravel/framework` ke `^11.0`, upgrade `pest` ke v3, migrasi struktur konfigurasi Laravel 11 yang lebih ramping.
-2. **Keseragaman Lintas Aplikasi**: Disajikan sebagai proposal koordinasi teknis bersama tim App Gudang/pemilik, bukan keputusan sepihak.
-
-### Jalur C: Kelanjutan Fitur Sekolah
-1. Mengembalikan fokus ke status deliverable sekolah:
-   - Subfase 03a dan 03b tetap DITERIMA PEMILIK.
-   - Subfase 03c (Daftar, Rekap & Ekspor Siswa) tetap `IMPLEMENTED & VERIFIED (AGEN)`.
-   - Penerimaan manual pemilik #1–#23 pada `PHASE-03C-MANUAL-REVIEW.md` tetap **PENDING**.
-   - Fase 03 tetap **PARTIAL**.
-   - Subfase 03d (aksi penempatan rombel via UI) tetap **BELUM DIOTORISASI**.
+1. **Laravel 11 Bukan Target Akhir**: Laravel 11 hanya berstatus jembatan transisi jika upgrade langsung ke Laravel 12 mengalami kendala breaking change, karena masa dukungan keamanan Laravel 11 berakhir Maret 2026.
+2. **Laravel 12 adalah Target Utama Kompatibel PHP 8.2**:
+   - Persyaratan PHP: `php: ^8.2` (cocok dengan runtime operasional aktif saat ini `C:\xampp\php82-operational\php.exe`).
+   - Masa dukungan: Didukung bugfix hingga akhir 2026, security support hingga Februari 2027.
+   - Kompatibilitas pengujian: Mendukung Pest v2 dan v3, PHPUnit 10 dan 11.
+   - Struktur skeleton: Aplikasi yang di-upgrade dari Laravel 10 **TIDAK DIWAJIBKAN** merestrukturisasi skeleton ke format baru Laravel 11/12 (`app/Http/Kernel.php` dan `RouteServiceProvider.php` tetap didukung penuh secara backward compatible).
+3. **Laravel 13 dan PHP 8.3/8.4**: Menjadi agenda koordinasi lintas aplikasi bersama tim App Gudang setelah infrastruktur server siap. Tidak dipaksakan secara sepihak di proyek sekolah.
+4. **Batasan Mutlak**: Dilarang melakukan `composer update` massal, downgrade, atau menyalin dependensi/patch dari App Gudang.
 
 ---
 
-## 6. Rencana Pengujian dan Pembukaan Kembali UAT (Rancangan — BELUM DIJALANKAN)
+## 5. Rencana Isolasi Keras Pra-Bootstrap (Fail-Closed Guard)
 
-### 6.1 Isolasi Lingkungan UAT
-1. **Checkout Uji**:
-   - Dapat memanfaatkan checkout terisolasi di `%TEMP%\opencode\school-sec-env\staging\checkout` atau checkout kerja khusus di luar DocumentRoot bersama.
-   - Storage framework (`cache`, `sessions`, `views`, `logs`) terpisah total dari aplikasi lain.
-2. **Database Sintetis Khusus**:
-   - Menggunakan database sintetis disposable baru: misal `school_compat_uat` pada port 3306 (atau instance terpisah bila diotorisasi).
-   - Pengguna DB terpisah: `school_compat_app` dengan hak akses terbatas hanya pada `school_compat_uat`.
-   - Dilarang keras menggunakan database produksi `backdata_administrations` atau database App Gudang.
-3. **Fail-Safe Guard Pre-Bootstrap**:
-   - Sebelum menjalankan `artisan serve` atau test suite, guard eksternal wajib memastikan:
-     a. `bootstrap/cache/config.php` tidak ada (mencegah caching konfigurasi lama).
-     b. `DB_DATABASE` pada environment aktif bukan `backdata_administrations`.
-     c. `storage` mengarah ke folder disposable.
+Sebelum Laravel di-bootstrap pada environment UAT, script guard eksternal pra-penerbangan (**Pre-Flight Isolation Guard**) wajib dieksekusi dengan kriteria **Fail-Closed**:
 
-### 6.2 Port dan Konfigurasi Jaringan yang Diusulkan (BELUM DISETUJUI)
-- **API Backend**: `127.0.0.1:18021` (listener loopback strict, status saat ini: FREE).
-- **SPA Frontend**: `127.0.0.1:14021` (listener loopback strict, status saat ini: FREE).
-- **Alasan tidak memakai 8000/8001**: Port 8000/8001 sebelumnya terkait dengan proses lama dan riwayat insiden console cleanup; port baru 18021/14021 menjamin isolasi total dari sisa socket/cache browser lama.
-- **Konfigurasi State & Cookie**:
-  - `SESSION_COOKIE=school_compat_session` (mencegah tabrakan cookie sesi dengan aplikasi lain di localhost).
-  - `SANCTUM_STATEFUL_DOMAINS=127.0.0.1:14021,localhost:14021`.
-  - `FRONTEND_URL=http://127.0.0.1:14021`.
-- **Profil Browser**: Pengujian manual/UAT wajib menggunakan browser profile terpisah (`--user-data-dir`).
-
-### 6.3 Urutan Eksekusi Pengujian (Ketika Diotorisasi)
-1. **Langkah 1 (Backend Unit/Feature Tests)**:
-   - Dijalankan via `C:\xampp\php82-operational\php.exe artisan test` pada SQLite in-memory (209+ test).
-   - `tests/Feature/Student/MariaDbStudentIntegrationTest.php` (test konkurensi trigger MariaDB) hanya dijalankan setelah DB sintetis disposable siap.
-2. **Langkah 2 (Frontend Unit Tests & Build)**:
-   - `node --test` (18 passed unit tests) dan `npm run build` menggunakan Node 24.
-3. **Langkah 3 (Smoke Test Manual 03c Terarah)**:
-   - Jalankan API di 18021 dan SPA di 14021 secara terkontrol.
-   - Verifikasi alur login akun sintetis (`uat.operator`, `uat.kepsek`).
-   - Verifikasi 03c: paginasi server, filter All/Placed/Unplaced, pencarian, rekapitulasi, ekspor CSV, dan form arsip/restore.
-
-### 6.4 Kriteria Terukur
-- **Development tanpa server dapat dilanjutkan**: Jika laporan audit ini disetujui pemilik dan kesesuaian PHP 8.2 diterima.
-- **UAT boleh dinyalakan**: Setelah database sintetis disiapkan, konfigurasi port 18021/14021 disetujui, dan pemilik memberikan otorisasi eksplisit untuk menjalankan server.
-- **Risiko tetap OPEN**: EOL framework Laravel 10; PHP 8.2 security EOL akhir 2026; temuan 48 Composer & 20 npm advisories; eksposur historis sebelum containment.
+### 5.1 Spesifikasi Guard Pra-Penerbangan
+1. **Target Environment & Database Allowlist (Exact Match)**:
+   - Target `APP_ENV` harus eksak `uat`.
+   - Target `DB_CONNECTION` harus eksak `mysql`.
+   - Target `DB_HOST` harus eksak `127.0.0.1` atau `localhost`.
+   - Target `DB_PORT` harus eksak `3306`.
+   - Target `DB_DATABASE` harus eksak `school_compat_uat`.
+   - **Prinsip Fail-Closed**: Setiap nama database yang bukan `school_compat_uat` (termasuk nilai kosong, database default, database demo, maupun database produksi `backdata_administrations`) **WAJIB DITOLAK** dan membatalkan proses seketika.
+2. **Precedence Environment Proses OS**:
+   - `Dotenv` tidak menimpa variable environment proses yang sudah ada secara default.
+   - Guard wajib memeriksa `[System.Environment]::GetEnvironmentVariable('DB_DATABASE')`, `$env:DB_DATABASE`, dan memastikan tidak ada environment variable OS warisan yang mengalahkan isi `.env.uat`.
+3. **Pemeriksaan Caching dan Filesystem**:
+   - `bootstrap/cache/config.php` **TIDAK BOLEH ADA**. Jika ditemukan, guard **MENOLAK START** dan melaporkannya (dilarang menghapus diam-diam).
+   - `bootstrap/cache/routes-v7.php` **TIDAK BOLEH ADA**.
+   - Path `storage/framework/sessions`, `storage/framework/cache`, `storage/logs` wajib divalidasi bukan junction/symlink yang mengarah ke luar folder target.
+4. **Pemisahan State Cookie & Port**:
+   - `SESSION_COOKIE` wajib diberi nama unik: `school_compat_session`.
+   - Browser pengujian wajib menggunakan direktori profil terpisah (`--user-data-dir=...`) untuk mengisolasi storage dan cookie browser dari port localhost lainnya.
+   - Port usulan: API `127.0.0.1:18021`, SPA `127.0.0.1:14021` dengan parameter `--strictPort`. Status port saat ini: **USULAN, BELUM DIIZINKAN START**.
 
 ---
 
-## 7. Tindakan yang Memerlukan Otorisasi Berikutnya
+### 5.2 Inventaris Suite Pengujian Backend (Pemisahan SQLite vs MySQL)
 
-1. Persetujuan penggunaan PHP global 8.2.35 untuk development/UAT sekolah (Jalur A).
-2. Otorisasi pembuatan target database sintetis disposable `school_compat_uat` dan kredensialnya.
-3. Otorisasi pembukaan server API UAT di `127.0.0.1:18021` dan SPA di `127.0.0.1:14021` dengan strict port.
-4. Otorisasi eksekusi review checklist manual 03c #1–#23 oleh pemilik.
+Untuk menjamin pengujian otomatis tidak menyentuh database operasional MySQL/MariaDB:
+
+| Kategori Pengujian | File Pengujian | Koneksi Target | Perintah Eksekusi Aman |
+|---|---|---|---|
+| **Suite Unit & Feature Murni** (209+ test, 946+ assertions) | Seluruh file di `tests/Feature/Access`, `tests/Feature/Auth`, `tests/Feature/Student/*` (kecuali MariaDb), `tests/Unit` | **SQLite in-memory** (`:memory:`) dipaksa via `phpunit.xml` & guard `CreatesApplication.php` | `php artisan test --exclude-path=tests/Feature/Backup/MariaDbIntegrationTest.php --exclude-path=tests/Feature/Student/MariaDbStudentIntegrationTest.php` |
+| **Integrasi MariaDB Concurrency & Triggers** (7 test) | `tests/Feature/Student/MariaDbStudentIntegrationTest.php` | **MySQL/MariaDB disposable** (`school_restore_drill_uat`) | Hanya dijalankan secara terarah setelah DB disposable dibuktikan siap: `php artisan test tests/Feature/Student/MariaDbStudentIntegrationTest.php` |
+| **Integrasi MariaDB Backup/Restore Round-Trip** (1 test) | `tests/Feature/Backup/MariaDbIntegrationTest.php` | **MySQL/MariaDB disposable** (`school_access_uat` & `school_restore_drill_uat`) | Hanya dijalankan secara terarah untuk drill backup: `php artisan test tests/Feature/Backup/MariaDbIntegrationTest.php` |
+
+---
+
+## 6. Paket Implementasi Minimum & Urutan Pengujian
+
+### 6.1 Daftar Berkas dan Perubahan yang Direncanakan
+1. `laravel-api/.env.uat` (disiapkan khusus untuk target `school_compat_uat`, port `18021`, cookie `school_compat_session`, `MAIL_MAILER=log`, tanpa rahasia operasional).
+2. `vue-app/.env.uat` (disiapkan khusus untuk `VITE_API_BASE_URL=http://127.0.0.1:18021`).
+3. Script launcher terisolasi frontend (menggunakan Node portable 24.22.1 eksplisit).
+4. Script fail-closed pre-flight guard backend.
+
+### 6.2 Urutan Pengujian Bertahap (Ketika Diotorisasi)
+1. **Fase 1 (Pre-Flight Guard & SQLite Tests)**: Jalankan guard fail-closed; jalankan 209+ automated tests di SQLite in-memory pada PHP 8.2.35.
+2. **Fase 2 (Frontend Build & Unit Tests)**: Jalankan `node --test` (18 unit tests) dan `npm run build` menggunakan Node 24.22.1 portable.
+3. **Fase 3 (Database Sintetis Disposable)**: Buat database kosong `school_compat_uat`, jalankan `artisan migrate` dan `ReferenceDataSeeder` + `SyntheticDataSeeder`.
+4. **Fase 4 (Boot Server Terisolasi)**: Jalankan API di `127.0.0.1:18021` dan SPA di `127.0.0.1:14021` (`--strictPort`).
+5. **Fase 5 (Smoke Test & Review 03c)**: Smoke test login, peran, daftar siswa, pagination server, filter All/Placed/Unplaced, rekapitulasi, ekspor CSV, dan form arsip/restore (#1–#23).
+
+### 6.3 Prosedur Rollback
+- Jika terjadi kegagalan atau ketidaksesuaian saat pengujian:
+  1. Hentikan proses server API (18021) dan SPA (14021) berdasarkan PID terverifikasi.
+  2. Hapus database sintetis disposable `school_compat_uat`.
+  3. Konfigurasi Apache global dan PHP global **TETAP DIPERTAHANKAN** (tidak ada rollback ke PHP 8.1.25 lama dan tidak membuka containment Apache).
+
+---
+
+## 7. Prompt Implementasi Berikutnya untuk Review Pemilik
+
+Bila pemilik menyetujui laporan audit ini dan siap mengotorisasi persiapan lingkungan UAT, berikut adalah draft prompt implementasi yang konkret dan terbatas:
+
+```text
+Saya menyetujui laporan audit kompatibilitas PHP 8.2 dan triase keamanan (PHP82-COMPATIBILITY-AUDIT.md).
+Saya mengotorisasi persiapan lingkungan UAT terisolasi khusus sekolah:
+1. Siapkan database sintetis disposable school_compat_uat pada MariaDB lokal port 3306.
+2. Siapkan file konfigurasi lokal laravel-api/.env.uat (port 18021, DB school_compat_uat, cookie school_compat_session) dan vue-app/.env.uat (port 14021) dengan guard fail-closed.
+3. Jalankan suite pengujian otomatis backend pada SQLite in-memory dan suite unit frontend pada Node portable 24.22.1.
+4. Jalankan migrasi dan seeder sintetis pada database school_compat_uat.
+5. Jalankan server UAT terbatas: API 127.0.0.1:18021 dan SPA 127.0.0.1:14021 dengan strict port untuk keperluan peninjauan checklist manual 03c #1–#23.
+Jangan mengubah konfigurasi Apache atau resource App Gudang. Jangan memulai fitur Fase 03d.
+```

@@ -61,21 +61,18 @@ Catatan perubahan pemilik: `console.txt` dan `vue-app/test-results/` adalah arte
 
 ---
 
-## 0d. Checkpoint Audit Kompatibilitas PHP 8.2 Global (2026-10-26, sesi terpisah)
+## 0d. Checkpoint Audit Kompatibilitas PHP 8.2 Global, Triase Keamanan & Rencana UAT (2026-10-26, sesi terpisah)
 
-- **Scope**: Audit awal read-only kompatibilitas PHP 8.2 global pasca-cutover dan perancangan UAT/runtime sekolah. Tidak ada eksekusi server, DB, tes, migrasi, atau fitur.
-- **Runtime terverifikasi**: PHP CLI global `C:\xampp\php82-operational\php.exe` (PHP 8.2.35 ZTS x64); Apache SAPI memuat `php8apache2_4.dll` dari direktori yang sama (error.log mencatat `PHP/8.2.35 configured`); Composer 2.8.2 via `composer.bat` menggunakan PHP 8.2.35. Runtime rollback `C:\xampp\php` (PHP 8.1.25) tidak aktif di PATH. Node global `v24.18.0` (npm 11.4.2); portable `%TEMP%\...\school-sec-env\runtime` memuat Node `v24.22.1` (npm 11.19.1).
-- **Hasil audit backend**: Platform requirement `composer.lock` 125 paket **100% success** di atas PHP 8.2.35. Ekstensi non-manifest `pdo_mysql`, `pdo_sqlite`, `sqlite3`, `zip` (AES-256), `proc_open` seluruhnya tersedia. Script `composer install` memanggil `package:discover` sehingga wajib `--no-scripts --no-plugins` saat instalasi awal.
-- **Hasil audit frontend**: SPA statis murni (Vite 6.3.5 + Vue 3.4.34), tanpa SSR/server Node. Script `dev` mengikat `0.0.0.0` (risiko eksposur LAN); usulan UAT wajib loopback `127.0.0.1` dengan `--strictPort`. Script `lint` mengandung `--fix` (peringatan read-only).
-- **Status advisory**: PHP 8.2.35 memuat patch CVE-2026-109618/CVE-2026-109619. PHP 8.2 security support berakhir 31 Des 2026. Node Brotli CVE-2026-111497 risiko rendah untuk local dev SPA. Laravel 10 berstatus EOL sejak Feb 2025. Lockfile mencatat 48 advisory Composer & 20 vulnerability npm (pre-existing, bukan blocker).
-- **Status containment**: Apache containment sekolah aktif (`httpd-school-containment.conf`), seluruh akses loopback sekolah 403 Forbidden. Listener 8000 dan 8001 tetap FREE; Apache 80/443 & MariaDB 3306 aktif.
-- **Rencana Tiga Jalur**:
-  - Jalur A (Minimum Dev/UAT): Gunakan PHP 8.2 global, tidak perlu runtime portable permanen, port terisolasi usulan 18021/14021.
-  - Jalur B (Modernisasi Jangka Panjang): Upgrade terencana Laravel 10 -> 11, koordinasi keseragaman lintas aplikasi.
-  - Jalur C (Kelanjutan Fitur): Baseline 03c `e15f028` tetap; checklist #1–#23 PENDING review pemilik; Fase 03 tetap PARTIAL; 03d belum diotorisasi.
-- **Rancangan UAT (BELUM DIJALANKAN)**: Usulan DB disposable `school_compat_uat`, fail-safe pre-bootstrap guard, port API `127.0.0.1:18021` dan SPA `127.0.0.1:14021`, cookie `school_compat_session`, profil browser terpisah, SQLite-first test.
+- **Scope**: Koreksi laporan kompatibilitas, triase keamanan minimum, dan rancangan isolasi pra-UAT. Mode READ-ONLY terhadap source/config/runtime/data. Tidak ada eksekusi server, DB, tes, migrasi, update dependency, atau fitur.
+- **Runtime terverifikasi**: PHP CLI global `C:\xampp\php82-operational\php.exe` (PHP 8.2.35 ZTS x64); Apache SAPI memuat `php8apache2_4.dll` PHP 8.2.35 (error.log mencatat `PHP/8.2.35 configured`); Composer 2.8.2 via `composer.bat` menggunakan PHP 8.2.35. Runtime rollback `C:\xampp\php` (PHP 8.1.25) tidak aktif di PATH. Node global `v24.18.0`; Node portable sekolah `%TEMP%\...\school-sec-env\runtime\...\node.exe` **v24.22.1** (npm 11.19.1) ditetapkan sebagai runtime resmi frontend sekolah (memuat patch keamanan Brotli CVE-2026-111497 dan 4 CVE High lainnya).
+- **Hasil audit backend**: Pembedaan level requirement: root `php: ^8.1`, lock packages (bervariasi `^8.1`, `8.1 - 8.4`, `~8.1.0 || ~8.2.0 || ~8.3.0`), versi terpasang 8.2.35. Verifikasi platform lockfile via `composer check-platform-reqs --lock --no-plugins --no-scripts` menghasilkan **100% success** (bukan bukti pengujian perilaku aplikasi). Ekstensi non-manifest `pdo_mysql`, `pdo_sqlite`, `sqlite3`, `zip` (AES-256), `proc_open` aktif.
+- **Hasil audit frontend**: Pembedaan constraint `package.json` (`vue: ^3.4.34`) vs versi terkunci `package-lock.json` (`vue: 3.5.13` & `@vue/server-renderer: 3.5.13`). SPA statis murni tanpa SSR. Launcher frontend dirancang eksplisit tanpa fallback diam-diam ke 24.18.0.
+- **Triase advisory keamanan**: Hasil audit lama (2026-10-22) dipakai bertanggal. Temuan critical `form-data 4.0.3` unreachable di browser SPA. Temuan high `axios 1.10.0` termitigasi di loopback UAT; `vue/@vue/server-renderer` unreachable di client CSR; `laravel/framework` CRLF email termitigasi driver log; `symfony/http-foundation` unreachable karena otorisasi via Gate PHP; `guzzlehttp/*` dan `league/commonmark` unreachable (0 pemanggilan di source sekolah). Toolchain compiler dev-only. Blocker UAT nyata: **NIHIL**. Risiko terbuka butuh keputusan dicatat.
+- **Koreksi rencana modernisasi**: Laravel 11 hanya jembatan transisi sementara (EOL security Maret 2026). Target utama modernisasi kompatibel PHP 8.2 adalah **Laravel 12** (didukung aktif s.d. akhir 2026, security s.d. Feb 2027; kompatibel skeleton lama & Pest v2). Laravel 13 / PHP 8.3+ adalah opsi koordinasi lintas aplikasi bersama Qoder & pemilik.
+- **Rancangan isolasi pra-bootstrap (Fail-Closed Guard)**: Guard menolak target di luar allowlist eksak (`DB_DATABASE === 'school_compat_uat'`), memeriksa precedence variable OS environment proses, menolak start bila `bootstrap/cache/config.php` ada, memvalidasi ketiadaan symlink/junction keluar, cookie unik `school_compat_session`, profil browser terpisah. Port usulan `127.0.0.1:18021` (API) dan `127.0.0.1:14021` (SPA) berstatus USULAN BELUM DIIZINKAN START. Suite SQLite-first mengecualikan secara eksplisit 2 tes integrasi MariaDB (`MariaDbIntegrationTest.php` dan `MariaDbStudentIntegrationTest.php`).
+- **Prompt UAT**: Draft prompt implementasi disajikan untuk review pemilik.
 - **Laporan**: `reports/feature-update/PHP82-COMPATIBILITY-AUDIT.md`.
-- **Langkah berikutnya**: Menunggu review pemilik atas laporan audit & rencana kompatibilitas sebelum otorisasi pembuatan DB sintetis / pembukaan server.
+- **Status kelanjutan**: Menunggu review pemilik. Manual 03c #1–#23 PENDING; Fase 03 PARTIAL.
 
 ---
 
