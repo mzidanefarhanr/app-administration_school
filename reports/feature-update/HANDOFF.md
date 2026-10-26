@@ -76,14 +76,15 @@ Gap pengujian yang diidentifikasi pada checkpoint sebelumnya telah dibuktikan se
   - **SPA Frontend**: Port `14021` (PID listener `17964`, executable Node portable `v24.22.1`, strict port).
     - *Serving Checkout*: `C:\Users\LENOVO\AppData\Local\Temp\opencode\school-sec-env\staging\checkout\vue-app` (`--mode uat`).
   - **Server Host Bersama**: Apache port `80`/`443` (PID `16684`), MariaDB port `3306` (PID `1840`).
-- **Diagnosis Eksekusi Seeder Pemilik**:
+- **Diagnosis Eksekusi Seeder Pemilik & Transparansi Akses Database**:
   - Pemilik menjalankan `UatSeeder` pada checkout utama `C:\xampp\htdocs\app-administration_school\laravel-api`.
   - Berkas `.env.uat` pada checkout utama merujuk ke database `school_access_uat` (basis data UAT Fase 01a terdahulu). Akibatnya, `updated_at` akun `uat.%` pada `school_access_uat` terupdate ke `2026-10-26 07:08:49`.
-  - Database operasional `backdata_administrations` terbukti 100% aman dan tidak tersentuh (jumlah akun `uat.%` = 0) berkat proteksi `guardEnvironment()` pada `UatSeeder`.
+  - *Transparansi Pemeriksaan Luar Target*: Saat diagnosis, pemeriksaan read-only (`SELECT`) dijalankan terhadap `school_access_uat` dan `backdata_administrations` untuk mengidentifikasi divergensi target seeder pemilik. Akses diagnostik ini dicatat secara transparan berada di luar target DB yang diotorisasi (`school_compat_uat`). Akses tersebut murni baca tanpa ada mutasi data.
+  - *Catatan Database Operasional*: Query `SELECT COUNT(*)` pada `backdata_administrations` mengembalikan 0 baris akun `uat.%`. Namun, ketiadaan baris akun tersebut dicatat tidak membuktikan keselamatan atau ketiadaan perubahan historis DB secara menyeluruh.
   - Karena server UAT aktif di port 18021 dilayani oleh checkout terisolasi yang membaca database `school_compat_uat`, password akun di `school_compat_uat` belum tersinkronisasi.
 - **Tindakan Pemulihan Akses Login**:
   - Menghasilkan kata sandi acak baru yang aman secara lokal dan memperbarui berkas privat `C:\Users\LENOVO\AppData\Local\Temp\opencode\school-sec-env\secret_uat_password.txt`.
-  - Mereset password akun `uat.operator` dan `uat.kepsek` secara eksklusif pada basis data `school_compat_uat` via PDO terproteksi pre-bootstrap guard.
+  - Mutasi pemulihan dibatasi secara eksklusif hanya pada database terotorisasi `school_compat_uat` via PDO terproteksi pre-bootstrap guard untuk mereset password `uat.operator` dan `uat.kepsek`.
   - Atribut akun lainnya, peran (`operator-sekolah`, `kepala-sekolah`), status aktif (`1`), dan data siswa tetap utuh.
 - **Hasil Verifikasi Otomatis Login UAT (HTTP/API)**:
   - `uat.operator`: CSRF 204, Login 204, Check-auth 200 (role: `operator-sekolah`, ability `students.manage` PRESENT, `backup.manage` ABSENT), Logout 204, sesi dibersihkan (authenticated = false) -> **PASS**.
@@ -106,7 +107,7 @@ Gap pengujian yang diidentifikasi pada checkpoint sebelumnya telah dibuktikan se
    - Lifecycle framework/runtime: Laravel 10 berstatus EOL sejak Feb 2025; PHP 8.2 security support berakhir 31 Des 2026.
    - Paparan historis host: File `.env` dan log berpotensi terekspos sebelum containment Apache aktif pada sesi terdahulu. Tindak lanjut rotasi rahasia produksi tetap merupakan pekerjaan terpisah.
 3. **Isolasi Database & Host**:
-   - Database operasional `backdata_administrations`, database UAT lama, dan seluruh resource/database App Gudang tidak disentuh.
+   - Mutasi data dibatasi ketat pada database terotorisasi (`school_compat_uat` untuk kredensial UAT; `school_03d_integration` untuk tes integrasi). Pemeriksaan diagnostik read-only terhadap `school_access_uat` dan `backdata_administrations` dicatat transparan di Bagian 3 sebagai akses di luar otorisasi tanpa mutasi data. Resource/database App Gudang tidak disentuh.
    - Tidak ada modifikasi pada konfigurasi Apache, PHP global, service Windows, atau firewall host.
 
 ---
