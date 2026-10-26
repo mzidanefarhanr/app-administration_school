@@ -65,21 +65,34 @@ Gap pengujian yang diidentifikasi pada checkpoint sebelumnya telah dibuktikan se
 
 ---
 
-## 3. Status Lingkungan & Server UAT (Pemeriksaan Read-Only)
+## 3. Status Lingkungan, Server UAT, dan Pemulihan Kredensial
 
 - **PHP Global Operasional**: `C:\xampp\php82-operational\php.exe` (PHP 8.2.35 ZTS x64, loaded ini: `C:\xampp\php82-operational\php.ini`).
 - **Node Portable Patched**: `C:\Users\LENOVO\AppData\Local\Temp\opencode\school-sec-env\runtime\node-v24.22.1\node-v24.22.1-win-x64\node.exe` (v24.22.1, npm 11.19.1).
 - **Proses Server UAT yang Terverifikasi Berjalan**:
   - **API Backend**: Port `18021` (PID listener `15960`, parent PID `3812`/`21044`, executable `C:\xampp\php82-operational\php.exe`).
+    - *Working Directory / Serving Checkout*: `C:\Users\LENOVO\AppData\Local\Temp\opencode\school-sec-env\staging\checkout\laravel-api` (`--env=uat`).
+    - *Database Target*: `school_compat_uat` pada MariaDB port 3306.
   - **SPA Frontend**: Port `14021` (PID listener `17964`, executable Node portable `v24.22.1`, strict port).
+    - *Serving Checkout*: `C:\Users\LENOVO\AppData\Local\Temp\opencode\school-sec-env\staging\checkout\vue-app` (`--mode uat`).
   - **Server Host Bersama**: Apache port `80`/`443` (PID `16684`), MariaDB port `3306` (PID `1840`).
-- **Peringatan Kelangsungan Proses**:
-  - Proses server UAT di atas dapat berhenti secara otomatis ketika sesi terminal atau proses parent ditutup.
-  - **Handoff ini tidak menjamin server akan tetap hidup saat sesi baru dimulai.** Sesi berikutnya wajib memeriksa ulang listener port 18021 dan 14021 sebelum pengujian.
-- **Lokasi Kredensial Privat Lokal (Tanpa Membaca/Menyalin Isi)**:
+- **Diagnosis Eksekusi Seeder Pemilik**:
+  - Pemilik menjalankan `UatSeeder` pada checkout utama `C:\xampp\htdocs\app-administration_school\laravel-api`.
+  - Berkas `.env.uat` pada checkout utama merujuk ke database `school_access_uat` (basis data UAT Fase 01a terdahulu). Akibatnya, `updated_at` akun `uat.%` pada `school_access_uat` terupdate ke `2026-10-26 07:08:49`.
+  - Database operasional `backdata_administrations` terbukti 100% aman dan tidak tersentuh (jumlah akun `uat.%` = 0) berkat proteksi `guardEnvironment()` pada `UatSeeder`.
+  - Karena server UAT aktif di port 18021 dilayani oleh checkout terisolasi yang membaca database `school_compat_uat`, password akun di `school_compat_uat` belum tersinkronisasi.
+- **Tindakan Pemulihan Akses Login**:
+  - Menghasilkan kata sandi acak baru yang aman secara lokal dan memperbarui berkas privat `C:\Users\LENOVO\AppData\Local\Temp\opencode\school-sec-env\secret_uat_password.txt`.
+  - Mereset password akun `uat.operator` dan `uat.kepsek` secara eksklusif pada basis data `school_compat_uat` via PDO terproteksi pre-bootstrap guard.
+  - Atribut akun lainnya, peran (`operator-sekolah`, `kepala-sekolah`), status aktif (`1`), dan data siswa tetap utuh.
+- **Hasil Verifikasi Otomatis Login UAT (HTTP/API)**:
+  - `uat.operator`: CSRF 204, Login 204, Check-auth 200 (role: `operator-sekolah`, ability `students.manage` PRESENT, `backup.manage` ABSENT), Logout 204, sesi dibersihkan (authenticated = false) -> **PASS**.
+  - `uat.kepsek`: CSRF 204, Login 204, Check-auth 200 (role: `kepala-sekolah`, ability `students.view` PRESENT, `students.manage` ABSENT), Logout 204, sesi dibersihkan -> **PASS**.
+  - Review manual di browser tetap berstatus **PENDING** untuk diuji oleh pemilik.
+- **Lokasi Kredensial Privat Lokal (Tanpa Membaca/Menyalin Isi ke Laporan/Git)**:
   - Password database UAT & integration: `C:\Users\LENOVO\AppData\Local\Temp\opencode\school-sec-env\secret_db_pass.txt`
   - Password akun sintetis UAT: `C:\Users\LENOVO\AppData\Local\Temp\opencode\school-sec-env\secret_uat_password.txt`
-  - *Catatan:* Dilarang mencetak atau menyalin isi kredensial tersebut ke dalam dokumen git atau log publik.
+  - *Perintah membaca password bagi pemilik:* `Get-Content "C:\Users\LENOVO\AppData\Local\Temp\opencode\school-sec-env\secret_uat_password.txt"`
 
 ---
 

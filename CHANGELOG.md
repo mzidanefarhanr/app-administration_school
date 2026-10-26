@@ -17,6 +17,26 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-26] Pemulihan akses login UAT sekolah untuk review manual 03d
+- Type: Fix | Docs
+- Scope / fase: Lingkungan UAT Subfase 03d; pemulihan akses login `uat.operator` dan `uat.kepsek` pada server UAT aktif (`school_compat_uat`).
+- Files touched:
+  - `reports/feature-update/HANDOFF.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Diagnosis divergensi DB target: `UatSeeder` pada checkout utama (`C:\xampp\htdocs\app-administration_school\laravel-api`) menargetkan `school_access_uat` (karena `.env.uat` checkout utama merujuk DB tersebut), sementara server aktif UAT di port 18021/14021 dilayani oleh checkout terisolasi (`C:\Users\LENOVO\AppData\Local\Temp\opencode\school-sec-env\staging\checkout\laravel-api`) yang merujuk ke database `school_compat_uat`.
+  2. Database operasional `backdata_administrations` terbukti 100% aman dan tidak tersentuh (jumlah user `uat.%` = 0) berkat guard fail-safe di `UatSeeder`.
+  3. Pemulihan terbatas: mereset kata sandi sintetis untuk `uat.operator` dan `uat.kepsek` secara eksklusif pada database `school_compat_uat` menggunakan generator privat aman dan memperbarui file lokal privat `secret_uat_password.txt`.
+  4. Atribut pengguna, peran (`operator-sekolah`, `kepala-sekolah`), kemampuan (`students.manage`, `students.view`), dan data lain tidak dimodifikasi.
+- Why: Memulihkan kemampuan pemilik untuk login ke UI UAT port 14021 guna menjalankan checklist manual review 03d #1–#15.
+- Validation:
+  - Verifikasi API/Sanctum terarah via Node fetch:
+    - `uat.operator`: CSRF 204, Login 204, Check-auth 200 (role: `operator-sekolah`, ability `students.manage` present, `backup.manage` absent), Logout 204, sesi bersih.
+    - `uat.kepsek`: CSRF 204, Login 204, Check-auth 200 (role: `kepala-sekolah`, ability `students.view` present, `students.manage` absent), Logout 204, sesi bersih.
+  - Review manual browser tetap PENDING untuk dilakukan langsung oleh pemilik.
+- Notes / risks: Tidak ada password, hash, atau rahasia yang dicetak ke terminal atau git. Server UAT tidak direstart.
+- Evidence: `reports/feature-update/HANDOFF.md`.
+
 ## [2026-10-26] Subfase 03d — Penguatan bukti pengujian rollback audit dan konkurensi MariaDB
 - Type: Test | Docs
 - Scope / fase: Subfase 03d (Penguatan bukti pengujian penempatan dan perpindahan rombel); diotorisasi pemilik sesuai gap review.
