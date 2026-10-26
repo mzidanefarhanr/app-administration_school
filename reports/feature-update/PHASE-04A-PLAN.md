@@ -1,10 +1,10 @@
 # Rencana Subfase 04a — Schema Profil Pegawai dan Hubungan Akun
 
 Tanggal: 2026-10-26 (WIB). Branch: `main`.
-Status: **PLANNING ONLY (MENUNGGU PERSETUJUAN PEMILIK & KEPUTUSAN DEC-04)**.
+Status: **APPROVED BY OWNER (2026-10-26 WIB; KEPUTUSAN DEC-04 DISAHKAN)**.
 Subfase: **04a — Schema Profil dan Hubungan Akun** (Fase 04: Guru dan Pegawai).
 
-> **Pernyataan Batas Scope:** Dokumen ini murni perencanaan teknis dan audit awal untuk Subfase 04a. **Tidak ada pekerjaan implementasi kode, perubahan schema, eksekusi migration, atau mutasi database yang dijalankan pada sesi ini.** Implementasi hanya dimulai setelah pemilik menyetujui rencana dan mengesahkan Keputusan Pemilik **DEC-04**.
+> **Pernyataan Batas Scope:** Subfase 04a difokuskan strictly pada **fondasi schema, model relasi, dan kebijakan hubungan akun**. CRUD lengkap, form input, antarmuka pengguna (UI), dan tes endpoint create 201/update 409 berada pada Subfase **04b**. Subfase 04a tidak mengaktifkan endpoint baru yang belum berimplementasi lengkap.
 
 ---
 
@@ -93,21 +93,22 @@ Subfase 04a dibatasi secara ketat pada fondasi **schema, model relasi, dan kebij
    - Mengubah `subject_id` menjadi `nullable` (`$table->unsignedBigInteger('subject_id')->nullable()->change()`).
    - Menambahkan kolom `version` bertipe `unsignedInteger()->default(1)` untuk kontrol konkurensi atomik.
 3. **Koreksi Model `Employee`**:
-   - Memperbaiki typo method relasi: `relogion()` -> `religion()`.
-   - Menambahkan relasi `user()` berbasis `user_id` dengan fallback aman ke `user_nik`.
+   - Memperbaiki typo method relasi: `relogion()` -> `religion()`, dengan mempertahankan alias kompatibilitas `relogion()` untuk keamanan consumer existing.
+   - Menjadikan `user_id` relasi utama `user()`, dengan fallback aman ke `user_nik` hanya untuk data legacy yang belum termigrasi.
    - Menerapkan allowlist ketat `auditableAttributes` pada model `Employee` agar atribut pribadi sensitif (nama ibu kandung, pasangan, nomor KK, NPWP, IPK) tidak dicatat ke log audit.
-4. **Normalisasi Route & Otorisasi Backend**:
-   - Mengubah route di `routes/api.php` menjadi plural `/employees`.
-   - Melindungi endpoint dengan kemampuan bernama: `can:employees.view` untuk index/show dan `can:employees.manage` untuk mutasi.
-   - Melengkapi `EmployeePolicy` untuk menegakkan kemampuan bernama tersebut.
-5. **Backfill Pemadanan Data Awal (Jika Ada)**:
-   - Skrip backfill idempotent untuk mengisi `user_id` pada baris pegawai existing yang memiliki kesesuaian unik dengan `users.nik`.
-6. **Pengujian Otomatis Komprehensif (Backend SQLite & MariaDB Disposable)**:
-   - Unit & feature test di SQLite in-memory: validasi nullability `subject_id`, pembuatan profil pegawai tanpa akun, pemadanan NIK, allowlist audit privacy, dan penegakan otorisasi 401/403.
-   - Tes integrasi MariaDB pada database disposable khusus (misal `school_04a_integration`): integritas foreign key additive dan trigger jika diperlukan.
+4. **Persiapan Policy Otorisasi**:
+   - Menyiapkan `EmployeePolicy` dengan penegakan kemampuan bernama `employees.view` dan `employees.manage`.
+   - Endpoint CRUD/form aktif tidak diaktifkan pada 04a; normalisasi route `/employees` dan transisi consumer lengkap berada pada 04b.
+5. **Backfill Pemadanan Akun (Service Idempotent)**:
+   - Skrip/service backfill idempotent untuk mengisi `user_id` pada baris pegawai existing yang memiliki kesesuaian unik dengan `users.nik` tanpa menimpa `user_id` yang sudah ada.
+   - Tidak mencetak NIK/nama/email atau PII lain ke log.
+6. **Pengujian Otomatis Fondasi (SQLite & MariaDB Disposable)**:
+   - Pengujian schema: profil tanpa akun, tenaga kependidikan tanpa subject, multiple user_id NULL, constraint 1 akun = 1 profil, hard delete akun melepas user_id (`nullOnDelete`), audit allowlist privacy, backfill, dan policy.
 
-### 3.2 Pekerjaan yang Ditunda (Out-of-Scope)
-- **Implementasi Halaman UI Vue SPA**: Halaman tabel daftar pegawai/guru, form biodata panjang, tab riwayat pendidikan, dan dialog mutasi ditunda ke **Subfase 04b (CRUD dan Menu Aktif)**.
+### 3.2 Pekerjaan yang Berada pada 04b (Out-of-Scope 04a)
+- **CRUD Lengkap dan Form Input Pegawai**: Endpoint store/show/update/destroy berimplementasi penuh dan validasi FormRequest input bisnis (misal penegakan Guru wajib mata pelajaran).
+- **Implementasi Halaman UI Vue SPA**: Halaman tabel daftar pegawai/guru, form biodata panjang, tab riwayat pendidikan, dan dialog mutasi.
+- **Optimistic Concurrency Update Endpoints**: Tes dan penanganan HTTP 409 pada mutasi API.
 - **Penugasan Mengajar Guru ke Rombel**: Detail jadwal mengajar per jam pelajaran dikerjakan pada **Fase 10 (Jadwal dan Jurnal)**.
 - **Penugasan Wali Kelas Rombel**: Penetapan wali kelas (`class_teach_id`) pada rombel dikerjakan pada **Fase 06 (Tahun Ajaran dan Rombel)**.
 - **Payroll dan Absensi Pegawai**: Modul penggajian dan absensi fingerprint/kehadiran pegawai tidak termasuk dalam cakupan aplikasi sekolah.
@@ -154,10 +155,7 @@ Sebelum implementasi dinyatakan selesai pada Subfase 04a, pengujian berikut waji
 
 ---
 
-## 7. Status Eksekusi dan Langkah Selanjutnya
+## 7. Status Eksekusi dan Keputusan DEC-04
 
-Status dokumen: **PROPOSED / READY FOR REVIEW**.
-Tindakan berikutnya:
-1. Pemilik meninjau rancangan scope dan proposal keputusan DEC-04 di atas.
-2. Pemilik memberikan keputusan atas butir proposal DEC-04.
-3. Setelah DEC-04 disahkan dan otorisasi eksekusi diberikan, agen akan memulai implementasi Subfase 04a sesuai batas scope yang disetujui.
+Status dokumen: **APPROVED / DIOTORISASI EKSEKUSI OLEH PEMILIK (2026-10-26 WIB)**.
+Keputusan DEC-04 telah disahkan penuh di `docs/DECISIONS.md`. Eksekusi Subfase 04a dijalankan sesuai batasan scope fondasi.

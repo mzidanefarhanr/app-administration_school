@@ -131,6 +131,23 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
   - UI `Student.vue`: tombol Assign Rombel (Unplaced) dan Transfer Rombel (Placed) pada kolom Action; dialog `placementDialog` interaktif; double-submit guard; update instan tabel & rekap.
 - Status: APPROVED. Fase affected: 03d.
 
+### DEC-04 — Hubungan pegawai dan akun login (APPROVED, 2026-10-26 WIB)
+- Konteks: Pelaksanaan fondasi schema personalia dan relasi akun Subfase 04a berdasarkan instruksi pemilik 26 Oktober 2026 WIB.
+- Pilihan pemilik:
+  1. **Profil pegawai independen; akun login opsional**: Profil pegawai adalah entitas personalia sekolah, bukan akun sistem. Pegawai boleh ada tanpa akun `users`. Akun hanya dibuat untuk pegawai yang mengoperasikan sistem.
+  2. **`user_id` relasi utama; `user_nik` legacy dipertahankan**: Menambahkan `user_id` (nullable bigint unsigned constrained ke `users.id` dengan `nullOnDelete()`) sebagai relasi utama. `user_nik` dipertahankan dan dilonggarkan menjadi nullable untuk kompatibilitas data lama tanpa merusak integritas.
+  3. **Keunikan akun per profil**: Satu akun `users` maksimal terhubung ke tepat satu profil pegawai (`unique('user_id')`, multiple NULL diizinkan). Akun yang terhubung tidak mengubah role/abilities.
+  4. **Mata pelajaran (`subject_id`) nullable secara schema**: Wajib untuk Guru/Pendidik; NULL untuk Tenaga Kependidikan (TU, satpam, pustakawan, laboran). Penegakan validasi input endpoint lengkap dikerjakan pada 04b.
+  5. **Fondasi versioning**: Menambahkan kolom `version` bertipe integer unsigned default 1 pada tabel `employees`. Kontrak update `expected_version` dan HTTP 409 Conflict diimplementasikan pada 04b.
+  6. **Allowlist audit privacy**: Audit trail `activities` memakai allowlist minimum eksplisit; mengecualikan nama ibu kandung, pasangan, nomor KK, NPWP, nilai/IPK ijazah, dan relasi akun/hash/password.
+  7. **Standar bahasa**: Kontrak baru dan UI memakai English (`/employees`, dll.); nama kolom existing dipertahankan (tidak diganti massal demi translasi).
+- Dampak schema/API/UI:
+  - Schema `employees`: additive `user_id` nullable unique, `user_nik` nullable, `subject_id` nullable, `version` unsigned integer default 1.
+  - Model `Employee`: relasi `user()` via `user_id` (fallback aman legacy), koreksi method `religion()` dengan alias kompatibilitas `relogion()`, allowlist `$auditableAttributes`.
+  - Policy: `EmployeePolicy` disiapkan untuk kemampuan bernama `employees.view` dan `employees.manage`.
+  - Scope 04a dibatasi pada fondasi; CRUD/form/UI/endpoint mutasi berada pada 04b.
+- Status: APPROVED. Fase affected: 04a, 04b.
+
 ### Keputusan yang masih OPEN (belum diputuskan)
 - Makna `status_user_id` (jangan disamakan dengan `status_active`), deployment CORS/Sanctum produksi, strategi pencabutan token vs sesi.
 
@@ -141,7 +158,7 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 | DEC-01 | Cakupan sekolah | Satu sekolah untuk awal; multi-sekolah di luar scope | PROPOSED | 00 |
 | DEC-02 | Lingkungan operasional | Local/LAN atau hosting; lokasi DB/storage; batas biaya | APPROVED (2026-10-17) | 01b/02 |
 | DEC-03 | Role dan kemampuan | Admin, Operator, Kepala sekolah, Guru/wali kelas; siapa boleh sign/approve/export | APPROVED (2026-10-15) | 01a |
-| DEC-04 | Hubungan pegawai—akun | Profil boleh tanpa login; teacher assignment memakai profil pegawai | PROPOSED | 04a |
+| DEC-04 | Hubungan pegawai—akun | Profil boleh tanpa login; user_id relasi utama; user_nik legacy nullable; 1 akun = 1 profil; subject_id nullable; versioning; audit privacy | APPROVED (2026-10-26 WIB) | 04a |
 | DEC-05 | Identitas dan keanggotaan | NIK boleh kosong; satu rombel aktif per siswa/periode; NIS unik lingkup sekolah | APPROVED (2026-10-20, disahkan DEC-20) | 03a/06a |
 | DEC-06 | Format nomor dan persetujuan surat | Format, reset counter, pejabat penandatangan, kapan nomor diterbitkan | OPEN | 07b |
 | DEC-07 | Jenis dan approval izin | Siswa/guru, approver, delegasi, perubahan/pembatalan keputusan | OPEN | 08a |

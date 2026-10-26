@@ -17,6 +17,27 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-26] Keputusan Pemilik DEC-04 — Hubungan pegawai dan akun login disahkan
+- Type: Docs
+- Scope / fase: Subfase 04a (Fase 04: Guru dan Pegawai); pengesahan keputusan pemilik DEC-04 dan penegasan batas scope fondasi 04a vs CRUD/UI 04b.
+- Files touched:
+  - `docs/DECISIONS.md`
+  - `reports/feature-update/PHASE-04A-PLAN.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Mencatat keputusan pemilik **DEC-04** sebagai **APPROVED** di `docs/DECISIONS.md`:
+     - Profil pegawai independen; akun login `users` bersifat opsional (`user_id` nullable).
+     - Menambahkan `user_id` (nullable bigint FK ke `users.id` dengan `nullOnDelete()`) sebagai relasi utama; relasi legacy `user_nik` dipertahankan dan dibuat nullable.
+     - Satu akun maksimal terhubung ke satu profil pegawai (`unique('user_id')`, multiple NULL diizinkan). Akun yang terhubung tidak mengubah role/abilities.
+     - `subject_id` dibuat nullable secara schema (wajib untuk Guru/Pendidik; NULL untuk Tenaga Kependidikan). Validasi input bisnis endpoint dikerjakan pada 04b.
+     - Menambahkan kolom `version` unsigned integer default 1 untuk fondasi optimistic concurrency control. Kontrak update `expected_version` dan HTTP 409 Conflict diimplementasikan pada 04b.
+     - Audit trail memakai allowlist minimum; mengecualikan nama ibu kandung, pasangan, nomor KK, NPWP, nilai/IPK ijazah, dan relasi akun/hash/password.
+     - Kontrak baru memakai English; nama kolom existing tidak diganti massal.
+  2. Mengoreksi scope Subfase 04a pada `reports/feature-update/PHASE-04A-PLAN.md`: membatasi 04a pada fondasi schema, model, allowlist audit, dan backfill ID/NIK aman. CRUD lengkap, form, antarmuka pengguna (UI), dan tes endpoint create 201/update 409 ditegaskan berada pada Subfase 04b.
+- Why: Menindaklanjuti instruksi eksplisit pemilik sebelum memulai implementasi teknis.
+- Validation: Verifikasi konsistensi dokumen `docs/DECISIONS.md`, `PHASE-04A-PLAN.md`, dan `CHANGELOG.md`.
+- Evidence: `docs/DECISIONS.md`, `reports/feature-update/PHASE-04A-PLAN.md`.
+
 ## [2026-10-26] Subfase 04a — Perencanaan schema profil pegawai dan hubungan akun (DEC-04)
 - Type: Docs
 - Scope / fase: Subfase 04a (Fase 04: Guru dan Pegawai); penyusunan rencana teknis, audit source statis, dan proposal keputusan bisnis DEC-04.
