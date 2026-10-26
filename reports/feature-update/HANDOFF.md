@@ -121,9 +121,12 @@ Gap pengujian yang diidentifikasi pada checkpoint sebelumnya telah dibuktikan se
 | **02 (02a–02c)** | Audit terpercaya & backup/restore | IMPLEMENTED & FULLY VERIFIED | **DITERIMA LENGKAP & DITUTUP** |
 | **03 (03a–03c)** | Pendataan siswa lengkap & aman | IMPLEMENTED & FULLY VERIFIED | **DITERIMA LENGKAP & DITUTUP** |
 | **03d (tambahan)** | Penempatan & perpindahan rombel UI | IMPLEMENTED & FULLY VERIFIED | **DITERIMA LENGKAP & DITUTUP** (Checklist #1–#15 APPROVED) |
-| **04 (04a–04b)** | Guru dan pegawai | NOT STARTED | PENDING (Menunggu perencanaan & DEC-04) |
+| **04a** | Profil pegawai dan hubungan akun | **PLANNING ONLY** (Laporan `PHASE-04A-PLAN.md`) | **PROPOSED** (Menunggu review & DEC-04) |
+| **04b** | CRUD pegawai dan menu aktif | NOT STARTED | PENDING |
 
 **Langkah untuk Sesi Baru**:
-1. Lanjutkan perencanaan Fase 04a (Guru dan Pegawai & Hubungan Akun) serta perumusan usulan keputusan DEC-04.
-2. Pertahankan server UAT loopback 18021/14021 dan database `school_compat_uat`.
-3. Seluruh risiko keamanan terbuka (advisories, lifecycle Laravel/PHP, rotasi kunci produksi) tetap OPEN.
+1. Pemilik meninjau dokumen rencana Subfase 04a di `reports/feature-update/PHASE-04A-PLAN.md`.
+2. Pengesahan keputusan bisnis DEC-04 (akun opsional, subject_id nullable, integer versioning, privasi audit trail).
+3. Setelah DEC-04 disetujui, pelaksanaan implementasi Subfase 04a dapat dimulai sesuai scope yang diotorisasi.
+4. Pertahankan server UAT loopback 18021/14021 dan database `school_compat_uat`.
+5. Seluruh risiko keamanan terbuka (advisories, lifecycle Laravel/PHP, rotasi kunci produksi) tetap OPEN.

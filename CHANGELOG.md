@@ -17,6 +17,32 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-26] Subfase 04a — Perencanaan schema profil pegawai dan hubungan akun (DEC-04)
+- Type: Docs
+- Scope / fase: Subfase 04a (Fase 04: Guru dan Pegawai); penyusunan rencana teknis, audit source statis, dan proposal keputusan bisnis DEC-04.
+- Files touched:
+  - `reports/feature-update/PHASE-04A-PLAN.md` (baru)
+  - `reports/feature-update/INDEX.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Audit statis baseline personalia:
+     - Tabel `employees` mewajibkan relasi akun pengguna via string `user_nik` (harus ada di `users`).
+     - Kolom `subject_id` berstatus `NOT NULL`, memaksakan pegawai non-guru (TU, pustakawan, satpam) memilih mapel.
+     - Ketiadaan kolom `version` (belum siap optimistic locking 409).
+     - Typo relasi di model `Employee`: `relogion()` seharusnya `religion()`.
+     - Ketiadaan allowlist `auditableAttributes` di model `Employee` (rentan membocorkan nama ibu kandung, pasangan, nomor KK, NPWP ke tabel audit).
+     - Route API singular `/employee` dengan permission yang salah (`master.view`/`master.manage`), serta controller/policy/request yang masih berupa scaffold kosong.
+     - Menu `Teachers` dan `Employees` di `AppMenu.vue` masih berupa placeholder `#`.
+  2. Menyusun dokumen perencanaan teknis `reports/feature-update/PHASE-04A-PLAN.md` yang merumuskan:
+     - Scope in-scope (DEC-04, migration additive `user_id`, `subject_id` nullable, `version`, koreksi typo, audit privacy allowlist, route `/employees`, otorisasi `employees.*`).
+     - Scope out-of-scope (UI Vue ditunda ke 04b, penugasan mengajar jam detail ke Fase 10, wali kelas ke Fase 06, payroll/absensi out of roadmap).
+     - Usulan keputusan pemilik DEC-04 (akun opsional, integer FK `user_id`, mapel nullable untuk non-guru, integer versioning 409, allowlist audit PII, 100% English contracts).
+     - Pemisahan tegas jalur fitur dari jalur modernisasi framework.
+- Why: Menyiapkan fondasi personalia sekolah yang bersih, modular, dan terencana sebelum memulai implementasi kode.
+- Validation: Audit statis berkas sumber dan konsistensi dokumen; tidak ada migration/seed/code changes.
+- Evidence: `reports/feature-update/PHASE-04A-PLAN.md`.
+
 ## [2026-10-26] Subfase 03d — Penerimaan manual pemilik (Checklist #1–#15 APPROVED)
 - Type: Docs
 - Scope / fase: Subfase tambahan 03d (Penempatan dan Perpindahan Rombel via UI); pencatatan penerimaan manual pemilik.
