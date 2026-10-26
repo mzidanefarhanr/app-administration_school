@@ -5,19 +5,19 @@ Baseline implementasi akhir 03d: `7bed397c30f5a38e6a34002157c6ac33c0317c89` ("fe
 Baseline keputusan DEC-23: `01c953e` ("docs(decisions): record owner decisions for student rombel assignment and transfer (DEC-23)").
 Baseline implementasi 03c: `e15f028`.
 Status fase:
-- **Fase 01, 02, dan 03 (03a, 03b, 03c)**: **DITERIMA LENGKAP & DITUTUP** oleh pemilik.
-- **Subfase 03d (scope tambahan)**: **IMPLEMENTED & FULLY VERIFIED (AGEN) / MANUAL ACCEPTANCE PENDING**.
+- **Fase 01, 02, dan 03 (03a, 03b, 03c, serta subfase tambahan 03d)**: **DITERIMA LENGKAP & DITUTUP** oleh pemilik (checklist manual #1–#15 APPROVED 2026-10-26 WIB).
+- **Subfase 03d (scope tambahan)**: **DITERIMA LENGKAP & DITUTUP OLEH PEMILIK**.
 - Kebijakan commit/push: commit dan push per fase/koreksi ke branch kerja aktif telah **diotorisasi**; merge, force-push, rewrite history, dan deploy manual **tetap tidak diotorisasi**.
 - Catatan perubahan pemilik: `console.txt` dan `vue-app/test-results/` adalah artefak lokal dan **tidak** di-commit.
-- **Peringatan Batas:** Penutupan sesi ini murni dokumentasi handoff; bukan approval manual pemilik dan bukan security clearance.
+- **Peringatan Batas:** Penutupan sesi ini murni dokumentasi handoff; bukan security clearance, bukan izin deploy/upgrade, dan bukan otorisasi akses ke database operasional.
 
 ---
 
 ## 0. Checkpoint Penutupan Sesi (2026-10-26)
 
-- **HEAD / Remote**: `7bed397c30f5a38e6a34002157c6ac33c0317c89`, branch `main`, sinkron `origin/main`. Working tree bersih selain artefak lokal `console.txt` dan `vue-app/test-results/`.
-- **Status Subfase 03d**: Implementasi selesai, pengujian otomatis agen lulus; checklist manual peninjauan pemilik `PHASE-03D-MANUAL-REVIEW.md` (#1–#15) berstatus **PENDING**.
-- **Server UAT Aktif**: Backend loopback port `18021` dan SPA loopback port `14021` strict port dibiarkan berjalan untuk peninjauan pemilik.
+- **HEAD / Remote**: sinkron `origin/main`. Working tree bersih selain artefak lokal `console.txt` dan `vue-app/test-results/`.
+- **Status Subfase 03d**: **DITERIMA LENGKAP & DITUTUP OLEH PEMILIK**. Seluruh checklist manual `PHASE-03D-MANUAL-REVIEW.md` (#1–#15) disetujui penuh (APPROVED) pada 2026-10-26 WIB.
+- **Server UAT Aktif**: Backend loopback port `18021` dan SPA loopback port `14021` strict port dibiarkan berjalan untuk kebutuhan review selanjutnya.
 
 ---
 
@@ -120,12 +120,10 @@ Gap pengujian yang diidentifikasi pada checkpoint sebelumnya telah dibuktikan se
 | **01 (01a–01c)** | Hak akses, auth, isolasi fixture | IMPLEMENTED & FULLY VERIFIED | **DITERIMA LENGKAP & DITUTUP** |
 | **02 (02a–02c)** | Audit terpercaya & backup/restore | IMPLEMENTED & FULLY VERIFIED | **DITERIMA LENGKAP & DITUTUP** |
 | **03 (03a–03c)** | Pendataan siswa lengkap & aman | IMPLEMENTED & FULLY VERIFIED | **DITERIMA LENGKAP & DITUTUP** |
-| **03d (tambahan)** | Penempatan & perpindahan rombel UI | **IMPLEMENTED & FULLY VERIFIED (AGEN)** | **MANUAL ACCEPTANCE PENDING** (#1–#15) |
-| **04 (04a–04b)** | Guru dan pegawai | NOT STARTED | PENDING (Menunggu review 03d & DEC-04) |
+| **03d (tambahan)** | Penempatan & perpindahan rombel UI | IMPLEMENTED & FULLY VERIFIED | **DITERIMA LENGKAP & DITUTUP** (Checklist #1–#15 APPROVED) |
+| **04 (04a–04b)** | Guru dan pegawai | NOT STARTED | PENDING (Menunggu perencanaan & DEC-04) |
 
 **Langkah untuk Sesi Baru**:
-1. Verifikasi status proses/listener port 18021 dan 14021. Jika terhenti pasca-tutup terminal, jalankan kembali dengan executable absolut PHP 8.2 global dan Node portable 24.22.1 tanpa mengubah konfigurasi.
-2. Tunggu konfirmasi peninjauan manual pemilik terhadap checklist `PHASE-03D-MANUAL-REVIEW.md` (#1–#15).
-3. Setelah persetujuan manual 03d diberikan:
-   - Catat approval manual pada commit dokumentasi tersendiri.
-   - Diskusikan arah pekerjaan berikutnya sesuai `reports/feature-update/NEXT-STEPS-PLAN.md` (Fase 04a Guru dan Pegawai & keputusan DEC-04).
+1. Lanjutkan perencanaan Fase 04a (Guru dan Pegawai & Hubungan Akun) serta perumusan usulan keputusan DEC-04.
+2. Pertahankan server UAT loopback 18021/14021 dan database `school_compat_uat`.
+3. Seluruh risiko keamanan terbuka (advisories, lifecycle Laravel/PHP, rotasi kunci produksi) tetap OPEN.

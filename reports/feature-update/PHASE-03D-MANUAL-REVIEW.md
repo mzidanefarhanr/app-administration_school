@@ -5,7 +5,7 @@
 - Branch: `main`
 - Baseline implementasi: `01c953e` (DEC-23)
 - Status implementasi: **IMPLEMENTED & VERIFIED (AGEN)**
-- Status keseluruhan 03d: **MANUAL ACCEPTANCE PENDING**
+- Status keseluruhan 03d: **APPROVED (DITERIMA LENGKAP & DITUTUP OLEH PEMILIK)**
 - Laporan teknis: `reports/feature-update/PHASE-03D-STUDENT-PLACEMENT.md`
 - Rencana teknis: `reports/feature-update/PHASE-03D-PLAN.md`
 
@@ -39,21 +39,21 @@
 
 | # | Skenario | Langkah Pengujian | Hasil yang Diharapkan | Status |
 |---|---|---|---|---|
-| 1 | Hak Akses View-Only (UI) | Login sebagai `uat.kepsek`, buka menu `/public/students`. | Tombol **Assign Rombel** (`pi pi-user-plus`) dan **Transfer Rombel** (`pi pi-arrow-right-arrow-left`) **TIDAK TAMPIL** pada seluruh baris tabel. | **PENDING** |
-| 2 | Hak Akses View-Only (API Assign) | Menggunakan tab anonim/API client, kirim `POST /api/students/{id}/assign-rombel` dengan cookie sesi `uat.kepsek`. | Server menolak dengan status **403 Forbidden**. | **PENDING** |
-| 3 | Hak Akses View-Only (API Transfer) | Kirim `POST /api/students/{id}/transfer-rombel` dengan cookie sesi `uat.kepsek`. | Server menolak dengan status **403 Forbidden**. | **PENDING** |
-| 4 | Tombol Assign pada Unplaced | Login sebagai `uat.operator`, buka menu `/public/students`. Pilih filter Placement = `Unplaced`. | Setiap siswa unplaced menampilkan tombol biru outline `pi pi-user-plus` dengan tooltip `"Assign to Rombel"`. | **PENDING** |
-| 5 | Tombol Transfer pada Placed | Pilih filter Placement = `Placed`. | Setiap siswa placed menampilkan tombol oranye outline `pi pi-arrow-right-arrow-left` dengan tooltip `"Transfer Rombel"`. | **PENDING** |
-| 6 | Dialog Penempatan (Assign) | Klik tombol Assign Rombel pada salah satu siswa unplaced. | Dialog terbuka dengan judul `"Assign to Rombel"`. Menampilkan Nama Siswa, NIS, Tahun Ajaran Aktif (read-only), Tanggal Efektif (label `"Today (Asia/Jakarta server time)"`), dan Dropdown Target Class Rombel. | **PENDING** |
-| 7 | Validasi Rombel Tahun Ajaran | Buka dropdown Target Class Rombel pada dialog Assign. | Hanya menampilkan rombel yang terdaftar pada tahun ajaran yang sedang aktif dipilih. | **PENDING** |
-| 8 | Eksekusi Penempatan Berhasil | Pilih salah satu rombel tujuan, lalu klik tombol `"Assign Rombel"`. | Tombol menampilkan spinner loading sejenak; toast hijau `"Placement Success"` muncul; dialog tertutup; baris siswa berubah menjadi `Placed` dengan nama rombel terisi; angka rekapitulasi `Placed` bertambah 1 dan `Unplaced` berkurang 1. | **PENDING** |
-| 9 | Dialog Pemindahan (Transfer) | Klik tombol Transfer Rombel pada salah satu siswa placed. | Dialog terbuka dengan judul `"Transfer Class Rombel"`. Menampilkan Nama Siswa, Current Class (rombel saat ini), Tahun Ajaran Aktif, Tanggal Efektif (Today WIB), Dropdown Target Class Rombel, dan Textarea Transfer Reason. | **PENDING** |
-| 10 | Pengecualian Rombel Saat Ini | Buka dropdown Target Class Rombel pada dialog Transfer. | Rombel saat ini **tidak muncul** dalam daftar pilihan target. | **PENDING** |
-| 11 | Eksekusi Pemindahan Berhasil | Pilih rombel baru, isi Transfer Reason (misal: "Class balancing"), lalu klik tombol `"Transfer Student"`. | Toast hijau `"Transfer Success"` muncul; dialog tertutup; nama rombel pada baris siswa otomatis terupdate ke rombel baru; rekapitulasi per rombel otomatis diperbarui oleh server. | **PENDING** |
-| 12 | Preservasi Riwayat & Status | Klik tombol View Detail (`pi pi-eye`) pada siswa yang baru dipindahkan. | Rombel baru aktif; riwayat rombel lama tersimpan dengan tanggal keluar hari ini; status siswa tetap Aktif (tidak berubah menjadi Mutasi Keluar). | **PENDING** |
-| 13 | Konflik Konkurensi (409) | Buka siswa yang sama pada dua tab browser. Di tab 1 lakukan Transfer ke Rombel B. Di tab 2 (tanpa refresh) coba lakukan Transfer ke Rombel C. | Tab 2 ditolak dengan status **409 Conflict**; muncul dialog `"Data Conflict Detected"` yang memberitahukan data telah diubah operator lain; input pengguna dipertahankan dan tersedia tombol `"Reload Latest"`. | **PENDING** |
-| 14 | Validasi Form Kosong (422) | Buka dialog Assign/Transfer, kosongkan pilihan rombel tujuan, lalu klik tombol submit. | Muncul pesan error validasi inline berwarna merah `"Target rombel is required."` di bawah dropdown; request tidak dikirim ke server. | **PENDING** |
-| 15 | Preservasi Filter & Ekspor CSV | Lakukan Assign atau Transfer saat tabel sedang dalam kondisi pencarian atau filter tertentu. Klik tombol Export. | Filter pencarian dan halaman tabel tidak ter-reset pasca-mutasi. File CSV yang diunduh mencerminkan penempatan rombel yang baru. | **PENDING** |
+| 1 | Hak Akses View-Only (UI) | Login sebagai `uat.kepsek`, buka menu `/public/students`. | Tombol **Assign Rombel** (`pi pi-user-plus`) dan **Transfer Rombel** (`pi pi-arrow-right-arrow-left`) **TIDAK TAMPIL** pada seluruh baris tabel. | **APPROVED** |
+| 2 | Hak Akses View-Only (API Assign) | Menggunakan tab anonim/API client, kirim `POST /api/students/{id}/assign-rombel` dengan cookie sesi `uat.kepsek`. | Server menolak dengan status **403 Forbidden**. | **APPROVED** |
+| 3 | Hak Akses View-Only (API Transfer) | Kirim `POST /api/students/{id}/transfer-rombel` dengan cookie sesi `uat.kepsek`. | Server menolak dengan status **403 Forbidden**. | **APPROVED** |
+| 4 | Tombol Assign pada Unplaced | Login sebagai `uat.operator`, buka menu `/public/students`. Pilih filter Placement = `Unplaced`. | Setiap siswa unplaced menampilkan tombol biru outline `pi pi-user-plus` dengan tooltip `"Assign to Rombel"`. | **APPROVED** |
+| 5 | Tombol Transfer pada Placed | Pilih filter Placement = `Placed`. | Setiap siswa placed menampilkan tombol oranye outline `pi pi-arrow-right-arrow-left` dengan tooltip `"Transfer Rombel"`. | **APPROVED** |
+| 6 | Dialog Penempatan (Assign) | Klik tombol Assign Rombel pada salah satu siswa unplaced. | Dialog terbuka dengan judul `"Assign to Rombel"`. Menampilkan Nama Siswa, NIS, Tahun Ajaran Aktif (read-only), Tanggal Efektif (label `"Today (Asia/Jakarta server time)"`), dan Dropdown Target Class Rombel. | **APPROVED** |
+| 7 | Validasi Rombel Tahun Ajaran | Buka dropdown Target Class Rombel pada dialog Assign. | Hanya menampilkan rombel yang terdaftar pada tahun ajaran yang sedang aktif dipilih. | **APPROVED** |
+| 8 | Eksekusi Penempatan Berhasil | Pilih salah satu rombel tujuan, lalu klik tombol `"Assign Rombel"`. | Tombol menampilkan spinner loading sejenak; toast hijau `"Placement Success"` muncul; dialog tertutup; baris siswa berubah menjadi `Placed` dengan nama rombel terisi; angka rekapitulasi `Placed` bertambah 1 dan `Unplaced` berkurang 1. | **APPROVED** |
+| 9 | Dialog Pemindahan (Transfer) | Klik tombol Transfer Rombel pada salah satu siswa placed. | Dialog terbuka dengan judul `"Transfer Class Rombel"`. Menampilkan Nama Siswa, Current Class (rombel saat ini), Tahun Ajaran Aktif, Tanggal Efektif (Today WIB), Dropdown Target Class Rombel, dan Textarea Transfer Reason. | **APPROVED** |
+| 10 | Pengecualian Rombel Saat Ini | Buka dropdown Target Class Rombel pada dialog Transfer. | Rombel saat ini **tidak muncul** dalam daftar pilihan target. | **APPROVED** |
+| 11 | Eksekusi Pemindahan Berhasil | Pilih rombel baru, isi Transfer Reason (misal: "Class balancing"), lalu klik tombol `"Transfer Student"`. | Toast hijau `"Transfer Success"` muncul; dialog tertutup; nama rombel pada baris siswa otomatis terupdate ke rombel baru; rekapitulasi per rombel otomatis diperbarui oleh server. | **APPROVED** |
+| 12 | Preservasi Riwayat & Status | Klik tombol View Detail (`pi pi-eye`) pada siswa yang baru dipindahkan. | Rombel baru aktif; riwayat rombel lama tersimpan dengan tanggal keluar hari ini; status siswa tetap Aktif (tidak berubah menjadi Mutasi Keluar). | **APPROVED** |
+| 13 | Konflik Konkurensi (409) | Buka siswa yang sama pada dua tab browser. Di tab 1 lakukan Transfer ke Rombel B. Di tab 2 (tanpa refresh) coba lakukan Transfer ke Rombel C. | Tab 2 ditolak dengan status **409 Conflict**; muncul dialog `"Data Conflict Detected"` yang memberitahukan data telah diubah operator lain; input pengguna dipertahankan dan tersedia tombol `"Reload Latest"`. | **APPROVED** |
+| 14 | Validasi Form Kosong (422) | Buka dialog Assign/Transfer, kosongkan pilihan rombel tujuan, lalu klik tombol submit. | Muncul pesan error validasi inline berwarna merah `"Target rombel is required."` di bawah dropdown; request tidak dikirim ke server. | **APPROVED** |
+| 15 | Preservasi Filter & Ekspor CSV | Lakukan Assign atau Transfer saat tabel sedang dalam kondisi pencarian atau filter tertentu. Klik tombol Export. | Filter pencarian dan halaman tabel tidak ter-reset pasca-mutasi. File CSV yang diunduh mencerminkan penempatan rombel yang baru. | **APPROVED** |
 
 ---
 
@@ -61,8 +61,8 @@
 
 *(Diisi oleh pemilik setelah menjalankan peninjauan)*
 
-Status: **PENDING**.
+Status: **APPROVED**.
 
-- [ ] Seluruh checklist #1–#15 disetujui (APPROVED).
-- Tanggal pelaksanaan WIB:
-- Catatan / feedback pemilik:
+- [x] Seluruh checklist #1–#15 disetujui (APPROVED).
+- Tanggal pencatatan WIB: 2026-10-26
+- Catatan / feedback pemilik: Seluruh checklist #1–#15 dinyatakan berhasil diuji dan disetujui penuh oleh pemilik (baseline implementasi `7bed397`, penguatan bukti uji `f6be20f`).

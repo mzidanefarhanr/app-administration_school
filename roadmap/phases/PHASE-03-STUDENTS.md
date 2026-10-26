@@ -40,8 +40,10 @@ Status: **DITERIMA PEMILIK** (Review Pemilik: APPROVED pada 2026-10-26 WIB, chec
 Laporan: `reports/feature-update/PHASE-03C-STUDENT-DIRECTORY.md`.
 Scope selesai: Pagination/search/sort server-side via `StudentDirectory` dan `StudentController::index`; filter All/Placed/Unplaced + rombel + school_year_id; rekap server anti double-count; ekspor CSV terfilter terproteksi yang selalu menyertakan `placement` (`StudentExportController` + `studentExportParams.mjs`); penutupan kebocoran `only_archived` (wajib `students.manage`); DataTable lazy, debounce search, stale response guard (`listRequestId`), error retry, pemulihan halaman terakhir kosong di `Student.vue`. (229 backend test PASS; 18 unit frontend PASS; build PASS; Pint PASS; UAT browser & smoke PASS).
 
-### 03d (Kandidat) — Aksi penempatan rombel via UI
-Status: **BELUM DIOTORISASI** (di luar scope 03c, DEC-22 #5). Posisi dan dependensinya akan dibahas terhadap rencana fase berikutnya.
+### 03d (Tambahan) — Aksi penempatan dan perpindahan rombel via UI
+Status: **DITERIMA PEMILIK** (Review Pemilik: APPROVED pada 2026-10-26 WIB, checklist #1–#15 di `reports/feature-update/PHASE-03D-MANUAL-REVIEW.md`; baseline implementasi `7bed397`, penguatan bukti uji `f6be20f`).
+Laporan: `reports/feature-update/PHASE-03D-STUDENT-PLACEMENT.md`.
+Scope selesai: Endpoint `assign-rombel` & `transfer-rombel`, kontrol konkurensi atomik row lock InnoDB (`version`), validasi tahun terpilih & tanggal server Asia/Jakarta, preservasi keanggotaan keluar (status tetap 1), UI English `Student.vue` (dialog `placementDialog`, tombol aksi terproteksi `can:students.manage`, dialog konflik 409). (237 SQLite test PASS; 7 MariaDB integration/concurrency test PASS; 18 frontend test PASS; build PASS; Pint PASS; UAT smoke PASS).
 
 ## Batas pekerjaan
 Belum membangun kenaikan kelas massal, portal siswa/orang tua, atau sinkronisasi pemerintah.

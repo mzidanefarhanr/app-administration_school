@@ -17,6 +17,26 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-26] Subfase 03d — Penerimaan manual pemilik (Checklist #1–#15 APPROVED)
+- Type: Docs
+- Scope / fase: Subfase tambahan 03d (Penempatan dan Perpindahan Rombel via UI); pencatatan penerimaan manual pemilik.
+- Files touched:
+  - `reports/feature-update/PHASE-03D-MANUAL-REVIEW.md`
+  - `reports/feature-update/PHASE-03D-STUDENT-PLACEMENT.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `reports/feature-update/INDEX.md`
+  - `roadmap/ROADMAP.md`
+  - `roadmap/phases/PHASE-03-STUDENTS.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Mencatat persetujuan manual pemilik atas seluruh checklist peninjauan manual `PHASE-03D-MANUAL-REVIEW.md` nomor #1–#15 (status APPROVED pada 2026-10-26 WIB mengacu baseline implementasi `7bed397` dan penguatan bukti uji `f6be20f`).
+  2. Memperbarui status Subfase tambahan 03d menjadi **DITERIMA LENGKAP & DITUTUP OLEH PEMILIK**. Fase 01, 02, dan 03 (03a, 03b, 03c, 03d) resmi ditutup lengkap.
+  3. Memisahkan secara tegas bukti penerimaan manual pemilik dari bukti otomatis agen (SQLite in-memory, MariaDB concurrency harness, frontend build/unit, dan HTTP/API fetch UAT smoke).
+  4. Menegaskan batas keamanan: penerimaan manual ini bukan security clearance, bukan izin deployment produksi, bukan izin upgrade dependensi, dan tidak mengizinkan akses ke database operasional. Seluruh risiko keamanan terbuka (advisories Composer/npm, lifecycle Laravel 10/PHP 8.2, paparan historis host, rotasi rahasia produksi) tetap berstatus OPEN.
+- Why: Menutup Subfase tambahan 03d secara administratif sesuai instruksi eksplisit pemilik sebelum melangkah ke perencanaan Fase 04a.
+- Validation: Verifikasi konsistensi dokumen dan status git; tanpa eksekusi test/build/DB.
+- Evidence: `reports/feature-update/PHASE-03D-MANUAL-REVIEW.md`, `reports/feature-update/PHASE-03D-STUDENT-PLACEMENT.md`.
+
 ## [2026-10-26] Pemulihan akses login UAT sekolah untuk review manual 03d
 - Type: Fix | Docs
 - Scope / fase: Lingkungan UAT Subfase 03d; pemulihan akses login `uat.operator` dan `uat.kepsek` pada server UAT aktif (`school_compat_uat`).
