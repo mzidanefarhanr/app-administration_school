@@ -1,15 +1,17 @@
 # Fase 04 — Guru dan pegawai
 
-Status teknis: NOT STARTED. Status review: PENDING. Semua tes/browser/manual: NOT RUN.
-Dependensi: 01; 02; DEC-04. Baseline rencana: b02a87f; audit ulang HEAD saat pelaksanaan.
+Status teknis: SUBPHASE 04a IMPLEMENTED & FULLY VERIFIED (AGEN). Status review: MANUAL ACCEPTANCE PENDING (#1–#10). Subfase 04b: NOT STARTED.
+Dependensi: 01; 02; DEC-04 (APPROVED 2026-10-26 WIB).
 
 ## Tujuan dan scope
-Guru dan pegawai. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Tidak ada pekerjaan implementasi yang telah dilakukan dalam penyusunan dokumen ini.
+Guru dan pegawai. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis.
 
 ## Subfase
 
 ### 04a — Schema profil dan hubungan akun
-Scope: Tetapkan akun opsional atau wajib sesuai keputusan; backfill FK stabil tanpa mengubah NIK sembarangan; teacher vs pegawai berdasarkan tipe dan penugasan; review required subject_id yang tidak cocok semua pegawai. Koreksi relasi typo dengan consumer.
+Status: **IMPLEMENTED & FULLY VERIFIED (AGEN) / MANUAL ACCEPTANCE PENDING** (DEC-04 APPROVED 2026-10-26 WIB; checklist #1–#10 di `reports/feature-update/PHASE-04A-MANUAL-REVIEW.md`).
+Laporan: `reports/feature-update/PHASE-04A-EMPLOYEE-SCHEMA.md`.
+Scope selesai: Migration additive `2029_07_24_000001` (`user_id` nullable unique nullOnDelete, `version` default 1, `user_nik` & `subject_id` nullable); model `Employee` (`user_id` relasi primer, `user_nik` fallback aman legacy, koreksi typo `religion()` + alias `relogion()`, allowlist audit privacy minimalkan PII); `EmployeePolicy` penegakan `employees.view` dan `employees.manage`; `EmployeeBackfillService` idempotent berbasis NIK unik tanpa leak PII. (15 SQLite test PASS, 5 MariaDB integration test PASS, Pint 100% PASS).
 
 Kriteria penerimaan: Profil pegawai tanpa mata pelajaran tetap sah sesuai kebijakan; akun/login terpisah dari kepegawaian; backfill tidak kehilangan histori.
 

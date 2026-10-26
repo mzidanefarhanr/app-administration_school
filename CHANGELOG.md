@@ -17,6 +17,42 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-26] Subfase 04a — Implementasi fondasi schema profil pegawai dan hubungan akun
+- Type: Feature | Schema Change | Test | Docs
+- Scope / fase: Subfase 04a (Fase 04: Guru dan Pegawai); implementasi fondasi schema, model, audit allowlist, policy, dan backfill akun.
+- Files touched:
+  - `laravel-api/database/migrations/2029_07_24_000001_update_employees_schema_for_phase_04a.php` (baru)
+  - `laravel-api/app/Models/Employee.php`
+  - `laravel-api/app/Policies/EmployeePolicy.php`
+  - `laravel-api/app/Services/EmployeeBackfillService.php` (baru)
+  - `laravel-api/database/factories/EmployeeFactory.php`
+  - `laravel-api/routes/api.php`
+  - `laravel-api/tests/Feature/Employee/EmployeeSchemaAndAccountRelationTest.php` (baru)
+  - `laravel-api/tests/Feature/Employee/MariaDbEmployeeIntegrationTest.php` (baru)
+  - `docs/DATABASE.md`
+  - `docs/API-CONTRACTS.md`
+  - `reports/feature-update/PHASE-04A-EMPLOYEE-SCHEMA.md` (baru)
+  - `reports/feature-update/PHASE-04A-MANUAL-REVIEW.md` (baru)
+  - `reports/feature-update/INDEX.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `roadmap/ROADMAP.md`
+  - `roadmap/phases/PHASE-04-EMPLOYEES.md`
+  - `CHANGELOG.md`
+- What changed:
+  1. Migration additive: `user_id` nullable unique FK ke `users.id` (`nullOnDelete`), `user_id_resolved_at`, `account_unlinked_at`, `version` default 1; pelonggaran `user_nik` dan `subject_id` menjadi nullable secara safe.
+  2. Model `Employee`: relasi utama `user()` via `user_id`, relasi legacy `legacyUser()` via `user_nik`, resolusi aman `resolveUser()`, koreksi typo `religion()` + alias `relogion()`, allowlist audit privacy `$auditableAttributes` (strip nama ibu kandung, pasangan, KK, NPWP, IPK).
+  3. Layanan `EmployeeBackfillService`: pemadanan akun legacy dari `user_nik` ke `user_id` secara idempotent dan transaksional tanpa kebocoran PII.
+  4. Policy & Route: `EmployeePolicy` menegakkan `employees.view` dan `employees.manage`, rute `/employee` diselaraskan izinnya.
+  5. Pengujian komprehensif: 15 tes SQLite in-memory PASS (89 assertions), 5 tes integrasi MariaDB pada database disposable `school_04a_integration` PASS (25 assertions), Pint 100% PASS.
+- Why: Memenuhi seluruh spesifikasi fondasi schema profil pegawai dan hubungan akun sesuai Keputusan Pemilik DEC-04.
+- Validation:
+  - `php artisan test tests/Feature/Employee/EmployeeSchemaAndAccountRelationTest.php` -> 15 passed (89 assertions).
+  - `php artisan test tests/Feature/Employee/MariaDbEmployeeIntegrationTest.php` -> 5 passed (25 assertions).
+  - Pint `./vendor/bin/pint --test` -> 7 files PASS.
+  - Regresi relevan (`FactoryIntegrityTest`, `StudentRombelAssignmentTest`, `MariaDbRombelConcurrencyTest`) -> 26 passed.
+- Notes / risks: Checklist manual `reports/feature-update/PHASE-04A-MANUAL-REVIEW.md` (#1–#10) berstatus PENDING untuk peninjauan fondasi pemilik. CRUD/form/UI tetap berada pada Subfase 04b.
+- Evidence: `reports/feature-update/PHASE-04A-EMPLOYEE-SCHEMA.md`, `reports/feature-update/PHASE-04A-MANUAL-REVIEW.md`.
+
 ## [2026-10-26] Keputusan Pemilik DEC-04 — Hubungan pegawai dan akun login disahkan
 - Type: Docs
 - Scope / fase: Subfase 04a (Fase 04: Guru dan Pegawai); pengesahan keputusan pemilik DEC-04 dan penegasan batas scope fondasi 04a vs CRUD/UI 04b.

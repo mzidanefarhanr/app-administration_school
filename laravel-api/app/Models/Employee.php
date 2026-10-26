@@ -10,11 +10,37 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Employee extends Model
 {
-    use HasFactory, SoftDeletes, Loggable;
+    use HasFactory, Loggable, SoftDeletes;
 
     protected $guarded = ['id'];
+
     protected $table = 'employees';
-    protected $dates = ['deleted_at'];
+
+    protected $dates = ['deleted_at', 'user_id_resolved_at', 'account_unlinked_at'];
+
+    protected $attributes = [
+        'version' => 1,
+    ];
+
+    /**
+     * Atribut yang diizinkan untuk dicatat dalam log audit (allowlist).
+     * Kolom data pribadi sensitif (nama ibu kandung, pasangan, nomor KK, NPWP, IPK) secara ketat dikecualikan (DEC-04 #6).
+     *
+     * @var array<int, string>
+     */
+    protected array $auditableAttributes = [
+        'user_id',
+        'employee_status_id',
+        'employee_type_id',
+        'employment_id',
+        'subject_id',
+        'gender_id',
+        'religion_id',
+        'nuptk',
+        'tmt_employee',
+        'exit_date',
+        'version',
+    ];
 
     /**
      * The attributes that are mass assignable.
@@ -22,6 +48,10 @@ class Employee extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'user_id',
+        'user_id_resolved_at',
+        'account_unlinked_at',
+        'version',
         'user_nik',
         'employee_status_id',
         'employee_type_id',
@@ -79,7 +109,7 @@ class Employee extends Model
         'government_certificate',
     ];
 
-     /**
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var array<int, string>
@@ -88,38 +118,93 @@ class Employee extends Model
         //
     ];
 
+    /**
+     * Relasi utama profil pegawai ke model User berbasis user_id (DEC-04 #2).
+     */
     public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id')->withTrashed();
+    }
+
+    /**
+     * Relasi legacy ke model User berbasis string user_nik.
+     */
+    public function legacyUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_nik', 'nik')->withTrashed();
     }
+
+    /**
+     * Resolusi akun pengguna yang aman dan anti-ambigu (DEC-04 #2 & #3):
+     * 1. Jika user_id terisi, user_id adalah sumber kebenaran mutlak.
+     * 2. Jika akun telah dilepas (account_unlinked_at) atau sudah diresolusi di Phase 04a,
+     *    jangan pernah menghubungkan ulang melalui user_nik.
+     * 3. Fallback NIK HANYA untuk baris legacy yang belum pernah dimigrasikan,
+     *    dan hanya bila terdapat tepat 1 user yang cocok.
+     */
+    public function resolveUser(): ?User
+    {
+        if ($this->user_id) {
+            return $this->relationLoaded('user') ? $this->user : User::withTrashed()->find($this->user_id);
+        }
+
+        if ($this->account_unlinked_at !== null || $this->user_id_resolved_at !== null) {
+            return null;
+        }
+
+        if (! empty($this->user_nik)) {
+            $matches = User::withTrashed()->where('nik', $this->user_nik)->get();
+            if ($matches->count() === 1) {
+                return $matches->first();
+            }
+        }
+
+        return null;
+    }
+
     public function employeeStatus(): BelongsTo
     {
         return $this->belongsTo(EmployeeStatus::class, 'employee_status_id', 'id')->withTrashed();
     }
+
     public function employeeType(): BelongsTo
     {
         return $this->belongsTo(EmployeeType::class, 'employee_type_id', 'id')->withTrashed();
     }
+
     public function employment(): BelongsTo
     {
         return $this->belongsTo(Employment::class, 'employment_id', 'id')->withTrashed();
     }
+
     public function subject(): BelongsTo
     {
         return $this->belongsTo(Subject::class, 'subject_id', 'id')->withTrashed();
     }
-    public function relogion(): BelongsTo
+
+    public function religion(): BelongsTo
     {
         return $this->belongsTo(Religion::class, 'religion_id', 'id')->withTrashed();
     }
+
+    /**
+     * Alias kompatibilitas untuk typo historis relogion()
+     */
+    public function relogion(): BelongsTo
+    {
+        return $this->religion();
+    }
+
     public function district(): BelongsTo
     {
         return $this->belongsTo(District::class, 'district_id', 'id')->withTrashed();
     }
+
     public function maritalStatus(): BelongsTo
     {
         return $this->belongsTo(MaritalStatus::class, 'marital_status_id', 'id')->withTrashed();
     }
+
     public function gender(): BelongsTo
     {
         return $this->belongsTo(Gender::class, 'gender_id', 'id')->withTrashed();

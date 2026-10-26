@@ -104,10 +104,10 @@ Gap pengujian yang diidentifikasi pada checkpoint sebelumnya telah dibuktikan se
    - Seluruh akses HTTP/HTTPS loopback ke direktori sekolah, `.env`, `.git/HEAD`, log, dan `public/` tetap mengembalikan **403 Forbidden**.
 2. **Risiko yang Tetap OPEN**:
    - Advisory dependency lockfile: 48 Composer advisories & 20 npm vulnerabilities tersisa.
-   - Lifecycle framework/runtime: Laravel 10 berstatus EOL sejak Feb 2025; PHP 8.2 security support berakhir 31 Des 2026.
+   - Lifecycle framework/runtime: Laravel 10 berstatus EOL sejak Feb 2025; PHP 8.2 mendekati akhir masa dukungan keamanan (31 Des 2026), bukan sudah EOL pada tanggal pencatatan ini.
    - Paparan historis host: File `.env` dan log berpotensi terekspos sebelum containment Apache aktif pada sesi terdahulu. Tindak lanjut rotasi rahasia produksi tetap merupakan pekerjaan terpisah.
 3. **Isolasi Database & Host**:
-   - Mutasi data dibatasi ketat pada database terotorisasi (`school_compat_uat` untuk kredensial UAT; `school_03d_integration` untuk tes integrasi). Pemeriksaan diagnostik read-only terhadap `school_access_uat` dan `backdata_administrations` dicatat transparan di Bagian 3 sebagai akses di luar otorisasi tanpa mutasi data. Resource/database App Gudang tidak disentuh.
+   - Mutasi data dibatasi ketat pada database terotorisasi (`school_compat_uat` untuk kredensial UAT; `school_03d_integration` dan `school_04a_integration` untuk tes integrasi). Pemeriksaan diagnostik read-only terhadap `school_access_uat` dan `backdata_administrations` dicatat transparan di Bagian 3 sebagai akses di luar otorisasi tanpa mutasi data. Resource/database App Gudang tidak disentuh.
    - Tidak ada modifikasi pada konfigurasi Apache, PHP global, service Windows, atau firewall host.
 
 ---
@@ -121,12 +121,11 @@ Gap pengujian yang diidentifikasi pada checkpoint sebelumnya telah dibuktikan se
 | **02 (02a–02c)** | Audit terpercaya & backup/restore | IMPLEMENTED & FULLY VERIFIED | **DITERIMA LENGKAP & DITUTUP** |
 | **03 (03a–03c)** | Pendataan siswa lengkap & aman | IMPLEMENTED & FULLY VERIFIED | **DITERIMA LENGKAP & DITUTUP** |
 | **03d (tambahan)** | Penempatan & perpindahan rombel UI | IMPLEMENTED & FULLY VERIFIED | **DITERIMA LENGKAP & DITUTUP** (Checklist #1–#15 APPROVED) |
-| **04a** | Profil pegawai dan hubungan akun | **PLANNING ONLY** (Laporan `PHASE-04A-PLAN.md`) | **PROPOSED** (Menunggu review & DEC-04) |
+| **04a** | Schema profil pegawai dan hubungan akun | **IMPLEMENTED & FULLY VERIFIED (AGEN)** | **MANUAL ACCEPTANCE PENDING** (#1–#10 di `PHASE-04A-MANUAL-REVIEW.md`) |
 | **04b** | CRUD pegawai dan menu aktif | NOT STARTED | PENDING |
 
 **Langkah untuk Sesi Baru**:
-1. Pemilik meninjau dokumen rencana Subfase 04a di `reports/feature-update/PHASE-04A-PLAN.md`.
-2. Pengesahan keputusan bisnis DEC-04 (akun opsional, subject_id nullable, integer versioning, privasi audit trail).
-3. Setelah DEC-04 disetujui, pelaksanaan implementasi Subfase 04a dapat dimulai sesuai scope yang diotorisasi.
-4. Pertahankan server UAT loopback 18021/14021 dan database `school_compat_uat`.
-5. Seluruh risiko keamanan terbuka (advisories, lifecycle Laravel/PHP, rotasi kunci produksi) tetap OPEN.
+1. Pemilik meninjau checklist review fondasi Subfase 04a di `reports/feature-update/PHASE-04A-MANUAL-REVIEW.md` (#1–#10).
+2. Setelah peninjauan manual 04a disetujui pemilik, otorisasi pelaksanaan Subfase 04b (CRUD, form input, dan menu aktif Teachers/Employees di UI).
+3. Pertahankan server UAT loopback 18021/14021 dan database `school_compat_uat`.
+4. Seluruh risiko keamanan terbuka (advisories, lifecycle Laravel/PHP, rotasi kunci produksi) tetap OPEN.

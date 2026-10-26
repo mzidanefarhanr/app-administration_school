@@ -31,6 +31,8 @@ class EmployeeFactory extends Factory
     public function definition(): array
     {
         return [
+            'user_id' => null,
+            'version' => 1,
             'user_nik' => function () {
                 $user = User::first();
                 if (! $user) {

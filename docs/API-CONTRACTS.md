@@ -151,6 +151,12 @@ Daftar, rekap, dan ekspor siswa server-side (DEC-22). Definisi bersama `App\Supp
 ### Frontend
 `Student.vue`: DataTable lazy (pagination/sort/pencarian debounce 300 ms/placement/rombel server), rekap server, guard respons usang (`requestId`), loading/empty/error + Retry, halaman terakhir yang kosong mundur satu halaman, Export mengikuti filter aktif, filter rombel dinonaktifkan pada `Unplaced`. Aksi penempatan rombel di luar scope 03c.
 
+## Perubahan Subfase 04a
+- **Penyelarasan Izin Route `/employee`**: Route singular baseline `/employee` diselaraskan izinnya ke kemampuan bernama `can:employees.view` (index, show) dan `can:employees.manage` (store, update, destroy). Endpoint CRUD lengkap, normalisasi route ke `/employees`, dan transisi consumer berada pada Subfase 04b.
+- **Model `Employee`**: Relasi utama `user()` via `user_id` (bigint unsigned nullable, unique, nullOnDelete). Relasi legacy `legacyUser()` via `user_nik`. Resolusi aman `resolveUser()` yang memprioritaskan `user_id`, menolak fallback bila akun sudah dilepas/diresolusi, dan hanya mengizinkan fallback NIK pada baris legacy yang belum pernah dimigrasikan. Relasi `religion()` diperbaiki dengan alias kompatibilitas `relogion()`.
+- **Privasi Audit Personalia**: Allowlist `$auditableAttributes` diterapkan ketat pada model `Employee`; mengecualikan nama ibu kandung, pasangan, nomor KK, NPWP, dan nilai/IPK ijazah dari pencatatan log `activities`.
+- **Layanan Pemadanan**: `EmployeeBackfillService` menyelesaikan relasi `user_id` secara idempotent dan transaksional tanpa mencetak NIK, nama, atau data pribadi ke log/laporan.
+
 ## Aktual
 Resource di `/api`, dilindungi auth:sanctum: users, status-users, type-users, firstlogin; provinces/regencies/districts/villages; school-years/semesters/education-levels; genders/religions/blood-types/professions/family-status; education-schools/student-statuses/student-entries/student-majors/phase-statuses; students/school-levels/school-rombels/student-rombels; employee/employee-statuses/employee-types/employments/marital-statuses; school-profile/subjects/activities.
 `/api/user` mengambil actor. `/api/check-auth` mengembalikan authenticated + user atau null. Route auth web mencakup login/logout/register/forgot-password/reset-password dan email verification. Daftar route bukan bukti semua handler lengkap.
