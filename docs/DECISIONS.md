@@ -148,6 +148,29 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
   - Scope 04a dibatasi pada fondasi; CRUD/form/UI/endpoint mutasi berada pada 04b.
 - Status: APPROVED. Fase affected: 04a, 04b.
 
+### DEC-24 — CRUD pegawai, relasi akun, dan ekspor (APPROVED, 2026-10-29 WIB)
+- Konteks: pemilik menyetujui rencana Subfase 04b (`reports/feature-update/PHASE-04B-PLAN.md`) dan seluruh rekomendasi keputusan D1–D8 dengan pernyataan "Saya setuju rekomendasi kamu, lakukan eksekusi." Persetujuan ini mencakup implementasi 04b dalam batas rencana; bukan otorisasi merge/deploy, migration UAT, atau perubahan dependency.
+- Pilihan pemilik (pemetaan D1–D8):
+  1. **D1 — Nama profil**: Menambah kolom additif `employees.name` (`string(100)`, nullable di schema, wajib di validasi API untuk create/update). Backfill dari `users.name` hanya untuk baris yang dapat diresolusi lewat `user_id`; baris tak teresolusi dibiarkan kosong dan dilaporkan sebagai hitungan agregat tanpa PII. Operator melengkapi manual; tidak ada tebakan nama.
+  2. **D2 — NIK pegawai**: Menambah `employees.nik` (`string(16)`, nullable) agar identitas profil tidak bergantung pada akun. Nomor disimpan sebagai string, validasi 16 digit. Keunikan: **unconditional unique** konsisten DEC-21; baris terarsip tetap memegang NIK-nya sehingga restore dapat bentrok dan ditolak `422`.
+  3. **D3 — Struktur menu**: Dua route, satu komponen direktori bersama. `/public/teachers` = Pendidik, `/public/employees` = Tenaga Kependidikan; tipe tetap per halaman, tanpa filter tipe lintas halaman.
+  4. **D4 — Aturan mapel**: `subject_id` wajib untuk Pendidik dan harus NULL untuk Tenaga Kependidikan; pelanggaran ditolak `422`. Form menampilkan mapel secara kondisional.
+  5. **D5 — Taut/lepas akun**: Termasuk 04b, terkendali. Hanya akun `users` aktif yang belum terhubung profil lain dapat ditautkan; tidak membuat akun dan tidak mengubah role/abilities. Lepas akun mengosongkan `user_id` dan mengisi `account_unlinked_at`; fallback `user_nik` tidak aktif kembali. Penautan ulang hanya melalui endpoint eksplisit yang sama, tidak otomatis.
+  6. **D6 — Privasi PII**: Daftar tidak pernah memuat PII (NIK, nama ibu kandung, pasangan, KK, NPWP, nilai/IPK ijazah). Detail memuat data operasional untuk pemegang `employees.view`; PII hanya untuk `employees.manage`. NIK termasuk PII: tidak ada di daftar maupun ekspor.
+  7. **D7 — Arsip**: Arsip administratif dengan `archive_reason` wajib dan restore berversi (`version` + `409` + `current_version`). `exit_date` tetap bermakna berhenti/pensiun dan tidak diubah otomatis oleh arsip. `forceDelete` tetap ditolak.
+  8. **D8 — Ekspor pegawai**: `GET /api/employees/export` dengan izin `employees.view` + `employees.export`, mengikuti filter aktif, kolom eksplisit, seluruh hasil (bukan halaman aktif), batas 10.000 baris ditolak `422` (bukan dipotong). Kolom ekspor hanya data operasional; tanpa PII.
+- Default teknis tanpa keputusan baru (mengikuti DEC-04/DEC-21/DEC-22): route plural `/employees` + alias deprecated `/employee`, paginasi 10/20/50/100 default 20, search nama/NUPTK (tanpa NIK/NPWP/KK), sort allowlist, `version` wajib pada mutasi, `422` inline, `404` aman, audit allowlist tanpa PII, UI English, waktu `Asia/Jakarta`.
+- Dampak schema/API/UI:
+  - Migration baru `2029_07_26_000001`: `name`, `nik`, `archive_reason`, index additive (`name`, `employee_type_id`, `employee_status_id`); tanpa mengedit migration lama; `down()` fail-closed.
+  - Command `app:employee-name-backfill [--dry-run]` idempotent dan atomik; output hanya hitungan agregat.
+  - `EmployeeDirectory`, `EmployeeResource`, `EmployeeController` (CRUD + arsip/restore + link/unlink), `EmployeeExportController`, `config/employees.php`; request rules aktif; route baru; policy `employees.view/manage` dan pemeriksaan `employees.export`.
+  - UI: `EmployeeDirectory.vue` + dialog form/detail/arsip/akun; menu Teachers/Employees aktif; tombol mengikuti izin; 422 inline; 409 Reload Latest.
+- Sub-item yang tetap perlu perhatian pemilik (tidak menghambat eksekusi, dicatat agar tidak menjadi keputusan diam-diam):
+  - D2: frasa rencana "unik di antara baris aktif" ditafsirkan sebagai **unconditional unique** demi konsistensi DEC-21 dan kebutuhan deteksi bentrok restore. Bila pemilik menghendaki unique hanya untuk baris non-arsip, perubahan harus diminta sebelum migration diterapkan ke database operasional.
+  - D5: tidak ada mekanisme penautan ulang otomatis; penautan ulang akun yang pernah dilepas hanya lewat aksi eksplisit `employees.manage`.
+  - D8: daftar kolom ekspor final = Name, Employee Type, Employee Status, Employment, Subject, NUPTK, Gender, TMT, Exit Date, Archived At; NIK dan PII lain tidak diekspor.
+- Status: APPROVED. Fase affected: 04b.
+
 ### Keputusan yang masih OPEN (belum diputuskan)
 - Makna `status_user_id` (jangan disamakan dengan `status_active`), deployment CORS/Sanctum produksi, strategi pencabutan token vs sesi.
 
@@ -178,6 +201,7 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 | DEC-21 | Pengarsipan administratif, keunikan NIK/NIS, versioning | Arsip rombel via archived_at/reason terpisah dari mutasi, keunikan NIK/NIS unconditional, version check atomik | APPROVED (2026-10-21 WIB) | 03b |
 | DEC-22 | Daftar siswa server-side, placement, rekap, ekspor | All/Placed/Unplaced; paginasi 10/20/50/100 (default 20); rekap siswa unik; ekspor ikut filter + 422 limit; atribut daftar minimum | APPROVED (2026-10-21 WIB) | 03c |
 | DEC-23 | Penempatan dan perpindahan rombel siswa | Assign & Transfer rombel; tanpa koreksi/is_correction; tahun ajaran terpilih; tanggal Asia/Jakarta server; preservasi riwayat keluar; students.manage | APPROVED (2026-10-26 WIB) | 03d |
+| DEC-24 | CRUD pegawai, relasi akun, ekspor | `employees.name`/`nik`/`archive_reason`; dua route Teachers/Employees; mapel kondisional; link/unlink terkendali; PII detail hanya manage; arsip beralasan + restore berversi; ekspor terfilter 422 limit | APPROVED (2026-10-29 WIB) | 04b |
 
 ## Format pencatatan keputusan
 Tanggal WIB; ID; konteks; alternatif; pilihan pemilik dan bukti instruksi; dampak schema/API/UI; fase affected; status OPEN/PROPOSED/APPROVED/SUPERSEDED. Pertahankan riwayat bila keputusan berubah.

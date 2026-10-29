@@ -4,7 +4,7 @@ Tanggal WIB: 2026-10-26; re-verifikasi dan perbaikan: 2026-10-29. Branch: `main`
 Baseline rencana: `41f6e68`.
 Keputusan pemilik: **DEC-04** (APPROVED pada 2026-10-26 WIB, commit `7cd6dc8`).
 Status implementasi: **IMPLEMENTED & RE-VERIFIED (AGEN, 2026-10-29); perbaikan gap 04a diterapkan**.
-Status penerimaan manual pemilik: **PENDING (Panduan review fondasi `PHASE-04A-MANUAL-REVIEW.md`)**.
+Status penerimaan manual pemilik: **APPROVED OLEH PEMILIK (2026-10-29 WIB)** — checklist `PHASE-04A-MANUAL-REVIEW.md` #1–#13; sumber bukti hanya pernyataan pemilik, agen tidak menjalankan ulang pengujian untuk mencatat status ini.
 Status fase: Fase 01, 02, dan 03 (03a–03d) tetap **DITERIMA LENGKAP & DITUTUP**; Subfase 04a adalah fondasi schema dan pemodelan data pegawai; Subfase 04b (CRUD/UI) **NOT STARTED**.
 
 > **Pernyataan Batas Scope:** Laporan ini membuktikan implementasi teknis dan verifikasi otomatis Subfase 04a pada lapisan schema database, model relasi, privasi audit, dan layanan backfill. Bukti agen terpisah dari penerimaan manual pemilik. Subfase 04a tidak mencakup CRUD lengkap, form input, atau antarmuka pengguna (UI) yang berada pada Subfase 04b. Penerimaan bukan izin deployment ke produksi dan bukan penyelesaian seluruh risiko keamanan terbuka.
@@ -132,6 +132,8 @@ Sesuai Keputusan Pemilik DEC-04, Subfase 04a meletakkan fondasi teknis modul Gur
 
 ## 5. Langkah Selanjutnya
 
-1. Pemilik meninjau checklist panduan fondasi di `reports/feature-update/PHASE-04A-MANUAL-REVIEW.md` (termasuk item penanda legacy, rollback fail-closed, dan allowlist audit tanpa NUPTK).
-2. Jalankan `php artisan migrate` pada lingkungan yang diotorisasi untuk menerapkan migration additive `2029_07_25_000001` (belum dijalankan di UAT).
-3. Setelah peninjauan fondasi disetujui, pemilik dapat memberikan otorisasi untuk pelaksanaan **Subfase 04b (CRUD Lengkap, Form Input, dan Antarmuka Pengguna Pegawai & Guru)**.
+1. ~~Pemilik meninjau checklist panduan fondasi di `reports/feature-update/PHASE-04A-MANUAL-REVIEW.md`~~ — **SELESAI**: pemilik menyatakan "Pengujian nomor 1-13 sudah berhasil dan saya approved" (2026-10-29 WIB).
+2. Jalankan `php artisan migrate` pada lingkungan yang diotorisasi untuk menerapkan migration additive `2029_07_25_000001` (belum dijalankan di UAT; migrasi UAT belum diotorisasi).
+3. Subfase **04b (CRUD Lengkap, Form Input, dan Antarmuka Pengguna Pegawai & Guru)** masih **belum diotorisasi**; pemilik dapat memberikan otorisasi terpisah.
+
+**Batas penerimaan:** persetujuan berlaku untuk fondasi 04a yang diuji. Ini bukan penerimaan CRUD/UI 04b, bukan izin deploy ke produksi, bukan penerapan migration ke UAT, dan bukan penutupan risiko keamanan terbuka pada bagian 4.

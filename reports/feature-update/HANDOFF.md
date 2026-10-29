@@ -25,7 +25,7 @@ Status fase:
   6. Test MariaDB memakai user khusus DB `school_04a` (bukan `school_compat_app` yang memiliki grant pada DB review lain).
 - **Bukti aktual 2026-10-29**: SQLite `EmployeeSchemaAndAccountRelationTest` **21 passed / 111 assertions**; MariaDB `MariaDbEmployeeIntegrationTest` **6 passed / 31 assertions** pada `school_04a_integration` yang dibuat ulang; `FactoryIntegrityTest` 3/26 dan `StudentRombelAssignmentTest` 16/78 PASS; Pint --test PASS.
 - **NOT RUN**: `MariaDbRombelConcurrencyTest` (target `school_restore_drill_uat` di luar allowlist sesi).
-- **Status 04a**: fondasi siap review pemilik; checklist manual #1–#13 PENDING; 04b belum diotorisasi. Migration baru belum diterapkan ke UAT.
+- **Status 04a**: **DITERIMA PEMILIK** — checklist manual #1–#13 APPROVED 2026-10-29 WIB berdasarkan pernyataan pemilik ("Pengujian nomor 1-13 sudah berhasil dan saya approved"); agen tidak menjalankan ulang pengujian untuk mencatat status. 04b **diotorisasi 2026-10-29 WIB (DEC-24)** dan implementasinya berjalan. Migration baru belum diterapkan ke UAT.
 
 ---
 
@@ -137,11 +137,12 @@ Gap pengujian yang diidentifikasi pada checkpoint sebelumnya telah dibuktikan se
 | **02 (02a–02c)** | Audit terpercaya & backup/restore | IMPLEMENTED & FULLY VERIFIED | **DITERIMA LENGKAP & DITUTUP** |
 | **03 (03a–03c)** | Pendataan siswa lengkap & aman | IMPLEMENTED & FULLY VERIFIED | **DITERIMA LENGKAP & DITUTUP** |
 | **03d (tambahan)** | Penempatan & perpindahan rombel UI | IMPLEMENTED & FULLY VERIFIED | **DITERIMA LENGKAP & DITUTUP** (Checklist #1–#15 APPROVED) |
-| **04a** | Schema profil pegawai dan hubungan akun | **IMPLEMENTED & FULLY VERIFIED (AGEN)** | **MANUAL ACCEPTANCE PENDING** (#1–#10 di `PHASE-04A-MANUAL-REVIEW.md`) |
-| **04b** | CRUD pegawai dan menu aktif | NOT STARTED | PENDING |
+| **04a** | Schema profil pegawai dan hubungan akun | **IMPLEMENTED & FULLY VERIFIED (AGEN)** | **DITERIMA PEMILIK** (checklist #1–#13 APPROVED 2026-10-29 WIB per pernyataan pemilik) |
+| **04b** | CRUD pegawai dan menu aktif | IMPLEMENTASI BERJALAN (sesi 2026-10-29) | PENDING |
 
 **Langkah untuk Sesi Baru**:
-1. Pemilik meninjau checklist review fondasi Subfase 04a di `reports/feature-update/PHASE-04A-MANUAL-REVIEW.md` (#1–#10).
-2. Setelah peninjauan manual 04a disetujui pemilik, otorisasi pelaksanaan Subfase 04b (CRUD, form input, dan menu aktif Teachers/Employees di UI).
-3. Pertahankan server UAT loopback 18021/14021 dan database `school_compat_uat`.
-4. Seluruh risiko keamanan terbuka (advisories, lifecycle Laravel/PHP, rotasi kunci produksi) tetap OPEN.
+1. ~~Pemilik meninjau checklist review fondasi Subfase 04a~~ — **SELESAI 2026-10-29**: checklist `PHASE-04A-MANUAL-REVIEW.md` #1–#13 APPROVED oleh pemilik.
+2. ~~Subfase 04b menunggu otorisasi terpisah~~ — **DIOTORISASI 2026-10-29 WIB**: pemilik menyetujui D1–D8 (DEC-24) dan menginstruksikan eksekusi; implementasi berjalan dalam batas `PHASE-04B-PLAN.md`; hasil dan sisa pekerjaan dicatat di `PHASE-04B-REPORT.md`.
+3. Terapkan migration additive `2029_07_25_000001` dan `2029_07_26_000001` hanya pada lingkungan yang diotorisasi (UAT belum diotorisasi).
+4. Pertahankan server UAT loopback 18021/14021 dan database `school_compat_uat`.
+5. Seluruh risiko keamanan terbuka (advisories, lifecycle Laravel/PHP, rotasi kunci produksi) tetap OPEN.

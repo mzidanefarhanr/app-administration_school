@@ -1,7 +1,7 @@
 # Rencana Subfase 04a — Schema Profil Pegawai dan Hubungan Akun
 
 Tanggal: 2026-10-26 (WIB). Branch: `main`.
-Status: **APPROVED BY OWNER (2026-10-26 WIB; KEPUTUSAN DEC-04 DISAHKAN)**.
+Status: **APPROVED BY OWNER (2026-10-26 WIB; KEPUTUSAN DEC-04 DISAHKAN)**. Penerimaan fondasi 04a: **APPROVED 2026-10-29 WIB** (checklist #1–#13 `PHASE-04A-MANUAL-REVIEW.md`, per pernyataan pemilik).
 Subfase: **04a — Schema Profil dan Hubungan Akun** (Fase 04: Guru dan Pegawai).
 
 > **Pernyataan Batas Scope:** Subfase 04a difokuskan strictly pada **fondasi schema, model relasi, dan kebijakan hubungan akun**. CRUD lengkap, form input, antarmuka pengguna (UI), dan tes endpoint create 201/update 409 berada pada Subfase **04b**. Subfase 04a tidak mengaktifkan endpoint baru yang belum berimplementasi lengkap.

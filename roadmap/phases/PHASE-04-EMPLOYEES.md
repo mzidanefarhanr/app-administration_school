@@ -1,7 +1,7 @@
 # Fase 04 — Guru dan pegawai
 
-Status teknis: SUBPHASE 04a IMPLEMENTED & FULLY VERIFIED (AGEN). Status review: MANUAL ACCEPTANCE PENDING (#1–#10). Subfase 04b: NOT STARTED.
-Dependensi: 01; 02; DEC-04 (APPROVED 2026-10-26 WIB).
+Status teknis: SUBPHASE 04a IMPLEMENTED & FULLY VERIFIED (AGEN); **DITERIMA PEMILIK (checklist #1–#13 APPROVED 2026-10-29 WIB)**. Subfase 04b: **DIOTORISASI PEMILIK 2026-10-29 WIB (DEC-24)**; implementasi berjalan.
+Dependensi: 01; 02; DEC-04 (APPROVED 2026-10-26 WIB); DEC-24 (APPROVED 2026-10-29 WIB).
 
 ## Tujuan dan scope
 Guru dan pegawai. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis.
@@ -9,7 +9,7 @@ Guru dan pegawai. Kerjakan satu subfase per instruksi pemilik; jangan mengekseku
 ## Subfase
 
 ### 04a — Schema profil dan hubungan akun
-Status: **IMPLEMENTED & FULLY VERIFIED (AGEN) / MANUAL ACCEPTANCE PENDING** (DEC-04 APPROVED 2026-10-26 WIB; checklist #1–#10 di `reports/feature-update/PHASE-04A-MANUAL-REVIEW.md`).
+Status: **DITERIMA PEMILIK (checklist #1–#13 APPROVED 2026-10-29 WIB; sumber bukti pernyataan pemilik)** (DEC-04 APPROVED 2026-10-26 WIB; checklist di `reports/feature-update/PHASE-04A-MANUAL-REVIEW.md`). Migration additive belum diterapkan ke UAT.
 Laporan: `reports/feature-update/PHASE-04A-EMPLOYEE-SCHEMA.md`.
 Scope selesai: Migration additive `2029_07_24_000001` (`user_id` nullable unique nullOnDelete, `version` default 1, `user_nik` & `subject_id` nullable); model `Employee` (`user_id` relasi primer, `user_nik` fallback aman legacy, koreksi typo `religion()` + alias `relogion()`, allowlist audit privacy minimalkan PII); `EmployeePolicy` penegakan `employees.view` dan `employees.manage`; `EmployeeBackfillService` idempotent berbasis NIK unik tanpa leak PII. (15 SQLite test PASS, 5 MariaDB integration test PASS, Pint 100% PASS).
 
@@ -29,6 +29,7 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 ```
 
 ### 04b — CRUD dan menu aktif
+Status: **DIOTORISASI PEMILIK 2026-10-29 WIB (DEC-24, D1–D8 APPROVED)**; implementasi berjalan (`reports/feature-update/PHASE-04B-PLAN.md`; laporan hasil `PHASE-04B-REPORT.md`). Temuan audit yang menjadi scope: `employees` belum memiliki kolom nama/NIK/alasan arsip, controller/FormRequest masih scaffold, `index()` membocorkan PII, dan menu Teachers/Employees masih placeholder.
 Scope: Selesaikan controller/request/resource, biodata, riwayat pendidikan/pekerjaan, status, arsip/restore, izin field, version bila ditambahkan, audit. Menu Teachers/Employees aktif ke halaman nyata.
 
 Kriteria penerimaan: Aksi tersimpan, jenis pegawai terfilter benar, profil sendiri terbatas, download/export sesuai izin, nama sama dan data opsional valid.

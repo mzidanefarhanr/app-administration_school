@@ -17,6 +17,26 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-29] Subfase 04b — Otorisasi pemilik dan pencatatan DEC-24
+- Type: Docs
+- Scope / fase: Otorisasi Subfase 04b (CRUD pegawai, relasi akun, ekspor, menu aktif); belum ada kode yang diubah pada entri ini.
+- Files touched: `docs/DECISIONS.md`, `reports/feature-update/PHASE-04B-PLAN.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-04-EMPLOYEES.md`, `CHANGELOG.md`.
+- What changed: DEC-24 dicatat APPROVED (2026-10-29 WIB) berisi pemetaan D1–D8; status rencana 04b diubah menjadi diotorisasi/dieksekusi; sub-item yang ditafsirkan teknis (keunikan `nik` unconditional, tanpa re-link otomatis, daftar kolom ekspor tanpa PII) dicatat eksplisit.
+- Why: Pemilik menyatakan "Saya setuju rekomendasi kamu, lakukan eksekusi." atas rencana 04b dan seluruh rekomendasi D1–D8.
+- Validation: **NOT RUN** — entri dokumentasi; tidak ada tes/build/migration yang dijalankan.
+- Notes / risks: Otorisasi tidak mencakup merge/deploy, migration UAT, atau perubahan dependency. `employees.export` kini menjadi komitmen implementasi 04b.
+- Evidence: Pernyataan pemilik 2026-10-29 WIB; DEC-24; `PHASE-04B-PLAN.md`.
+
+## [2026-10-29] Subfase 04a — Penerimaan manual pemilik (checklist #1–#13 APPROVED)
+- Type: Docs
+- Scope / fase: Penerimaan Subfase 04a oleh pemilik; tidak mengubah kode, schema, atau UI.
+- Files touched: `reports/feature-update/PHASE-04A-MANUAL-REVIEW.md`, `reports/feature-update/PHASE-04A-EMPLOYEE-SCHEMA.md`, `reports/feature-update/PHASE-04A-PLAN.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `roadmap/ROADMAP.md`, `CHANGELOG.md`.
+- What changed: Status penerimaan 04a diubah dari PENDING menjadi APPROVED; checklist #1–#13 ditandai disetujui; dicatat kutipan pernyataan pemilik beserta provenansi bukti dan batas cakupan penerimaan.
+- Why: Pemilik menyatakan seluruh pengujian manual #1–#13 berhasil dan memberikan persetujuan (DEC-04).
+- Validation: **NOT RUN** — tidak ada pengujian, Tinker, koneksi DB, atau migration yang dijalankan ulang untuk mencatat persetujuan; sumber bukti satu-satunya adalah pernyataan pemilik.
+- Notes / risks: Persetujuan hanya mencakup fondasi 04a; 04b (CRUD/UI) belum diotorisasi, migration `2029_07_25_000001` belum diterapkan ke UAT, dan risiko keamanan terbuka tetap OPEN.
+- Evidence: Pernyataan pemilik "Pengujian nomor 1-13 sudah berhasil dan saya approved" (2026-10-29 WIB); laporan `PHASE-04A-EMPLOYEE-SCHEMA.md` dan `PHASE-04A-MANUAL-REVIEW.md`.
+
 ## [2026-10-29] Subfase 04a — Re-verifikasi independen dan perbaikan gap fondasi profil pegawai
 - Type: Fix | Security | Schema Change | Test | Docs
 - Scope / fase: Subfase 04a (Fase 04: Guru dan Pegawai); tidak menyentuh CRUD/UI 04b.
