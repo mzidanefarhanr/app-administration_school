@@ -15,6 +15,11 @@ API mayoritas hanya auth:sanctum. Beberapa controller akun membedakan tipe secar
 - Pemetaan legacy: hanya `type_users.name='Admin'` yang dipetakan otomatis ke `admin-sistem`; `User`/tak dikenal/tanpa tipe → tanpa peran (default deny). Peran pengguna lama ditetapkan manual oleh admin; penetapan eksplisit tidak dihapus.
 - Kemampuan modul yang belum dibangun (surat/izin/pembelajaran) tercatat sebagai **kemampuan direncanakan**; enforcement end-to-end belum diuji karena fiturnya belum ada. `students.export` kini punya titik penegakan nyata pada ekspor siswa.
 
+## Implementasi Fase 04a (fondasi personalia)
+- `App\Policies\EmployeePolicy` menegakkan kemampuan bernama: `viewAny`/`view` → `employees.view`; `create`/`update`/`delete`/`restore` → `employees.manage`; `forceDelete` selalu `false`.
+- Route `/employee` (index/show → `employees.view`; lainnya → `employees.manage`) sudah memakai kemampuan ini sejak baseline `41f6e68`; 04a tidak mengubah route. Normalisasi `/employees` dan transisi consumer berada di 04b.
+- Tidak ada perubahan penetapan peran/kemampuan pada 04a. Department/tipe pegawai tidak dipakai sebagai sumber otorisasi.
+
 ## Matriks target — usulan, bukan role yang sudah ada
 | Kemampuan | Admin | Operator | Kepala sekolah | Guru/wali kelas |
 |---|---|---|---|---|

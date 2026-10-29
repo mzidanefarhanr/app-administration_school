@@ -16,15 +16,16 @@ class Employee extends Model
 
     protected $table = 'employees';
 
-    protected $dates = ['deleted_at', 'user_id_resolved_at', 'account_unlinked_at'];
+    protected $dates = ['deleted_at', 'user_id_resolved_at', 'account_unlinked_at', 'legacy_profile_at'];
 
     protected $attributes = [
         'version' => 1,
     ];
 
     /**
-     * Atribut yang diizinkan untuk dicatat dalam log audit (allowlist).
-     * Kolom data pribadi sensitif (nama ibu kandung, pasangan, nomor KK, NPWP, IPK) secara ketat dikecualikan (DEC-04 #6).
+     * Atribut yang diizinkan untuk dicatat dalam log audit (allowlist minimum).
+     * Data pribadi (nama, NIK/NUPTK/NPWP/KK, ibu kandung, pasangan, kontak,
+     * alamat, nilai/IPK ijazah) dikecualikan penuh (DEC-04 #6).
      *
      * @var array<int, string>
      */
@@ -36,7 +37,6 @@ class Employee extends Model
         'subject_id',
         'gender_id',
         'religion_id',
-        'nuptk',
         'tmt_employee',
         'exit_date',
         'version',
@@ -51,6 +51,7 @@ class Employee extends Model
         'user_id',
         'user_id_resolved_at',
         'account_unlinked_at',
+        'legacy_profile_at',
         'version',
         'user_nik',
         'employee_status_id',
@@ -139,8 +140,8 @@ class Employee extends Model
      * 1. Jika user_id terisi, user_id adalah sumber kebenaran mutlak.
      * 2. Jika akun telah dilepas (account_unlinked_at) atau sudah diresolusi di Phase 04a,
      *    jangan pernah menghubungkan ulang melalui user_nik.
-     * 3. Fallback NIK HANYA untuk baris legacy yang belum pernah dimigrasikan,
-     *    dan hanya bila terdapat tepat 1 user yang cocok.
+     * 3. Fallback NIK HANYA untuk baris legacy (legacy_profile_at terisi) yang belum
+     *    pernah dimigrasikan, dan hanya bila terdapat tepat 1 user yang cocok.
      */
     public function resolveUser(): ?User
     {
@@ -149,6 +150,10 @@ class Employee extends Model
         }
 
         if ($this->account_unlinked_at !== null || $this->user_id_resolved_at !== null) {
+            return null;
+        }
+
+        if ($this->legacy_profile_at === null) {
             return null;
         }
 

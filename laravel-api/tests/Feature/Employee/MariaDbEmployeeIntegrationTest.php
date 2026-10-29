@@ -5,9 +5,17 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 
 beforeEach(function () {
-    $envDir = 'C:\Users\LENOVO\AppData\Local\Temp\opencode\school-sec-env';
-    $passFile = "$envDir\secret_db_pass.txt";
-    $pass = file_exists($passFile) ? trim(file_get_contents($passFile)) : '';
+    // Credentials are supplied out-of-band (env or a file outside the repository).
+    $pass = (string) getenv('SCHOOL_04A_DB_PASSWORD');
+    $passFile = (string) getenv('SCHOOL_04A_DB_PASSWORD_FILE');
+
+    if ($pass === '' && $passFile !== '' && is_file($passFile)) {
+        $pass = trim((string) file_get_contents($passFile));
+    }
+
+    if ($pass === '') {
+        $this->markTestSkipped('SCHOOL_04A_DB_PASSWORD or SCHOOL_04A_DB_PASSWORD_FILE is required for MariaDB integration tests.');
+    }
 
     config([
         'database.connections.mariadb_04a' => [
@@ -15,7 +23,7 @@ beforeEach(function () {
             'host' => '127.0.0.1',
             'port' => '3306',
             'database' => 'school_04a_integration',
-            'username' => 'school_compat_app',
+            'username' => 'school_04a',
             'password' => $pass,
             'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
@@ -122,6 +130,10 @@ test('mariadb integration: 04a migration establishes nullable user_id, nullable 
     $indexes = $conn->select("SHOW INDEXES FROM employees WHERE Column_name = 'user_id'");
     expect(count($indexes))->toBeGreaterThan(0);
     expect((int) $indexes[0]->Non_unique)->toBe(0, 'user_id must be UNIQUE index');
+
+    // 7. Legacy marker added by the follow-up additive migration
+    expect($colMap)->toHaveKey('legacy_profile_at');
+    expect($colMap['legacy_profile_at']->Null)->toBe('YES');
 });
 
 test('mariadb integration: multiple employees can have NULL user_id without violating unique constraint', function () {
@@ -320,6 +332,7 @@ test('mariadb integration: EmployeeBackfillService successfully resolves matchin
 
     $empId1 = $conn->table('employees')->insertGetId([
         'user_id' => null,
+        'legacy_profile_at' => now(),
         'user_nik' => $nik1,
         'employee_status_id' => 1,
         'employee_type_id' => 2,
@@ -346,4 +359,52 @@ test('mariadb integration: EmployeeBackfillService successfully resolves matchin
     } finally {
         DB::setDefaultConnection($prevDefault);
     }
+});
+
+test('mariadb integration: backfill ignores profiles created after 04a even when NIK matches', function () {
+    $conn = DB::connection('mariadb_04a');
+
+    $nik = '78'.str_pad((string) mt_rand(10000000, 99999999).mt_rand(100000, 999999), 14, '0', STR_PAD_LEFT);
+    $userId = $conn->table('users')->insertGetId([
+        'name' => 'MariaDB Non Legacy User',
+        'username' => 'bf_nonlegacy_'.bin2hex(random_bytes(4)),
+        'email' => 'bf_nonlegacy_'.bin2hex(random_bytes(4)).'@test.local',
+        'password' => bcrypt('Password12345!'),
+        'nik' => $nik,
+        'type_user_id' => 2,
+        'status_user_id' => 1,
+        'first_login_at' => 0,
+        'status_active' => 1,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $empId = $conn->table('employees')->insertGetId([
+        'user_id' => null,
+        'legacy_profile_at' => null,
+        'user_nik' => $nik,
+        'employee_status_id' => 1,
+        'employee_type_id' => 1,
+        'employment_id' => 1,
+        'subject_id' => null,
+        'religion_id' => 1,
+        'district_id' => 1,
+        'marital_status_id' => 1,
+        'gender_id' => 1,
+        'tmt_employee' => '2026-01-01',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $prevDefault = DB::getDefaultConnection();
+    DB::setDefaultConnection('mariadb_04a');
+    try {
+        $stats = (new EmployeeBackfillService)->backfill(false);
+    } finally {
+        DB::setDefaultConnection($prevDefault);
+    }
+
+    expect($stats['skipped_non_legacy'])->toBeGreaterThanOrEqual(1);
+    expect($conn->table('employees')->where('id', $empId)->value('user_id'))->toBeNull();
+    expect($conn->table('employees')->where('id', $empId)->value('user_id_resolved_at'))->toBeNull();
 });

@@ -17,6 +17,22 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-29] Subfase 04a — Re-verifikasi independen dan perbaikan gap fondasi profil pegawai
+- Type: Fix | Security | Schema Change | Test | Docs
+- Scope / fase: Subfase 04a (Fase 04: Guru dan Pegawai); tidak menyentuh CRUD/UI 04b.
+- Files touched:
+  - `laravel-api/database/migrations/2029_07_25_000001_add_legacy_profile_marker_to_employees.php` (baru)
+  - `laravel-api/database/migrations/2029_07_24_000001_update_employees_schema_for_phase_04a.php` (down fail-closed, rebuild SQLite atomik)
+  - `laravel-api/app/Console/Commands/EmployeeBackfillCommand.php` (baru)
+  - `laravel-api/app/Models/Employee.php`, `laravel-api/app/Services/EmployeeBackfillService.php`
+  - `laravel-api/tests/Feature/Employee/EmployeeSchemaAndAccountRelationTest.php`, `laravel-api/tests/Feature/Employee/MariaDbEmployeeIntegrationTest.php`
+  - `docs/DATABASE.md`, `docs/API-CONTRACTS.md`, `reports/feature-update/PHASE-04A-*.md`, `reports/feature-update/INDEX.md`, `roadmap/ROADMAP.md`
+- What changed: Menambahkan penanda `legacy_profile_at` agar fallback NIK hanya berlaku untuk baris pra-04a; backfill mengecualikan akun soft-deleted dan berjalan atomik; `resolveUser()` ber-gate legacy; allowlist audit mengeluarkan NUPTK; `down()` menolak rollback sebelum DDL bila data tidak representable dan rebuild SQLite dibungkus transaksi; command `app:employee-account-backfill --dry-run` tanpa PII; test MariaDB memakai user khusus DB `school_04a`. Koreksi dokumentasi: `routes/api.php` tidak berubah pada 04a (sudah memakai `employees.view`/`employees.manage` pada baseline).
+- Why: Menutup celah relink akun melalui NIK untuk profil baru/akun terhapus, mencegah rollback parsial dan kehilangan link diam-diam, serta memenuhi allowlist audit minimum (DEC-04 #3, #5, #6).
+- Validation: SQLite 21 passed / 111 assertions; MariaDB 6 passed / 31 assertions; FactoryIntegrity 3/26 dan StudentRombelAssignment 16/78 PASS; Pint --test PASS (7 berkas). NOT RUN: `MariaDbRombelConcurrencyTest` (database di luar allowlist).
+- Notes / risks: Migration `2029_07_25_000001` belum diterapkan ke UAT (migrasi UAT tidak diotorisasi). Risiko dependency/lifecycle tetap OPEN. Penerimaan manual pemilik tetap PENDING.
+- Evidence: `reports/feature-update/PHASE-04A-EMPLOYEE-SCHEMA.md`.
+
 ## [2026-10-26] Subfase 04a — Implementasi fondasi schema profil pegawai dan hubungan akun
 - Type: Feature | Schema Change | Test | Docs
 - Scope / fase: Subfase 04a (Fase 04: Guru dan Pegawai); implementasi fondasi schema, model, audit allowlist, policy, dan backfill akun.

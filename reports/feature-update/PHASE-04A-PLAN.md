@@ -56,13 +56,13 @@ Pemeriksaan terhadap berkas baseline menghasilkan temuan-temuan konkret sebagai 
   - Nilai/IPK ijazah (`passing_grade`).
 
 ### 2.3 Route & Controller Backend
-- **Route API Singular & Salah Hak Akses**:
-  Di `laravel-api/routes/api.php:188-191`:
+- **Route API Singular (koreksi audit 2026-10-29)**:
+  Di `laravel-api/routes/api.php:188-191`, baseline `41f6e68` sebenarnya **sudah** memakai kemampuan bernama:
   ```php
-  Route::apiResource('/employee', EmployeeController::class)->only(['index', 'show'])->middleware('can:master.view');
-  Route::apiResource('/employee', EmployeeController::class)->except(['index', 'show'])->middleware('can:master.manage');
+  Route::apiResource('/employee', EmployeeController::class)->only(['index', 'show'])->middleware('can:employees.view');
+  Route::apiResource('/employee', EmployeeController::class)->except(['index', 'show'])->middleware('can:employees.manage');
   ```
-  *Masalah*: Menggunakan endpoint singular `/employee` (bukan plural standar `/employees`) dan menggunakan permission `master.view`/`master.manage` alih-alih `employees.view`/`employees.manage` yang sudah disiapkan di `AbilityCatalog`.
+  *Temuan*: Klaim awal di paragraf ini (route memakai `master.view`/`master.manage`) **tidak akurat**. Satu-satunya masalah nyata adalah endpoint singular `/employee` (bukan plural standar `/employees`); normalisasi route dan transisi consumer berada di 04b, bukan 04a.
 - **Controller & Policy Masih Scaffold Kosong**:
   - `EmployeeController.php`: Method `store`, `show`, `update`, `destroy` adalah stub kosong tanpa implementasi.
   - `EmployeePolicy.php`: Seluruh method policy mengembalikan kosong (null/unauthorized).
@@ -152,6 +152,8 @@ Sebelum implementasi dinyatakan selesai pada Subfase 04a, pengujian berikut waji
 2. **MariaDB Integration Tests**:
    - Dijalankan pada database disposable terisolasi (misal `school_04a_integration`) dengan guard pre-bootstrap ketat.
    - Membuktikan bahwa foreign key `user_id` (`nullOnDelete`) dan nullability `subject_id` berjalan identik di MariaDB 10.4.
+
+> **Koreksi batas scope (2026-10-29):** Kriteria HTTP `201` (create) dan `409` (expected_version) pada daftar di atas adalah kontrak **Subfase 04b** dan **tidak** diklaim lulus pada 04a. Verifikasi 04a dilakukan pada level schema/model/service (lihat `PHASE-04A-EMPLOYEE-SCHEMA.md`).
 
 ---
 

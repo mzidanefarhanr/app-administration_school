@@ -15,6 +15,7 @@ use App\Models\Subject;
 use App\Models\User;
 use App\Services\EmployeeBackfillService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Laravel\Sanctum\Sanctum;
 use Tests\Support\CreatesAccessFixtures;
 
@@ -236,6 +237,7 @@ test('resolveUser falls back to unique user_nik only for unmigrated legacy rows'
         'user_id' => null,
         'user_id_resolved_at' => null,
         'account_unlinked_at' => null,
+        'legacy_profile_at' => now(),
         'user_nik' => $user->nik,
         'employee_status_id' => $this->statusPty->id,
         'employee_type_id' => $this->typeTeacher->id,
@@ -351,6 +353,7 @@ test('employee backfill resolves matching 16-digit NIK uniquely and is idempoten
 
     $emp1 = Employee::create([
         'user_id' => null,
+        'legacy_profile_at' => now(),
         'user_nik' => '1000000000000001',
         'employee_status_id' => $this->statusPty->id,
         'employee_type_id' => $this->typeTeacher->id,
@@ -365,6 +368,7 @@ test('employee backfill resolves matching 16-digit NIK uniquely and is idempoten
 
     $emp2 = Employee::create([
         'user_id' => null,
+        'legacy_profile_at' => now(),
         'user_nik' => '1000000000000002',
         'employee_status_id' => $this->statusPty->id,
         'employee_type_id' => $this->typeNonTeacher->id,
@@ -409,6 +413,7 @@ test('employee backfill preserves existing user_id and leaves invalid/unmatched/
         'user_id' => $alreadyLinkedUser->id,
         'user_nik' => $alreadyLinkedUser->nik,
         'user_id_resolved_at' => now(),
+        'legacy_profile_at' => now(),
         'employee_status_id' => $this->statusPty->id,
         'employee_type_id' => $this->typeNonTeacher->id,
         'employment_id' => $this->employment->id,
@@ -422,6 +427,7 @@ test('employee backfill preserves existing user_id and leaves invalid/unmatched/
     // 2. Employee with empty NIK
     $empEmpty = Employee::create([
         'user_id' => null,
+        'legacy_profile_at' => now(),
         'user_nik' => null,
         'employee_status_id' => $this->statusPty->id,
         'employee_type_id' => $this->typeNonTeacher->id,
@@ -437,6 +443,7 @@ test('employee backfill preserves existing user_id and leaves invalid/unmatched/
     $userInvalid = User::factory()->create(['nik' => '12345']);
     $empInvalid = Employee::create([
         'user_id' => null,
+        'legacy_profile_at' => now(),
         'user_nik' => '12345',
         'employee_status_id' => $this->statusPty->id,
         'employee_type_id' => $this->typeNonTeacher->id,
@@ -454,6 +461,7 @@ test('employee backfill preserves existing user_id and leaves invalid/unmatched/
     }
     $empUnmatched = Employee::create([
         'user_id' => null,
+        'legacy_profile_at' => now(),
         'user_nik' => '9999999999999999',
         'employee_status_id' => $this->statusPty->id,
         'employee_type_id' => $this->typeNonTeacher->id,
@@ -471,6 +479,7 @@ test('employee backfill preserves existing user_id and leaves invalid/unmatched/
     // 5. Employee with NIK matching user that is already linked to $preResolved
     $empReused = Employee::create([
         'user_id' => null,
+        'legacy_profile_at' => now(),
         'user_nik' => $alreadyLinkedUser->nik,
         'employee_status_id' => $this->statusPty->id,
         'employee_type_id' => $this->typeNonTeacher->id,
@@ -533,11 +542,11 @@ test('employee audit log strictly enforces allowlist and excludes sensitive PII 
     // Auditable allowed fields are recorded
     expect($newPayload)->toHaveKey('employee_status_id')
         ->and($newPayload)->toHaveKey('employee_type_id')
-        ->and($newPayload)->toHaveKey('nuptk')
         ->and($newPayload)->toHaveKey('version');
 
     // Sensitive fields are strictly NOT recorded in audit json
-    expect($newPayload)->not->toHaveKey('biological_mothers_name')
+    expect($newPayload)->not->toHaveKey('nuptk')
+        ->and($newPayload)->not->toHaveKey('biological_mothers_name')
         ->and($newPayload)->not->toHaveKey('partners_name')
         ->and($newPayload)->not->toHaveKey('no_kk')
         ->and($newPayload)->not->toHaveKey('npwp')
@@ -557,12 +566,12 @@ test('employee audit log strictly enforces allowlist and excludes sensitive PII 
         ->first();
 
     expect($updateAudit)->not->toBeNull();
-    expect($updateAudit->after)->toHaveKey('nuptk')
-        ->and($updateAudit->after['nuptk'])->toBe('9999888877776666')
-        ->and($updateAudit->after)->toHaveKey('version')
+    expect($updateAudit->after)->toHaveKey('version')
         ->and($updateAudit->after['version'])->toBe(2);
 
-    expect($updateAudit->after)->not->toHaveKey('biological_mothers_name')
+    expect($updateAudit->after)->not->toHaveKey('nuptk')
+        ->and($updateAudit->before)->not->toHaveKey('nuptk')
+        ->and($updateAudit->after)->not->toHaveKey('biological_mothers_name')
         ->and($updateAudit->before)->not->toHaveKey('biological_mothers_name');
 });
 
@@ -600,4 +609,156 @@ test('employee policy authorizes employees.view for viewing and employees.manage
     expect($this->plainUser->can('view', $emp))->toBeFalse();
     expect($this->plainUser->can('create', Employee::class))->toBeFalse();
     expect($this->plainUser->can('update', $emp))->toBeFalse();
+});
+
+test('profiles created after 04a never link to an account through user_nik', function () {
+    $user = User::factory()->create(['nik' => '3201010101010055']);
+
+    $profile = Employee::create([
+        'user_id' => null,
+        'user_nik' => $user->nik,
+        'employee_status_id' => $this->statusPty->id,
+        'employee_type_id' => $this->typeNonTeacher->id,
+        'employment_id' => $this->employment->id,
+        'religion_id' => $this->religion->id,
+        'district_id' => $this->district->id,
+        'marital_status_id' => $this->maritalStatus->id,
+        'gender_id' => $this->gender->id,
+        'tmt_employee' => '2026-01-01',
+    ]);
+
+    expect($profile->legacy_profile_at)->toBeNull();
+    expect($profile->resolveUser())->toBeNull();
+
+    $stats = (new EmployeeBackfillService)->backfill(false);
+
+    expect($stats['skipped_non_legacy'])->toBe(1);
+    expect($stats['matched'])->toBe(0);
+    expect($profile->fresh()->user_id)->toBeNull();
+    expect($profile->fresh()->user_id_resolved_at)->toBeNull();
+});
+
+test('hard-deleted linked account cannot be relinked to a post-04a profile through user_nik', function () {
+    $accountA = User::factory()->create(['nik' => '3201010101010066']);
+    $decoy = User::factory()->create(['nik' => '3201010101010067']);
+
+    $employee = Employee::create([
+        'user_id' => $accountA->id,
+        'user_nik' => $decoy->nik,
+        'employee_status_id' => $this->statusPty->id,
+        'employee_type_id' => $this->typeNonTeacher->id,
+        'employment_id' => $this->employment->id,
+        'religion_id' => $this->religion->id,
+        'district_id' => $this->district->id,
+        'marital_status_id' => $this->maritalStatus->id,
+        'gender_id' => $this->gender->id,
+        'tmt_employee' => '2026-01-01',
+    ]);
+
+    DB::table('users')->where('id', $accountA->id)->delete();
+
+    $employee->refresh();
+    expect($employee->user_id)->toBeNull('ON DELETE SET NULL must clear the primary link');
+    expect($employee->resolveUser())->toBeNull('Post-04a profiles must never relink through user_nik');
+});
+
+test('backfill never links a legacy profile to a soft-deleted account', function () {
+    $user = User::factory()->create(['nik' => '3201010101010077']);
+    $user->delete();
+
+    $employee = Employee::create([
+        'user_id' => null,
+        'legacy_profile_at' => now(),
+        'user_nik' => $user->nik,
+        'employee_status_id' => $this->statusPty->id,
+        'employee_type_id' => $this->typeNonTeacher->id,
+        'employment_id' => $this->employment->id,
+        'religion_id' => $this->religion->id,
+        'district_id' => $this->district->id,
+        'marital_status_id' => $this->maritalStatus->id,
+        'gender_id' => $this->gender->id,
+        'tmt_employee' => '2026-01-01',
+    ]);
+
+    $stats = (new EmployeeBackfillService)->backfill(false);
+
+    expect($stats['unresolved_soft_deleted'])->toBe(1);
+    expect($stats['matched'])->toBe(0);
+    expect($employee->fresh()->user_id)->toBeNull();
+});
+
+test('employee backfill command reports counts without leaking PII', function () {
+    $user = User::factory()->create([
+        'nik' => '3201010101010088',
+        'name' => 'Sensitive Account Name',
+        'email' => 'sensitive.account@test.local',
+    ]);
+
+    $employee = Employee::create([
+        'user_id' => null,
+        'legacy_profile_at' => now(),
+        'user_nik' => $user->nik,
+        'employee_status_id' => $this->statusPty->id,
+        'employee_type_id' => $this->typeNonTeacher->id,
+        'employment_id' => $this->employment->id,
+        'religion_id' => $this->religion->id,
+        'district_id' => $this->district->id,
+        'marital_status_id' => $this->maritalStatus->id,
+        'gender_id' => $this->gender->id,
+        'tmt_employee' => '2026-01-01',
+    ]);
+
+    $this->artisan('app:employee-account-backfill', ['--dry-run' => true])
+        ->expectsOutputToContain('Matched & Linked')
+        ->doesntExpectOutputToContain('3201010101010088')
+        ->doesntExpectOutputToContain('Sensitive Account Name')
+        ->doesntExpectOutputToContain('sensitive.account@test.local')
+        ->assertExitCode(0)
+        ->run();
+
+    expect($employee->fresh()->user_id)->toBeNull('Dry run must not write');
+});
+
+test('04a rollback fails closed before any schema change when data is not representable', function () {
+    $employee = Employee::create([
+        'user_id' => null,
+        'employee_status_id' => $this->statusPty->id,
+        'employee_type_id' => $this->typeNonTeacher->id,
+        'employment_id' => $this->employment->id,
+        'subject_id' => null,
+        'religion_id' => $this->religion->id,
+        'district_id' => $this->district->id,
+        'marital_status_id' => $this->maritalStatus->id,
+        'gender_id' => $this->gender->id,
+        'tmt_employee' => '2026-01-01',
+    ]);
+
+    $migration = require database_path('migrations/2029_07_24_000001_update_employees_schema_for_phase_04a.php');
+
+    expect(fn () => $migration->down())->toThrow(RuntimeException::class);
+
+    expect(Employee::find($employee->id))->not->toBeNull('Rollback must not delete employee rows');
+    expect(Schema::hasColumn('employees', 'user_id'))->toBeTrue('Rollback must not drop columns when refused');
+    expect(Schema::hasColumn('employees', 'version'))->toBeTrue();
+});
+
+test('legacy marker migration marks rows that predate 04a only', function () {
+    $preExisting = Employee::create([
+        'user_id' => null,
+        'employee_status_id' => $this->statusPty->id,
+        'employee_type_id' => $this->typeNonTeacher->id,
+        'employment_id' => $this->employment->id,
+        'religion_id' => $this->religion->id,
+        'district_id' => $this->district->id,
+        'marital_status_id' => $this->maritalStatus->id,
+        'gender_id' => $this->gender->id,
+        'tmt_employee' => '2026-01-01',
+    ]);
+
+    DB::table('employees')->where('id', $preExisting->id)->update(['legacy_profile_at' => null]);
+
+    $migration = require database_path('migrations/2029_07_25_000001_add_legacy_profile_marker_to_employees.php');
+    $migration->up();
+
+    expect($preExisting->fresh()->legacy_profile_at)->not->toBeNull();
 });

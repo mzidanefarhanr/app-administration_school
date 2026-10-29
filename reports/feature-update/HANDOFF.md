@@ -13,6 +13,22 @@ Status fase:
 
 ---
 
+## 0a. Checkpoint Re-verifikasi 04a (2026-10-29)
+
+- **Konteks**: Sesi 2026-10-26 sudah mengimplementasikan dan mem-push 04a (`ecb2ea3`). Sesi 2026-10-29 memverifikasi ulang hasil tersebut secara independen dan memperbaiki gap terhadap instruksi pemilik.
+- **Gap yang diperbaiki**:
+  1. Penanda `legacy_profile_at` (migration `2029_07_25_000001`, additive) membatasi fallback NIK hanya pada baris pra-04a; profil baru dan akun yang dilepas/hard-deleted tidak bisa ter-relink.
+  2. `EmployeeBackfillService` atomik, mengecualikan akun soft-deleted, dan hanya memproses baris legacy.
+  3. `down()` migration 04a fail-closed sebelum DDL (NULL `user_nik`/`subject_id` atau `user_id` terhubung) dan rebuild SQLite dibungkus transaksi.
+  4. NUPTK dikeluarkan dari allowlist audit.
+  5. Command `app:employee-account-backfill --dry-run` dengan keluaran agregat tanpa PII.
+  6. Test MariaDB memakai user khusus DB `school_04a` (bukan `school_compat_app` yang memiliki grant pada DB review lain).
+- **Bukti aktual 2026-10-29**: SQLite `EmployeeSchemaAndAccountRelationTest` **21 passed / 111 assertions**; MariaDB `MariaDbEmployeeIntegrationTest` **6 passed / 31 assertions** pada `school_04a_integration` yang dibuat ulang; `FactoryIntegrityTest` 3/26 dan `StudentRombelAssignmentTest` 16/78 PASS; Pint --test PASS.
+- **NOT RUN**: `MariaDbRombelConcurrencyTest` (target `school_restore_drill_uat` di luar allowlist sesi).
+- **Status 04a**: fondasi siap review pemilik; checklist manual #1–#13 PENDING; 04b belum diotorisasi. Migration baru belum diterapkan ke UAT.
+
+---
+
 ## 0. Checkpoint Penutupan Sesi (2026-10-26)
 
 - **HEAD / Remote**: sinkron `origin/main`. Working tree bersih selain artefak lokal `console.txt` dan `vue-app/test-results/`.
