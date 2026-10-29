@@ -20,6 +20,14 @@ API mayoritas hanya auth:sanctum. Beberapa controller akun membedakan tipe secar
 - Route `/employee` (index/show → `employees.view`; lainnya → `employees.manage`) sudah memakai kemampuan ini sejak baseline `41f6e68`; 04a tidak mengubah route. Normalisasi `/employees` dan transisi consumer berada di 04b.
 - Tidak ada perubahan penetapan peran/kemampuan pada 04a. Department/tipe pegawai tidak dipakai sebagai sumber otorisasi.
 
+## Implementasi Fase 04b (CRUD personalia)
+- **Enforcement backend (bukan sekadar menyembunyikan tombol)**: `/api/employees` index/show → `employees.view`; store/update/destroy/restore/link/unlink dan `account-candidates` → `employees.manage`; export → `employees.view` + `employees.export`. Daftar arsip (`only_archived=1`) juga mensyaratkan `employees.manage`.
+- **Pemisahan data sensitif**: pemegang `employees.view` tanpa `manage` hanya menerima payload operasional pada daftar maupun detail; PII (NIK, NPWP, KK, ibu kandung, pasangan, kontak/alamat, nilai ijazah) dan data akun hanya untuk `employees.manage`. Ekspor tidak memuat PII.
+- **Relasi akun terbatas**: 04b hanya menautkan akun `users` aktif yang belum tertaut profil lain; tidak membuat akun, tidak mereset password, dan tidak mengubah role/abilities. Lepas akun mengisi `account_unlinked_at` dan tidak mengaktifkan kembali fallback NIK legacy.
+- **Audit**: perubahan domain dicatat server melalui allowlist `Loggable`; `name`, `nik`, dan `archive_reason` tidak termasuk atribut audit.
+- **UI**: menu Teachers/Employees dan route `/public/teachers` + `/public/employees` memakai `requiresAbility: employees.view`; tombol New/Archived/Edit/Archive/Restore/Link/Export mengikuti kemampuan aktual. Pencabutan izin berlaku pada request berikutnya.
+- **Tidak ada perubahan peran/kemampuan** pada 04b. `forceDelete` tetap ditolak.
+
 ## Matriks target — usulan, bukan role yang sudah ada
 | Kemampuan | Admin | Operator | Kepala sekolah | Guru/wali kelas |
 |---|---|---|---|---|

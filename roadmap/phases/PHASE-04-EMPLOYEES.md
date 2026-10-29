@@ -1,6 +1,6 @@
 # Fase 04 — Guru dan pegawai
 
-Status teknis: SUBPHASE 04a IMPLEMENTED & FULLY VERIFIED (AGEN); **DITERIMA PEMILIK (checklist #1–#13 APPROVED 2026-10-29 WIB)**. Subfase 04b: **DIOTORISASI PEMILIK 2026-10-29 WIB (DEC-24)**; implementasi berjalan.
+Status teknis: SUBPHASE 04a IMPLEMENTED & FULLY VERIFIED (AGEN); **DITERIMA PEMILIK (checklist #1–#13 APPROVED 2026-10-29 WIB)**. Subfase 04b: **IMPLEMENTED & DIVERIFIKASI OTOMATIS (AGEN, 2026-10-29)**; penerimaan manual **PENDING**.
 Dependensi: 01; 02; DEC-04 (APPROVED 2026-10-26 WIB); DEC-24 (APPROVED 2026-10-29 WIB).
 
 ## Tujuan dan scope
@@ -29,8 +29,8 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 ```
 
 ### 04b — CRUD dan menu aktif
-Status: **DIOTORISASI PEMILIK 2026-10-29 WIB (DEC-24, D1–D8 APPROVED)**; implementasi berjalan (`reports/feature-update/PHASE-04B-PLAN.md`; laporan hasil `PHASE-04B-REPORT.md`). Temuan audit yang menjadi scope: `employees` belum memiliki kolom nama/NIK/alasan arsip, controller/FormRequest masih scaffold, `index()` membocorkan PII, dan menu Teachers/Employees masih placeholder.
-Scope: Selesaikan controller/request/resource, biodata, riwayat pendidikan/pekerjaan, status, arsip/restore, izin field, version bila ditambahkan, audit. Menu Teachers/Employees aktif ke halaman nyata.
+Status: **IMPLEMENTED & DIVERIFIKASI OTOMATIS (AGEN, 2026-10-29)** (DEC-24 D1–D8 APPROVED 2026-10-29 WIB; laporan `reports/feature-update/PHASE-04B-REPORT.md`; checklist `PHASE-04B-MANUAL-REVIEW.md` **PENDING**). Migration `2029_07_26_000001` belum diterapkan ke UAT. Bukti: 56 test Employee/331 assertions, 293 test penuh/1448 assertions, 7 unit frontend, build PASS, Pint PASS; MariaDB & browser UAT NOT RUN.
+Scope selesai: Migration additive `employees.name`/`nik` (unique)/`archive_reason` + index dan backfill nama; `EmployeeDirectory`/`EmployeeResource`; CRUD `/api/employees` berversi (`409` + `current_version`), arsip beralasan + restore, kandidat/link/unlink akun tanpa perubahan role, ekspor CSV terfilter berizin ganda (batas 10.000 → `422`), gating PII; route `/public/teachers` + `/public/employees` dengan satu komponen direktori dan menu aktif.
 
 Kriteria penerimaan: Aksi tersimpan, jenis pegawai terfilter benar, profil sendiri terbatas, download/export sesuai izin, nama sama dan data opsional valid.
 

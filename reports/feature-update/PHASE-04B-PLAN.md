@@ -3,7 +3,7 @@
 - Tanggal: 2026-10-29 (WIB). Branch: `main`.
 - Baseline kode: `c7379a5` (implementasi 04a). Penerimaan 04a: **APPROVED 2026-10-29 WIB** (checklist #1–#13 `PHASE-04A-MANUAL-REVIEW.md`).
 - Subfase: **04b — CRUD dan menu aktif** (Fase 04: Guru dan Pegawai).
-- Status: **DIIMLEMENTASIKAN DALAM SESI 2026-10-29** — rencana disetujui pemilik menjadi DEC-24 (D1–D8 APPROVED); laporan hasil aktual ada di `PHASE-04B-REPORT.md` (dibuat pada penutupan sesi).
+- Status: **IMPLEMENTED & DIVERIFIKASI OTOMATIS (AGEN, 2026-10-29)** — rencana disetujui pemilik menjadi DEC-24 (D1–D8 APPROVED); laporan hasil aktual di `PHASE-04B-REPORT.md`; checklist pemilik `PHASE-04B-MANUAL-REVIEW.md` **PENDING**.
 - Dokumen acuan: `PHASE-04A-PLAN.md`, `PHASE-04A-EMPLOYEE-SCHEMA.md`, `docs/DECISIONS.md` (DEC-04, DEC-24), `docs/REQUIREMENTS.md` (FR-05), `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `docs/DATABASE.md`.
 
 > **Catatan Otorisasi (2026-10-29 WIB):** Pemilik menyetujui seluruh rekomendasi D1–D8 dan menginstruksikan eksekusi ("Saya setuju rekomendasi kamu, lakukan eksekusi."). Persetujuan ini dicatat sebagai **DEC-24** dan mencakup implementasi 04b dalam batas rencana ini. Migration UAT, deploy, merge, force-push, dan perubahan dependency **tetap tidak diotorisasi**. Sub-item yang ditafsirkan secara teknis (keunikan `nik` unconditional, tanpa re-link otomatis, daftar kolom ekspor) dicatat eksplisit di DEC-24.

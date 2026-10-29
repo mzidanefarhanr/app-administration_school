@@ -27,6 +27,14 @@ Status fase:
 - **NOT RUN**: `MariaDbRombelConcurrencyTest` (target `school_restore_drill_uat` di luar allowlist sesi).
 - **Status 04a**: **DITERIMA PEMILIK** — checklist manual #1–#13 APPROVED 2026-10-29 WIB berdasarkan pernyataan pemilik ("Pengujian nomor 1-13 sudah berhasil dan saya approved"); agen tidak menjalankan ulang pengujian untuk mencatat status. 04b **diotorisasi 2026-10-29 WIB (DEC-24)** dan implementasinya berjalan. Migration baru belum diterapkan ke UAT.
 
+## 0b. Checkpoint Implementasi 04b (2026-10-29)
+
+- **Konteks**: Pemilik menyetujui D1–D8 (DEC-24) dan menginstruksikan eksekusi. Implementasi backend + frontend diselesaikan pada sesi ini di atas baseline `fff5249`.
+- **Hasil aktual**: `php artisan test tests/Feature/Employee` → **56 passed, 6 skipped (331 assertions)**; suite penuh → **293 passed, 21 skipped (1448 assertions)**; `node --test tests/employee-directory-params.test.mjs` → **7 passed**; `npm run build` → **PASS**; `pint --test` 17 berkas → **PASS**; `eslint --quiet` 8 berkas → **0 error**.
+- **NOT RUN**: MariaDB disposable 04b (MariaDB berhenti; service tidak diubah) dan browser UAT (migration `2029_07_26_000001` belum diotorisasi untuk UAT; data pegawai UAT kosong).
+- **Status 04b**: **IMPLEMENTED & DIVERIFIKASI OTOMATIS**; penerimaan manual **PENDING** melalui `PHASE-04B-MANUAL-REVIEW.md` #1–#18. Migration belum diterapkan ke UAT/produksi; tidak ada merge/deploy.
+
+
 ---
 
 ## 0. Checkpoint Penutupan Sesi (2026-10-26)
@@ -138,11 +146,12 @@ Gap pengujian yang diidentifikasi pada checkpoint sebelumnya telah dibuktikan se
 | **03 (03a–03c)** | Pendataan siswa lengkap & aman | IMPLEMENTED & FULLY VERIFIED | **DITERIMA LENGKAP & DITUTUP** |
 | **03d (tambahan)** | Penempatan & perpindahan rombel UI | IMPLEMENTED & FULLY VERIFIED | **DITERIMA LENGKAP & DITUTUP** (Checklist #1–#15 APPROVED) |
 | **04a** | Schema profil pegawai dan hubungan akun | **IMPLEMENTED & FULLY VERIFIED (AGEN)** | **DITERIMA PEMILIK** (checklist #1–#13 APPROVED 2026-10-29 WIB per pernyataan pemilik) |
-| **04b** | CRUD pegawai dan menu aktif | IMPLEMENTASI BERJALAN (sesi 2026-10-29) | PENDING |
+| **04b** | CRUD pegawai dan menu aktif | **IMPLEMENTED & DIVERIFIKASI OTOMATIS (AGEN, 2026-10-29)** — MariaDB & browser UAT NOT RUN | PENDING (checklist #1–#18 belum dijalankan; prasyarat migration belum diotorisasi) |
 
 **Langkah untuk Sesi Baru**:
 1. ~~Pemilik meninjau checklist review fondasi Subfase 04a~~ — **SELESAI 2026-10-29**: checklist `PHASE-04A-MANUAL-REVIEW.md` #1–#13 APPROVED oleh pemilik.
-2. ~~Subfase 04b menunggu otorisasi terpisah~~ — **DIOTORISASI 2026-10-29 WIB**: pemilik menyetujui D1–D8 (DEC-24) dan menginstruksikan eksekusi; implementasi berjalan dalam batas `PHASE-04B-PLAN.md`; hasil dan sisa pekerjaan dicatat di `PHASE-04B-REPORT.md`.
-3. Terapkan migration additive `2029_07_25_000001` dan `2029_07_26_000001` hanya pada lingkungan yang diotorisasi (UAT belum diotorisasi).
-4. Pertahankan server UAT loopback 18021/14021 dan database `school_compat_uat`.
-5. Seluruh risiko keamanan terbuka (advisories, lifecycle Laravel/PHP, rotasi kunci produksi) tetap OPEN.
+2. ~~Subfase 04b menunggu otorisasi terpisah~~ — **SELESAI 2026-10-29 WIB**: pemilik menyetujui D1–D8 (DEC-24), implementasi selesai dan diverifikasi otomatis (`PHASE-04B-REPORT.md`).
+3. Pemilik memilih jalur review 04b: database disposable baru (mis. `school_04b_integration`) atau otorisasi eksplisit migration `2029_07_26_000001` pada UAT setelah backup; lalu jalankan `PHASE-04B-MANUAL-REVIEW.md` #1–#18.
+4. Terapkan migration additive `2029_07_25_000001` dan `2029_07_26_000001` hanya pada lingkungan yang diotorisasi (UAT belum diotorisasi).
+5. Pertahankan server UAT loopback 18021/14021 dan database `school_compat_uat`.
+6. Seluruh risiko keamanan terbuka (advisories, lifecycle Laravel/PHP, rotasi kunci produksi) tetap OPEN.

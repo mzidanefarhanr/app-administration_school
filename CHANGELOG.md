@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-29] Subfase 04b — CRUD pegawai, relasi akun, ekspor, dan menu aktif
+- Type: Feature
+- Scope / fase: Subfase 04b (Fase 04: Guru dan Pegawai), DEC-24 D1–D8.
+- Files touched: `laravel-api/database/migrations/2029_07_26_000001_add_profile_fields_to_employees.php`, `app/Http/Controllers/EmployeeController.php`, `app/Http/Controllers/EmployeeExportController.php`, `app/Http/Requests/StoreEmployeeRequest.php`, `app/Http/Requests/UpdateEmployeeRequest.php`, `app/Http/Requests/Concerns/EmployeeProfileRules.php`, `app/Http/Resources/EmployeeResource.php`, `app/Support/EmployeeDirectory.php`, `app/Services/EmployeeNameBackfillService.php`, `app/Console/Commands/EmployeeNameBackfillCommand.php`, `app/Models/Employee.php`, `config/employees.php`, `database/factories/EmployeeFactory.php`, `routes/api.php`, tiga berkas tes Employee, lima komponen Vue pegawai + helper, `vue-app/src/router/index.js`, `vue-app/src/layout/AppMenu.vue`, satu unit test frontend, serta dokumen API/access/database/laporan.
+- What changed: Migration additive `name`/`nik`/`archive_reason` + index dan backfill nama; CRUD `/api/employees` dengan paginasi/filter/sort server, optimistic locking (`version`, `409` + `current_version`), arsip beralasan + restore, gating PII (daftar tanpa PII; detail sensitif hanya `employees.manage`), kandidat/link/unlink akun tanpa perubahan role, ekspor CSV terfilter berizin ganda dengan batas 10.000 → `422`; route `/public/teachers` dan `/public/employees` memakai satu komponen direktori; menu Teachers/Employees aktif.
+- Why: Menyelesaikan DEC-24 (D1–D8) yang diotorisasi pemilik 2026-10-29 WIB sehingga modul Guru/Pegawai dapat dipakai operator.
+- Validation: `php artisan test tests/Feature/Employee` → **56 passed, 6 skipped (331 assertions)**; `php artisan test` (suite penuh) → **293 passed, 21 skipped (1448 assertions)**; `node --test tests/employee-directory-params.test.mjs` → **7 passed**; `npm run build` → **PASS** (peringatan ukuran chunk baseline); `pint --test` 17 berkas → **PASS**; `eslint --quiet` 8 berkas → **0 error**. **NOT RUN**: MariaDB disposable 04b (MariaDB tidak berjalan) dan browser UAT (migration UAT belum diotorisasi; data pegawai UAT kosong).
+- Notes / risks: Migration `2029_07_26_000001` **belum** diterapkan ke UAT/produksi; alias `/employee` masih deprecated; baris legacy tanpa nama teresolusi tetap `NULL` dan dilaporkan agregat; risiko advisory dependency/lifecycle tetap OPEN.
+- Evidence: `reports/feature-update/PHASE-04B-REPORT.md`, `reports/feature-update/PHASE-04B-MANUAL-REVIEW.md` (PENDING); implementation commit dicatat pada checkpoint penutupan.
+
 ## [2026-10-29] Subfase 04b — Otorisasi pemilik dan pencatatan DEC-24
 - Type: Docs
 - Scope / fase: Otorisasi Subfase 04b (CRUD pegawai, relasi akun, ekspor, menu aktif); belum ada kode yang diubah pada entri ini.
