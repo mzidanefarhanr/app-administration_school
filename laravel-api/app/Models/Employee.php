@@ -48,6 +48,9 @@ class Employee extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'name',
+        'nik',
+        'archive_reason',
         'user_id',
         'user_id_resolved_at',
         'account_unlinked_at',
@@ -202,7 +205,7 @@ class Employee extends Model
 
     public function district(): BelongsTo
     {
-        return $this->belongsTo(District::class, 'district_id', 'id')->withTrashed();
+        return $this->belongsTo(District::class, 'district_id', 'id');
     }
 
     public function maritalStatus(): BelongsTo

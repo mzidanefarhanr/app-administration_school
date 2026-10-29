@@ -2,27 +2,45 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\EmployeeProfileRules;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreEmployeeRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+    use EmployeeProfileRules;
+
     public function authorize(): bool
     {
-        return false;
+        return $this->user()?->can('employees.manage') ?? false;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $input = $this->all();
+
+        foreach ($input as $key => $value) {
+            if (is_string($value)) {
+                $trimmed = trim($value);
+                $input[$key] = $trimmed === '' ? null : $trimmed;
+            }
+        }
+
+        $this->replace($input);
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, mixed>
      */
     public function rules(): array
     {
-        return [
-            //
-        ];
+        return $this->profileRules();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return $this->profileMessages();
     }
 }

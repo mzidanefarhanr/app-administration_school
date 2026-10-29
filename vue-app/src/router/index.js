@@ -70,6 +70,20 @@ const router = createRouter({
                     component: () => import('@/views/pages/public/Student.vue')
                 },
                 {
+                    path: '/public/teachers',
+                    name: 'teachers',
+                    meta: { breadcrumb: 'Teachers', requiresAbility: 'employees.view' },
+                    props: { employeeTypeName: 'Pendidik' },
+                    component: () => import('@/views/pages/public/EmployeeDirectory.vue')
+                },
+                {
+                    path: '/public/employees',
+                    name: 'employees',
+                    meta: { breadcrumb: 'Employees', requiresAbility: 'employees.view' },
+                    props: { employeeTypeName: 'Tenaga Kependidikan' },
+                    component: () => import('@/views/pages/public/EmployeeDirectory.vue')
+                },
+                {
                     path: '/profile/user',
                     name: 'profileUser',
                     meta: { breadcrumb: 'Profile' },

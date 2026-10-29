@@ -10,6 +10,7 @@ use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\EducationLevelController;
 use App\Http\Controllers\EducationSchoolController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\EmployeeExportController;
 use App\Http\Controllers\EmployeeStatusController;
 use App\Http\Controllers\EmployeeTypeController;
 use App\Http\Controllers\EmploymentController;
@@ -185,6 +186,24 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         ->only(['index', 'show'])->middleware('can:students.view');
     Route::apiResource('/student-rombels', StudentRombelController::class)
         ->except(['index', 'show'])->middleware('can:students.manage');
+    // Subfase 04b (DEC-24) - Direktori pegawai, ekspor, arsip, dan relasi akun
+    Route::get('/employees/export', [EmployeeExportController::class, 'export'])
+        ->middleware('can:employees.view');
+    Route::get('/employees/account-candidates', [EmployeeController::class, 'accountCandidates'])
+        ->middleware('can:employees.manage');
+    Route::post('/employees/{id}/restore', [EmployeeController::class, 'restore'])
+        ->middleware('can:employees.manage');
+    Route::post('/employees/{id}/link-account', [EmployeeController::class, 'linkAccount'])
+        ->middleware('can:employees.manage');
+    Route::post('/employees/{id}/unlink-account', [EmployeeController::class, 'unlinkAccount'])
+        ->middleware('can:employees.manage');
+
+    Route::apiResource('/employees', EmployeeController::class)
+        ->only(['index', 'show'])->middleware('can:employees.view');
+    Route::apiResource('/employees', EmployeeController::class)
+        ->except(['index', 'show'])->middleware('can:employees.manage');
+
+    // Alias deprecated untuk consumer lama; dipertahankan sampai migrasi UI teruji.
     Route::apiResource('/employee', EmployeeController::class)
         ->only(['index', 'show'])->middleware('can:employees.view');
     Route::apiResource('/employee', EmployeeController::class)

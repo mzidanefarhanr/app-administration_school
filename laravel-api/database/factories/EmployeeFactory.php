@@ -41,8 +41,10 @@ class EmployeeFactory extends Factory
 
                 return $user->nik;
             },
-            'employee_status_id' => fn () => EmployeeStatus::firstOrCreate(['name' => 'Aktif'], ['abbreviation' => 'A'])->id,
-            'employee_type_id' => fn () => EmployeeType::firstOrCreate(['name' => 'Tenaga Pendidik'])->id,
+            'name' => fake()->name(),
+            'nik' => null,
+            'employee_status_id' => fn () => EmployeeStatus::firstOrCreate(['name' => 'Pegawai Tetap Yayasan'], ['abbreviation' => 'PTY'])->id,
+            'employee_type_id' => fn () => EmployeeType::firstOrCreate(['name' => 'Pendidik'])->id,
             'employment_id' => fn () => Employment::firstOrCreate(['name' => 'Guru Tetap'], ['description' => 'Guru Tetap'])->id,
             'subject_id' => fn () => Subject::firstOrCreate(['name' => 'Umum'], ['description' => 'Mata pelajaran umum'])->id,
             'religion_id' => fn () => Religion::firstOrCreate(['name' => 'Islam'])->id,
