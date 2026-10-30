@@ -25,7 +25,7 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 - Why: penerimaan manual pemilik dicatat terpisah dari implementasi; server UAT fase yang sudah tidak diuji tidak perlu terus berjalan.
 - Validation: `taskkill /T /F` pada PID 2336/11284 (14022), 12416 (18022), 13456/996 (14023), 17188 (18023); verifikasi `Get-NetTCPConnection` → port 14022/14023/18022/18023 bebas; Apache 80/443 dan MariaDB 3306 tetap listening. **NOT RUN**: tidak ada tes aplikasi ulang; penerimaan berdasarkan pernyataan pemilik, bukan pengujian ulang agen. Item NOT RUN 05b tetap NOT RUN.
 - Notes / risks: penghentian hanya proses UAT terisolasi; data `.uat-phase04b`/`.uat-phase05` dan kredensial privat dipertahankan; tidak ada merge/deploy/force-push, perubahan dependency/service/`.env`, atau akses DB terlarang.
-- Evidence: `reports/feature-update/PHASE-05B-MANUAL-REVIEW.md`, `PHASE-05B-REPORT.md`, `HANDOFF.md`; baseline `5633726`.
+- Evidence: `reports/feature-update/PHASE-05B-MANUAL-REVIEW.md`, `PHASE-05B-REPORT.md`, `HANDOFF.md`; baseline `5633726`; dokumentasi penerimaan `c19c7f0` (di-push ke `origin/main`).
 
 ## [2026-10-30] Subfase 05b — Impor pegawai dan pilihan kolom ekspor
 - Type: Feature

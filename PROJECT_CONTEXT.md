@@ -2,7 +2,7 @@
 
 ## Current addendum — 2026-10-31 (Subfase 05b — owner accepted)
 
-Employee CSV import and employee export column options are **implemented, agent-verified, and owner APPROVED 2026-10-31 WIB (#1–#14)** on `main` above `4f1fec0`; implementation commit `ad74309`, documentation `c5afdc4`. Owner authorization is DEC-26 ("Saya setuju D1-D7", APPROVED 2026-10-30 WIB). Acceptance is based solely on the owner's statement **"Pengujian nomor 1-14 sudah berhasil dan saya approved."**; the agent did not rerun the scenarios. It does not authorize merge/deployment, operational DB migration, dependency/service changes, or 05c.
+Employee CSV import and employee export column options are **implemented, agent-verified, and owner APPROVED 2026-10-31 WIB (#1–#14)** on `main` above `4f1fec0`; implementation commit `ad74309`, documentation `c5afdc4`, acceptance documentation `c19c7f0`. Owner authorization is DEC-26 ("Saya setuju D1-D7", APPROVED 2026-10-30 WIB). Acceptance is based solely on the owner's statement **"Pengujian nomor 1-14 sudah berhasil dan saya approved."**; the agent did not rerun the scenarios. It does not authorize merge/deployment, operational DB migration, dependency/service changes, or 05c.
 
 **DEC-27 (APPROVED 2026-10-31 WIB):** isolated per-phase UAT servers are stopped after the phase is passed/accepted. On 2026-10-31 the 04b servers (Vite 14022, PHP 18022) and 05 servers (Vite 14023, PHP 18023) were stopped after PID/command-line verification; ports are free, `.uat-phase04b`/`.uat-phase05` data/storage remain intact, and Apache (80/443)/MariaDB (3306) were untouched. Restart commands are recorded in HANDOFF and `PHASE-05B-MANUAL-REVIEW.md`.
 
