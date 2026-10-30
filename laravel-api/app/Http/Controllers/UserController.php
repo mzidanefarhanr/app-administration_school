@@ -263,8 +263,8 @@ class UserController extends Controller
         $willLoseAccess = $this->wouldRemoveLastAccessManager($users, $payload);
         if ($willLoseAccess) {
             return response()->json([
-                'message' => 'Perubahan ditolak: ini akan menghilangkan akses pengelolaan akun '
-                    .'dari admin aktif terakhir. Tetapkan pengelola lain terlebih dahulu.',
+                'message' => 'Change rejected: this would remove account management access '
+                    .'from the last active administrator. Assign another access manager first.',
             ], 422);
         }
 
@@ -322,13 +322,13 @@ class UserController extends Controller
 
         // Tidak boleh menghapus diri sendiri.
         if ((int) $request->user()->id === (int) $user->id) {
-            return response()->json(['message' => 'Anda tidak dapat menghapus akun Anda sendiri.'], 422);
+            return response()->json(['message' => 'You cannot delete your own account.'], 422);
         }
 
         // Perlindungan admin pengelola akses terakhir.
         if ($this->isLastAccessManager($user)) {
             return response()->json([
-                'message' => 'Tidak dapat menghapus admin pengelola akses terakhir.',
+                'message' => 'Cannot delete the last access administrator.',
             ], 422);
         }
 

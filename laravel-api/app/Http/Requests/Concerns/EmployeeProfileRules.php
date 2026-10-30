@@ -111,8 +111,8 @@ trait EmployeeProfileRules
             'nisn.digits' => 'NISN must be exactly 10 digits.',
             'date_of_birth.before' => 'Date of birth must be before today.',
             'tmt_employee.required' => 'The TMT (employment start date) is required.',
-            'subject_id.required' => 'Teaching staff (Pendidik) must have a subject.',
-            'subject_id.prohibited' => 'Non-teaching staff (Tenaga Kependidikan) must not have a subject.',
+            'subject_id.required' => 'Teachers must have a subject.',
+            'subject_id.prohibited' => 'Non-teaching employees must not have a subject.',
         ];
     }
 }

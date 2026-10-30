@@ -14,6 +14,13 @@ const visibleStaticBackdropWaiting = ref(false);
 
 // Nama tampilan pengguna login (dari check-auth). Null-safe.
 const userName = computed(() => useAuthStore.displayName);
+const roleLabels = {
+    'admin-sistem': 'System Administrator',
+    'operator-sekolah': 'School Operator',
+    'kepala-sekolah': 'Principal',
+    'wakil-kesiswaan': 'Vice Principal for Student Affairs'
+};
+const displayedRoles = computed(() => useAuthStore.roles.map(role => roleLabels[role] ?? role).join(', '));
 
 //function visibleStaticBackdropWaitings
 function visibleStaticBackdropWaitings() {
@@ -63,7 +70,7 @@ onMounted(() => {
                     <Avatar image="https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png" class="mr-2" shape="circle" />
                     <span class="inline-flex flex-col items-start">
                         <span class="font-bold">{{ userName || "Loading..." }}</span>
-                        <span class="text-sm">{{ useAuthStore.roles && useAuthStore.roles.length ? useAuthStore.roles.join(', ') : "" }}</span>
+                        <span class="text-sm">{{ displayedRoles }}</span>
                     </span>
                 </button>
             </div>

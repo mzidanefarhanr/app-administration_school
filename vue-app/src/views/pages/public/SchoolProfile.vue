@@ -1,18 +1,13 @@
 <script setup>
-import { ref, reactive, onMounted, watch, computed } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import Button from 'primevue/button';
-import Chip from 'primevue/chip';
-import { useRouter, useRoute, RouterLink } from 'vue-router';
-import { useLayout } from '@/layout/composables/layout';
+import { RouterLink } from 'vue-router';
 import { authStore } from '@/stores/authStore';
-import { useConfirm } from "primevue/useconfirm";
 import { useToast } from "primevue/usetoast";
 import apiLogin from '@/apiLogin';
-import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
+import { referenceLabel } from '@/utils/referenceLabels.mjs';
 
-const confirm = useConfirm();
 const toast = useToast();
-const router = useRouter();
 const dt = ref();
 const useAuthStore = authStore();
 const school_years = ref([]);
@@ -33,46 +28,6 @@ const WaitingDialog   = ref(false);
 const ErrorDialog     = ref(false);
 const titleError      = ref('');
 const fieldError      = ref('');
-
-const _method= "PATCH";
-
-const visibleStaticBackdropWarning = ref(false);
-const validContinue = ref(false);
-var titleWarning = ref('');
-var fieldWarning = ref('');
-const visibleStaticBackdropDanger = ref(false);
-var titleDanger = ref('');
-var fieldDanger = ref('');
-const visibleStaticBackdropSuccess = ref(false);
-var titleSuccess = ref('');
-var fieldSuccess = ref('');
-const visibleStaticBackdropWaiting = ref(false);
-var titleWaiting = ref('');
-var fieldWaiting = ref('');
-
-//function visibleStaticBackdropWarnings
-function visibleStaticBackdropWarnings() {
-    visibleStaticBackdropWarning.value = !visibleStaticBackdropWarning.value;
-}
-
-//function visibleStaticBackdropDangers
-function visibleStaticBackdropDangers() {
-    visibleStaticBackdropDanger.value = !visibleStaticBackdropDanger.value;
-}
-
-//function visibleStaticBackdropWaitings
-function visibleStaticBackdropWaitings() {
-    visibleStaticBackdropWaiting.value = !visibleStaticBackdropWaiting.value;
-}
-
-//function visibleStaticBackdropSuccesss
-function visibleStaticBackdropSuccesss() {
-    visibleStaticBackdropSuccess.value = !visibleStaticBackdropSuccess.value;
-}
-//function saveValidContinue
-function saveValidContinue() {
-    validContinue.value = !validContinue.value;
-}
 
 //method fetchDataSchoolYears
 const fetchDataSchoolYears = async () => {
@@ -427,7 +382,7 @@ onMounted(() => {
                         <div class="flex items-center gap-4 flex-1">
                             <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">Status</div>
                             <div class="flex-1 text-surface-900 dark:text-surface-0 text-base leading-tight">
-                                {{ school_profile?.education_school?.status_education ?? "" }}
+                                {{ referenceLabel('school-status', school_profile?.education_school?.status_education) ?? "" }}
                                 <Skeleton v-if="loading == true" width="3rem" height="2rem" />
                             </div>
                         </div>
@@ -715,7 +670,7 @@ onMounted(() => {
 
                     <div class="flex flex-col md:flex-row gap-4">
                         <div class="flex items-center gap-4 flex-1">
-                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">TMT Principal</div>
+                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">Principal Appointment Date (TMT)</div>
                             <div class="flex-1">
                                 <span v-if="editingField !== 'tmt_principal'" class="text-surface-900 dark:text-surface-0 text-base">
                                     {{ school_profile?.tmt_principal ?? "" }}

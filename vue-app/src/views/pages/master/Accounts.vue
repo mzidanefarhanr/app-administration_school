@@ -5,6 +5,9 @@ import Checkbox from 'primevue/checkbox';
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 import { useResourceManager } from '@/utils/useResourceManager';
 import apiLogin from '@/apiLogin';
+import { referenceExportFunction } from '@/utils/referenceLabels.mjs';
+
+const exportReferenceCell = referenceExportFunction({ 'status_user.name': 'status-users' });
 
 // ── Local refs (tidak ada di composable) ──────────────────────────────────
 const dt              = ref();
@@ -65,7 +68,7 @@ const saveRoles = async () => {
 const {
     manyDatas,
     manyDatas_cat2,
-    manyDatas_cat3,
+    manyDatas_3,
     singleData,
     previousData,
     selectedManyDatas,
@@ -209,7 +212,8 @@ onMounted(() => {
                 dataKey="id"
                 filterDisplay="menu"
                 :loading="loading"
-                :globalFilterFields="['name', 'npsn', 'district.name']"
+                :exportFunction="exportReferenceCell"
+                :globalFilterFields="['name', 'email', 'username', 'nik', 'status_user.display_name']"
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
                 >
@@ -293,15 +297,15 @@ onMounted(() => {
                             </MultiSelect>
                         </template>
                     </Column>
-                    <Column field="status_user.name" header="Status Users" filterField="status_user.name" exportHeader="Status Users" :showFilterMatchModes="false" :filterMenuStyle="{ width: '14rem' }" style="min-width: 12rem">
+                    <Column field="status_user.name" header="Account Status" filterField="status_user.name" exportHeader="Account Status" :showFilterMatchModes="false" :filterMenuStyle="{ width: '14rem' }" style="min-width: 12rem">
                         <template #body="{ data }">
-                            <Tag :value="data.status_user.name" :severity="getSeverity(data.status_user.name)" />
+                            <Tag :value="data.status_user?.display_name ?? data.status_user?.name" :severity="getSeverity(data.status_user.name)" />
                         </template>
                         <template #filter="{ filterModel, filterCallback }">
-                            <MultiSelect v-model="filterModel.value" @change="filterCallback()" :options="manyDatas_cat3" placeholder="Any">
+                            <MultiSelect v-model="filterModel.value" @change="filterCallback()" :options="manyDatas_3" optionLabel="display_name" optionValue="name" placeholder="Any">
                                 <template #option="slotProps">
                                     <div class="flex items-center gap-2">
-                                        <Tag :value="slotProps.option" :severity="getSeverity(slotProps.option)" />
+                                        <Tag :value="slotProps.option.display_name ?? slotProps.option.name" :severity="getSeverity(slotProps.option.name)" />
                                     </div>
                                 </template>
                             </MultiSelect>
@@ -346,7 +350,6 @@ onMounted(() => {
                     <Checkbox v-model="selectedRoleIds" :inputId="`role-${role.id}`" :value="role.id" />
                     <label :for="`role-${role.id}`" class="cursor-pointer">
                         {{ role.name }}
-                        <small class="text-surface-400 ml-1">({{ role.slug }})</small>
                     </label>
                 </div>
                 <div v-if="!allRoles.length" class="text-surface-400">No roles available.</div>
@@ -434,7 +437,7 @@ onMounted(() => {
                 <small v-if="submitted && !singleData.type_user" class="text-red-500">Type User is required.</small>
 
                 <label for="status_user" class="block font-bold mb-3 mt-3">Status User</label>
-                <AutoComplete id="status_user" v-model="singleData.status_user" required="true" optionLabel="name" forceSelection :suggestions="filtered_Cat2" @complete="search_Cat2" fluid />
+                <AutoComplete id="status_user" v-model="singleData.status_user" required="true" optionLabel="display_name" forceSelection :suggestions="filtered_Cat2" @complete="search_Cat2" fluid />
                 <small v-if="submitted && !singleData.status_user" class="text-red-500">Status User is required.</small>
 
             </div>

@@ -37,20 +37,20 @@ class FirstLoginController extends Controller
         $actor = $request->user();
 
         if (! $actor) {
-            return response()->json(['message' => 'Tidak terautentikasi.'], 401);
+            return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
         // Tolak bila ID di URL bukan akun actor sendiri.
         if ((string) $actor->id !== (string) $id) {
             return response()->json([
-                'message' => 'Anda hanya dapat memperbarui status login akun Anda sendiri.',
+                'message' => 'You can only update the login status of your own account.',
             ], 403);
         }
 
         $users = User::firstWhere('id', $actor->id);
 
         if (! isset($users)) {
-            return response()->json(['message' => 'Data User Tidak Ditemukan!'], 404);
+            return response()->json(['message' => 'User not found!'], 404);
         }
 
         // Hanya `first_login_at` yang boleh diubah pengguna sendiri.
@@ -69,7 +69,7 @@ class FirstLoginController extends Controller
             ]);
         });
 
-        return new UserResource(true, 'Data User Berhasil Terautentikasi!', $users);
+        return new UserResource(true, 'User authenticated successfully!', $users);
     }
 
     public function destroy(string $id)

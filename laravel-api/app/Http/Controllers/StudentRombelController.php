@@ -65,7 +65,7 @@ class StudentRombelController extends Controller
             'latestStudentExitSchool.district.regency.province',
         ])->get();
 
-        return new StatusResource(true, 'List Data StudentRombel', $StudentRombel);
+        return new StatusResource(true, 'Student Class List', $StudentRombel);
     }
 
     /**
@@ -137,7 +137,7 @@ class StudentRombelController extends Controller
             })
             ->get();
 
-        return new StatusResource(true, 'Student Rombels detail found!', $studentRombels);
+        return new StatusResource(true, 'Student class details found!', $studentRombels);
     }
 
     /**
@@ -184,7 +184,7 @@ class StudentRombelController extends Controller
                 // 2. Reject if archived
                 if ($student->trashed()) {
                     abort(response()->json([
-                        'message' => 'Cannot assign rombel to an archived student.',
+                        'message' => 'Cannot assign a class to an archived student.',
                     ], 422));
                 }
 
@@ -213,7 +213,7 @@ class StudentRombelController extends Controller
 
                 if ($existingActive) {
                     abort(response()->json([
-                        'message' => 'Conflict: Student already has an active rombel membership in this academic year.',
+                        'message' => 'Conflict: Student already has an active class membership in this academic year.',
                         'current_rombel_id' => (int) $existingActive->school_rombel,
                     ], 409));
                 }
@@ -240,7 +240,7 @@ class StudentRombelController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Student successfully assigned to rombel.',
+                'message' => 'Student successfully assigned to a class.',
                 'data' => [
                     'student_id' => $result['student']->id,
                     'school_rombel_id' => $result['membership']->school_rombel,
@@ -251,17 +251,17 @@ class StudentRombelController extends Controller
             ], 200);
         } catch (DomainException $e) {
             return response()->json([
-                'message' => $e->getMessage(),
+                'message' => str_replace(['Rombel', 'rombel'], ['Class', 'class'], $e->getMessage()),
             ], 409);
         } catch (QueryException $e) {
             if ($e->getCode() == '45000' || str_contains($e->getMessage(), 'already has an active rombel')) {
                 return response()->json([
-                    'message' => 'Conflict: Student already has an active rombel membership in this academic year.',
+                    'message' => 'Conflict: Student already has an active class membership in this academic year.',
                 ], 409);
             }
             if (str_contains($e->getMessage(), 'archived student')) {
                 return response()->json([
-                    'message' => 'Cannot assign rombel to an archived student.',
+                    'message' => 'Cannot assign a class to an archived student.',
                 ], 422);
             }
             throw $e;
@@ -292,7 +292,7 @@ class StudentRombelController extends Controller
                 // 2. Reject if archived
                 if ($student->trashed()) {
                     abort(response()->json([
-                        'message' => 'Cannot transfer rombel for an archived student.',
+                        'message' => 'Cannot transfer class membership for an archived student.',
                     ], 422));
                 }
 
@@ -321,22 +321,22 @@ class StudentRombelController extends Controller
 
                 if (! $activeMembership) {
                     abort(response()->json([
-                        'message' => 'Student has no active rombel membership in the selected academic year to transfer from.',
+                        'message' => 'Student has no active class membership in the selected academic year to transfer from.',
                     ], 422));
                 }
 
                 // 5. Reject if target rombel is identical to current rombel
                 if ((int) $activeMembership->school_rombel === $targetRombelId) {
                     abort(response()->json([
-                        'message' => 'Target rombel must be different from current rombel.',
-                        'errors' => ['target_rombel_id' => ['Target rombel must be different from current rombel.']],
+                        'message' => 'Target class must be different from current class.',
+                        'errors' => ['target_rombel_id' => ['Target class must be different from current class.']],
                     ], 422));
                 }
 
                 // 6. Optimistic locking on membership version
                 if ((int) $activeMembership->version !== $expectedMembershipVersion) {
                     abort(response()->json([
-                        'message' => 'Conflict: The student rombel membership has been modified by another operator. Please reload.',
+                        'message' => 'Conflict: The student class membership has been modified by another operator. Please reload.',
                         'current_membership_version' => (int) $activeMembership->version,
                     ], 409));
                 }
@@ -373,7 +373,7 @@ class StudentRombelController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Student successfully transferred to new rombel.',
+                'message' => 'Student successfully transferred to a new class.',
                 'data' => [
                     'student_id' => $result['student']->id,
                     'previous_rombel_id' => $result['previous_rombel']->school_rombel,
@@ -386,12 +386,12 @@ class StudentRombelController extends Controller
             ], 200);
         } catch (DomainException $e) {
             return response()->json([
-                'message' => $e->getMessage(),
+                'message' => str_replace(['Rombel', 'rombel'], ['Class', 'class'], $e->getMessage()),
             ], 409);
         } catch (QueryException $e) {
             if ($e->getCode() == '45000' || str_contains($e->getMessage(), 'already has an active rombel')) {
                 return response()->json([
-                    'message' => 'Conflict: Student already has an active rombel membership in this academic year.',
+                    'message' => 'Conflict: Student already has an active class membership in this academic year.',
                 ], 409);
             }
             throw $e;

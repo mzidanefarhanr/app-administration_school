@@ -1,5 +1,6 @@
 import { notify } from '@kyvg/vue3-notification';
 import axios from 'axios';
+import { enrichReferenceResponse } from '@/utils/referenceLabels.mjs';
 
 // Base URL API WAJIB berasal dari konfigurasi (VITE_API_BASE_URL).
 // Tidak ada fallback diam-diam ke alamat lama: bila tidak tersedia/valid,
@@ -58,7 +59,10 @@ export function registerAuthHandlers(handlers = {}) {
 }
 
 apiLogin.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        response.data = enrichReferenceResponse(response.data, response.config?.url);
+        return response;
+    },
     async (error) => {
         const config = error.config || {};
 

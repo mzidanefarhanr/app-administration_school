@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SchoolRombel;
 use App\Http\Requests\StoreSchoolRombelRequest;
 use App\Http\Requests\UpdateSchoolRombelRequest;
 use App\Http\Resources\StatusResource;
+use App\Models\SchoolRombel;
 
 class SchoolRombelController extends Controller
 {
@@ -14,11 +14,11 @@ class SchoolRombelController extends Controller
      */
     public function index()
     {
-        //get all School Rombels
-        $SchoolRombels = SchoolRombel::with(['schoolLevel','schoolYear', 'studentMajor', 'classTeach'])->get();
+        // get all School Rombels
+        $SchoolRombels = SchoolRombel::with(['schoolLevel', 'schoolYear', 'studentMajor', 'classTeach'])->get();
 
-        //return collection of School Rombels as a resource
-        return new StatusResource(true, 'SchoolRombels List', $SchoolRombels);
+        // return collection of School Rombels as a resource
+        return new StatusResource(true, 'Classes List', $SchoolRombels);
     }
 
     /**

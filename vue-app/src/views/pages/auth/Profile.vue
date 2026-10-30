@@ -338,7 +338,7 @@ onMounted(() => {
     <!-- <Button label="Danger" @click="visibleStaticBackdropWarnings" /> -->
     <Dialog v-model:visible="visibleStaticBackdropWarning" modal header="Warning!!" :style="{ width: '25rem' }">
         <div class="text-center justify-content-center align-items-center">
-            <p>Data yang anda masukkan sudah benar?</p>
+            <p>Is the information you entered correct?</p>
         </div>
     </Dialog>
     <ConfirmDialog group="headless">
@@ -350,8 +350,8 @@ onMounted(() => {
                 <span class="font-bold text-2xl block mb-2 mt-6">{{ message.header }}</span>
                 <p class="mb-0">{{ message.message }}</p>
                 <div class="flex items-center gap-2 mt-6">
-                    <Button label="Simpan" @click="acceptCallback"></Button>
-                    <Button label="Batal" outlined @click="rejectCallback"></Button>
+                    <Button label="Save" @click="acceptCallback"></Button>
+                    <Button label="Cancel" outlined @click="rejectCallback"></Button>
                 </div>
             </div>
         </template>
@@ -370,7 +370,7 @@ onMounted(() => {
     </Dialog>
 
     <!-- <Button label="Waiting" @click="visibleStaticBackdropWaitings" /> -->
-    <Dialog v-model:visible="visibleStaticBackdropWaiting" modal header="Silahkan menunggu data anda diproses!">
+    <Dialog v-model:visible="visibleStaticBackdropWaiting" modal header="Please wait while your information is processed.">
         <div class="text-center justify-content-center align-items-center">
             <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: green"></i>
             <p class="text-success" style="font-size: medium">Loading...</p>

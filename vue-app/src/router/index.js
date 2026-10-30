@@ -54,7 +54,7 @@ const router = createRouter({
                 {
                     path: '/public/schoolrombels',
                     name: 'schoolrombels',
-                    meta: { breadcrumb: 'School Rombels', requiresAbility: 'master.view' },
+                    meta: { breadcrumb: 'Classes', requiresAbility: 'master.view' },
                     component: () => import('@/views/pages/public/SchoolRombels.vue')
                 },
                 {

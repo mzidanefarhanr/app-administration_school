@@ -62,6 +62,8 @@ class StudentController extends Controller
         ], [
             'school_year_id.required' => 'A school year is required to list students.',
             'placement.in' => 'The placement filter must be one of: all, placed, unplaced.',
+            'rombel.integer' => 'The class filter must be an integer.',
+            'rombel.exists' => 'The selected class does not exist.',
             'per_page.in' => 'The per page value must be one of: 10, 20, 50, 100.',
             'sort.in' => 'The sort field must be one of: id, name, nis, nisn.',
             'direction.in' => 'The sort direction must be asc or desc.',
@@ -73,13 +75,13 @@ class StudentController extends Controller
 
         if ($rombelId !== null && ! SchoolRombel::where('id', $rombelId)->where('school_year_id', $yearId)->exists()) {
             throw ValidationException::withMessages([
-                'rombel' => ['The selected rombel does not belong to the selected school year.'],
+                'rombel' => ['The selected class does not belong to the selected school year.'],
             ]);
         }
 
         if ($rombelId !== null && $placement === 'unplaced') {
             throw ValidationException::withMessages([
-                'placement' => ['The unplaced filter cannot be combined with a rombel filter.'],
+                'placement' => ['The unplaced filter cannot be combined with a class filter.'],
             ]);
         }
 

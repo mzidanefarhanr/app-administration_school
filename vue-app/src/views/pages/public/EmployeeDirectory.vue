@@ -236,13 +236,13 @@ const openAccount = async (row) => {
 };
 
 const onSaved = () => {
-    notify('success', 'Employee saved.');
+    notify('success', `${isTeacherPage.value ? 'Teacher' : 'Employee'} saved.`);
     detailVisible.value = false;
     fetchList();
 };
 
 const onArchived = () => {
-    notify('success', 'Employee archived.');
+    notify('success', `${isTeacherPage.value ? 'Teacher' : 'Employee'} archived.`);
     fetchList();
 };
 
@@ -266,7 +266,7 @@ const restore = async (row) => {
 
     try {
         await apiLogin.post(`/api/employees/${toId(row)}/restore`, { version: row.version });
-        notify('success', 'Employee restored.');
+        notify('success', `${isTeacherPage.value ? 'Teacher' : 'Employee'} restored.`);
         fetchList();
     } catch (error) {
         if (error.response?.status === 409) {
@@ -296,7 +296,7 @@ const exportCsv = async () => {
         const url = URL.createObjectURL(response.data);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `employees_${props.employeeTypeName.toLowerCase().replace(/\s+/g, '_')}.csv`;
+        link.download = `${isTeacherPage.value ? 'teachers' : 'employees'}.csv`;
         document.body.appendChild(link);
         link.click();
         link.remove();
@@ -324,7 +324,7 @@ const exportCsv = async () => {
 onMounted(async () => {
     await loadReference();
     if (fixedTypeId.value === null) {
-        listError.value = `Employee type "${props.employeeTypeName}" is not available. Ask an administrator to seed the reference data.`;
+        listError.value = `${pageTitle.value} reference data is not available. Ask an administrator to seed the reference data.`;
         return;
     }
     fetchList();
@@ -341,7 +341,7 @@ watch(() => props.employeeTypeName, (name) => {
     page.value = 1;
     fixedTypeId.value = resolveEmployeeTypeId(options.value.employeeTypes, name);
     listError.value = fixedTypeId.value === null
-        ? `Employee type "${name}" is not available. Ask an administrator to seed the reference data.`
+        ? `${pageTitle.value} reference data is not available. Ask an administrator to seed the reference data.`
         : '';
 
     if (fixedTypeId.value !== null) fetchList();
@@ -354,7 +354,7 @@ watch(() => props.employeeTypeName, (name) => {
             <div>
                 <h2 class="text-2xl font-semibold">{{ pageTitle }}</h2>
                 <p class="text-sm text-surface-500">
-                    {{ onlyArchived ? 'Archived records (managers only)' : 'Active directory' }}
+                    {{ onlyArchived ? 'Archived records (managers only)' : isTeacherPage ? 'Teachers only' : 'Non-teaching staff only' }}
                 </p>
             </div>
             <div class="flex flex-wrap gap-2">
@@ -379,7 +379,7 @@ watch(() => props.employeeTypeName, (name) => {
             <Select
                 v-model="statusFilter"
                 :options="options.employeeStatuses"
-                optionLabel="name"
+                optionLabel="display_name"
                 optionValue="id"
                 placeholder="Employee Status"
                 showClear
@@ -388,7 +388,7 @@ watch(() => props.employeeTypeName, (name) => {
             <Select
                 v-model="employmentFilter"
                 :options="options.employments"
-                optionLabel="name"
+                optionLabel="display_name"
                 optionValue="id"
                 placeholder="Employment"
                 showClear
@@ -398,7 +398,7 @@ watch(() => props.employeeTypeName, (name) => {
                 v-if="isTeacherPage"
                 v-model="subjectFilter"
                 :options="options.subjects"
-                optionLabel="name"
+                optionLabel="display_name"
                 optionValue="id"
                 placeholder="Subject"
                 showClear
@@ -442,17 +442,17 @@ watch(() => props.employeeTypeName, (name) => {
             </Column>
             <Column header="Status" style="min-width: 10rem">
                 <template #body="{ data }">
-                    <Tag v-if="data.employee_status" :value="data.employee_status.name" severity="info" />
+                    <Tag v-if="data.employee_status" :value="data.employee_status.display_name ?? data.employee_status.name" severity="info" />
                     <span v-else>-</span>
                 </template>
             </Column>
             <Column header="Employment" style="min-width: 10rem">
-                <template #body="{ data }">{{ data.employment?.name ?? '-' }}</template>
+                <template #body="{ data }">{{ data.employment?.display_name ?? data.employment?.name ?? '-' }}</template>
             </Column>
             <Column v-if="isTeacherPage" header="Subject" style="min-width: 10rem">
-                <template #body="{ data }">{{ data.subject?.name ?? '-' }}</template>
+                <template #body="{ data }">{{ data.subject?.display_name ?? data.subject?.name ?? '-' }}</template>
             </Column>
-            <Column field="tmt_employee" header="TMT" sortable style="min-width: 8rem" />
+            <Column field="tmt_employee" header="Employment Start Date (TMT)" sortable style="min-width: 8rem" />
             <Column header="Account" style="min-width: 8rem">
                 <template #body="{ data }">
                     <Tag :value="data.account?.linked ? 'Linked' : 'Not linked'" :severity="data.account?.linked ? 'success' : 'secondary'" />

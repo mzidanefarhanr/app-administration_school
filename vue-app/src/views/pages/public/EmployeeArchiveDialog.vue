@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import Button from 'primevue/button';
 import apiLogin from '@/apiLogin';
 import { firstValidationMessage } from './employeeDirectoryParams.mjs';
@@ -15,6 +15,7 @@ const reason = ref('');
 const saving = ref(false);
 const generalMessage = ref('');
 const fieldError = ref('');
+const recordLabel = computed(() => props.employee?.employee_type?.name === 'Pendidik' ? 'Teacher' : 'Employee');
 
 watch(() => props.visible, (visible) => {
     if (visible) {
@@ -65,7 +66,7 @@ const submit = async () => {
 <template>
     <Dialog
         :visible="visible"
-        header="Archive Employee"
+        :header="`Archive ${recordLabel}`"
         modal
         :style="{ width: '32rem' }"
         :breakpoints="{ '768px': '92vw' }"
@@ -73,7 +74,7 @@ const submit = async () => {
         @update:visible="emit('update:visible', $event)">
         <div class="flex flex-col gap-3">
             <p class="text-sm">
-                Archiving keeps the record, its history, and its NIK. The employee will be hidden from the
+                Archiving keeps the record, its history, and its NIK. This record will be hidden from the
                 active directory and can be restored later.
             </p>
             <p class="text-sm font-medium">{{ employee?.name }}</p>

@@ -38,9 +38,8 @@ class SyntheticDataSeeder extends Seeder
             ['school_level_id' => $level->id, 'student_major_id' => $major->id, 'class_teach_id' => null]
         );
 
-        // 2. Generate 15 synthetic students (between 10-20)
-        for ($i = 1; $i <= 15; $i++) {
-            $nik = '0'.str_pad((string) $i, 15, '0', STR_PAD_LEFT);
+        for ($i = 1; $i <= 100; $i++) {
+            $nik = '04'.str_pad((string) $i, 14, '0', STR_PAD_LEFT);
             $gender = ($i % 2 === 0) ? $genderFemale : $genderMale;
 
             $student = Student::firstOrCreate(

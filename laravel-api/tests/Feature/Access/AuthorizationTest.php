@@ -161,7 +161,8 @@ test('user cannot escalate own role via access assignment', function () {
         'role_id' => $adminRole->id,
     ]);
 
-    $response->assertStatus(422);
+    $response->assertStatus(422)
+        ->assertJsonPath('message', 'You cannot change your own roles.');
 });
 
 test('admin can assign role to another user', function () {
@@ -336,7 +337,8 @@ test('firstlogin cannot update another user account', function () {
 
     $this->patchJson("/api/firstlogin/{$victim->id}", [
         'first_login_at' => 1,
-    ])->assertStatus(403);
+    ])->assertStatus(403)
+        ->assertJsonPath('message', 'You can only update the login status of your own account.');
 
     expect((int) $victim->fresh()->first_login_at)->toBe(0);
 });
@@ -347,7 +349,8 @@ test('firstlogin can update own account only', function () {
 
     $this->patchJson("/api/firstlogin/{$actor->id}", [
         'first_login_at' => 1,
-    ])->assertStatus(200);
+    ])->assertStatus(200)
+        ->assertJsonPath('message', 'User authenticated successfully!');
 
     expect((int) $actor->fresh()->first_login_at)->toBe(1);
 });

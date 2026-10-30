@@ -72,9 +72,21 @@ test('user with both abilities can export students csv', function () {
         ->toContain('NIK')
         ->toContain('NIS')
         ->toContain('NISN')
-        ->toContain('School Rombel')
+        ->toContain('Class')
         ->toContain('Student Entry')
         ->toContain('Student Status');
+
+    $lines = array_values(array_filter(explode("\n", trim(substr($csv, 3)))));
+    expect(str_getcsv($lines[0]))->toBe([
+        'Name', 'Gender', 'Birthplace', 'Birthdate', 'NIK', 'NIS', 'NISN',
+        'Class', 'Student Entry', 'Student Status',
+    ]);
+    $row = str_getcsv($lines[1]);
+    expect($row)->toHaveCount(10)
+        ->and($row[1])->toBe('Male')
+        ->and($row[7])->toBe('Rombel UAT 1')
+        ->and($row[8])->toBe('New Student')
+        ->and($row[9])->toBe('Active');
 
     // Data siswa tahun ini ada; siswa tahun lain tidak.
     expect($csv)->toContain('Synthetic Student 1')

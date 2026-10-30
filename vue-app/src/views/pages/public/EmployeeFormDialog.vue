@@ -90,6 +90,7 @@ const selectedTypeName = computed(() => {
 });
 
 const isTeacher = computed(() => selectedTypeName.value === 'Pendidik');
+const recordLabel = computed(() => isTeacher.value ? 'Teacher' : 'Employee');
 
 const educationSections = [
     {
@@ -263,7 +264,7 @@ const reloadLatest = async () => {
 <template>
     <Dialog
         :visible="visible"
-        :header="isEdit ? 'Edit Employee' : 'New Employee'"
+        :header="`${isEdit ? 'Edit' : 'New'} ${recordLabel}`"
         modal
         :style="{ width: '64rem' }"
         :breakpoints="{ '1200px': '92vw', '768px': '96vw' }"
@@ -295,12 +296,12 @@ const reloadLatest = async () => {
                     </div>
                     <div class="col-span-12 md:col-span-4">
                         <label class="block mb-2">Gender *</label>
-                        <Select v-model="form.gender_id" :options="options.genders ?? []" optionLabel="name" optionValue="id" class="w-full" />
+                        <Select v-model="form.gender_id" :options="options.genders ?? []" optionLabel="display_name" optionValue="id" class="w-full" />
                         <small v-if="errorFor('gender_id')" class="text-red-500">{{ errorFor('gender_id') }}</small>
                     </div>
                     <div class="col-span-12 md:col-span-4">
                         <label class="block mb-2">Religion *</label>
-                        <Select v-model="form.religion_id" :options="options.religions ?? []" optionLabel="name" optionValue="id" class="w-full" />
+                        <Select v-model="form.religion_id" :options="options.religions ?? []" optionLabel="display_name" optionValue="id" class="w-full" />
                         <small v-if="errorFor('religion_id')" class="text-red-500">{{ errorFor('religion_id') }}</small>
                     </div>
                     <div class="col-span-12 md:col-span-4">
@@ -314,7 +315,7 @@ const reloadLatest = async () => {
                     </div>
                     <div class="col-span-12 md:col-span-4">
                         <label class="block mb-2">Marital Status *</label>
-                        <Select v-model="form.marital_status_id" :options="options.maritalStatuses ?? []" optionLabel="name" optionValue="id" class="w-full" />
+                        <Select v-model="form.marital_status_id" :options="options.maritalStatuses ?? []" optionLabel="display_name" optionValue="id" class="w-full" />
                         <small v-if="errorFor('marital_status_id')" class="text-red-500">{{ errorFor('marital_status_id') }}</small>
                     </div>
                 </div>
@@ -326,29 +327,30 @@ const reloadLatest = async () => {
                     <div class="col-span-12 md:col-span-4">
                         <label class="block mb-2">Employee Type</label>
                         <Select
-                            :modelValue="selectedTypeName"
+                            :modelValue="form.employee_type_id"
                             :options="options.employeeTypes ?? []"
-                            optionLabel="name"
+                            optionLabel="display_name"
+                            optionValue="id"
                             class="w-full"
                             disabled />
                     </div>
                     <div class="col-span-12 md:col-span-4">
                         <label class="block mb-2">Employee Status *</label>
-                        <Select v-model="form.employee_status_id" :options="options.employeeStatuses ?? []" optionLabel="name" optionValue="id" class="w-full" />
+                        <Select v-model="form.employee_status_id" :options="options.employeeStatuses ?? []" optionLabel="display_name" optionValue="id" class="w-full" />
                         <small v-if="errorFor('employee_status_id')" class="text-red-500">{{ errorFor('employee_status_id') }}</small>
                     </div>
                     <div class="col-span-12 md:col-span-4">
                         <label class="block mb-2">Employment *</label>
-                        <Select v-model="form.employment_id" :options="options.employments ?? []" optionLabel="name" optionValue="id" class="w-full" />
+                        <Select v-model="form.employment_id" :options="options.employments ?? []" optionLabel="display_name" optionValue="id" class="w-full" />
                         <small v-if="errorFor('employment_id')" class="text-red-500">{{ errorFor('employment_id') }}</small>
                     </div>
                     <div v-if="isTeacher" class="col-span-12 md:col-span-4">
                         <label class="block mb-2">Subject *</label>
-                        <Select v-model="form.subject_id" :options="options.subjects ?? []" optionLabel="name" optionValue="id" class="w-full" />
+                        <Select v-model="form.subject_id" :options="options.subjects ?? []" optionLabel="display_name" optionValue="id" class="w-full" />
                         <small v-if="errorFor('subject_id')" class="text-red-500">{{ errorFor('subject_id') }}</small>
                     </div>
                     <div class="col-span-12 md:col-span-4">
-                        <label class="block mb-2">TMT *</label>
+                        <label class="block mb-2">Employment Start Date (TMT) *</label>
                         <InputText v-model="form.tmt_employee" type="date" class="w-full" />
                         <small v-if="errorFor('tmt_employee')" class="text-red-500">{{ errorFor('tmt_employee') }}</small>
                     </div>
@@ -417,7 +419,7 @@ const reloadLatest = async () => {
                         <small v-if="errorFor('no_kk')" class="text-red-500">{{ errorFor('no_kk') }}</small>
                     </div>
                     <div class="col-span-12 md:col-span-6">
-                        <label class="block mb-2">NPWP</label>
+                        <label class="block mb-2">Tax Identification Number (NPWP)</label>
                         <InputText v-model="form.npwp" class="w-full" maxlength="30" />
                     </div>
                 </div>
@@ -454,7 +456,7 @@ const reloadLatest = async () => {
 
         <template #footer>
             <Button label="Cancel" severity="secondary" variant="outlined" :disabled="saving" @click="requestClose" />
-            <Button :label="isEdit ? 'Save Changes' : 'Create Employee'" icon="pi pi-check" :loading="saving" @click="submit" />
+            <Button :label="isEdit ? 'Save Changes' : `Create ${recordLabel}`" icon="pi pi-check" :loading="saving" @click="submit" />
         </template>
     </Dialog>
 </template>

@@ -291,8 +291,14 @@ test('archived employees are only listed for managers on request', function () {
         ->assertJsonPath('data.0.id', $archived->id)
         ->assertJsonPath('data.0.archived_at', fn ($value) => $value !== null);
 
+    $this->getJson('/api/employees/'.$archived->id)
+        ->assertStatus(200)
+        ->assertJsonPath('data.id', $archived->id)
+        ->assertJsonPath('data.archived_at', fn ($value) => $value !== null);
+
     Sanctum::actingAs($this->principal);
     $this->getJson('/api/employees?only_archived=1')->assertStatus(403);
+    $this->getJson('/api/employees/'.$archived->id)->assertStatus(403);
 });
 
 test('restore clears the archive reason and increments the version', function () {

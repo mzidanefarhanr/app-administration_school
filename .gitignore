@@ -19,3 +19,8 @@ vue-app/.env.production
 .DS_Store
 Thumbs.db
 .playwright-mcp/
+
+# Local UAT credentials and runtime (never push)
+UAT-ACCOUNTS.local.md
+*.local.md
+.uat-phase04b/

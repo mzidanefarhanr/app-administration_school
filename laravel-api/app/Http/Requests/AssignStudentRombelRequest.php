@@ -44,7 +44,7 @@ class AssignStudentRombelRequest extends FormRequest
                     ->exists();
 
                 if (! $belongs) {
-                    $validator->errors()->add('school_rombel_id', 'The selected rombel does not belong to the selected academic year.');
+                    $validator->errors()->add('school_rombel_id', 'The selected class does not belong to the selected academic year.');
                 }
             }
         });
@@ -60,8 +60,9 @@ class AssignStudentRombelRequest extends FormRequest
         return [
             'school_year_id.required' => 'Academic year is required.',
             'school_year_id.exists' => 'The selected academic year does not exist.',
-            'school_rombel_id.required' => 'Target rombel is required.',
-            'school_rombel_id.exists' => 'The selected target rombel does not exist.',
+            'school_rombel_id.required' => 'Target class is required.',
+            'school_rombel_id.exists' => 'The selected target class does not exist.',
+            'school_rombel_id.integer' => 'Target class must be an integer.',
             'expected_student_version.required' => 'Expected student version is required for concurrency control.',
             'expected_student_version.integer' => 'Expected student version must be an integer.',
         ];

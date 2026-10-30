@@ -112,7 +112,7 @@ const submit = async () => {
             <p class="text-sm font-medium">{{ employee?.name }}</p>
 
             <p v-if="isLinked" class="text-sm">
-                Unlinking keeps the account and its roles unchanged. The employee profile will no longer
+                Unlinking keeps the account and its roles unchanged. The staff profile will no longer
                 resolve to this account, and the legacy NIK fallback stays disabled.
             </p>
 

@@ -21,10 +21,11 @@ const GROUP_LABELS = {
     system: 'System',
     master: 'Master Data',
     students: 'Students',
-    employees: 'Employees',
+    employees: 'Teachers & Employees',
     letters: 'Letters',
     leaves: 'Leaves',
     teaching: 'Teaching',
+    backup: 'Backup',
     lainnya: 'Other'
 };
 
@@ -43,9 +44,10 @@ const ABILITY_LABELS = {
     'students.view': 'View students',
     'students.manage': 'Manage students',
     'students.export': 'Export students',
-    'employees.view': 'View employees',
-    'employees.manage': 'Manage employees',
-    'employees.export': 'Export employees',
+    'employees.view': 'View staff',
+    'employees.manage': 'Manage staff',
+    'employees.export': 'Export staff',
+    'backup.manage': 'Manage backups',
     'letters.view': 'View letters',
     'letters.manage': 'Manage letters',
     'letters.approve': 'Approve letters',
@@ -158,7 +160,6 @@ onMounted(() => {
                         <template #body="{ data }">
                             <div class="flex flex-col">
                                 <span class="font-semibold">{{ data.name }}</span>
-                                <small class="text-surface-500">{{ data.slug }}</small>
                             </div>
                         </template>
                     </Column>

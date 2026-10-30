@@ -14,18 +14,18 @@ const model = ref([
         requires: null,
         items: [
             { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' },
-            { label: 'Profile School', icon: 'pi pi-fw pi-building-columns', to: '/public/schoolprofile' },
+            { label: 'School Profile', icon: 'pi pi-fw pi-building-columns', to: '/public/schoolprofile' },
         ]
     },
     {
-        label: 'Masters',
+        label: 'Master Data',
         requires: 'master.view',
         items: [
             { label: 'Education Levels', icon: 'pi pi-fw pi-chart-bar', to: '/public/educationlevels' },
             { label: 'Education Schools', icon: 'pi pi-fw pi-building-columns', to: '/public/educationschools' },
             { label: 'Phase Status', icon: 'pi pi-fw pi-building', to: '/public/phasestatuses', class: 'rotated-icon' },
             { label: 'Professions', icon: 'pi pi-fw pi-briefcase', to: '/public/professions', class: 'rotated-icon' },
-            { label: 'School Rombels', icon: 'pi pi-fw pi-book', to: '/public/schoolrombels', class: 'rotated-icon' },
+            { label: 'Classes', icon: 'pi pi-fw pi-book', to: '/public/schoolrombels', class: 'rotated-icon' },
             { label: 'School Years', icon: 'pi pi-fw pi-calendar', to: '/public/schoolyears', class: 'rotated-icon' },
             { label: 'Student Majors', icon: 'pi pi-fw pi-calendar', to: '/public/studentmajors', class: 'rotated-icon' },
         ]

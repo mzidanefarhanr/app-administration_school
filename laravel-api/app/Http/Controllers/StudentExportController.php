@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\SchoolRombel;
 use App\Models\Student;
 use App\Models\StudentRombel;
+use App\Support\ReferenceLabels;
 use App\Support\StudentDirectory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -41,15 +42,15 @@ class StudentExportController extends Controller
     {
         $this->columns = [
             'name' => ['Name', fn (Student $s) => $s->name],
-            'gender' => ['Gender', fn (Student $s) => $s->gender?->name],
+            'gender' => ['Gender', fn (Student $s) => ReferenceLabels::display('genders', $s->gender?->name)],
             'birthplace' => ['Birthplace', fn (Student $s) => $s->birthplace],
             'birthdate' => ['Birthdate', fn (Student $s) => $s->birthdate],
             'nik' => ['NIK', fn (Student $s) => $s->nik],
             'nis' => ['NIS', fn (Student $s) => $s->nis],
             'nisn' => ['NISN', fn (Student $s) => $s->nisn],
-            'school_rombel' => ['School Rombel', fn (Student $s, ?StudentRombel $m) => $m?->schoolRombel?->name],
-            'student_entry' => ['Student Entry', fn (Student $s, ?StudentRombel $m) => $m?->studentEntry?->name],
-            'student_status' => ['Student Status', fn (Student $s, ?StudentRombel $m) => $m?->studentStatus?->name],
+            'school_rombel' => ['Class', fn (Student $s, ?StudentRombel $m) => $m?->schoolRombel?->name],
+            'student_entry' => ['Student Entry', fn (Student $s, ?StudentRombel $m) => ReferenceLabels::display('student-entries', $m?->studentEntry?->name)],
+            'student_status' => ['Student Status', fn (Student $s, ?StudentRombel $m) => ReferenceLabels::display('student-statuses', $m?->studentStatus?->name)],
         ];
     }
 
@@ -66,6 +67,8 @@ class StudentExportController extends Controller
         ], [
             'school_year_id.required' => 'A school year is required to export students.',
             'placement.in' => 'The placement filter must be one of: all, placed, unplaced.',
+            'rombel.integer' => 'The class filter must be an integer.',
+            'rombel.exists' => 'The selected class does not exist.',
         ]);
 
         $yearId = (int) $validated['school_year_id'];
@@ -75,13 +78,13 @@ class StudentExportController extends Controller
 
         if ($rombelId !== null && ! SchoolRombel::where('id', $rombelId)->where('school_year_id', $yearId)->exists()) {
             throw ValidationException::withMessages([
-                'rombel' => ['The selected rombel does not belong to the selected school year.'],
+                'rombel' => ['The selected class does not belong to the selected school year.'],
             ]);
         }
 
         if ($rombelId !== null && $placement === 'unplaced') {
             throw ValidationException::withMessages([
-                'placement' => ['The unplaced filter cannot be combined with a rombel filter.'],
+                'placement' => ['The unplaced filter cannot be combined with a class filter.'],
             ]);
         }
 
@@ -100,7 +103,7 @@ class StudentExportController extends Controller
             return response()->json([
                 'message' => 'The export matches '.$total.' rows, which exceeds the limit of '
                     .$maxRows.'. Please narrow your filters (for example by school year, '
-                    .'rombel, or search) and try again.',
+                    .'class, or search) and try again.',
             ], 422);
         }
 

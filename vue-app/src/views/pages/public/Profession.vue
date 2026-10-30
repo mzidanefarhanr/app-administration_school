@@ -3,6 +3,9 @@ import { ref, onMounted } from 'vue';
 import Button from 'primevue/button';
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 import { useResourceManager } from '@/utils/useResourceManager';
+import { referenceExportFunction } from '@/utils/referenceLabels.mjs';
+
+const exportReferenceCell = referenceExportFunction({ name: 'professions' });
 
 // ── Local refs (tidak ada di composable) ──────────────────────────────────
 const dt              = ref();
@@ -55,7 +58,7 @@ const clearFilter = () => initFilters();
 const initFilters = () => {
     filters.value = {
         global:              { value: null, matchMode: FilterMatchMode.CONTAINS },
-        'name':              { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+        'display_name':      { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
     };
 };
 
@@ -113,7 +116,8 @@ onMounted(() => {
                 dataKey="id"
                 filterDisplay="menu"
                 :loading="loading"
-                :globalFilterFields="['name']"
+                :exportFunction="exportReferenceCell"
+                :globalFilterFields="['name', 'display_name']"
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
                 >
@@ -151,9 +155,9 @@ onMounted(() => {
                             {{ slotProps.index + 1 }}
                         </template>
                     </Column>
-                    <Column field="name" header="Name" exportHeader="Name" sortable filterField="name" :filterMenuStyle="{ width: '14rem' }" style="min-width: 12rem">
+                    <Column field="name" header="Name" exportHeader="Name" sortable sortField="display_name" filterField="display_name" :filterMenuStyle="{ width: '14rem' }" style="min-width: 12rem">
                         <template #body="{ data }">
-                            {{ data.name }}
+                            {{ data.display_name ?? data.name }}
                         </template>
                         <template #filter="{ filterModel, filterCallback }">
                             <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Search by Name" />
@@ -181,7 +185,7 @@ onMounted(() => {
         <div class="flex items-center gap-4">
             <i class="pi pi-exclamation-triangle !text-3xl" />
             <span v-if="singleData"
-                >Are you sure you want to delete <b>{{ singleData.name }}</b
+                >Are you sure you want to delete <b>{{ singleData.display_name ?? singleData.name }}</b
                 >?</span
             >
         </div>

@@ -6,6 +6,7 @@ import { useToast } from "primevue/usetoast";
 import apiLogin from '@/apiLogin';
 import gifSuccess from '@/assets/gif/success.gif';
 import { buildStudentExportParams } from './studentExportParams.mjs';
+import { referenceLabel, displayReferenceOptions } from '@/utils/referenceLabels.mjs';
 
 const toast = useToast();
 const doughnutData = ref(null);
@@ -565,7 +566,7 @@ const updateChartData = () => {
     });
 
     ChartReligionsData.value = {
-        labels: religionNames,
+        labels: religionNames.map(name => referenceLabel('religions', name)),
         datasets: [
             {
                 data: religionValues,
@@ -619,7 +620,7 @@ const groupItems = [
             { label: 'KJP',             icon: 'pi pi-wallet',                id: 'section-kjp' },
             { label: 'PPDB',            icon: 'pi pi-file-plus',             id: 'section-ppdb' },
             { label: 'Dapodik Status',  icon: 'pi pi-check-circle',          id: 'section-dapodik' },
-            { label: 'Mutation',        icon: 'pi pi-arrow-right-arrow-left',id: 'section-mutation' },
+            { label: 'Transfer',        icon: 'pi pi-arrow-right-arrow-left',id: 'section-mutation' },
         ],
     },
     {
@@ -628,7 +629,7 @@ const groupItems = [
         icon:  'pi pi-sitemap',
         subItems: [
             { label: 'Parents',          icon: 'pi pi-home',                 id: 'section-parents' },
-            { label: 'Guardian Teacher', icon: 'pi pi-graduation-cap',       id: 'section-guardian' },
+            { label: 'Homeroom Teacher', icon: 'pi pi-graduation-cap',       id: 'section-guardian' },
         ],
     },
 ];
@@ -659,7 +660,7 @@ const rekapData = computed(() => {
     school_years_pick.value.forEach(student => {
         const levelName  = student.school_rombel?.school_level?.name ?? 'Unknown';
         const rombelName = student.school_rombel?.name               ?? 'Unknown';
-        const majorName  = student.school_rombel?.student_major?.name ?? '-';
+        const majorName  = student.school_rombel?.student_major?.display_name ?? student.school_rombel?.student_major?.name ?? '-';
         const isMale     = student.student_nik?.gender?.name === 'Laki-Laki';
 
         if (!levelsMap[levelName]) {
@@ -712,7 +713,7 @@ const printProfile = () => {
     win.document.write(`
         <html>
         <head>
-            <title>Profil Siswa - ${selectedStudent.value?.student_nik?.name}</title>
+            <title>Student Profile - ${selectedStudent.value?.student_nik?.name}</title>
             <style>
                 * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; font-size: 11pt; }
                 body { padding: 20px; color: #000; }
@@ -826,14 +827,14 @@ const fetchStudentFormOptions = async () => {
         apiLogin.get('/api/professions'),
         apiLogin.get('/api/family-status'),
     ]);
-    const normalize = (res) => (res.data.data ?? []).map((item) => ({ id: item.id, name: item.name }));
+    const normalize = (res) => res.data.data ?? [];
     formOptions.value = {
-        genders: normalize(genders),
-        religions: normalize(religions),
-        education_levels: normalize(levels),
+        genders: displayReferenceOptions('genders', normalize(genders)),
+        religions: displayReferenceOptions('religions', normalize(religions)),
+        education_levels: displayReferenceOptions('education-levels', normalize(levels)),
         blood_types: normalize(bloodTypes),
-        professions: normalize(professions),
-        family_statuses: normalize(familyStatuses),
+        professions: displayReferenceOptions('professions', normalize(professions)),
+        family_statuses: displayReferenceOptions('family-statuses', normalize(familyStatuses)),
     };
     formOptionsLoaded.value = true;
 };
@@ -1031,7 +1032,7 @@ const restoreStudent = async (student) => {
     isSubmitting.value = true;
     try {
         await apiLogin.post(`/api/students/${student.id}/restore`, { version: student.version });
-        toast.add({ severity: 'success', summary: 'Student Restored', detail: `${student.name} has been restored. Previous rombel membership stays inactive.`, life: 5000 });
+        toast.add({ severity: 'success', summary: 'Student Restored', detail: `${student.name} has been restored. Previous class membership stays inactive.`, life: 5000 });
         archivedStudents.value = archivedStudents.value.filter((item) => item.id !== student.id);
         if (school_years_now.value) fetchDataStudentRombels();
     } catch (error) {
@@ -1070,7 +1071,7 @@ const openAssignRombel = async (row) => {
         placementErrors.value = {};
         placementDialog.value = true;
     } catch (error) {
-        toast.add({ severity: 'error', summary: 'Assign Rombel', detail: error.response?.data?.message ?? 'Failed to load student data.', life: 4000 });
+        toast.add({ severity: 'error', summary: 'Assign Class', detail: error.response?.data?.message ?? 'Failed to load student data.', life: 4000 });
     }
 };
 
@@ -1099,7 +1100,7 @@ const openTransferRombel = async (row) => {
         placementErrors.value = {};
         placementDialog.value = true;
     } catch (error) {
-        toast.add({ severity: 'error', summary: 'Transfer Rombel', detail: error.response?.data?.message ?? 'Failed to load student data.', life: 4000 });
+        toast.add({ severity: 'error', summary: 'Transfer Class', detail: error.response?.data?.message ?? 'Failed to load student data.', life: 4000 });
     }
 };
 
@@ -1108,7 +1109,7 @@ const confirmPlacement = async () => {
     placementErrors.value = {};
 
     if (!placementForm.value.target_rombel_id) {
-        placementErrors.value = { target_rombel_id: ['Target rombel is required.'] };
+        placementErrors.value = { target_rombel_id: ['Target class is required.'] };
         return;
     }
 
@@ -1120,7 +1121,7 @@ const confirmPlacement = async () => {
                 school_rombel_id: placementForm.value.target_rombel_id,
                 expected_student_version: placementTarget.value.version
             });
-            toast.add({ severity: 'success', summary: 'Placement Success', detail: `${placementTarget.value.name} has been assigned to rombel.`, life: 4000 });
+            toast.add({ severity: 'success', summary: 'Placement Success', detail: `${placementTarget.value.name} has been assigned to a class.`, life: 4000 });
         } else {
             await apiLogin.post(`/api/students/${placementTarget.value.id}/transfer-rombel`, {
                 school_year_id: school_years_now.value.id,
@@ -1129,7 +1130,7 @@ const confirmPlacement = async () => {
                 expected_membership_version: placementTarget.value.membershipVersion,
                 reason: placementForm.value.reason?.trim() || null
             });
-            toast.add({ severity: 'success', summary: 'Transfer Success', detail: `${placementTarget.value.name} has been transferred to new rombel.`, life: 4000 });
+            toast.add({ severity: 'success', summary: 'Transfer Success', detail: `${placementTarget.value.name} has been transferred to a new class.`, life: 4000 });
         }
         placementDialog.value = false;
         if (school_years_now.value) fetchDataStudentRombels();
@@ -1141,7 +1142,7 @@ const confirmPlacement = async () => {
                 toast.add({ severity: 'error', summary: 'Validation Error', detail: error.response.data.message, life: 4000 });
             }
         } else if (status === 409) {
-            conflictMessage.value = error.response.data.message ?? 'Conflict: student or rombel membership was modified by another operator.';
+            conflictMessage.value = error.response.data.message ?? 'Conflict: student or class membership was modified by another operator.';
             conflictReloadAction.value = async () => {
                 if (placementMode.value === 'assign') {
                     await openAssignRombel({ id: placementTarget.value.id });
@@ -1187,7 +1188,7 @@ onMounted(() => {
                                 <i class="pi pi-minus-circle" />
                                 {{ loading == false ? mutation_students : "" }}
                                 <Skeleton v-if="loading == true" width="3rem" height="2rem" />
-                                Mutation Students
+                                Transfer Students
                             </span>
                             <span class="flex items-center gap-1 text-red-500">
                                 <i class="pi pi-minus-circle" />
@@ -1336,7 +1337,7 @@ onMounted(() => {
                             <span>Total: <strong>{{ listRecap.total_matches }}</strong></span>
                             <span class="text-green-600">Placed: <strong>{{ listRecap.placed_count }}</strong></span>
                             <span class="text-orange-500">Unplaced: <strong>{{ listRecap.unplaced_count }}</strong></span>
-                            <span v-for="group in listRecap.by_gender" :key="group.label">{{ group.label }}: <strong>{{ group.total }}</strong></span>
+                            <span v-for="group in listRecap.by_gender" :key="group.label">{{ referenceLabel('genders', group.label) }}: <strong>{{ group.total }}</strong></span>
                         </div>
                         <div class="flex flex-col xl:flex-row gap-4 xl:items-center">
                             <IconField class="w-full xl:w-64">
@@ -1344,7 +1345,7 @@ onMounted(() => {
                                 <InputText v-model="listSearch" placeholder="Search name, NIS, or NISN" class="w-full" @input="onListSearchInput" />
                             </IconField>
                             <Select v-model="listPlacement" :options="placementOptions" optionLabel="label" optionValue="value" placeholder="Placement" class="w-full xl:w-40" @change="onListFilterChange" />
-                            <Select v-model="listRombelId" :options="rombelOptions" optionLabel="name" optionValue="id" placeholder="Rombel" showClear class="w-full xl:w-48" :disabled="listPlacement === 'unplaced'" @change="onListFilterChange" />
+                            <Select v-model="listRombelId" :options="rombelOptions" optionLabel="name" optionValue="id" placeholder="Class" showClear class="w-full xl:w-48" :disabled="listPlacement === 'unplaced'" @change="onListFilterChange" />
                             <div class="flex flex-wrap gap-2">
                                 <Button v-if="useAuthStore.can('students.export')" icon="pi pi-external-link" label="Export" @click="exportCSV($event)" />
                                 <Button v-if="canManage" icon="pi pi-user-plus" label="New Student" @click="openCreateStudent" />
@@ -1367,12 +1368,12 @@ onMounted(() => {
                     <Column field="name" header="Name" sortable style="min-width: 12rem" />
                     <Column field="gender" header="Gender" style="min-width: 8rem">
                         <template #body="{ data }">
-                            <Tag v-if="data.gender" :value="data.gender" :severity="getSeverity(data.gender)" />
+                            <Tag v-if="data.gender" :value="referenceLabel('genders', data.gender)" :severity="getSeverity(data.gender)" />
                         </template>
                     </Column>
                     <Column field="nis" header="NIS" sortable style="min-width: 8rem" />
                     <Column field="nisn" header="NISN" sortable style="min-width: 10rem" />
-                    <Column header="Rombel" style="min-width: 10rem">
+                    <Column header="Class" style="min-width: 10rem">
                         <template #body="{ data }">
                             <Tag v-if="data.rombel" :value="data.rombel.name" :severity="getSeverity(data.rombel.name)" />
                             <span v-else>-</span>
@@ -1387,8 +1388,8 @@ onMounted(() => {
                         <template #body="{ data }">
                             <Button icon="pi pi-eye" variant="outlined" rounded class="mr-2" v-tooltip.top="'View Detail'" @click="viewStudentDetail(data)" />
                             <Button v-if="canManage" icon="pi pi-pencil" variant="outlined" rounded class="mr-2" v-tooltip.top="'Edit Student'" @click="openEditStudent(data)" />
-                            <Button v-if="canManage && data.placement === 'unplaced'" icon="pi pi-user-plus" variant="outlined" rounded severity="info" class="mr-2" v-tooltip.top="'Assign Rombel'" @click="openAssignRombel(data)" />
-                            <Button v-if="canManage && data.placement === 'placed'" icon="pi pi-arrow-right-arrow-left" variant="outlined" rounded severity="warn" class="mr-2" v-tooltip.top="'Transfer Rombel'" @click="openTransferRombel(data)" />
+                            <Button v-if="canManage && data.placement === 'unplaced'" icon="pi pi-user-plus" variant="outlined" rounded severity="info" class="mr-2" v-tooltip.top="'Assign Class'" @click="openAssignRombel(data)" />
+                            <Button v-if="canManage && data.placement === 'placed'" icon="pi pi-arrow-right-arrow-left" variant="outlined" rounded severity="warn" class="mr-2" v-tooltip.top="'Transfer Class'" @click="openTransferRombel(data)" />
                             <Button v-if="canManage" icon="pi pi-inbox" variant="outlined" rounded severity="danger" v-tooltip.top="'Archive Student'" @click="openArchiveStudent(data)" />
                         </template>
                     </Column>
@@ -1489,7 +1490,7 @@ onMounted(() => {
                         <tbody>
                             <!-- Dynamically loops through the list generated in updateChartData -->
                             <tr v-for="rel in rekapReligionsList" :key="rel.name" class="border-b border-surface-200 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-800">
-                                <td class="px-8 py-4 text-center font-medium">{{ rel.name }}</td>
+                                <td class="px-8 py-4 text-center font-medium">{{ referenceLabel('religions', rel.name) }}</td>
                                 <td class="px-8 py-4 text-center text-primary-500 font-bold">{{ rel.count }}</td>
                             </tr>
                             <!-- Grand Total Row -->
@@ -1542,7 +1543,7 @@ onMounted(() => {
                         </div>
                         <div class="text-xs text-surface-400 mt-1">
                             Recap per date:
-                            {{ new Date().toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' }) }}
+                            {{ new Date().toLocaleDateString('en-US', { day:'2-digit', month:'long', year:'numeric' }) }}
                         </div>
                     </div>
 
@@ -1591,15 +1592,15 @@ onMounted(() => {
                                 </tr>
                                 <tr class="bg-surface-100 dark:bg-surface-800">
                                     <th class="border border-surface-300 dark:border-surface-600
-                                            px-3 py-2 text-center font-semibold text-blue-500">L</th>
+                                            px-3 py-2 text-center font-semibold text-blue-500">M</th>
                                     <th class="border border-surface-300 dark:border-surface-600
-                                            px-3 py-2 text-center font-semibold text-pink-500">P</th>
+                                            px-3 py-2 text-center font-semibold text-pink-500">F</th>
                                     <th class="border border-surface-300 dark:border-surface-600
                                             px-3 py-2 text-center font-semibold">Total</th>
                                     <th class="border border-surface-300 dark:border-surface-600
-                                            px-3 py-2 text-center font-semibold text-blue-500">L</th>
+                                            px-3 py-2 text-center font-semibold text-blue-500">M</th>
                                     <th class="border border-surface-300 dark:border-surface-600
-                                            px-3 py-2 text-center font-semibold text-pink-500">P</th>
+                                            px-3 py-2 text-center font-semibold text-pink-500">F</th>
                                     <th class="border border-surface-300 dark:border-surface-600
                                             px-3 py-2 text-center font-semibold">Total</th>
                                 </tr>
@@ -1727,7 +1728,7 @@ onMounted(() => {
         <div class="card w-full h-full" v-show="activeGroup === 'demographics' && activeSub === 'section-profile-student'">
 
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 border-b border-surface-200 dark:border-surface-700 pb-4">
-                <div class="font-semibold text-xl">Profile Siswa</div>
+                <div class="font-semibold text-xl">Student Profile</div>
                 <div class="flex gap-2 w-full md:w-auto">
                     <AutoComplete v-model="searchQuery" required="true" optionLabel="student_nik.name" forceSelection :suggestions="filtered_Cat1" @complete="search_Cat1" fluid />
 
@@ -1774,14 +1775,14 @@ onMounted(() => {
                             <div class="flex flex-col gap-4 text-sm">
                                 <div class="flex justify-between items-center">
                                     <span class="text-surface-500">Gender</span>
-                                    <span class="font-medium text-right">{{ searchQuery?.student_nik?.gender?.name ?? '-' }}</span>
+                                    <span class="font-medium text-right">{{ searchQuery?.student_nik?.gender?.display_name ?? searchQuery?.student_nik?.gender?.name ?? '-' }}</span>
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <span class="text-surface-500">NIK</span>
                                     <span class="font-medium text-right">{{ searchQuery?.student_nik?.nik ?? '-' }}</span>
                                 </div>
                                 <div class="flex justify-between items-center">
-                                    <span class="text-surface-500">KK Number</span>
+                                    <span class="text-surface-500">Family Card Number</span>
                                     <span class="font-medium text-right">{{ searchQuery?.student_nik?.kk ?? '-' }}</span>
                                 </div>
                                 <div class="flex justify-between items-center">
@@ -1798,15 +1799,15 @@ onMounted(() => {
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <span class="text-surface-500">Religion</span>
-                                    <span class="font-medium text-right">{{ searchQuery?.student_nik?.religion?.name ?? '-' }}</span>
+                                    <span class="font-medium text-right">{{ searchQuery?.student_nik?.religion?.display_name ?? searchQuery?.student_nik?.religion?.name ?? '-' }}</span>
                                 </div>
                                 <div class="flex justify-between items-center">
-                                    <span class="text-surface-500">Akta Number</span>
+                                    <span class="text-surface-500">Birth Certificate Number</span>
                                     <span class="font-medium text-right">{{ searchQuery?.student_nik?.akta ?? '-' }}</span>
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <span class="text-surface-500">Family Status</span>
-                                    <span class="font-medium text-right">{{ searchQuery?.student_nik?.family_status?.name ?? '-' }}</span>
+                                    <span class="font-medium text-right">{{ searchQuery?.student_nik?.family_status?.display_name ?? searchQuery?.student_nik?.family_status?.name ?? '-' }}</span>
                                 </div>
                             </div>
                         </div>
@@ -1843,7 +1844,7 @@ onMounted(() => {
                                     <span class="font-medium text-right">{{ searchQuery?.student_nik?.email ?? '-' }}</span>
                                 </div>
                                 <div class="flex justify-between items-center">
-                                    <span class="text-surface-500">HP Number</span>
+                                    <span class="text-surface-500">Phone Number</span>
                                     <span class="font-medium text-right">{{ searchQuery?.student_nik?.hp_number ?? '-' }}</span>
                                 </div>
                             </div>
@@ -1874,18 +1875,18 @@ onMounted(() => {
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-surface-500 text-sm">Education Level</span>
-                                    <span class="font-medium text-sm text-right">{{ searchQuery?.student_nik?.father_education_level?.name ?? '-' }}</span>
+                                    <span class="font-medium text-sm text-right">{{ searchQuery?.student_nik?.father_education_level?.display_name ?? searchQuery?.student_nik?.father_education_level?.name ?? '-' }}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-surface-500 text-sm">Profession</span>
-                                    <span class="font-medium text-sm text-right">{{ searchQuery?.student_nik?.father_profession?.name ?? '-' }}</span>
+                                    <span class="font-medium text-sm text-right">{{ searchQuery?.student_nik?.father_profession?.display_name ?? searchQuery?.student_nik?.father_profession?.name ?? '-' }}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-surface-500 text-sm">Income</span>
                                     <span class="font-medium text-sm text-right">{{ searchQuery?.student_nik?.father_income ?? '-' }}</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-surface-500 text-sm">HP Number</span>
+                                    <span class="text-surface-500 text-sm">Phone Number</span>
                                     <span class="font-medium text-sm text-right">{{ searchQuery?.student_nik?.father_hp_num ?? '-' }}</span>
                                 </div>
                             </div>
@@ -1910,18 +1911,18 @@ onMounted(() => {
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-surface-500 text-sm">Education Level</span>
-                                    <span class="font-medium text-sm text-right">{{ searchQuery?.student_nik?.mother_education_level?.name ?? '-' }}</span>
+                                    <span class="font-medium text-sm text-right">{{ searchQuery?.student_nik?.mother_education_level?.display_name ?? searchQuery?.student_nik?.mother_education_level?.name ?? '-' }}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-surface-500 text-sm">Profession</span>
-                                    <span class="font-medium text-sm text-right">{{ searchQuery?.student_nik?.mother_profession?.name ?? '-' }}</span>
+                                    <span class="font-medium text-sm text-right">{{ searchQuery?.student_nik?.mother_profession?.display_name ?? searchQuery?.student_nik?.mother_profession?.name ?? '-' }}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-surface-500 text-sm">Income</span>
                                     <span class="font-medium text-sm text-right">{{ searchQuery?.student_nik?.mother_income ?? '-' }}</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-surface-500 text-sm">HP Number</span>
+                                    <span class="text-surface-500 text-sm">Phone Number</span>
                                     <span class="font-medium text-sm text-right">{{ searchQuery?.student_nik?.mother_hp_num ?? '-' }}</span>
                                 </div>
                             </div>
@@ -1946,18 +1947,18 @@ onMounted(() => {
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-surface-500 text-sm">Education Level</span>
-                                    <span class="font-medium text-sm text-right">{{ searchQuery?.student_nik?.guardian_education_level?.name ?? '-' }}</span>
+                                    <span class="font-medium text-sm text-right">{{ searchQuery?.student_nik?.guardian_education_level?.display_name ?? searchQuery?.student_nik?.guardian_education_level?.name ?? '-' }}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-surface-500 text-sm">Profession</span>
-                                    <span class="font-medium text-sm text-right">{{ searchQuery?.student_nik?.guardian_profession?.name ?? '-' }}</span>
+                                    <span class="font-medium text-sm text-right">{{ searchQuery?.student_nik?.guardian_profession?.display_name ?? searchQuery?.student_nik?.guardian_profession?.name ?? '-' }}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-surface-500 text-sm">Income</span>
                                     <span class="font-medium text-sm text-right">{{ searchQuery?.student_nik?.guardian_income ?? '-' }}</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-surface-500 text-sm">HP Number</span>
+                                    <span class="text-surface-500 text-sm">Phone Number</span>
                                     <span class="font-medium text-sm text-right">{{ searchQuery?.student_nik?.guardian_hp_num ?? '-' }}</span>
                                 </div>
                             </div>
@@ -2097,15 +2098,15 @@ onMounted(() => {
         <div class="grid grid-cols-12 mt-8 gap-8" v-show="activeGroup === 'administration' && activeSub === 'section-mutation'">
             <div id="section-mutation" class="col-span-12">
                 <div v-if="loading == true" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Student Mutations</div>
+                    <div class="font-semibold text-xl mb-4">Student Transfers</div>
                     <Skeleton width="100%" height="150px"></Skeleton>
                 </div>
                 <div v-else-if="school_years_pick.length == 0" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Student Mutations</div>
-                    <span>No Student Mutations found.</span>
+                    <div class="font-semibold text-xl mb-4">Student Transfers</div>
+                    <span>No Student Transfers found.</span>
                 </div>
                 <div v-else class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Student Mutations</div>
+                    <div class="font-semibold text-xl mb-4">Student Transfers</div>
                 </div>
             </div>
         </div>
@@ -2129,15 +2130,15 @@ onMounted(() => {
         <div class="grid grid-cols-12 mt-8 gap-8" v-show="activeGroup === 'relationships' && activeSub === 'section-guardian'">
             <div id="section-guardian" class="col-span-12">
                 <div v-if="loading == true" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Guardian Teacher</div>
+                    <div class="font-semibold text-xl mb-4">Homeroom Teacher</div>
                     <Skeleton width="100%" height="150px"></Skeleton>
                 </div>
                 <div v-else-if="school_years_pick.length == 0" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Guardian Teacher</div>
-                    <span>No Guardian Teacher found.</span>
+                    <div class="font-semibold text-xl mb-4">Homeroom Teacher</div>
+                    <span>No Homeroom Teacher found.</span>
                 </div>
                 <div v-else class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Guardian Teacher</div>
+                    <div class="font-semibold text-xl mb-4">Homeroom Teacher</div>
                 </div>
             </div>
         </div>
@@ -2148,7 +2149,7 @@ onMounted(() => {
     <!-- <Button label="Danger" @click="visibleStaticBackdropWarnings" /> -->
     <Dialog v-model:visible="visibleStaticBackdropWarning" modal header="Warning!!" :style="{ width: '25rem' }">
         <div class="text-center justify-content-center align-items-center">
-            <p>Data yang anda masukkan sudah benar?</p>
+            <p>Is the information you entered correct?</p>
         </div>
     </Dialog>
     <ConfirmDialog group="headless">
@@ -2160,8 +2161,8 @@ onMounted(() => {
                 <span class="font-bold text-2xl block mb-2 mt-6">{{ message.header }}</span>
                 <p class="mb-0">{{ message.message }}</p>
                 <div class="flex items-center gap-2 mt-6">
-                    <Button label="Simpan" @click="acceptCallback"></Button>
-                    <Button label="Batal" outlined @click="rejectCallback"></Button>
+                    <Button label="Save" @click="acceptCallback"></Button>
+                    <Button label="Cancel" outlined @click="rejectCallback"></Button>
                 </div>
             </div>
         </template>
@@ -2180,7 +2181,7 @@ onMounted(() => {
     </Dialog>
 
     <!-- <Button label="Waiting" @click="visibleStaticBackdropWaitings" /> -->
-    <Dialog v-model:visible="visibleStaticBackdropWaiting" modal header="Silahkan menunggu data anda diproses!">
+    <Dialog v-model:visible="visibleStaticBackdropWaiting" modal header="Please wait while your information is processed.">
         <div class="text-center justify-content-center align-items-center">
             <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: green"></i>
             <p class="text-success" style="font-size: medium">Loading...</p>
@@ -2192,12 +2193,12 @@ onMounted(() => {
         v-model:visible="profileDialog"
         modal
         :style="{ width: '700px', maxWidth: '95vw' }"
-        header="Profil Siswa"
+        header="Student Profile"
         :draggable="false"
     >
         <template #header>
             <div class="flex items-center justify-between w-full">
-                <span class="font-bold text-lg">Profil Siswa</span>
+                <span class="font-bold text-lg">Student Profile</span>
                 <Button
                     icon="pi pi-print"
                     label="Print"
@@ -2213,16 +2214,16 @@ onMounted(() => {
 
             <!-- Document Title -->
             <h2 class="text-center font-bold text-base uppercase mb-4">
-                Profil Siswa SMA YAPPENDA
+                Student Profile SMA YAPPENDA
             </h2>
 
             <!-- ── A. Profil Siswa ────────────────────────────────────────────── -->
             <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">
-                A. Profil Siswa
+                A. Student Profile
             </div>
             <div class="flex flex-col gap-1 pl-4 mb-4">
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Nama Siswa</span>
+                    <span class="w-40 shrink-0">Student Name</span>
                     <span class="w-3 shrink-0">:</span>
                     <span class="font-bold">{{ selectedStudent.student_nik?.name ?? '-' }}</span>
                 </div>
@@ -2239,7 +2240,7 @@ onMounted(() => {
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Kelas</span>
+                    <span class="w-40 shrink-0">Class</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.school_rombel?.name ?? '-' }}</span>
                 </div>
@@ -2247,13 +2248,13 @@ onMounted(() => {
 
             <!-- ── B. Identitas Siswa ─────────────────────────────────────────── -->
             <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">
-                B. Identitas Siswa
+                B. Student Identity
             </div>
             <div class="flex flex-col gap-1 pl-4 mb-4">
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Jenis Kelamin</span>
+                    <span class="w-40 shrink-0">Gender</span>
                     <span class="w-3 shrink-0">:</span>
-                    <span>{{ selectedStudent.student_nik?.gender?.name ?? '-' }}</span>
+                    <span>{{ selectedStudent.student_nik?.gender?.display_name ?? selectedStudent.student_nik?.gender?.name ?? '-' }}</span>
                 </div>
                 <div class="flex gap-2">
                     <span class="w-40 shrink-0">NIK</span>
@@ -2261,44 +2262,44 @@ onMounted(() => {
                     <span>{{ selectedStudent.student_nik?.nik ?? '-' }}</span>
                 </div>
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">No. KK</span>
+                    <span class="w-40 shrink-0">Family Card Number</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.no_kk ?? '-' }}</span>
                 </div>
                 <div class="flex gap-4">
                     <div class="flex gap-2 flex-1">
-                        <span class="w-40 shrink-0">Tempat Lahir</span>
+                        <span class="w-40 shrink-0">Birthplace</span>
                         <span class="w-3 shrink-0">:</span>
                         <span>{{ selectedStudent.student_nik?.birthplace ?? '-' }}</span>
                     </div>
                     <div class="flex gap-2 flex-1">
-                        <span class="w-28 shrink-0">Tanggal Lahir</span>
+                        <span class="w-28 shrink-0">Birthdate</span>
                         <span class="w-3 shrink-0">:</span>
                         <span>{{ selectedStudent.student_nik?.birthdate ?? '-' }}</span>
                     </div>
                 </div>
                 <div class="flex gap-4">
                     <div class="flex gap-2 flex-1">
-                        <span class="w-40 shrink-0">Agama</span>
+                        <span class="w-40 shrink-0">Religion</span>
                         <span class="w-3 shrink-0">:</span>
-                        <span>{{ selectedStudent.student_nik?.religion?.name ?? '-' }}</span>
+                        <span>{{ selectedStudent.student_nik?.religion?.display_name ?? selectedStudent.student_nik?.religion?.name ?? '-' }}</span>
                     </div>
                     <div class="flex gap-2 flex-1">
-                        <span class="w-28 shrink-0">Status Keluarga</span>
+                        <span class="w-28 shrink-0">Family Status</span>
                         <span class="w-3 shrink-0">:</span>
-                        <span>{{ selectedStudent.student_nik?.family_status?.name ?? '-' }}</span>
+                        <span>{{ selectedStudent.student_nik?.family_status?.display_name ?? selectedStudent.student_nik?.family_status?.name ?? '-' }}</span>
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Anak Ke</span>
+                    <span class="w-40 shrink-0">Child Order</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.child_order ?? '-' }}</span>
-                    <span class="mx-2">Dari</span>
+                    <span class="mx-2">Of</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.child_of ?? '-' }}</span>
                 </div>
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">No. Akta Kelahiran</span>
+                    <span class="w-40 shrink-0">Birth Certificate Number</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.birth_certificate_number ?? '-' }}</span>
                 </div>
@@ -2306,11 +2307,11 @@ onMounted(() => {
 
             <!-- ── C. Kontak Siswa ────────────────────────────────────────────── -->
             <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">
-                C. Kontak Siswa
+                C. Student Contact Details
             </div>
             <div class="flex flex-col gap-1 pl-4 mb-4">
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Alamat</span>
+                    <span class="w-40 shrink-0">Address</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.address ?? '-' }}</span>
                 </div>
@@ -2327,30 +2328,30 @@ onMounted(() => {
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Kelurahan</span>
+                    <span class="w-40 shrink-0">Urban Village</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.village?.name ?? '-' }}</span>
                 </div>
                 <div class="flex gap-4">
                     <div class="flex gap-2 flex-1">
-                        <span class="w-40 shrink-0">Kecamatan</span>
+                        <span class="w-40 shrink-0">District</span>
                         <span class="w-3 shrink-0">:</span>
                         <span>{{ selectedStudent.student_nik?.district?.name ?? '-' }}</span>
                     </div>
                     <div class="flex gap-2 flex-1">
-                        <span class="w-10 shrink-0">Kota</span>
+                        <span class="w-10 shrink-0">City</span>
                         <span class="w-3 shrink-0">:</span>
                         <span>{{ selectedStudent.student_nik?.regency?.name ?? '-' }}</span>
                     </div>
                 </div>
                 <div class="flex gap-4">
                     <div class="flex gap-2 flex-1">
-                        <span class="w-40 shrink-0">Kode Pos</span>
+                        <span class="w-40 shrink-0">ZIP Code</span>
                         <span class="w-3 shrink-0">:</span>
                         <span>{{ selectedStudent.student_nik?.zip_code ?? '-' }}</span>
                     </div>
                     <div class="flex gap-2 flex-1">
-                        <span class="w-10 shrink-0">No. HP</span>
+                        <span class="w-10 shrink-0">Phone Number</span>
                         <span class="w-3 shrink-0">:</span>
                         <span>{{ selectedStudent.student_nik?.phone ?? '-' }}</span>
                     </div>
@@ -2364,21 +2365,21 @@ onMounted(() => {
 
             <!-- ── D. Data Ijazah ─────────────────────────────────────────────── -->
             <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">
-                D. Data Ijazah
+                D. Diploma Details
             </div>
             <div class="flex flex-col gap-1 pl-4 mb-4">
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Asal Sekolah</span>
+                    <span class="w-40 shrink-0">Previous School</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.origin_school ?? '-' }}</span>
                 </div>
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Nomor Ijazah</span>
+                    <span class="w-40 shrink-0">Diploma Number</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.certificate_number ?? '-' }}</span>
                 </div>
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Tahun Ijazah</span>
+                    <span class="w-40 shrink-0">Diploma Year</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.certificate_year ?? '-' }}</span>
                 </div>
@@ -2386,11 +2387,11 @@ onMounted(() => {
 
             <!-- ── E. Identitas Ayah ──────────────────────────────────────────── -->
             <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">
-                E. Identitas Ayah
+                E. Father Identity
             </div>
             <div class="flex flex-col gap-1 pl-4 mb-4">
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Nama</span>
+                    <span class="w-40 shrink-0">Name</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.father_name ?? '-' }}</span>
                 </div>
@@ -2401,35 +2402,35 @@ onMounted(() => {
                 </div>
                 <div class="flex gap-4">
                     <div class="flex gap-2 flex-1">
-                        <span class="w-40 shrink-0">Tempat, Tgl Lahir</span>
+                        <span class="w-40 shrink-0">Birthplace</span>
                         <span class="w-3 shrink-0">:</span>
                         <span>{{ selectedStudent.student_nik?.father_birthplace ?? '-' }}</span>
                     </div>
                     <div class="flex gap-2 flex-1">
-                        <span class="w-28 shrink-0">Tanggal Lahir</span>
+                        <span class="w-28 shrink-0">Birthdate</span>
                         <span class="w-3 shrink-0">:</span>
                         <span>{{ selectedStudent.student_nik?.father_birthdate ?? '-' }}</span>
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Pendidikan Terakhir</span>
+                    <span class="w-40 shrink-0">Highest Education Level</span>
                     <span class="w-3 shrink-0">:</span>
-                    <span>{{ selectedStudent.student_nik?.father_last_education ?? '-' }}</span>
+                    <span>{{ referenceLabel('education-levels', selectedStudent.student_nik?.father_last_education ?? '-') }}</span>
                 </div>
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Pekerjaan</span>
+                    <span class="w-40 shrink-0">Occupation</span>
                     <span class="w-3 shrink-0">:</span>
-                    <span>{{ selectedStudent.student_nik?.father_job ?? '-' }}</span>
+                    <span>{{ referenceLabel('professions', selectedStudent.student_nik?.father_job ?? '-') }}</span>
                 </div>
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Penghasilan</span>
+                    <span class="w-40 shrink-0">Income</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.father_income
                         ? 'Rp' + Number(selectedStudent.student_nik.father_income).toLocaleString('id-ID')
                         : 'Rp0' }}</span>
                 </div>
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">HP</span>
+                    <span class="w-40 shrink-0">Phone Number</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.father_phone ?? '-' }}</span>
                 </div>
@@ -2437,11 +2438,11 @@ onMounted(() => {
 
             <!-- ── F. Identitas Ibu ───────────────────────────────────────────── -->
             <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">
-                F. Identitas Ibu
+                F. Mother Identity
             </div>
             <div class="flex flex-col gap-1 pl-4 mb-4">
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Nama</span>
+                    <span class="w-40 shrink-0">Name</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.mother_name ?? '-' }}</span>
                 </div>
@@ -2452,35 +2453,35 @@ onMounted(() => {
                 </div>
                 <div class="flex gap-4">
                     <div class="flex gap-2 flex-1">
-                        <span class="w-40 shrink-0">Tempat, Tgl Lahir</span>
+                        <span class="w-40 shrink-0">Birthplace</span>
                         <span class="w-3 shrink-0">:</span>
                         <span>{{ selectedStudent.student_nik?.mother_birthplace ?? '-' }}</span>
                     </div>
                     <div class="flex gap-2 flex-1">
-                        <span class="w-28 shrink-0">Tanggal Lahir</span>
+                        <span class="w-28 shrink-0">Birthdate</span>
                         <span class="w-3 shrink-0">:</span>
                         <span>{{ selectedStudent.student_nik?.mother_birthdate ?? '-' }}</span>
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Pendidikan Terakhir</span>
+                    <span class="w-40 shrink-0">Highest Education Level</span>
                     <span class="w-3 shrink-0">:</span>
-                    <span>{{ selectedStudent.student_nik?.mother_last_education ?? '-' }}</span>
+                    <span>{{ referenceLabel('education-levels', selectedStudent.student_nik?.mother_last_education ?? '-') }}</span>
                 </div>
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Pekerjaan</span>
+                    <span class="w-40 shrink-0">Occupation</span>
                     <span class="w-3 shrink-0">:</span>
-                    <span>{{ selectedStudent.student_nik?.mother_job ?? '-' }}</span>
+                    <span>{{ referenceLabel('professions', selectedStudent.student_nik?.mother_job ?? '-') }}</span>
                 </div>
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Penghasilan</span>
+                    <span class="w-40 shrink-0">Income</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.mother_income
                         ? 'Rp' + Number(selectedStudent.student_nik.mother_income).toLocaleString('id-ID')
                         : 'Rp0' }}</span>
                 </div>
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">HP</span>
+                    <span class="w-40 shrink-0">Phone Number</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.mother_phone ?? '-' }}</span>
                 </div>
@@ -2489,8 +2490,8 @@ onMounted(() => {
             <!-- ── Signature ──────────────────────────────────────────────────── -->
             <div class="flex justify-end mt-6 pr-4">
                 <div class="text-center">
-                    <p>Jakarta, {{ new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) }}</p>
-                    <p>Siswa SMA YAPPENDA,</p>
+                    <p>Jakarta, {{ new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' }) }}</p>
+                    <p>Student of SMA YAPPENDA,</p>
                     <div class="mt-12 mb-1 font-bold underline">
                         {{ selectedStudent.student_nik?.name ?? '' }}
                     </div>
@@ -2525,17 +2526,17 @@ onMounted(() => {
                     </div>
                     <div>
                         <label for="sf-gender" class="block font-bold mb-2">Gender</label>
-                        <Select id="sf-gender" v-model="studentForm.gender_id" :options="formOptions.genders" optionLabel="name" optionValue="id" placeholder="Select Gender" showClear filter fluid />
+                        <Select id="sf-gender" v-model="studentForm.gender_id" :options="formOptions.genders" optionLabel="display_name" optionValue="id" placeholder="Select Gender" showClear filter fluid />
                         <small v-if="fieldError('gender_id')" class="text-red-500">{{ fieldError('gender_id') }}</small>
                     </div>
                     <div>
                         <label for="sf-religion" class="block font-bold mb-2">Religion</label>
-                        <Select id="sf-religion" v-model="studentForm.religion_id" :options="formOptions.religions" optionLabel="name" optionValue="id" placeholder="Select Religion" showClear filter fluid />
+                        <Select id="sf-religion" v-model="studentForm.religion_id" :options="formOptions.religions" optionLabel="display_name" optionValue="id" placeholder="Select Religion" showClear filter fluid />
                         <small v-if="fieldError('religion_id')" class="text-red-500">{{ fieldError('religion_id') }}</small>
                     </div>
                     <div>
                         <label for="sf-family-status" class="block font-bold mb-2">Family Status</label>
-                        <Select id="sf-family-status" v-model="studentForm.family_status_id" :options="formOptions.family_statuses" optionLabel="name" optionValue="id" placeholder="Select Family Status" showClear filter fluid />
+                        <Select id="sf-family-status" v-model="studentForm.family_status_id" :options="formOptions.family_statuses" optionLabel="display_name" optionValue="id" placeholder="Select Family Status" showClear filter fluid />
                         <small v-if="fieldError('family_status_id')" class="text-red-500">{{ fieldError('family_status_id') }}</small>
                     </div>
                     <div>
@@ -2545,12 +2546,12 @@ onMounted(() => {
                     </div>
                     <div>
                         <label for="sf-profession" class="block font-bold mb-2">Profession</label>
-                        <Select id="sf-profession" v-model="studentForm.profession_id" :options="formOptions.professions" optionLabel="name" optionValue="id" placeholder="Select Profession" showClear filter fluid />
+                        <Select id="sf-profession" v-model="studentForm.profession_id" :options="formOptions.professions" optionLabel="display_name" optionValue="id" placeholder="Select Profession" showClear filter fluid />
                         <small v-if="fieldError('profession_id')" class="text-red-500">{{ fieldError('profession_id') }}</small>
                     </div>
                     <div>
                         <label for="sf-education-level" class="block font-bold mb-2">Education Level</label>
-                        <Select id="sf-education-level" v-model="studentForm.education_level_id" :options="formOptions.education_levels" optionLabel="name" optionValue="id" placeholder="Select Education Level" showClear filter fluid />
+                        <Select id="sf-education-level" v-model="studentForm.education_level_id" :options="formOptions.education_levels" optionLabel="display_name" optionValue="id" placeholder="Select Education Level" showClear filter fluid />
                         <small v-if="fieldError('education_level_id')" class="text-red-500">{{ fieldError('education_level_id') }}</small>
                     </div>
                 </div>
@@ -2565,7 +2566,7 @@ onMounted(() => {
                         <small v-if="fieldError('nik')" class="text-red-500">{{ fieldError('nik') }}</small>
                     </div>
                     <div>
-                        <label for="sf-kk" class="block font-bold mb-2">KK Number (16 digits)</label>
+                        <label for="sf-kk" class="block font-bold mb-2">Family Card Number (16 digits)</label>
                         <InputText id="sf-kk" v-model="studentForm.kk" fluid />
                         <small v-if="fieldError('kk')" class="text-red-500">{{ fieldError('kk') }}</small>
                     </div>
@@ -2666,7 +2667,7 @@ onMounted(() => {
                 <div class="flex flex-wrap gap-6">
                     <div class="flex items-center gap-2">
                         <Checkbox v-model="studentForm.check_ppdbbersama" inputId="sf-ppdb" :binary="true" />
-                        <label for="sf-ppdb">PPDB Bersama</label>
+                        <label for="sf-ppdb">Joint Student Admissions (PPDB)</label>
                     </div>
                     <div class="flex items-center gap-2">
                         <Checkbox v-model="studentForm.check_kjp" inputId="sf-kjp" :binary="true" />
@@ -2698,11 +2699,11 @@ onMounted(() => {
                 <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">NIK</span><span class="font-medium">{{ detailStudent.nik ?? '-' }}</span></div>
                 <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">NIS</span><span class="font-medium">{{ detailStudent.nis ?? '-' }}</span></div>
                 <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">NISN</span><span class="font-medium">{{ detailStudent.nisn ?? '-' }}</span></div>
-                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Gender</span><span class="font-medium">{{ detailStudent.gender?.name ?? '-' }}</span></div>
-                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Religion</span><span class="font-medium">{{ detailStudent.religion?.name ?? '-' }}</span></div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Gender</span><span class="font-medium">{{ detailStudent.gender?.display_name ?? detailStudent.gender?.name ?? '-' }}</span></div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Religion</span><span class="font-medium">{{ detailStudent.religion?.display_name ?? detailStudent.religion?.name ?? '-' }}</span></div>
                 <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Birthplace</span><span class="font-medium">{{ detailStudent.birthplace ?? '-' }}</span></div>
                 <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Birthdate</span><span class="font-medium">{{ detailStudent.birthdate ?? '-' }}</span></div>
-                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Family Status</span><span class="font-medium">{{ detailStudent.family_status?.name ?? '-' }}</span></div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Family Status</span><span class="font-medium">{{ detailStudent.family_status?.display_name ?? detailStudent.family_status?.name ?? '-' }}</span></div>
                 <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Blood Type</span><span class="font-medium">{{ detailStudent.blood_type?.name ?? '-' }}</span></div>
                 <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Address</span><span class="font-medium text-right">{{ detailStudent.address ?? '-' }}</span></div>
                 <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Phone</span><span class="font-medium">{{ detailStudent.hp_num ?? '-' }}</span></div>
@@ -2723,7 +2724,7 @@ onMounted(() => {
         <div class="flex flex-col gap-4">
             <div class="flex items-center gap-4">
                 <i class="pi pi-exclamation-triangle !text-3xl text-red-500" />
-                <span>Are you sure you want to archive <b>{{ archiveTarget.name }}</b>? Active rombel memberships will be deactivated administratively (not recorded as a transfer-out).</span>
+                <span>Are you sure you want to archive <b>{{ archiveTarget.name }}</b>? Active class memberships will be deactivated administratively (not recorded as a transfer-out).</span>
             </div>
             <div>
                 <label for="archive-reason" class="block font-bold mb-2">Administrative Reason <span class="text-red-500">*</span></label>
@@ -2765,7 +2766,7 @@ onMounted(() => {
 
     <!-- ── 03d: Assign & Transfer Rombel Dialog ────────────────────────── -->
     <Dialog v-model:visible="placementDialog" modal :style="{ width: '500px', maxWidth: '95vw' }" :draggable="false"
-            :header="placementMode === 'assign' ? 'Assign to Rombel' : 'Transfer Class Rombel'">
+            :header="placementMode === 'assign' ? 'Assign to Class' : 'Transfer Class'">
         <div class="flex flex-col gap-4">
             <div class="bg-surface-50 dark:bg-surface-800 p-3 rounded-border flex flex-col gap-1 text-sm border border-surface-200 dark:border-surface-700">
                 <div class="flex justify-between">
@@ -2792,10 +2793,10 @@ onMounted(() => {
 
             <div class="flex flex-col gap-1">
                 <label for="targetRombelSelect" class="font-medium text-sm">
-                    Target Class Rombel <span class="text-red-500">*</span>
+                    Target Class <span class="text-red-500">*</span>
                 </label>
                 <Select id="targetRombelSelect" v-model="placementForm.target_rombel_id" :options="availablePlacementRombels"
-                        optionLabel="name" optionValue="id" placeholder="Select target rombel"
+                        optionLabel="name" optionValue="id" placeholder="Select target class"
                         :class="{ 'p-invalid': placementErrors.target_rombel_id || placementErrors.school_rombel_id }" />
                 <small v-if="placementErrors.target_rombel_id" class="text-red-500 text-xs">{{ placementErrors.target_rombel_id[0] }}</small>
                 <small v-if="placementErrors.school_rombel_id" class="text-red-500 text-xs">{{ placementErrors.school_rombel_id[0] }}</small>
@@ -2810,7 +2811,7 @@ onMounted(() => {
         </div>
         <template #footer>
             <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="isSubmittingPlacement" @click="placementDialog = false" />
-            <Button :label="placementMode === 'assign' ? 'Assign Rombel' : 'Transfer Student'"
+            <Button :label="placementMode === 'assign' ? 'Assign Class' : 'Transfer Student'"
                     :icon="placementMode === 'assign' ? 'pi pi-user-plus' : 'pi pi-arrow-right-arrow-left'"
                     :severity="placementMode === 'assign' ? 'info' : 'warn'"
                     :loading="isSubmittingPlacement" :disabled="isSubmittingPlacement"

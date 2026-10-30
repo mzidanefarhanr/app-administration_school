@@ -34,6 +34,7 @@ import { authStore } from '@/stores/authStore';
 import { useToast } from 'primevue/usetoast';
 import { getChangeDetail, getChangeDetails } from '@/utils/diff';
 import { useUniqueValidation } from '@/utils/useUniqueValidation';
+import { enrichReferenceResponse } from '@/utils/referenceLabels.mjs';
 
 /**
  * @param {Object} config
@@ -73,8 +74,8 @@ export function useResourceManager(config) {
     const manyDatas      = ref([]);
     const manyDatas_cat1 = ref([]);
     const status_educations = ref([
-        "Negeri",
-        "Swasta"
+        { name: 'Negeri', display_name: 'Public' },
+        { name: 'Swasta', display_name: 'Private' }
     ]);
 
     // ── Secondary data sources (fully dynamic — no upper limit) ───────────────
@@ -205,10 +206,11 @@ export function useResourceManager(config) {
     const searchCat = (index, event) => {
         setTimeout(() => {
             const source = _secondaryDatas[index];
-            _filteredCats[index].value = !event.query.trim().length
+            const query = event.query.trim().toLowerCase();
+            _filteredCats[index].value = !query.length
                 ? [...source.value]
                 : source.value.filter(item =>
-                    item.name.toLowerCase().includes(event.query.toLowerCase()));
+                    String(item.display_name ?? item.name ?? '').toLowerCase().includes(query));
         }, 250);
     };
 
@@ -285,10 +287,11 @@ export function useResourceManager(config) {
 
                 try {
                     await apiLogin.post(`/api/${endpoint}/${singleData.value.id}`, singleData.value);
-                    manyDatas.value[idx] = singleData.value;
+                    delete singleData.value['password_new'];
+                    delete singleData.value['password'];
+                    manyDatas.value[idx] = enrichReferenceResponse(singleData.value, `/api/${endpoint}`);
 
                     waitingDialogRender();
-                    delete singleData.value['password_new'];
                     EditOrNewDialog.value = false;
                     singleData.value      = {};
 

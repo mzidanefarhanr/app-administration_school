@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Employee;
 use App\Support\EmployeeDirectory;
+use App\Support\ReferenceLabels;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -32,13 +33,13 @@ class EmployeeExportController extends Controller
     {
         $this->columns = [
             'name' => ['Name', fn (Employee $e) => $e->name],
-            'employee_type' => ['Employee Type', fn (Employee $e) => $e->employeeType?->name],
-            'employee_status' => ['Employee Status', fn (Employee $e) => $e->employeeStatus?->name],
-            'employment' => ['Employment', fn (Employee $e) => $e->employment?->name],
-            'subject' => ['Subject', fn (Employee $e) => $e->subject?->name],
+            'employee_type' => ['Employee Type', fn (Employee $e) => ReferenceLabels::display('employee-types', $e->employeeType?->name)],
+            'employee_status' => ['Employee Status', fn (Employee $e) => ReferenceLabels::display('employee-statuses', $e->employeeStatus?->name)],
+            'employment' => ['Employment', fn (Employee $e) => ReferenceLabels::display('employments', $e->employment?->name)],
+            'subject' => ['Subject', fn (Employee $e) => ReferenceLabels::display('subjects', $e->subject?->name)],
             'nuptk' => ['NUPTK', fn (Employee $e) => $e->nuptk],
-            'gender' => ['Gender', fn (Employee $e) => $e->gender?->name],
-            'tmt_employee' => ['TMT', fn (Employee $e) => $e->tmt_employee],
+            'gender' => ['Gender', fn (Employee $e) => ReferenceLabels::display('genders', $e->gender?->name)],
+            'tmt_employee' => ['Employment Start Date (TMT)', fn (Employee $e) => $e->tmt_employee],
             'exit_date' => ['Exit Date', fn (Employee $e) => $e->exit_date],
             'archived_at' => ['Archived At', fn (Employee $e) => $e->deleted_at],
         ];

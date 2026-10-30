@@ -156,14 +156,14 @@ class RoleController extends Controller
         // Peran terproteksi tidak boleh dihapus.
         if ($role->is_protected) {
             return response()->json([
-                'message' => 'Peran ini dilindungi dan tidak dapat dihapus.',
+                'message' => 'This role is protected and cannot be deleted.',
             ], 422);
         }
 
         // Tolak bila masih dipakai pengguna aktif.
         if ($role->users_count > 0) {
             return response()->json([
-                'message' => "Tidak dapat menghapus: masih digunakan oleh {$role->users_count} pengguna.",
+                'message' => "Cannot delete: this role is still assigned to {$role->users_count} users.",
             ], 422);
         }
 

@@ -78,16 +78,16 @@ test('synthetic data seeder refuses to run against operational database', functi
     app()['env'] = 'testing';
 });
 
-test('synthetic data seeder produces exactly 15 synthetic students in allowed testing environment', function () {
+test('synthetic data seeder produces exactly 100 synthetic students in allowed testing environment', function () {
     $initialCount = Student::count();
 
     $this->seed(SyntheticDataSeeder::class);
 
     $addedStudents = Student::count() - $initialCount;
-    expect($addedStudents)->toBe(15);
+    expect($addedStudents)->toBe(100);
 
     // Verify all seeded students have valid rombel relations and 16-digit string NIK
-    $students = Student::latest()->take(15)->get();
+    $students = Student::latest()->take(100)->get();
     foreach ($students as $student) {
         expect(strlen($student->nik))->toBe(16);
         expect(is_string($student->nik))->toBeTrue();

@@ -39,7 +39,7 @@ class AccessAssignmentController extends Controller
         // Cegah eskalasi diri: pengguna tidak boleh menambah peran ke dirinya sendiri.
         if ((int) $request->user()->id === (int) $user->id) {
             return response()->json([
-                'message' => 'Anda tidak dapat mengubah peran Anda sendiri.',
+                'message' => 'You cannot change your own roles.',
             ], 422);
         }
 
@@ -71,7 +71,7 @@ class AccessAssignmentController extends Controller
         // Cegah mengubah peran sendiri (termasuk mencabut).
         if ((int) $request->user()->id === (int) $user->id) {
             return response()->json([
-                'message' => 'Anda tidak dapat mengubah peran Anda sendiri.',
+                'message' => 'You cannot change your own roles.',
             ], 422);
         }
 
@@ -79,8 +79,8 @@ class AccessAssignmentController extends Controller
         // menghilangkan kemampuan mengelola akses dari pengelola terakhir.
         if ($this->wouldRemoveLastAccessManager($user, $role)) {
             return response()->json([
-                'message' => 'Perubahan ditolak: ini akan menghilangkan akses pengelolaan '
-                    .'akun dari admin aktif terakhir.',
+                'message' => 'Change rejected: this would remove account management '
+                    .'access from the last active administrator.',
             ], 422);
         }
 

@@ -230,8 +230,16 @@ test('export streams explicit operational columns without PII or archived rows',
 
     expect($header)->toBe([
         'Name', 'Employee Type', 'Employee Status', 'Employment',
-        'Subject', 'NUPTK', 'Gender', 'TMT', 'Exit Date', 'Archived At',
+        'Subject', 'NUPTK', 'Gender', 'Employment Start Date (TMT)', 'Exit Date', 'Archived At',
     ]);
+
+    $row = str_getcsv($lines[1]);
+    expect($row)->toHaveCount(10)
+        ->and($row[1])->toBe('Non-teaching Employee')
+        ->and($row[2])->toBe('Permanent Foundation Employee')
+        ->and($row[3])->toBe('Tetap Yayasan')
+        ->and($row[4])->toBe('')
+        ->and($row[6])->toBe('Male');
 
     expect($csv)->toContain('Pegawai Ekspor')
         ->and($csv)->toContain('1122334455667788')
@@ -243,10 +251,12 @@ test('export streams explicit operational columns without PII or archived rows',
 });
 
 test('export applies directory filters', function () {
+    $employment = Employment::firstOrCreate(['name' => 'Guru Mata Pelajaran'], ['description' => 'None']);
     makeAccountEmployee([
         'name' => 'Guru Ekspor',
         'nik' => '3201020202020008',
         'employee_type_id' => $this->typeTeacher->id,
+        'employment_id' => $employment->id,
         'subject_id' => $this->subject->id,
     ]);
     makeAccountEmployee(['name' => 'Staf Ekspor', 'nik' => '3201020202020009']);
@@ -256,6 +266,13 @@ test('export applies directory filters', function () {
     $csv = $this->get('/api/employees/export?employee_type_id='.$this->typeTeacher->id)
         ->assertStatus(200)
         ->streamedContent();
+
+    $lines = array_values(array_filter(explode("\n", trim(substr($csv, 3)))));
+    $row = str_getcsv($lines[1]);
+    expect($row)->toHaveCount(10)
+        ->and($row[1])->toBe('Teacher')
+        ->and($row[3])->toBe('Subject Teacher')
+        ->and($row[4])->toBe('Mathematics');
 
     expect($csv)->toContain('Guru Ekspor')
         ->and($csv)->not->toContain('Staf Ekspor');

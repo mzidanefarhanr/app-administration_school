@@ -147,7 +147,7 @@ test('assigning rombel to archived student is rejected with 422', function () {
     ]);
 
     $response->assertStatus(422)
-        ->assertJsonPath('message', 'Cannot assign rombel to an archived student.');
+        ->assertJsonPath('message', 'Cannot assign a class to an archived student.');
 
     expect(StudentRombel::where('student_id', $student->id)->count())->toBe(0);
 });
@@ -200,7 +200,7 @@ test('assigning student who already has active rombel in same academic year is r
     ]);
 
     $response->assertStatus(409)
-        ->assertJsonPath('message', 'Conflict: Student already has an active rombel membership in this academic year.');
+        ->assertJsonPath('message', 'Conflict: Student already has an active class membership in this academic year.');
 });
 
 test('authorized operator can transfer placed student to another rombel within the same academic year', function () {
@@ -274,7 +274,7 @@ test('transfer to identical target rombel is rejected with 422', function () {
     ]);
 
     $response->assertStatus(422)
-        ->assertJsonPath('message', 'Target rombel must be different from current rombel.');
+        ->assertJsonPath('message', 'Target class must be different from current class.');
 });
 
 test('transfer to rombel from different academic year is rejected with 422', function () {
@@ -355,7 +355,7 @@ test('transfer for unplaced student is rejected with 422', function () {
     ]);
 
     $response->assertStatus(422)
-        ->assertJsonPath('message', 'Student has no active rombel membership in the selected academic year to transfer from.');
+        ->assertJsonPath('message', 'Student has no active class membership in the selected academic year to transfer from.');
 });
 
 test('transfer for archived student is rejected with 422', function () {
@@ -372,7 +372,7 @@ test('transfer for archived student is rejected with 422', function () {
     ]);
 
     $response->assertStatus(422)
-        ->assertJsonPath('message', 'Cannot transfer rombel for an archived student.');
+        ->assertJsonPath('message', 'Cannot transfer class membership for an archived student.');
 });
 
 test('audit insert failure during assign rolls back new membership and student version', function () {

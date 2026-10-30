@@ -3,6 +3,9 @@ import { ref, onMounted } from 'vue';
 import Button from 'primevue/button';
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 import { useResourceManager } from '@/utils/useResourceManager';
+import { referenceLabel, referenceExportFunction } from '@/utils/referenceLabels.mjs';
+
+const exportReferenceCell = referenceExportFunction({ 'education_level.name': 'education-levels', status_education: 'school-status' });
 
 // ── Local refs (tidak ada di composable) ──────────────────────────────────
 const dt              = ref();
@@ -13,8 +16,7 @@ const length_rows      = ref([10, 25, 50, 100]);
 // ── Composable — semua state & method CRUD diambil dari sini ──────────────
 const {
     manyDatas,
-    manyDatas_cat2,
-    manyDatas_cat3,
+    manyDatas_2,
     singleData,
     previousData,
     selectedManyDatas,
@@ -32,8 +34,6 @@ const {
     filtered_Cat1,
     filtered_Cat2,
     isCat1Used,
-    isCat2Used,
-    isCat3Used,
     isCat4Used,
     validFieldCount,
     status_educations,
@@ -60,7 +60,7 @@ const {
         name:                   'Name',
         npsn:                   'NPSN',
         'education_level.name':  'Education Level',
-        status_education:       'Status Education',
+        status_education:       'School Status',
         address:                'address',
         'district.name':        'District',
     },
@@ -120,10 +120,6 @@ onMounted(() => {
     if (ErrorDialog.value === true) {
         fetchDataUserRole();
     }
-    manyDatas_cat2.value = [
-            "Negeri",
-            "Swasta"
-        ];
 });
 </script>
 
@@ -161,7 +157,8 @@ onMounted(() => {
                 dataKey="id"
                 filterDisplay="menu"
                 :loading="loading"
-                :globalFilterFields="['name']"
+                :exportFunction="exportReferenceCell"
+                :globalFilterFields="['name', 'education_level.display_name', 'status_education_display_name']"
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
                 >
@@ -217,36 +214,36 @@ onMounted(() => {
                     </Column>
                     <Column field="education_level.name" header="Education Level" filterField="education_level.name" exportHeader="Education Level" :showFilterMatchModes="false" :filterMenuStyle="{ width: '14rem' }" style="min-width: 12rem">
                         <template #body="{ data }">
-                            <Tag :value="data.education_level.name" :severity="getSeverity(data.education_level.name)" />
+                            <Tag :value="data.education_level?.display_name ?? data.education_level?.name" :severity="getSeverity(data.education_level.name)" />
                         </template>
                         <template #filter="{ filterModel, filterCallback }">
-                            <MultiSelect v-model="filterModel.value" @change="filterCallback()" :options="manyDatas_cat2" placeholder="Any">
+                            <MultiSelect v-model="filterModel.value" @change="filterCallback()" :options="manyDatas_2" optionLabel="display_name" optionValue="name" placeholder="Any">
                                 <template #option="slotProps">
                                     <div class="flex items-center gap-2">
-                                        <Tag :value="slotProps.option" :severity="getSeverity(slotProps.option)" />
+                                        <Tag :value="slotProps.option.display_name ?? slotProps.option.name" :severity="getSeverity(slotProps.option.name)" />
                                     </div>
                                 </template>
                             </MultiSelect>
                         </template>
                     </Column>
-                    <Column field="status_education" header="Status Education" filterField="status_education" exportHeader="Status Education" :showFilterMatchModes="false" :filterMenuStyle="{ width: '14rem' }" style="min-width: 12rem">
+                    <Column field="status_education" header="School Status" filterField="status_education" exportHeader="School Status" :showFilterMatchModes="false" :filterMenuStyle="{ width: '14rem' }" style="min-width: 12rem">
                         <template #body="{ data }">
-                            <Tag :value="data.status_education" :severity="getSeverity(data.status_education)" />
+                            <Tag :value="referenceLabel('school-status', data.status_education)" :severity="getSeverity(data.status_education)" />
                         </template>
                         <template #filter="{ filterModel, filterCallback }">
-                            <Select v-model="filterModel.value" @change="filterCallback()" :options="status_educations" placeholder="Select One" style="min-width: 12rem" :showClear="true">
+                            <Select v-model="filterModel.value" @change="filterCallback()" :options="status_educations" optionLabel="display_name" optionValue="name" placeholder="Select One" style="min-width: 12rem" :showClear="true">
                                 <template #option="slotProps">
-                                    <Tag :value="slotProps.option" :severity="getSeverity(slotProps.option)" />
+                                    <Tag :value="slotProps.option.display_name" :severity="getSeverity(slotProps.option.name)" />
                                 </template>
                             </Select>
                         </template>
                     </Column>
-                    <Column field="address" header="Addrress" exportHeader="Addrress" sortable filterField="address" :filterMenuStyle="{ width: '14rem' }" style="min-width: 12rem">
+                    <Column field="address" header="Address" exportHeader="Address" sortable filterField="address" :filterMenuStyle="{ width: '14rem' }" style="min-width: 12rem">
                         <template #body="{ data }">
                             {{ data.address }}
                         </template>
                         <template #filter="{ filterModel, filterCallback }">
-                            <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Search by Addrress" />
+                            <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Search by Address" />
                         </template>
                     </Column>
                     <Column field="district.name" header="District" exportHeader="District" sortable filterField="district.name" :filterMenuStyle="{ width: '14rem' }" style="min-width: 12rem">
@@ -320,14 +317,14 @@ onMounted(() => {
                 <small v-else-if="singleData.npsn && singleData.npsn.trim().length > 7" class="text-green-500">NPSN is available! </small>
 
                 <label for="education_level" class="block font-bold mb-3 mt-3">Education Level</label>
-                <AutoComplete id="education_level" v-model="singleData.education_level" :suggestions="filtered_Cat1" required="true" optionLabel="name" forceSelection placeholder="Search for Education Level" dropdown display="chip" @complete="search_Cat1" fluid />
+                <AutoComplete id="education_level" v-model="singleData.education_level" :suggestions="filtered_Cat1" required="true" optionLabel="display_name" forceSelection placeholder="Search for Education Level" dropdown display="chip" @complete="search_Cat1" fluid />
                 <small v-if="submitted && !singleData.education_level" class="text-red-500">Education Level is required.</small>
 
-                <label for="status_education" class="block font-bold mb-3">Status Education</label>
-                <Select id="status_education" v-model="singleData.status_education" :options="status_educations" placeholder="Select a Status Education" :showClear="true" fluid></Select>
-                <small v-if="submitted && !singleData.status_education" class="text-red-500">Status Education is required.</small>
+                <label for="status_education" class="block font-bold mb-3">School Status</label>
+                <Select id="status_education" v-model="singleData.status_education" :options="status_educations" optionLabel="display_name" optionValue="name" placeholder="Select a School Status" :showClear="true" fluid></Select>
+                <small v-if="submitted && !singleData.status_education" class="text-red-500">School Status is required.</small>
 
-                <label for="address" class="block font-bold mb-3">Addrress</label>
+                <label for="address" class="block font-bold mb-3">Address</label>
                 <Textarea id="address" v-model="singleData.address" required="true" autofocus fluid />
 
                 <label for="district" class="block font-bold mb-3 mt-3">District</label>

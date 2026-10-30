@@ -43,19 +43,19 @@ export const getChangeDetails = (oldData, newData, config) => {
             const label = config[field]; // Mengambil 'Nama Lengkap' bukannya 'name'
 
             const getDisplayText = (data) => {
-                if (!data) return "Kosong";
+                if (!data) return "Empty";
 
                 // Cek nested field untuk label
                 if (field.includes('.')) {
                     const [parent, child] = field.split('.');
-                    return data[parent]?.[child] || "Kosong";
+                    return data[parent]?.[child] || "Empty";
                 }
 
                 if (typeof data[field] === 'object' && data[field] !== null) {
-                    return data[field].label || data[field].value || "Kosong";
+                    return data[field].label || data[field].value || "Empty";
                 }
 
-                return data[field] || "Kosong";
+                return data[field] || "Empty";
             }
 
             return `\n [${label}] has been updated. \n From -> \n ${getDisplayText(oldData)} \n To -> \n ${getDisplayText(newData)} \n`;

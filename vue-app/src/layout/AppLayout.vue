@@ -64,7 +64,7 @@ function isOutsideClicked(event) {
             <div class="layout-main">
                 <AutoBreadcrumb />
 
-                <router-view></router-view>
+                <router-view :key="$route.path"></router-view>
             </div>
             <app-footer></app-footer>
         </div>

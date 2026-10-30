@@ -3,6 +3,9 @@ import { ref, onMounted } from 'vue';
 import Button from 'primevue/button';
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 import { useResourceManager } from '@/utils/useResourceManager';
+import { referenceExportFunction } from '@/utils/referenceLabels.mjs';
+
+const exportReferenceCell = referenceExportFunction({ 'student_major.name': 'student-majors' });
 
 // ── Local refs (tidak ada di composable) ──────────────────────────────────
 const dt              = ref();
@@ -13,10 +16,8 @@ const length_rows      = ref([10, 25, 50, 100]);
 // ── Composable — semua state & method CRUD diambil dari sini ──────────────
 const {
     manyDatas,
-    manyDatas_cat2,
     manyDatas_cat3,
-    manyDatas_cat4,
-    manyDatas_cat5,
+    manyDatas_4,
     singleData,
     previousData,
     selectedManyDatas,
@@ -35,12 +36,7 @@ const {
     filtered_Cat2,
     filtered_Cat3,
     filtered_Cat4,
-    filtered_Cat5,
     isCat1Used,
-    isCat2Used,
-    isCat3Used,
-    isCat4Used,
-    isCat5Used,
     validFieldCount,
     fetchDataUserRole,
     openNew,
@@ -55,7 +51,6 @@ const {
     search_Cat2,
     search_Cat3,
     search_Cat4,
-    search_Cat5,
 } = useResourceManager({
     endpoint:        'school-rombels',
     endpoints:       [
@@ -64,14 +59,14 @@ const {
         'student-majors',
         'users',
     ],
-    menuLabel:       'School Rombel',
-    menuLabelPlural: 'School Rombels',
+    menuLabel:       'Class',
+    menuLabelPlural: 'Classes',
     fieldLabels: {
         name:               'Name',
         school_year:        'School Year',
         school_level:       'School Level',
         student_major:      'Student Major',
-        class_teach:        'Class Teach',
+        class_teach:        'Homeroom Teacher',
     },
     uniqueFields:     ['name'],
     uniqueMinLengths: [3],
@@ -167,7 +162,8 @@ onMounted(() => {
                 dataKey="id"
                 filterDisplay="menu"
                 :loading="loading"
-                :globalFilterFields="['name', 'school_year.name', 'school_level.name']"
+                :exportFunction="exportReferenceCell"
+                :globalFilterFields="['name', 'school_year.name', 'school_level.name', 'student_major.display_name', 'class_teach.name']"
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
                 >
@@ -237,24 +233,24 @@ onMounted(() => {
                     </Column>
                     <Column field="student_major.name" header="Student Major" exportHeader="Student Major" sortable filterField="student_major.name" :showFilterMatchModes="false" :filterMenuStyle="{ width: '14rem' }" style="min-width: 12rem">
                         <template #body="{ data }">
-                            {{ data.student_major.name }}
+                            {{ data.student_major?.display_name ?? data.student_major?.name }}
                         </template>
                         <template #filter="{ filterModel, filterCallback }">
-                            <MultiSelect v-model="filterModel.value" @change="filterCallback()" :options="manyDatas_cat4" placeholder="Select One" :showClear="true">
+                            <MultiSelect v-model="filterModel.value" @change="filterCallback()" :options="manyDatas_4" optionLabel="display_name" optionValue="name" placeholder="Select One" :showClear="true">
                                 <template #option="slotProps">
                                     <div class="flex items-center gap-2">
-                                        <Tag :value="slotProps.option" :severity="getSeverity(slotProps.option)" />
+                                        <Tag :value="slotProps.option.display_name ?? slotProps.option.name" :severity="getSeverity(slotProps.option.name)" />
                                     </div>
                                 </template>
                             </MultiSelect>
                         </template>
                     </Column>
-                    <Column field="class_teach.name" header="Class Teach" exportHeader="Class Teach" sortable filterField="class_teach.name" :filterMenuStyle="{ width: '14rem' }" style="min-width: 14rem">
+                    <Column field="class_teach.name" header="Homeroom Teacher" exportHeader="Homeroom Teacher" sortable filterField="class_teach.name" :filterMenuStyle="{ width: '14rem' }" style="min-width: 14rem">
                         <template #body="{ data }">
                             {{ data.class_teach.name }}
                         </template>
                         <template #filter="{ filterModel, filterCallback }">
-                            <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Search by Class Teach" />
+                            <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Search by Homeroom Teacher" />
                         </template>
                     </Column>
 
@@ -320,12 +316,12 @@ onMounted(() => {
                 <small v-if="submitted && !singleData.school_level" class="text-red-500">School Level is required.</small>
 
                 <label for="student_major" class="block font-bold mb-3 mt-3">Student Major</label>
-                <AutoComplete id="student_major" v-model="singleData.student_major" :suggestions="filtered_Cat3" required="true" optionLabel="name" forceSelection placeholder="Search for Student Major" dropdown display="chip" @complete="search_Cat3" fluid />
+                <AutoComplete id="student_major" v-model="singleData.student_major" :suggestions="filtered_Cat3" required="true" optionLabel="display_name" forceSelection placeholder="Search for Student Major" dropdown display="chip" @complete="search_Cat3" fluid />
                 <small v-if="submitted && !singleData.student_major" class="text-red-500">Student Major is required.</small>
 
-                <label for="class_teach" class="block font-bold mb-3 mt-3">Class Teach</label>
-                <AutoComplete id="class_teach" v-model="singleData.class_teach" :suggestions="filtered_Cat4" required="true" optionLabel="name" forceSelection placeholder="Search for Class Teach" dropdown display="chip" @complete="search_Cat4" fluid />
-                <small v-if="submitted && !singleData.class_teach" class="text-red-500">Class Teach is required.</small>
+                <label for="class_teach" class="block font-bold mb-3 mt-3">Homeroom Teacher</label>
+                <AutoComplete id="class_teach" v-model="singleData.class_teach" :suggestions="filtered_Cat4" required="true" optionLabel="name" forceSelection placeholder="Search for Homeroom Teacher" dropdown display="chip" @complete="search_Cat4" fluid />
+                <small v-if="submitted && !singleData.class_teach" class="text-red-500">Homeroom Teacher is required.</small>
 
             </div>
         </div>

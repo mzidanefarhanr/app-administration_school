@@ -107,9 +107,12 @@ class EmployeeController extends Controller
 
     public function show(Request $request, $id): JsonResponse
     {
-        $employee = Employee::with(self::DETAIL_RELATIONS)->findOrFail($id);
+        $employee = Employee::withTrashed()->with(self::DETAIL_RELATIONS)->findOrFail($id);
 
         $this->authorize('view', $employee);
+        if ($employee->trashed()) {
+            $this->authorize('employees.manage');
+        }
 
         return response()->json([
             'success' => true,
