@@ -8,9 +8,10 @@ import EmployeeFormDialog from './EmployeeFormDialog.vue';
 import EmployeeDetailDialog from './EmployeeDetailDialog.vue';
 import EmployeeArchiveDialog from './EmployeeArchiveDialog.vue';
 import EmployeeAccountLinkDialog from './EmployeeAccountLinkDialog.vue';
+import EmployeeImportDialog from './EmployeeImportDialog.vue';
+import EmployeeExportDialog from './EmployeeExportDialog.vue';
 import {
     buildEmployeeListParams,
-    buildEmployeeExportParams,
     resolveEmployeeTypeId,
     firstValidationMessage,
     EMPLOYEE_PER_PAGE_OPTIONS,
@@ -25,6 +26,7 @@ const store = authStore();
 
 const canManage = computed(() => store.can('employees.manage'));
 const canExport = computed(() => store.can('employees.export'));
+const canImport = computed(() => store.can('employees.import'));
 
 const rows = ref([]);
 const meta = ref({ current_page: 1, per_page: 20, total: 0, last_page: 1 });
@@ -41,7 +43,6 @@ const perPage = ref(20);
 const onlyArchived = ref(false);
 const requestId = ref(0);
 const debounceTimer = ref(null);
-const exporting = ref(false);
 
 const options = ref({
     employeeTypes: [],
@@ -60,6 +61,8 @@ const formVisible = ref(false);
 const detailVisible = ref(false);
 const archiveVisible = ref(false);
 const accountVisible = ref(false);
+const importVisible = ref(false);
+const exportVisible = ref(false);
 const selectedEmployee = ref(null);
 const selectedDetail = ref(null);
 
@@ -277,48 +280,29 @@ const restore = async (row) => {
     }
 };
 
-const exportCsv = async () => {
-    if (exporting.value || fixedTypeId.value === null) return;
+const exportFilters = computed(() => ({
+    search: search.value,
+    employeeTypeId: fixedTypeId.value,
+    employeeStatusId: statusFilter.value,
+    employmentId: employmentFilter.value,
+    subjectId: isTeacherPage.value ? subjectFilter.value : null,
+}));
 
-    exporting.value = true;
+const openExport = () => {
+    if (fixedTypeId.value === null) return;
 
-    try {
-        const params = buildEmployeeExportParams({
-            search: search.value,
-            employeeTypeId: fixedTypeId.value,
-            employeeStatusId: statusFilter.value,
-            employmentId: employmentFilter.value,
-            subjectId: isTeacherPage.value ? subjectFilter.value : null,
-        });
+    exportVisible.value = true;
+};
 
-        const response = await apiLogin.get('/api/employees/export', { params, responseType: 'blob' });
+const onImported = (batch) => {
+    notify('success', `${batch?.committed_rows ?? 0} ${isTeacherPage.value ? 'teacher' : 'employee'}(s) imported.`);
+    onlyArchived.value = false;
+    page.value = 1;
+    fetchList();
+};
 
-        const url = URL.createObjectURL(response.data);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${isTeacherPage.value ? 'teachers' : 'employees'}.csv`;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        URL.revokeObjectURL(url);
-    } catch (error) {
-        let message = 'Failed to export employees.';
-
-        if (error.response?.data instanceof Blob) {
-            try {
-                const payload = JSON.parse(await error.response.data.text());
-                message = payload.message ?? message;
-            } catch {
-                // keep the generic message when the body is not JSON
-            }
-        } else {
-            message = firstValidationMessage(error.response) ?? message;
-        }
-
-        notify('error', message);
-    } finally {
-        exporting.value = false;
-    }
+const onExported = ({ columns }) => {
+    notify('success', `Export downloaded with ${columns} column(s).`);
 };
 
 onMounted(async () => {
@@ -358,7 +342,15 @@ watch(() => props.employeeTypeName, (name) => {
                 </p>
             </div>
             <div class="flex flex-wrap gap-2">
-                <Button v-if="canExport" icon="pi pi-external-link" label="Export CSV" :loading="exporting" :disabled="fixedTypeId === null" @click="exportCsv" />
+                <Button v-if="canExport" icon="pi pi-external-link" label="Export CSV" :disabled="fixedTypeId === null" @click="openExport" />
+                <Button
+                    v-if="canImport && !onlyArchived"
+                    icon="pi pi-upload"
+                    label="Import CSV"
+                    severity="secondary"
+                    variant="outlined"
+                    :disabled="fixedTypeId === null"
+                    @click="importVisible = true" />
                 <Button v-if="canManage && !onlyArchived" icon="pi pi-plus" :label="isTeacherPage ? 'New Teacher' : 'New Employee'" @click="openCreate" />
                 <Button
                     v-if="canManage"
@@ -507,5 +499,9 @@ watch(() => props.employeeTypeName, (name) => {
             :employee="selectedEmployee"
             @saved="onAccountSaved"
             @conflict="onConflict" />
+
+        <EmployeeImportDialog v-model:visible="importVisible" @imported="onImported" />
+
+        <EmployeeExportDialog v-model:visible="exportVisible" :filters="exportFilters" :entity-label="isTeacherPage ? 'Teachers' : 'Employees'" @downloaded="onExported" />
     </div>
 </template>

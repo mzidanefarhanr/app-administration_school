@@ -171,6 +171,19 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/imports/{batch}/errors', [ImportController::class, 'errors'])
         ->middleware('can:students.import');
 
+    // Fase 05b (DEC-26) - impor pegawai CSV: match NIK, preview tanpa mutasi.
+    // Template hanya berisi header, jadi cukup employees.view.
+    Route::get('/imports/employees/template', [ImportController::class, 'employeesTemplate'])
+        ->middleware('can:employees.view');
+    Route::post('/imports/employees', [ImportController::class, 'importEmployees'])
+        ->middleware('can:employees.import');
+    Route::get('/imports/employees/{batch}', [ImportController::class, 'showEmployee'])
+        ->middleware('can:employees.import');
+    Route::post('/imports/employees/{batch}/commit', [ImportController::class, 'commitEmployee'])
+        ->middleware('can:employees.import');
+    Route::get('/imports/employees/{batch}/errors', [ImportController::class, 'errorsEmployee'])
+        ->middleware('can:employees.import');
+
     // Fase 01a — ekspor siswa (CSV) terlindungi: students.view + students.export.
     Route::get('/students/export', [StudentExportController::class, 'export'])
         ->middleware('can:students.view');
@@ -200,7 +213,9 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         ->only(['index', 'show'])->middleware('can:students.view');
     Route::apiResource('/student-rombels', StudentRombelController::class)
         ->except(['index', 'show'])->middleware('can:students.manage');
-    // Subfase 04b (DEC-24) - Direktori pegawai, ekspor, arsip, dan relasi akun
+    // Subfase 04b/05b (DEC-24, DEC-26) - Direktori pegawai, ekspor, arsip, relasi akun
+    Route::get('/employees/export/options', [EmployeeExportController::class, 'options'])
+        ->middleware('can:employees.view');
     Route::get('/employees/export', [EmployeeExportController::class, 'export'])
         ->middleware('can:employees.view');
     Route::get('/employees/account-candidates', [EmployeeController::class, 'accountCandidates'])

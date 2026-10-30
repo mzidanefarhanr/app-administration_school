@@ -35,10 +35,11 @@ export function buildEmployeeListParams(filters = {}) {
 }
 
 /**
- * Query parameters for GET /api/employees/export (DEC-24 D8).
+ * Query parameters for GET /api/employees/export (DEC-24 D8, DEC-26 D1/D2).
  * Export mirrors the active filters but never pagination, sorting, or archive mode.
+ * Selected columns keep registry order on the server; an empty list means default.
  */
-export function buildEmployeeExportParams(filters = {}) {
+export function buildEmployeeExportParams(filters = {}, columns = []) {
     const params = buildEmployeeListParams(filters);
 
     delete params.page;
@@ -46,6 +47,10 @@ export function buildEmployeeExportParams(filters = {}) {
     delete params.sort;
     delete params.direction;
     delete params.only_archived;
+
+    const keys = Array.isArray(columns) ? [...new Set(columns.filter((key) => typeof key === 'string' && key.trim() !== '').map((key) => key.trim()))] : [];
+
+    if (keys.length > 0) params.columns = keys.join(',');
 
     return params;
 }

@@ -21,4 +21,14 @@ return [
         'preview_rows' => 50,
         'error_rows' => 200,
     ],
+
+    'employees' => [
+        'template_version' => 1,
+        'max_rows' => (int) env('IMPORTS_EMPLOYEES_MAX_ROWS', 2000),
+        'max_size_kb' => (int) env('IMPORTS_EMPLOYEES_MAX_SIZE_KB', 5120),
+        'batch_ttl_minutes' => (int) env('IMPORTS_EMPLOYEES_TTL_MINUTES', 120),
+        'retention_days' => 30,
+        'preview_rows' => 50,
+        'error_rows' => 200,
+    ],
 ];

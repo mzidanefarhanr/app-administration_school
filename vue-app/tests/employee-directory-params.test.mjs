@@ -63,6 +63,19 @@ test('export params mirror filters without paging, sorting, or archive mode', ()
     assert.deepEqual(params, { search: 'siti', employee_type_id: 4 });
 });
 
+test('export params add selected columns deduplicated in the chosen order', () => {
+    const params = buildEmployeeExportParams({ employeeTypeId: 4 }, ['nik', ' name ', 'nik', '']);
+
+    assert.equal(params.columns, 'nik,name');
+    assert.equal(params.employee_type_id, 4);
+});
+
+test('export params omit columns when the selection is empty or invalid', () => {
+    assert.equal('columns' in buildEmployeeExportParams({}, []), false);
+    assert.equal('columns' in buildEmployeeExportParams({}, null), false);
+    assert.equal('columns' in buildEmployeeExportParams({}), false);
+});
+
 test('employee type id resolves by name for the fixed route type', () => {
     const options = [
         { id: 1, name: 'Tenaga Kependidikan' },
