@@ -5,7 +5,7 @@ Dependensi: 01; 02; DEC-04 (APPROVED 2026-10-26 WIB); DEC-24 (APPROVED 2026-10-2
 
 ## Correction addendum — 2026-10-29
 
-- Baseline `main` at `d10f7b8` plus uncommitted implementation/documentation corrections; no owner acceptance for 04b, no correction commit/push.
+- Baseline `main` at `e281419` (corrections `dc5e031`, documentation `e281419`); 04b accepted by the owner 2026-10-30 WIB, committed and pushed without merge/deploy/migration.
 - Current owner requirements: full-English presentation; Teachers = Guru only, canonical `Pendidik`; Employees = non-teaching staff, canonical `Tenaga Kependidikan`; >=100 synthetic rows for each empty new UAT feature. Only `employee_type_id` determines classification; canonical jobs, including head-of-school positions, remain unchanged without job-title restrictions. Subject required for Teachers, prohibited/hidden for Employees.
 - Shared 17-domain/243-label JSON and frontend-only `display_name` enrichment preserve canonical names/IDs and proper/user-entered data; English CSV/validation/print/Profile/navigation. Passwords stripped before cache enrichment; route-view key prevents stale rows/dialogs when switching directories.
 - New isolated SQLite SPA/API `127.0.0.1:14022` / `127.0.0.1:18022`; root `.uat-phase04b` private environment/storage/database, cookie `school_phase04b_session`. Use only guarded `scripts/phase04b-uat.php` (`init`/`prepare`/`status`), normal migrations; never root `artisan --env=uat`. Main/legacy environments, MariaDB targets, services and dependencies are excluded. Additive 04a/04b migrations are now applied **only to this new UAT**, not old UAT/production.

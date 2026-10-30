@@ -1,7 +1,7 @@
 # Phase 04b — Owner Manual Review
 
 - Date: 2026-10-29 WIB; correction addendum checkpoint; owner acceptance recorded 2026-10-30 WIB.
-- Branch: `main`; correction baseline: `d10f7b8f61e4cbc95e676bb263eb6575b7658390` plus uncommitted English/UAT corrections.
+- Branch: `main`; tested correction baseline: `dc5e031` (implementation) with documentation/acceptance `e281419`, pushed to `origin/main`.
 - Original implementation: `e1de4f4`; original documentation: `b93f954`.
 - Owner acceptance: **APPROVED** — checklist #1–#18 approved by the owner's statement on 2026-10-30 WIB (see Owner acceptance below). This record is the owner's statement; the agent did not rerun the checklist.
 - Technical evidence: `PHASE-04B-REPORT.md`, correction addendum.

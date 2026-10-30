@@ -2,7 +2,7 @@
 
 ## Correction addendum — 2026-10-29 (04b)
 
-Current baseline `main` at `d10f7b8` plus uncommitted corrections. Authorization remains named backend Gate/Policy enforcement, not English labels or UI hiding. Teachers = Guru only (`Pendidik`), Employees = non-teachers (`Tenaga Kependidikan`), classified only by `employee_type_id`; canonical jobs including head-of-school positions are retained without job-title restrictions or role changes.
+Current baseline `main` at `e281419` (corrections `dc5e031`, documentation `e281419`), pushed to `origin/main`. Authorization remains named backend Gate/Policy enforcement, not English labels or UI hiding. Teachers = Guru only (`Pendidik`), Employees = non-teachers (`Tenaga Kependidikan`), classified only by `employee_type_id`; canonical jobs including head-of-school positions are retained without job-title restrictions or role changes.
 
 **Archived employee detail:** `GET /api/employees/{id}` uses `withTrashed()`; archived records require both **employees.view + employees.manage**, and a view-only actor receives **403**. Active operational detail continues to require view; sensitive identity/contact/family/education and expanded account identity require manage detail. Lists/exports contain name/NUPTK/gender and lists contain `account: {linked, user_id}` linkage metadata: earlier “no PII/no account data” wording was incorrect. CSV download still requires view + export; copying already-authorized operational data is not prevented by export permissions. Unresolved list names are null/blank. `Employment Start Date (TMT)` is the current CSV header.
 

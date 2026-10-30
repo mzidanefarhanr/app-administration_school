@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-30] Subfase 04b — Commit dan push koreksi + penerimaan pemilik
+- Type: Chore | Docs
+- Scope / fase: Checkpoint Git setelah pemilik menyatakan cek manual #1–#18 berhasil dan approved; tidak mengubah kode, schema, konfigurasi, lingkungan, atau dependency.
+- Files touched: 53 berkas implementasi/tes/gitignore pada commit `dc5e031`; 11 berkas dokumentasi pada commit `e281419`; entri ini.
+- What changed: koreksi English/isolasi UAT dikomit sebagai `dc5e031` (`fix(phase-04b)`), lalu dokumentasi + penerimaan pemilik sebagai `e281419` (`docs(phase-04b)`), sesuai aturan repo bahwa penerimaan dicatat pada commit dokumentasi tersendiri di luar commit implementasi. Push `d10f7b8..e281419` ke `origin/main` berhasil; `main...origin/main` sinkron.
+- Why: pemilik memberikan otorisasi tetap "Setiap saya selesai melakukan cek manual dan approved. Kamu bisa commit dan push." sehingga persetujuan 04b 2026-10-30 WIB langsung ditindaklanjuti dengan commit dan push.
+- Validation: `git diff --cached --check` dan `git diff --check` PASS; `php -l` pada seluruh berkas PHP yang berubah/ditambah PASS; push ditolak-tidak dan tidak memakai `--force`. Tes/build **tidak dijalankan ulang** untuk checkpoint ini — angka 96/1738, 42 frontend, dan build 18.77 s tetap berasal dari laporan, tidak diagregasikan ulang.
+- Notes / risks: repo tidak memiliki `.github/workflows`, jadi push tidak memicu deployment. Tidak ada merge/deploy/migration/service/dependency change. `console.txt` dan `vue-app/test-results/` tetap untracked dan tidak disentuh; `.uat-phase04b/` dan `UAT-ACCOUNTS.local.md` diabaikan. Risiko keamanan terbuka tetap OPEN.
+- Evidence: `dc5e031`, `e281419` pada `main`; `git status --porcelain` bersih selain artefak pemilik; kutipan persetujuan pemilik tercatat di `PHASE-04B-MANUAL-REVIEW.md`.
+
 ## [2026-10-30] Subfase 04b — Penerimaan manual pemilik (checklist #1–#18 APPROVED)
 - Type: Docs
 - Scope / fase: Penerimaan Subfase 04b oleh pemilik pada UAT SQLite terisolasi; tidak mengubah kode, schema, UI, konfigurasi, atau lingkungan.
