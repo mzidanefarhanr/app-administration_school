@@ -25,7 +25,7 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 - Why: melanjutkan Fase 05 ke subfase 05c; keputusan bisnis (profil, duplikat, review, UAT) memerlukan jawaban pemilik sebelum implementasi.
 - Validation: pemeriksaan dokumen/tautan dan konsistensi status saja. **NOT RUN**: tidak ada tes backend/frontend, build, browser, atau migrasi karena paket ini hanya dokumentasi rencana.
 - Notes / risks: rekap sekolah tetap di luar scope dan menunggu contoh format (DEC-12 PROPOSED); tidak ada merge/deploy/force-push, perubahan dependency/service/`.env`, atau akses DB terlarang. Implementasi belum dimulai sampai D1–D7 dijawab.
-- Evidence: `reports/feature-update/PHASE-05C-PLAN.md`; baseline `8b091cf`; status rencana dan usulan DEC-28 tercatat di dokumen terkait.
+- Evidence: `reports/feature-update/PHASE-05C-PLAN.md`; baseline `8b091cf`; commit paket rencana `68f6e11` (di-push ke `origin/main`); status rencana dan usulan DEC-28 tercatat di dokumen terkait.
 
 ## [2026-10-31] Subfase 05b — Penerimaan manual pemilik (#1–#14) dan kebijakan siklus UAT per fase
 - Type: Docs

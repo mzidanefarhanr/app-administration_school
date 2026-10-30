@@ -4,7 +4,7 @@
 
 Subfase 05b (impor pegawai + pilihan kolom ekspor) **IMPLEMENTED & OWNER APPROVED** pada `main` @ implementasi `ad74309`, dokumentasi implementasi `c5afdc4`, dokumentasi penerimaan `c19c7f0` (baseline `4f1fec0`), di-push ke `origin/main`, dengan otorisasi DEC-26 (APPROVED 2026-10-30 WIB; "Saya setuju D1-D7"). **Pernyataan pemilik 2026-10-31 WIB: "Pengujian nomor 1-14 sudah berhasil dan saya approved."** — checklist #1–#14 APPROVED berdasarkan pernyataan pemilik, dicatat pada commit dokumentasi tersendiri. Bukti agen: 43/249 tes baru, suite 402 passed/13 skipped/3.587 assertions, Pint 15 file, 15 unit Node, build 28,46 s; migration `2029_07_28_000001` diterapkan ke `.uat-phase05` (409 siswa/200 pegawai tetap). Browser/visual UAT agen **NOT RUN** (otomasi browser diblokir kebijakan sesi) dan tetap NOT RUN setelah penerimaan. Server UAT fase 04b (14022/18022) dan 05 (14023/18023) **dihentikan 2026-10-31** sesuai kebijakan siklus UAT per fase (DEC-27); data `.uat-phase04b`/`.uat-phase05` dipertahankan. Rekap sekolah tetap menunggu format (DEC-12 PROPOSED).
 
-**Rencana 05c disiapkan 2026-10-31** di `PHASE-05C-PLAN.md` (baseline `8b091cf`): status **PLAN PREPARED**, tujuh keputusan D1–D7 dicatat sebagai **DEC-28 PROPOSED** dan menunggu jawaban pemilik. Belum ada kode, migration, route, UI, ability, atau data yang diubah; rekap sekolah tetap di luar scope (DEC-12 PROPOSED).
+**Rencana 05c disiapkan 2026-10-31** di `PHASE-05C-PLAN.md` (baseline `8b091cf`; commit `68f6e11`): status **PLAN PREPARED**, tujuh keputusan D1–D7 dicatat sebagai **DEC-28 PROPOSED** dan menunggu jawaban pemilik. Belum ada kode, migration, route, UI, ability, atau data yang diubah; rekap sekolah tetap di luar scope (DEC-12 PROPOSED).
 
 ## Correction addendum — 2026-10-29
 
