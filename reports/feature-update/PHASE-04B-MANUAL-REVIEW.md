@@ -1,110 +1,83 @@
-# Panduan Review Manual Subfase 04b — CRUD Pegawai, Relasi Akun, Ekspor, dan Menu Aktif
+# Phase 04b — Owner Manual Review
 
-- Tanggal WIB: 2026-10-29
-- Subfase: **04b — CRUD dan menu aktif** (Fase 04: Guru dan Pegawai)
-- Branch: `main`
-- Baseline implementasi: working tree 2026-10-29 di atas `fff5249` (commit implementasi dicatat pada laporan penutupan)
-- Status implementasi: **IMPLEMENTED & DIVERIFIKASI OTOMATIS (AGEN)**
-- Status checklist pemilik: **PENDING** — belum dijalankan/disetujui pemilik
-- Laporan teknis: `reports/feature-update/PHASE-04B-REPORT.md`
-- Keputusan: **DEC-24** (D1–D8 APPROVED 2026-10-29 WIB)
+- Date: 2026-10-29 WIB; correction addendum checkpoint; owner acceptance recorded 2026-10-30 WIB.
+- Branch: `main`; correction baseline: `d10f7b8f61e4cbc95e676bb263eb6575b7658390` plus uncommitted English/UAT corrections.
+- Original implementation: `e1de4f4`; original documentation: `b93f954`.
+- Owner acceptance: **APPROVED** — checklist #1–#18 approved by the owner's statement on 2026-10-30 WIB (see Owner acceptance below). This record is the owner's statement; the agent did not rerun the checklist.
+- Technical evidence: `PHASE-04B-REPORT.md`, correction addendum.
+- Decisions: DEC-24 D1–D8; latest owner instructions require full-English application presentation and at least 100 synthetic records for each empty new UAT feature. Teachers are Guru only (canonical `Pendidik`); Employees are non-teachers (canonical `Tenaga Kependidikan`).
 
-> **Prasyarat Otorisasi (BELUM TERPENUHI):** Migration 04b `2029_07_26_000001` **belum** diterapkan ke database UAT maupun produksi, dan penerapannya **belum diotorisasi**. Checklist UI di bawah hanya dapat dijalankan setelah pemilik memilih salah satu jalur:
-> (a) **Disposable** — buat database baru khusus review (mis. `school_04b_integration`), jalankan migration di sana, arahkan instance API review ke database tersebut; atau
-> (b) **UAT** — berikan otorisasi eksplisit untuk menerapkan migration 04b pada `school_compat_uat` setelah backup.
-> Jangan menjalankan checklist ini terhadap `backdata_administrations` atau database operasional lain.
+## Correction addendum — 2026-10-29: agent checks are not owner review
 
----
+Browser DOM interactions plus authenticated API readback verified the operator path on the new SQLite UAT: teacher create 201/version 1, edit version 2, concurrent API save version 3 then stale UI 409 preserving input and Reload Latest, blank archive-reason English validation, archive version 4 with exit date still null, manager archived detail, restore version 5, account link version 6 and unlink version 7, and non-teaching UI create 201/version 1 with fixed type/no Subject UI. Route switching showed the correct types without stale dialogs. Authenticated CSV reads returned 100 baseline rows per type with English labels. At 390×844, the staff page/form fit the viewport and long form content scrolled to the Create button; this is DOM measurement, not screenshot evidence. Student/reference pages and Profile labels were checked in English; the blank Profile save returned English password-field validation without changing the account.
 
-## 1. Persiapan & Preflight Guard
+Separate HTTP session checks passed for `uat.waka`, `uat.kepsek` and `uat.operator`, including sensitive-detail, export, management and archived-detail permissions; these were not other-role browser UI logins. Latest explicit SQLite run: **96 tests / 1738 assertions PASS**; frontend: **42 tests PASS**; final production build: **PASS, 18.77 s**. See the report for commands, overlapping run boundaries and targeted style checks.
 
-Perangkat (sesuaikan port instance review yang aktif):
-```powershell
-$php = "C:\xampp\php82-operational\php.exe"
-$mysql = "C:\xampp\mysql\bin\mysql.exe"
+**Owner acceptance recorded 2026-10-30 WIB:** the owner stated that scenarios #1–#18 passed and approved them; all statuses below are **APPROVED**. Agent-only gaps remain documented and are not retroactively claimed as PASS: other-role browser UI automation, two-tab link-conflict, print-preview/screenshot visual checks and 04b MariaDB DDL/InnoDB were **NOT RUN by the agent**. Initial browser NOT RUN evidence remains dated history, not the current SQLite status.
+
+## Safe review environment
+
+Use the **new isolated SQLite UAT**, not the legacy root `.env.uat` or any MariaDB database:
+
+- Frontend: `http://127.0.0.1:14022`
+- API: `http://127.0.0.1:18022`
+- Database: `.uat-phase04b/database.sqlite`, outside the API public directory and ignored by Git.
+- Session: `school_phase04b_session`.
+- Accounts and private password location: local ignored `UAT-ACCOUNTS.local.md`; runtime `.uat-phase04b/account-password.txt`. Do not copy secrets into reports. Only the initial five UAT accounts exist; fixtures do not create extra accounts.
+- Fixtures: baseline 100 teachers with subjects and 100 non-teaching employees without subjects, spanning 15 jobs. Names begin `Synthetic Teacher` or `Synthetic Staff`. Current totals after one browser-created profile of each type: **101 teachers / 101 staff / 103 students / 100 synthetic schools** (NPSN `04` namespace).
+- PHP: `C:\xampp\php82-operational\php.exe`.
+
+Run from `laravel-api` using Git Bash:
+
+```bash
+"C:/xampp/php82-operational/php.exe" scripts/phase04b-uat.php status
 ```
 
-Preflight database (wajib):
-```powershell
-cd D:\xampp-htdocs\app-administration_school\laravel-api
-& $php artisan tinker --env=uat
-```
-```php
-DB::connection()->getDatabaseName();
-DB::table('migrations')->where('migration', 'like', '%2029_07_26_000001%')->exists();
-```
-**Wajib** database bukan `backdata_administrations`, dan migration 04b bernilai `true`. Jika `false`, hentikan review dan terapkan migration hanya pada target yang diotorisasi.
+The guard must report the **exact dedicated SQLite UAT** and at least 100 profiles per type; it currently reports 101 each, not exactly 100. The launcher loads root `.uat-phase04b/.env` and private storage, not the main/old UAT environment. It rejects database URLs, cached configuration/routes and conflicting process overrides. Never substitute any root `artisan --env=uat` command: that old profile targets an excluded database.
 
-Akun sintetis yang diperlukan:
-- Akun dengan `employees.view` **tanpa** `employees.manage` — mis. `wakil-kesiswaan` atau kepala sekolah.
-- Akun dengan `employees.view` + `employees.manage` + `employees.export` — mis. operator sekolah.
-- Akun aktif yang **belum** tertaut profil pegawai (untuk uji taut akun).
+Launcher lifecycle: `init` initializes a missing runtime only (refuses overwrite); `prepare` runs normal additive migrations and idempotent synthetic preparation; `status` is the read-only guard/count check. The runtime is already prepared: do not reinitialize/reset it. Repeat preparation preserves edited/archived records and does not reset credentials or create additional accounts. No `migrate:fresh`, legacy UAT migration or operational/MariaDB target is allowed.
 
-**ID dinamis:** jangan menulis ID di panduan. Ambil ID/versi lewat Tinker atau dialog detail:
-```php
-$e = App\Models\Employee::withTrashed()->where('name', 'UAT Browser Teacher')->first();
-[$e?->id, $e?->version, $e?->trashed(), $e?->exit_date, $e?->archive_reason];
+If the new servers are not running, start **only** these isolated instances:
+
+```bash
+# laravel-api
+"C:/xampp/php82-operational/php.exe" -S 127.0.0.1:18022 -t public scripts/phase04b-uat.php
+# vue-app
+VITE_API_BASE_URL=http://127.0.0.1:18022 npm run dev -- --host 127.0.0.1 --port 14022 --strictPort
 ```
 
-**Penanda fixture sintetis:** nama `UAT Browser ...`, NUPTK berawalan `UAT-`, NIK unik 16 digit sintetis. Jangan memakai data pegawai riil.
+Do not restart existing owner servers, alter services/grants, reset databases, migrate old review databases, or use production data. SQLite browser evidence does **not** verify MariaDB DDL or InnoDB concurrency.
 
----
+## Review checklist
 
-## 2. Checklist Pemeriksaan Manual
+Owner statuses below were recorded as **APPROVED** from the owner's statement on 2026-10-30 WIB; agent test results alone never change them. Use synthetic `UAT Browser ...` records for mutations; leave baseline fixtures intact.
 
-Status: **PENDING** sampai pemilik menyatakan hasilnya.
+| # | Scenario | Steps and expected result | Owner status |
+|---|---|---|---|
+<!-- Owner statuses updated to APPROVED 2026-10-30 WIB per owner statement; see Owner acceptance. -->
+| 1 | Routes and English navigation | Login `uat.operator`; switch Teachers → Employees → Teachers. Correct titles and routes, no stale cross-type rows; English labels throughout. | APPROVED |
+| 2 | Teacher directory | Only teachers (`Pendidik` internally); English status/job/subject filters, paging, search and Name/start-date sorting work server-side. | APPROVED |
+| 3 | Non-teaching directory | Only non-teaching employees (`Tenaga Kependidikan` internally); administrative, library, laboratory, IT, medical, security, transport and support jobs appear; no Subject control/column. | APPROVED |
+| 4 | Inline validation | New Teacher → Create Teacher with blank Name/start date; enter NIK `123`. English errors appear without losing input. | APPROVED |
+| 5 | Subject rules | Teacher without Subject is rejected with 422. Non-teaching form hides Subject; an authenticated API request that explicitly supplies Subject for a non-teaching profile is rejected with 422. Do not attempt this impossible choice through the hidden UI control. | APPROVED |
+| 6 | Valid create/detail | Create `UAT Browser Teacher` with required reference fields, subject and start date; optional NIK may be blank. 201, success notification and list refresh; open detail separately and verify version 1. | APPROVED |
+| 7 | Versioned edit | Edit the synthetic target, save a changed name; reopen detail. Name persists and version increases by one; another fixture remains unchanged. | APPROVED |
+| 8 | Stale edit | Open the same record in two tabs. Save B, then save stale A. A shows English conflict; Reload Latest loads B's values; input is preserved until reload. | APPROVED |
+| 9 | Archive reason | Archive target: blank reason is rejected; `UAT browser archive test` succeeds. Target leaves active list; exit date remains unchanged. | APPROVED |
+| 10 | Archive/restore | Manager opens Archived and restores target after confirmation. Record returns to active directory with increased version and cleared archive reason. | APPROVED |
+| 11 | Restricted detail | Login `uat.waka`: list/detail omit NIK, NPWP, family/contact/address/education data. Operational name/NUPTK/gender and account linkage metadata are not a claim of zero PII. | APPROVED |
+| 12 | Manager detail | Login operator; permitted sensitive details and education section are visible. | APPROVED |
+| 13 | Permission controls | `uat.waka`: no create/edit/archive/link/restore/export controls; forced mutations/export return 403. `uat.kepsek`: view and export are allowed, but management remains forbidden. | APPROVED |
+| 14 | Filtered English CSV | Operator filters one directory and exports; English reference values, explicit 10 columns, no sensitive identity/contact data, no other employee type. Formula cells remain neutralized. | APPROVED |
+| 15 | Link account | Link a synthetic test profile to an active unlinked synthetic account. Account and role survive unchanged; linked/inactive accounts are not eligible candidates. | APPROVED |
+| 16 | Unlink account | Unlink the same target; profile remains, account roles remain, linkage clears and legacy fallback stays disabled. | APPROVED |
+| 17 | Link conflict | Open link dialog in two tabs, save B then stale A; A reports conflict rather than overwriting B. | APPROVED |
+| 18 | Responsive/regression | At 390px width, use both directories and long forms; confirm dialogs remain usable. Check student/profile confirmations, reference labels and print-preview labels are English; proper names and entered data are unchanged. | APPROVED |
 
-| # | Skenario | Langkah | Hasil yang Diharapkan | Status Pemilik |
-|---|---|---|---|---|
-| 1 | Menu aktif & routing | Login akun ber-`employees.view` → buka menu **Teachers**, lalu **Employees** | URL `/public/teachers` dan `/public/employees` terbuka; menu tersorot aktif; judul halaman **Teachers**/**Employees** | **PENDING** |
-| 2 | Daftar server-side | Pada halaman Teachers, ubah pencarian, filter status/kepegawaian/mapel, sort kolom Name/TMT, dan paginasi | Daftar hanya menampilkan tipe **Pendidik**; filter/sort/paginasi diterapkan server; tanpa error konsol | **PENDING** |
-| 3 | Pemisahan tipe per halaman | Buka Employees | Daftar hanya berisi **Tenaga Kependidikan**; tidak ada tombol/filter lintas tipe | **PENDING** |
-| 4 | Create + inline 422 | **New Teacher** → kosongkan Name dan TMT → **Save**; lalu isi NIK `123` | Dialog tetap terbuka; pesan English di bawah field terkait (`Employee name is required.`, `NIK must be exactly 16 digits.`); input tidak hilang | **PENDING** |
-| 5 | Aturan mapel (D4) | Buat Pendidik tanpa Subject → simpan; lalu buat Tenaga Kependidikan dan pilih Subject → simpan | Pendidik tanpa mapel → `422 subject_id.required`; Tenaga Kependidikan dengan mapel → `422 subject_id.prohibited`; form menyembunyikan mapel untuk non-guru | **PENDING** |
-| 6 | Create valid + detail | Isi data valid (NIK 16 digit unik, TMT `2026-01-01`) → **Save** | `201`; toast sukses; detail terbuka; **Record Version 1**; baris muncul di daftar | **PENDING** |
-| 7 | Edit + kenaikan versi | Edit baris → ubah nama → **Save Changes** → cek Tinker | Toast sukses; `version` naik tepat `+1`; nama baru tersimpan | **PENDING** |
-| 8 | Konflik 409 + Reload Latest | Buka form edit record sama di **dua tab** → simpan Tab B → ubah dan simpan Tab A | Tab A menampilkan konflik (English) dengan versi server terbaru; **Reload Latest** memuat data terbaru; simpan berikutnya berhasil | **PENDING** |
-| 9 | Arsip wajib alasan | Klik aksi **Archive** → kosongkan alasan → **Archive**; lalu isi `UAT browser archive test` → **Archive** | Tanpa alasan → pesan wajib; dengan alasan → record hilang dari daftar aktif; cek Tinker: `deleted_at` & `archive_reason` terisi, `version` naik, **`exit_date` tidak berubah** | **PENDING** |
-| 10 | Daftar arsip & restore | Klik **Archived** → **Restore** pada record uji | Daftar arsip hanya tampil untuk akun `manage`; restore sukses; `archive_reason` menjadi `null`; record kembali ke daftar aktif dengan versi naik | **PENDING** |
-| 11 | Privasi daftar vs detail | Sebagai akun `employees.view` **tanpa** `manage`: buka daftar, lalu detail/API `GET /api/employees/{id}` | Daftar tanpa NIK/NPWP/KK/kontak/nilai ijazah; detail juga **tanpa** field sensitif dan tanpa `education` | **PENDING** |
-| 12 | Privasi detail untuk manage | Sebagai akun `manage`: buka detail record | Field sensitif (NIK, NPWP, KK, ibu kandung, pasangan, kontak, `education`) tampil sesuai izin | **PENDING** |
-| 13 | Kontrol izin view-only | Sebagai akun view-only: periksa tombol/menu | **New**, **Archived**, **Edit**, **Archive**, **Link/Unlink**, **Export** tidak tampil; akses paksa ke endpoint mutasi tetap `403` | **PENDING** |
-| 14 | Ekspor terfilter | Sebagai akun `view`+`export`: terapkan filter (mis. status), klik **Export**; lalu sebagai akun tanpa `employees.export` | CSV terunduh mengikuti filter, 10 kolom (`Name` … `Archived At`), tanpa NIK/NPWP; akun tanpa izin ekspor mendapat `403` | **PENDING** |
-| 15 | Taut akun | Pada detail pegawai tanpa akun → **Link Account** → cari akun aktif → pilih → **Link** | Kandidat hanya akun aktif yang belum tertaut; link sukses; `user_id` & `user_id_resolved_at` terisi; role akun **tidak** berubah; taut ulang/akun nonaktif → `422` | **PENDING** |
-| 16 | Lepas akun | **Unlink Account** → konfirmasi | `user_id` kosong; `account_unlinked_at` terisi; profil tidak otomatis tertaut kembali lewat NIK legacy | **PENDING** |
-| 17 | Konkurensi akun | Buka dialog link di dua tab → link di Tab B → link di Tab A | Tab A menerima konflik versi; setelah reload, aksi diulang mengikuti state terbaru | **PENDING** |
-| 18 | Command backfill tanpa PII | Jalankan `& $php artisan app:employee-name-backfill --dry-run` | Tabel hitungan agregat tampil; **tidak** ada nama, NIK, atau email; tidak ada data tertulis pada dry-run | **PENDING** |
+## Owner acceptance
 
----
-
-## 3. Pemeriksaan Database Pendukung (read-only)
-
-```powershell
-& $mysql -u root <database-review> -e "SHOW COLUMNS FROM employees WHERE Field IN ('name','nik','archive_reason');"
-& $mysql -u root <database-review> -e "SHOW INDEX FROM employees WHERE Column_name IN ('name','nik','employee_type_id','employee_status_id');"
-```
-Diharapkan: `name` varchar(100) NULL, `nik` varchar(16) NULL, `archive_reason` varchar(255) NULL; index `employees_nik_unique` (`Non_unique = 0`), serta index `name`, `employee_type_id`, `employee_status_id`.
-
----
-
-## 4. Pemulihan Aman Setelah Review
-
-- Gunakan penanda `UAT Browser ...` dan NIK sintetis; jangan memakai data pegawai riil.
-- Bersihkan record uji dengan **arsip** melalui UI, bukan `forceDelete`/hard delete.
-- Jangan menjalankan `migrate:fresh`, reset database, atau penghapusan massal.
-- Jangan me-restart/hentikan server milik pemilik tanpa instruksi.
-- Untuk inspeksi, gunakan Tinker read-only (`first()`, `pluck()`, `toArray()`).
-
----
-
-## 5. Form Konfirmasi Persetujuan Pemilik
-
-*(Diisi hanya setelah pemilik menyatakan hasil review; agen tidak boleh mengisi lebih awal.)*
-
-Status: **PENDING**.
-
-- [ ] Seluruh checklist #1–#18 disetujui (APPROVED).
-- Tanggal pelaksanaan WIB: —
-- Catatan / feedback pemilik: —
-
-**Provenansi bukti:** status akan dicatat hanya dari pernyataan pemilik. Persetujuan 04b tidak mencakup penerapan migration ke produksi, deploy, merge, force-push, perubahan dependency, atau penutupan risiko keamanan terbuka.
+- [x] Checklist #1–#18 approved by owner.
+- Owner review date: 2026-10-30 WIB.
+- Owner statement (verbatim): “Pengujian nomor 1-18 sudah berhasil dan saya approved.”
+- Provenance: the owner's statement is the sole evidence for this acceptance; the agent did not rerun the #1–#18 scenarios to record it. Agent-executed evidence and its NOT RUN gaps stay as recorded in `PHASE-04B-REPORT.md`.
+- Scope: acceptance of Subfase 04b implementation on the prepared isolated SQLite UAT. It does not authorize production/legacy-UAT migration, deployment, merge, force-push, dependency upgrades, database resets, MariaDB target access, or closure of open security risks.

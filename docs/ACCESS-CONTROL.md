@@ -1,6 +1,18 @@
 # Hak akses
 
-## Baseline
+## Correction addendum — 2026-10-29 (04b)
+
+Current baseline `main` at `d10f7b8` plus uncommitted corrections. Authorization remains named backend Gate/Policy enforcement, not English labels or UI hiding. Teachers = Guru only (`Pendidik`), Employees = non-teachers (`Tenaga Kependidikan`), classified only by `employee_type_id`; canonical jobs including head-of-school positions are retained without job-title restrictions or role changes.
+
+**Archived employee detail:** `GET /api/employees/{id}` uses `withTrashed()`; archived records require both **employees.view + employees.manage**, and a view-only actor receives **403**. Active operational detail continues to require view; sensitive identity/contact/family/education and expanded account identity require manage detail. Lists/exports contain name/NUPTK/gender and lists contain `account: {linked, user_id}` linkage metadata: earlier “no PII/no account data” wording was incorrect. CSV download still requires view + export; copying already-authorized operational data is not prevented by export permissions. Unresolved list names are null/blank. `Employment Start Date (TMT)` is the current CSV header.
+
+Shared 17-domain/243-label JSON and frontend-only `display_name` enrichment preserve canonical references/IDs/user/proper names while displaying English. Passwords are stripped **before** cache enrichment; route-view key avoids stale Teachers/Employees rows/dialogs. Linking/unlinking does not create accounts or change roles/passwords; UAT preparation initializes only the initial five synthetic accounts, with no additional employee accounts.
+
+New isolated SQLite UAT only: SPA/API `127.0.0.1:14022` / `127.0.0.1:18022`, root `.uat-phase04b/database.sqlite`, separate environment/storage and cookie `school_phase04b_session`, private ignored runtime/`UAT-ACCOUNTS.local.md`. Guarded launcher `scripts/phase04b-uat.php` (`init`/`prepare`/`status`) rejects URLs/caches/process overrides and runs normal migrations only; never root `artisan --env=uat`, old/main environment or MariaDB targets. No service/dependency changes or secret publication.
+
+Operator browser DOM/API-readback checks cover teacher create/edit/stale conflict/archive/archived detail/restore/link/unlink, staff create, route types, English CSV and staff mobile fit/scroll. Separate HTTP sessions for `uat.waka`, `uat.kepsek`, `uat.operator` passed sensitive-detail, export, candidates/management and archived-detail restrictions; abilities remained unchanged after link/unlink. These are **not** owner acceptance or other-role browser UI coverage. Agent-side other-role browser UI automation, two-tab stale/link-conflict, print-preview/screenshot visual checks and 04b MariaDB DDL/InnoDB remain NOT RUN (available, excluded targets not accessed); owner acceptance does not convert them to PASS. **Owner #1–#18: APPROVED 2026-10-30 WIB per owner statement.** Full method/scope limits: `PHASE-04B-REPORT.md`.
+
+## Baseline (historical pre-01a, not current enforcement)
 API mayoritas hanya auth:sanctum. Beberapa controller akun membedakan tipe secara inline, tetapi bukan perlindungan menyeluruh. Policy tersedia sebagai scaffold; pembatasan menu/router Vue tidak mengamankan API. Akun aktif dan cakupan profil harus diperiksa server.
 
 ## Implementasi Fase 01a (aktual)
@@ -21,8 +33,8 @@ API mayoritas hanya auth:sanctum. Beberapa controller akun membedakan tipe secar
 - Tidak ada perubahan penetapan peran/kemampuan pada 04a. Department/tipe pegawai tidak dipakai sebagai sumber otorisasi.
 
 ## Implementasi Fase 04b (CRUD personalia)
-- **Enforcement backend (bukan sekadar menyembunyikan tombol)**: `/api/employees` index/show → `employees.view`; store/update/destroy/restore/link/unlink dan `account-candidates` → `employees.manage`; export → `employees.view` + `employees.export`. Daftar arsip (`only_archived=1`) juga mensyaratkan `employees.manage`.
-- **Pemisahan data sensitif**: pemegang `employees.view` tanpa `manage` hanya menerima payload operasional pada daftar maupun detail; PII (NIK, NPWP, KK, ibu kandung, pasangan, kontak/alamat, nilai ijazah) dan data akun hanya untuk `employees.manage`. Ekspor tidak memuat PII.
+- **Enforcement backend (bukan sekadar menyembunyikan tombol)**: `/api/employees` index/show → `employees.view`; store/update/destroy/restore/link/unlink dan `account-candidates` → `employees.manage`; export → `employees.view` + `employees.export`. Daftar arsip (`only_archived=1`) juga mensyaratkan `employees.manage`; archived GET detail uses `withTrashed()` and requires **view + manage** (403 for view-only).
+- **Pemisahan data sensitif**: daftar/ekspor memuat nama/NUPTK/gender; daftar memuat `account: {linked, user_id}`. Pemegang view tanpa manage menerima detail operasional aktif; NIK, NPWP, KK, ibu kandung, pasangan, kontak/alamat, pendidikan dan identitas akun diperluas hanya di manage detail. **Bukan klaim tanpa PII/data akun**; ekspor tidak menambah field sensitif tersebut.
 - **Relasi akun terbatas**: 04b hanya menautkan akun `users` aktif yang belum tertaut profil lain; tidak membuat akun, tidak mereset password, dan tidak mengubah role/abilities. Lepas akun mengisi `account_unlinked_at` dan tidak mengaktifkan kembali fallback NIK legacy.
 - **Audit**: perubahan domain dicatat server melalui allowlist `Loggable`; `name`, `nik`, dan `archive_reason` tidak termasuk atribut audit.
 - **UI**: menu Teachers/Employees dan route `/public/teachers` + `/public/employees` memakai `requiresAbility: employees.view`; tombol New/Archived/Edit/Archive/Restore/Link/Export mengikuti kemampuan aktual. Pencabutan izin berlaku pada request berikutnya.

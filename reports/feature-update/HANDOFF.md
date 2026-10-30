@@ -1,5 +1,23 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
+## Current correction addendum — 2026-10-29 (English/isolated 04b UAT)
+
+- **Baseline:** `main` at `d10f7b8f61e4cbc95e676bb263eb6575b7658390` plus uncommitted corrections. 04a and **04b are owner-accepted**: the owner stated on 2026-10-30 WIB, “Pengujian nomor 1-18 sudah berhasil dan saya approved”, approving checklist #1–#18. That statement is the sole acceptance evidence; the agent did not rerun the checklist, and agent NOT RUN gaps remain recorded. No correction commit/push was performed. `console.txt` and `vue-app/test-results/` are owner artefacts left untracked/untouched.
+- **Owner requirements:** full-English application presentation; Teachers = Guru only (canonical `Pendidik`), Employees = non-teaching staff (canonical `Tenaga Kependidikan`); at least 100 synthetic records per empty new UAT feature. Classification uses only `employee_type_id`, never a job-title restriction; canonical jobs including head-of-school positions remain intact.
+- **Current review target:** new SPA `http://127.0.0.1:14022`, API `http://127.0.0.1:18022`; root `.uat-phase04b/database.sqlite`, dedicated private environment/storage and cookie `school_phase04b_session`. Use only `laravel-api/scripts/phase04b-uat.php` (`init` / `prepare` / `status`). The fail-closed guard rejects database URLs, caches and conflicting process overrides; `prepare` uses normal migrations only. Never run root `artisan --env=uat`: legacy/main environment and MariaDB targets are excluded. Do not alter existing services, dependencies or old UAT.
+- **Fixtures:** baseline 100 Synthetic Teachers with subjects + 100 Synthetic Staff without subjects across 15 jobs; one browser-created record of each gives current **101 teachers / 101 staff / 103 students / 100 synthetic schools** (NPSN `04` namespace). Idempotent preparation preserves edits and archives; only the initial five UAT accounts, no additional employee logins. Runtime and local `UAT-ACCOUNTS.local.md` stay private/ignored; never copy password literals into documentation.
+- **Contract corrections:** shared 17-domain/243-label English JSON catalog and frontend-only `display_name` enrichment preserve canonical names/IDs and user/proper names; English navigation/Profile/validation/CSV/print labels. Passwords are stripped before cache enrichment; route-view key avoids stale cross-route dialogs/data. Employee list/export have name/NUPTK/gender (not zero PII), and lists expose `account: {linked, user_id}`. Sensitive/expanded account fields remain manage-detail only. Unresolved list names are null/blank. Archived GET detail uses `withTrashed()` and requires view + manage (403 for view-only). Current CSV header is `Employment Start Date (TMT)`.
+- **Actual automated evidence, not additive totals:** latest explicit seven-file SQLite run **96 tests/1738 assertions PASS, 34.77 s**, including current employee CRUD/schema/account/export/seeder and reference-label/launcher tests. Earlier 98/1777, subsequent 17/117, 5/219, launcher 3/372 and separate translation 119/1223 runs remain separately recorded in the report; do not aggregate overlapping runs or call this a full backend suite. Final frontend **42 Node tests PASS**; final production build **PASS, 18.77 s** (earlier 18.28 s build is historical). Targeted ESLint 0 errors and Pint PASS apply only to checked scopes; baseline build chunk/Browserslist warnings remain.
+- **Browser actually checked:** operator DOM interactions + authenticated API readback: Guru create 201/v1, edit v2, concurrent API save v3 → stale UI 409/input preservation/Reload Latest, English blank-reason validation, archive v4 (exit null), manager archived detail, restore v5, account link v6 and unlink v7; staff UI create 201/v1 with fixed type/no Subject. Route switches showed correct types; authenticated CSV reads returned 100 baseline rows per type with English labels. Staff page/form at 390×844 fit the viewport and long content scrolled to Create; DOM measurements only, no screenshot evidence. Student/reference/Profile English labels checked; blank Profile save produced English validation without account mutation.
+- **HTTP roles:** separate synthetic sessions for `uat.waka`, `uat.kepsek`, `uat.operator` passed detail/PII, export, management and archived-detail checks, repeated after link/unlink with abilities unchanged. This is HTTP evidence, not other-role browser UI coverage or owner acceptance.
+- **Still NOT RUN:** other-role browser UI, two-tab stale/link-conflict scenarios, print-preview and screenshot-based visual checks; 04b MariaDB DDL/unique/InnoDB concurrency (available, excluded targets not accessed). Initial browser NOT RUN and earlier test evidence below remain historical. No production migration/deployment evidence or authorization.
+- **Next:** 04b owner acceptance is recorded; await an explicit owner instruction before any commit/push, merge, deployment or migration. Do not migrate legacy UAT/MariaDB or expand phase scope. New isolated servers are left running; existing owner servers were not restarted/stopped.
+- **Git verification:** command-scoped `-c safe.directory` permits read-only checks without persistent Git configuration changes. HEAD confirmed `d10f7b8`; `main...origin/main` has no ahead/behind against the local tracking ref (no fetch/network remote verification). `git diff --check` PASS; line-ending warnings are not whitespace errors. Corrections remain uncommitted, without staging/push; ignored runtime/credentials are excluded and owner artefacts remain untouched.
+
+---
+
+## Historical handoff — 2026-10-26 and initial 04b checkpoint
+
 Checkpoint penutupan sesi: 2026-10-26 (WIB). Branch `main`.
 Baseline implementasi akhir 03d: `7bed397c30f5a38e6a34002157c6ac33c0317c89` ("feat(phase-03d): implement student rombel assignment and transfer UI").
 Baseline keputusan DEC-23: `01c953e` ("docs(decisions): record owner decisions for student rombel assignment and transfer (DEC-23)").
@@ -27,12 +45,12 @@ Status fase:
 - **NOT RUN**: `MariaDbRombelConcurrencyTest` (target `school_restore_drill_uat` di luar allowlist sesi).
 - **Status 04a**: **DITERIMA PEMILIK** — checklist manual #1–#13 APPROVED 2026-10-29 WIB berdasarkan pernyataan pemilik ("Pengujian nomor 1-13 sudah berhasil dan saya approved"); agen tidak menjalankan ulang pengujian untuk mencatat status. 04b **diotorisasi 2026-10-29 WIB (DEC-24)** dan implementasinya berjalan. Migration baru belum diterapkan ke UAT.
 
-## 0b. Checkpoint Implementasi 04b (2026-10-29)
+## 0b. Historical initial implementation checkpoint 04b (2026-10-29; superseded by correction addendum)
 
 - **Konteks**: Pemilik menyetujui D1–D8 (DEC-24) dan menginstruksikan eksekusi. Implementasi backend + frontend diselesaikan pada sesi ini di atas baseline `fff5249`.
 - **Hasil aktual**: `php artisan test tests/Feature/Employee` → **56 passed, 6 skipped (331 assertions)**; suite penuh → **293 passed, 21 skipped (1448 assertions)**; `node --test tests/employee-directory-params.test.mjs` → **7 passed**; `npm run build` → **PASS**; `pint --test` 17 berkas → **PASS**; `eslint --quiet` 8 berkas → **0 error**.
 - **NOT RUN**: MariaDB disposable 04b (MariaDB berhenti; service tidak diubah) dan browser UAT (migration `2029_07_26_000001` belum diotorisasi untuk UAT; data pegawai UAT kosong).
-- **Status 04b**: **IMPLEMENTED & DIVERIFIKASI OTOMATIS**; penerimaan manual **PENDING** melalui `PHASE-04B-MANUAL-REVIEW.md` #1–#18. Migration belum diterapkan ke UAT/produksi; tidak ada merge/deploy.
+- **Status 04b**: **IMPLEMENTED & DIVERIFIKASI OTOMATIS**; penerimaan manual **PENDING** melalui `PHASE-04B-MANUAL-REVIEW.md` #1–#18. Migration belum diterapkan ke UAT/produksi; tidak ada merge/deploy. *(Historis 2026-10-29; pemilik kemudian menyetujui #1–#18 pada 2026-10-30 WIB — lihat bagian 0a dan `PHASE-04B-MANUAL-REVIEW.md`.)*
 - **Commit**: implementasi `e1de4f4`; dokumentasi `b93f954`; `main` sinkron dengan `origin/main`. Artefak lokal `console.txt` dan `vue-app/test-results/` tidak di-commit.
 
 
@@ -147,12 +165,12 @@ Gap pengujian yang diidentifikasi pada checkpoint sebelumnya telah dibuktikan se
 | **03 (03a–03c)** | Pendataan siswa lengkap & aman | IMPLEMENTED & FULLY VERIFIED | **DITERIMA LENGKAP & DITUTUP** |
 | **03d (tambahan)** | Penempatan & perpindahan rombel UI | IMPLEMENTED & FULLY VERIFIED | **DITERIMA LENGKAP & DITUTUP** (Checklist #1–#15 APPROVED) |
 | **04a** | Schema profil pegawai dan hubungan akun | **IMPLEMENTED & FULLY VERIFIED (AGEN)** | **DITERIMA PEMILIK** (checklist #1–#13 APPROVED 2026-10-29 WIB per pernyataan pemilik) |
-| **04b** | CRUD pegawai dan menu aktif | **IMPLEMENTED & DIVERIFIKASI OTOMATIS (AGEN, 2026-10-29)** — MariaDB & browser UAT NOT RUN | PENDING (checklist #1–#18 belum dijalankan; prasyarat migration belum diotorisasi) |
+| **04b** | CRUD pegawai dan menu aktif | **IMPLEMENTED**, latest SQLite 96/1738 + frontend 42/build PASS; scoped operator browser/three-role HTTP. Agent-side other-role browser UI, two-tab/print/screenshot and 04b MariaDB NOT RUN | **DITERIMA PEMILIK** (checklist #1–#18 APPROVED 2026-10-30 WIB per pernyataan pemilik) |
 
 **Langkah untuk Sesi Baru**:
 1. ~~Pemilik meninjau checklist review fondasi Subfase 04a~~ — **SELESAI 2026-10-29**: checklist `PHASE-04A-MANUAL-REVIEW.md` #1–#13 APPROVED oleh pemilik.
 2. ~~Subfase 04b menunggu otorisasi terpisah~~ — **SELESAI 2026-10-29 WIB**: pemilik menyetujui D1–D8 (DEC-24), implementasi selesai dan diverifikasi otomatis (`PHASE-04B-REPORT.md`).
-3. Pemilik memilih jalur review 04b: database disposable baru (mis. `school_04b_integration`) atau otorisasi eksplisit migration `2029_07_26_000001` pada UAT setelah backup; lalu jalankan `PHASE-04B-MANUAL-REVIEW.md` #1–#18.
-4. Terapkan migration additive `2029_07_25_000001` dan `2029_07_26_000001` hanya pada lingkungan yang diotorisasi (UAT belum diotorisasi).
-5. Pertahankan server UAT loopback 18021/14021 dan database `school_compat_uat`.
+3. Current 2026-10-29 correction: use only new isolated SQLite UAT 14022/18022 and guarded `scripts/phase04b-uat.php status`; migration/preparation is already applied there. Root `artisan --env=uat`, old UAT/MariaDB targets and owner services remain excluded.
+4. Final explicit SQLite 96/1738, frontend 42 tests/build 18.77 s PASS and scoped style/browser/HTTP evidence are recorded in the report; never aggregate overlapping runs. Other-role browser UI, two-tab stale/link-conflict, print-preview/screenshot visual checks and 04b MariaDB DDL/InnoDB remain NOT RUN.
+5. `PHASE-04B-MANUAL-REVIEW.md` #1–#18 is APPROVED per the owner's 2026-10-30 WIB statement, recorded separately from agent evidence. Corrections remain uncommitted; no commit/push/merge/deploy was performed. Preserve owner artefacts.
 6. Seluruh risiko keamanan terbuka (advisories, lifecycle Laravel/PHP, rotasi kunci produksi) tetap OPEN.

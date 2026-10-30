@@ -1,6 +1,14 @@
 # Konteks proyek
 
-## Baseline dan maksud
+## Current correction addendum — 2026-10-29
+
+Baseline `main` at `d10f7b8` plus uncommitted corrections. The October 14/15 scaffold/runtime claims below are **historical, not current**: student CRUD/directory/placement and employee CRUD/Teachers/Employees routes are implemented. 04a and **04b are owner-accepted**: 04b checklist #1–#18 APPROVED per the owner's 2026-10-30 WIB statement, recorded separately from agent evidence.
+
+Full-English presentation is required: Teachers = Guru only (`Pendidik`), Employees = non-teachers (`Tenaga Kependidikan`), classification only by `employee_type_id`, canonical jobs retained. Shared 17-domain/243-label JSON and frontend `display_name` preserve canonical references/IDs and proper/user data; passwords stripped before cache enrichment; route-view key prevents stale rows/dialogs. List/export contain name/NUPTK/gender and list account linkage metadata (not zero PII); sensitive data is manage-detail only. Archived GET detail requires view + manage (403 view-only); unresolved list names are null/blank; CSV header `Employment Start Date (TMT)`.
+
+New SQLite UAT: SPA/API `127.0.0.1:14022` / `127.0.0.1:18022`, root `.uat-phase04b/database.sqlite`, private environment/storage, `school_phase04b_session`. Use guarded `laravel-api/scripts/phase04b-uat.php` (`init`/`prepare`/`status`), normal migrations only; never root `artisan --env=uat` or old/main/MariaDB targets. Baseline 100 synthetic teachers + 100 staff (15 jobs), current 101 each, 103 students, 100 synthetic schools (NPSN `04` namespace); idempotent fixtures preserve edits/archives, only initial five accounts; runtime/`UAT-ACCOUNTS.local.md` ignored/private. Latest explicit SQLite 96 tests/1738 assertions and frontend 42 tests PASS; final build PASS (18.77 s), targeted style PASS. Operator browser checks include create/edit/conflict/archive/restore/link/unlink, route types, English CSV and staff mobile DOM fit/scroll; separate three-role HTTP permissions PASS, not other-role browser UI. Other-role browser UI, two-tab stale/link-conflict, print-preview/screenshot visual checks and 04b MariaDB DDL/InnoDB NOT RUN. See report/HANDOFF for overlapping run/method boundaries. Owner accepted checklist #1–#18 by statement on 2026-10-30 WIB; acceptance does not approve deployment, legacy/production migration, merge or service/dependency changes, and corrections remain uncommitted without commit/push.
+
+## Baseline dan maksud (historical October 14/15 source review)
 Tanggal source review: 14 Oktober 2026 (WIB); audit Fase 00/01a: 15 Oktober 2026 (WIB). Repo: `mzidanefarhanr/app-administration_school`.
 Baseline kode: `main` @ `b02a87f0d57adffec297ed465a8afcd8e8d7ec59`. HEAD saat audit: `b699feccd65357a10f7430c165400906e6394d49` (delta = paket docs, kode tidak berubah). Fase 01a menambah perubahan working tree belum commit (lihat laporan 01a).
 Tujuan pemilik: mempermudah operator mengelola siswa, guru, pembelajaran, surat, izin, pencatatan, backup dan analisis. Runtime aplikasi (server hidup) NOT RUN; tes otomatis DB SQLite in-memory dijalankan di Fase 01a.
