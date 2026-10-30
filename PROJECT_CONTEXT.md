@@ -1,5 +1,13 @@
 # Konteks proyek
 
+## Current addendum — 2026-10-30 (Subfase 05a)
+
+Student CSV import is **implemented and agent-verified, owner review PENDING**, on `main` above `b093db7`; implementation committed as **`58828a6`** and pushed with this documentation commit for GitHub review (per owner instruction, review packages are pushed before manual checks; push is not approval). DEC-25 (APPROVED 2026-10-30 WIB): all-or-nothing commit; NIS then NIK matching (employee import matches NIK in 05b); UTF-8 CSV ≤5 MB/2,000 rows; full English; `students.import` for Admin Sistem and Operator Sekolah only; private error reports with manual 30-day retention; separate `.uat-phase05`; 05b = employee import + export column options, school recap deferred (DEC-12 PROPOSED).
+
+Contract: `GET /api/imports/students/template` (`students.view`); `POST /api/imports/students`, batch show/commit/errors (`students.import`, creator-only, other authorized users 404). Batches live in `import_batches`; source/error CSV stay in private `imports/{token}` storage. Header is strict English 17 columns; `App\Support\StudentRules` is shared with the student form. Migrations `2029_07_27_000001`/`000002` are additive.
+
+Isolated UAT `.uat-phase05` (SQLite; SPA `127.0.0.1:14023`, API `127.0.0.1:18023`, cookie `school_phase05_session`; launcher `scripts/phase05-uat.php`) holds 300 synthetic students + 200 employees (100/100). Agent evidence: import 18/97, regression 170/1097 (13 skipped), Pint 16, 3 Node tests, build 26.02 s, browser DOM flows with 0 console errors. MariaDB/concurrency/two-tab/screenshot and automatic retention are NOT RUN. Owner checklist 05a remains PENDING; agent evidence is not acceptance.
+
 ## Current correction addendum — 2026-10-29
 
 Baseline `main` at `e281419` (corrections `dc5e031`, documentation `e281419`), pushed to `origin/main`. The October 14/15 scaffold/runtime claims below are **historical, not current**: student CRUD/directory/placement and employee CRUD/Teachers/Employees routes are implemented. 04a and **04b are owner-accepted**: 04b checklist #1–#18 APPROVED per the owner's 2026-10-30 WIB statement, recorded separately from agent evidence.

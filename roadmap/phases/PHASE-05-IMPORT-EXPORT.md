@@ -1,15 +1,25 @@
 # Fase 05 — Impor, ekspor dan kualitas data
 
-Status teknis: NOT STARTED. Status review: PENDING. Semua tes/browser/manual: NOT RUN.
-Dependensi: 03,04; DEC-08. Baseline rencana: b02a87f; audit ulang HEAD saat pelaksanaan.
+Status teknis: **05a IMPLEMENTED (agent-verified 2026-10-30)**; 05b/05c NOT STARTED. Status review: **PENDING** (checklist manual 05a belum dijalankan pemilik).
+Dependensi: 03,04; DEC-08, DEC-25. Baseline rencana: b02a87f; baseline paket 05a: HEAD `b093db7` sebelum commit; implementasi 05a `58828a6`.
+Rencana rinci: `reports/feature-update/PHASE-05-PLAN.md`. Keputusan D1–D8 **APPROVED 2026-10-30 WIB sebagai DEC-25**; DEC-12 (format rekap sekolah) masih PROPOSED. Laporan: `reports/feature-update/PHASE-05A-REPORT.md`; checklist manual: `reports/feature-update/PHASE-05A-MANUAL-REVIEW.md`.
+
+## Status implementasi 05a (2026-10-30)
+
+- Berkas CSV UTF-8 (maks 5 MB / 2.000 baris), header English ketat 17 kolom, delimiter `,`/`;`, BOM diabaikan; preview tanpa mutasi; commit **all-or-nothing** (satu transaksi + `lockForUpdate`); mode `insert`/`update` dengan match NIS lalu NIK (bukan nama).
+- Laporan error CSV privat (disk `local`, `imports/{token}/errors.csv`), formula dinetralkan; retensi 30 hari manual (D6).
+- Endpoint: template (`students.view`), upload/show/commit/errors (`students.import`, hanya pembuat batch; 404 untuk pengguna berizin lain). Ability `students.import` untuk `admin-sistem`/`operator-sekolah`.
+- Migration additive `2029_07_27_000001` (`import_batches`) dan `2029_07_27_000002` (ability); `App\Support\StudentRules` menyatukan aturan form + impor.
+- UAT terisolasi `.uat-phase05` (SQLite; launcher `scripts/phase05-uat.php`). Bukti: 18 tes impor/97 assertion; regresi 170/1097 (13 skipped); Pint 16 file; 3 unit test Node; build 26,02 s; browser DOM valid/campuran/update/template, 0 console error.
+- **Belum**: impor pegawai, pilihan kolom ekspor, rekap sekolah (05b/05c), XLSX, job antrean, scheduler retensi. MariaDB/concurrency/two-tab/screenshot NOT RUN.
 
 ## Tujuan dan scope
-Impor, ekspor dan kualitas data. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Tidak ada pekerjaan implementasi yang telah dilakukan dalam penyusunan dokumen ini.
+Impor, ekspor dan kualitas data. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis.
 
 ## Subfase
 
-### 05a — Impor siswa
-Scope: Template/version, mapping kolom, preview tanpa mutasi, validasi baris/FK/identity, mode insert/update eksplisit, hasil dan error download privat; batch token idempotent. Pilih library sesuai stack/dependency setelah review; jangan menyatakan Excel library sudah terpasang.
+### 05a — Impor siswa (SELESAI — IMPLEMENTED 2026-10-30; owner review PENDING)
+Scope: Template/version, mapping kolom, preview tanpa mutasi, validasi baris/FK/identity, mode insert/update eksplisit, hasil dan error download privat; batch token idempotent. Implementasi tidak menambah dependency baru (parser CSV memakai fungsi PHP standar); tidak ada Excel library.
 
 Kriteria penerimaan: Leading zero utuh; preview tidak mengubah DB; kasus campuran error mengikuti kebijakan; retry tidak menduplikasi; update tidak menimpa record luar scope.
 
@@ -26,8 +36,8 @@ Sinkronkan kontrak affected, CHANGELOG, laporan, INDEX, HANDOFF dan ROADMAP.
 Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 ```
 
-### 05b — Ekspor dan impor pegawai
-Scope: Ekspor seluruh hasil filter dengan pilihan kolom/izin, rekap sekolah sesuai format contoh disepakati; escape formula CSV berbahaya; impor pegawai memakai mesin dan rule domain sendiri. Dapodik hanya pencocokan file bila dipilih.
+### 05b — Impor pegawai dan pilihan kolom ekspor
+Scope (DEC-25): Impor pegawai memakai mesin dan rule domain sendiri (match **NIK**); pilihan kolom ekspor dengan batas kolom sensitif/izin; escape formula CSV berbahaya; error dilaporkan per baris. **Rekap sekolah ditunda** menunggu contoh format (DEC-12 PROPOSED), bukan bagian 05b sampai format disepakati. Dapodik hanya pencocokan file bila dipilih.
 
 Kriteria penerimaan: Filter list/export konsisten, sensitive columns dibatasi, spreadsheet formula tidak aktif dari input tak tepercaya, error dilaporkan per baris.
 

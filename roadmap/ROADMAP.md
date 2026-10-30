@@ -4,6 +4,12 @@ Versi dokumen: 1.0, 14 Oktober 2026 (WIB); audit HEAD 15 Oktober 2026.
 Baseline kode: `b02a87f0d57adffec297ed465a8afcd8e8d7ec59`; HEAD audit `b699feccd65357a10f7430c165400906e6394d49` (delta = paket docs saja, kode tidak berubah).
 Historical drafting status (2026-10-14/15): DRAFT; Fase 00 PARTIAL. The original “all other phases not started” statement is obsolete; current statuses are in the table and correction addendum below.
 
+## Correction addendum — 2026-10-30 (Subfase 05a)
+
+DEC-25 (APPROVED 2026-10-30 WIB) authorizes Phase 05 with: all-or-nothing commit; student match by NIS then NIK (employee by NIK in 05b); UTF-8 CSV, 5 MB / 2,000 rows; full English; `students.import` for Admin Sistem and Operator Sekolah only; private error reports with manual 30-day retention; separate `.uat-phase05`; 05b = employee import + export column options, school recap deferred pending a format sample (DEC-12 PROPOSED).
+
+**05a is IMPLEMENTED and agent-verified, owner review PENDING.** Isolated `.uat-phase05` SQLite (SPA `127.0.0.1:14023`, API `127.0.0.1:18023`, cookie `school_phase05_session`, launcher `scripts/phase05-uat.php`): impor tests 18/97, regression 170/1097 (13 skipped), Pint 16 files, frontend 3 node tests, build 26.02 s; browser DOM valid/mixed/update/template flows with 0 console errors. Owner manual checklist 05a remains PENDING; agent evidence is not owner acceptance. Implementation committed as **`58828a6`**; documentation commit follows so the package can be reviewed on GitHub. Per owner instruction, review packages are pushed before manual checks; commit/push is not approval.
+
 ## Correction addendum — 2026-10-29
 
 Baseline `main` at `e281419` (corrections `dc5e031`, documentation `e281419`), pushed to `origin/main`. **04a and 04b are owner-accepted**: 04b checklist #1–#18 APPROVED per the owner's statement on 2026-10-30 WIB, recorded separately from agent evidence. Full-English application presentation, Teachers = Guru only (`Pendidik`), Employees = non-teachers (`Tenaga Kependidikan`), classification only by `employee_type_id`, canonical jobs retained, and >=100 synthetic rows per empty new UAT feature are current requirements.
@@ -22,7 +28,7 @@ Fondasi keamanan + backup dahulu; penyelesaian pendataan; pengolahan massal dan 
 | 02 | [Audit terpercaya dan backup yang dapat dipulihkan](phases/PHASE-02-BACKUP-AUDIT.md) | 01; DEC-02 dan DEC-09 untuk backup | **IMPLEMENTED & VERIFIED** (02a, 02b, 02c selesai; 154 test backend PASS; round-trip MariaDB PASS) | **DITERIMA LENGKAP & DITUTUP** (02a APPROVED 2026-10-19; 02b APPROVED 2026-10-20; 02c APPROVED 2026-10-20 WIB) |
 | 03 | [Pendataan siswa lengkap dan aman](phases/PHASE-03-STUDENTS.md) | 01; 02 sebelum data operasional; DEC-05, DEC-20 | **IMPLEMENTED & VERIFIED** (03a, 03b, 03c selesai; 229 test backend PASS; 18 unit test frontend PASS; UAT browser & smoke PASS) | **DITERIMA LENGKAP & DITUTUP** (03a APPROVED 2026-10-21; 03b APPROVED 2026-10-21; 03c APPROVED 2026-10-26 WIB) |
 | 04 | [Guru dan pegawai](phases/PHASE-04-EMPLOYEES.md) | 01; 02; DEC-04; DEC-24 | **04a and 04b IMPLEMENTED and owner-accepted** (latest SQLite 96/1738, frontend 42/build PASS; scoped operator browser + three-role HTTP; agent-side other-role browser UI, two-tab/print/screenshot and 04b MariaDB NOT RUN) | **04a APPROVED 2026-10-29; 04b #1–#18 APPROVED 2026-10-30 WIB per owner statement** |
-| 05 | [Impor, ekspor dan kualitas data](phases/PHASE-05-IMPORT-EXPORT.md) | 03,04; DEC-08 | NOT STARTED | PENDING |
+| 05 | [Impor, ekspor dan kualitas data](phases/PHASE-05-IMPORT-EXPORT.md) | 03,04; DEC-08, DEC-25 | **IN PROGRESS — 05a IMPLEMENTED (agent-verified 2026-10-30)**; 05b (impor pegawai + pilihan kolom ekspor) dan 05c NOT STARTED | **PENDING** (checklist manual 05a belum dijalankan pemilik) |
 | 06 | [Siklus tahun ajaran dan rombel](phases/PHASE-06-ACADEMIC-YEAR.md) | 03,04; DEC-05 | NOT STARTED | PENDING |
 | 07 | [Persuratan dan generator dokumen](phases/PHASE-07-LETTERS.md) | 01,02; siswa/guru siap untuk auto-fill; DEC-06,11 | NOT STARTED | PENDING |
 | 08 | [Perizinan siswa dan guru](phases/PHASE-08-LEAVES.md) | 01,03,04; file privat Fase07a atau service ekuivalen; DEC-07 | NOT STARTED | PENDING |

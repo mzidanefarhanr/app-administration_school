@@ -174,6 +174,23 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 ### Keputusan yang masih OPEN (belum diputuskan)
 - Makna `status_user_id` (jangan disamakan dengan `status_active`), deployment CORS/Sanctum produksi, strategi pencabutan token vs sesi.
 
+### DEC-25 — Kebijakan impor siswa, ekspor/impor pegawai, dan kualitas data (APPROVED, 2026-10-30 WIB)
+- Konteks: pemilik meninjau `reports/feature-update/PHASE-05-PLAN.md` dan menjawab seluruh keputusan D1–D8. Persetujuan mencakup rencana Fase 05 dan pelaksanaan subfase 05a; bukan otorisasi merge/deploy, migration data operasional, atau penambahan dependency.
+- Pilihan pemilik:
+  1. **D1 — Model commit**: all-or-nothing per batch. Commit ditolak selama masih ada baris error; tidak ada laporan "sebagian sukses". Batas ukuran mengikuti D3 (2.000 baris per berkas), bukan batas 500 baris terpisah.
+  2. **D2 — Kunci update**: siswa dicocokkan dengan **NIS** (alternatif NIK); pegawai dengan **NIK**. Pencocokan berdasarkan nama tidak pernah dilakukan.
+  3. **D3 — Format file**: CSV UTF-8; maksimum 5 MB dan 2.000 baris per berkas. XLSX ditunda sampai ada persetujuan dependency terpisah.
+  4. **D4 — Template**: **full English**. Header template, pesan validasi, pratinjau, laporan error, dan UI seluruhnya English; tidak ada alias header Indonesia. File berheader Indonesia menerima kesalahan kolom yang jelas.
+  5. **D5 — Izin impor**: kemampuan baru `students.import` (dan `employees.import` pada 05b), hanya untuk Admin Sistem dan Operator Sekolah; terpisah dari `manage`.
+  6. **D6 — Laporan error**: disimpan pada disk privat `imports/{token}/errors.csv`, diunduh lewat endpoint berizin; retensi 30 hari dengan pembersihan manual (tanpa scheduler baru).
+  7. **D7 — UAT**: lingkungan terpisah `.uat-phase05` dengan port 14023/18023, data sintetis ≥300 siswa dan ≥100 pegawai; UAT 04b (`.uat-phase04b`, 14022/18022) tidak diubah.
+  8. **D8 — Cakupan 05b**: impor pegawai + pilihan kolom ekspor; rekap sekolah menunggu contoh format (DEC-12 tetap PROPOSED).
+- Dampak: migration additive `import_batches`, `app/Services/StudentImportService`, `ImportController`, `config/imports.php`, route `/api/imports/*`, UI wizard impor; dokumentasi kontrak/akses/database diperbarui pada subfase terkait.
+- Catatan konsistensi (2026-10-30): teks D1 awalnya memuat batas 500 baris per commit yang bertentangan dengan D3 (2.000 baris per berkas) dan tidak disampaikan pemilik pada jawaban terakhir. Implementasi 05a memakai batas berkas 2.000 baris/5 MB dan commit all-or-nothing; koreksi ini dicatat agar kontrak dan kode konsisten.
+- Status: APPROVED. Fase affected: 05a, 05b, 05c.
+
+### Keputusan yang masih OPEN (belum diputuskan)
+
 ## Register
 
 | ID | Keputusan | Usulan awal / pertanyaan | Status | Fase paling lambat |
@@ -185,7 +202,8 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 | DEC-05 | Identitas dan keanggotaan | NIK boleh kosong; satu rombel aktif per siswa/periode; NIS unik lingkup sekolah | APPROVED (2026-10-20, disahkan DEC-20) | 03a/06a |
 | DEC-06 | Format nomor dan persetujuan surat | Format, reset counter, pejabat penandatangan, kapan nomor diterbitkan | OPEN | 07b |
 | DEC-07 | Jenis dan approval izin | Siswa/guru, approver, delegasi, perubahan/pembatalan keputusan | OPEN | 08a |
-| DEC-08 | Impor data campuran | Preview wajib; default usulan validasi semua sebelum commit per batch kecil; update hanya eksplisit | PROPOSED | 05a |
+| DEC-25 | Impor siswa/pegawai, template English, izin impor, laporan error, UAT 05 | All-or-nothing per batch; update siswa via NIS (NIK alternatif), pegawai via NIK; CSV UTF-8 ≤5 MB/2.000 baris; template full English; `students.import`/`employees.import` untuk admin-sistem + operator-sekolah; laporan error privat 30 hari; UAT `.uat-phase05` 14023/18023; rekap 05b menunggu contoh format | APPROVED (2026-10-30 WIB) | 05a |
+| DEC-08 | Impor data campuran | Preview wajib; default usulan validasi semua sebelum commit per batch kecil; update hanya eksplisit | APPROVED (2026-10-30, disahkan DEC-25) | 05a |
 | DEC-09 | Backup dan retensi | Lokasi, jadwal, RPO/RTO, enkripsi, lama simpan | APPROVED (2026-10-17) | 02b |
 | DEC-10 | Jadwal dan jurnal | Jam/sesi, exception libur/cancel/reschedule, batas waktu pengisian | OPEN | 10a |
 | DEC-11 | Template dokumen | Kop, tanda tangan, stempel, jenis surat pertama dan format rekap yang benar-benar dipakai | OPEN | 07a/07c |

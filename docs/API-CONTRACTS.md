@@ -180,6 +180,29 @@ Daftar, rekap, dan ekspor siswa server-side (DEC-22). Definisi bersama `App\Supp
 - **`GET /api/employees/export`** (`employees.view` + `employees.export`): mengikuti filter yang sama dengan daftar (tanpa paginasi/arsip). CSV UTF-8 BOM, `X-Content-Type-Options: nosniff`, 10 kolom eksplisit: `Name`, `Employee Type`, `Employee Status`, `Employment`, `Subject`, `NUPTK`, `Gender`, `Employment Start Date (TMT)`, `Exit Date`, `Archived At`; reference values in English, canonical stored names/IDs unchanged. Hasil melebihi `employees.export_max_rows` (default 10.000) → `422` (tidak dipotong). Sel dinetralkan terhadap formula (`= + - @`, tab, CR).
 - **Privasi & audit**: `EmployeeResource` memisahkan payload daftar dan sensitif; allowlist audit `Loggable` tidak memuat `name`, `nik`, maupun `archive_reason`.
 
+## Perubahan Subfase 05a (DEC-25) — impor siswa CSV
+
+Preview tanpa mutasi, commit **all-or-nothing** dalam satu transaksi. Header English ketat (17 kolom, urutan bebas, delimiter `,` atau `;`, BOM UTF-8 diabaikan). Batch milik pembuat saja; pengguna berizin lain menerima **404**, bukan 403, agar keberadaan batch tidak bocor.
+
+| Method | Endpoint | Izin | Ringkas |
+|---|---|---|---|
+| GET | `/api/imports/students/template` | `students.view` | Unduh `students-import-template.csv` (header saja), `text/csv; charset=UTF-8` |
+| POST | `/api/imports/students` | `students.import` | Multipart `file` + `mode` (`insert`/`update`) → `201` ringkasan batch + preview/error terbatas |
+| GET | `/api/imports/{batch}` | `students.import` | Ringkasan batch current user (`token` sebagai route key) |
+| POST | `/api/imports/{batch}/commit` | `students.import` | Commit batch `ready`; `200` ringkasan `committed` |
+| GET | `/api/imports/{batch}/errors` | `students.import` | Unduh CSV error privat; `404` bila batch tanpa laporan error |
+
+- **Batas berkas**: `mimes:csv,txt`, maksimum `imports.students.max_size_kb` (default 5.120 KB = 5 MB) dan `max_rows` (default 2.000 baris). Melebihi batas **ditolak `422`**, bukan dipotong. `mode` selain `insert`/`update` → `422`; pesan English.
+- **Kolom template v1**: `Name`, `NIK`, `NIS`, `NISN`, `Gender`, `Birthplace`, `Birthdate`, `Religion`, `Family Status`, `Education Level`, `Profession`, `Blood Type`, `Address`, `RT`, `RW`, `Zip Code`, `Phone`. Referensi (Gender/Religion/Family Status/Education Level/Profession/Blood Type) dicocokkan berdasarkan nama English; nilai tak dikenal → error baris.
+- **Validasi**: memakai `App\Support\StudentRules` yang sama dengan form create/update. `NIK` 16 digit, `NISN` 10 digit, `Birthdate` `YYYY-MM-DD` sebelum hari ini. Duplikat NIS/NIK/NISN **di dalam berkas** (mode insert) atau duplikat match key (mode update) ditandai pada kedua baris.
+- **Mode `update`**: pencocokan baris **NIS lebih dulu, lalu NIK**; **nama tidak pernah** dipakai sebagai kunci. Kolom yang dikosongkan tidak menimpa nilai tersimpan; `Name` opsional saat update. Baris tanpa match → error.
+- **Commit**: batch `invalid`/kedaluwarsa (TTL `imports.students.batch_ttl_minutes`, default 120 menit)/hash sumber berubah/baris berubah sejak preview → **`409`** dengan `data.errors`; tidak ada baris yang ditulis. Sukses mengembalikan `status=committed` dan `committed_rows`.
+- **Ringkasan batch**: `token`, `domain`, `mode`, `status` (`invalid`/`ready`/`committed`), `file_name`, `total_rows`, `valid_rows`, `invalid_rows`, `committed_rows`, `has_errors`, `created_at`, `committed_at`, `expires_at`; respons upload menambah `preview` (maks. `imports.students.preview_rows`, default 50) dan `errors` (maks. `imports.students.error_rows`, default 200).
+- **Berkas & privasi**: sumber dan laporan error disimpan di disk privat `imports.disk` (default `local`) pada `imports/{token}/source.csv` dan `imports/{token}/errors.csv`; tidak ada URL publik. CSV error menetralkan formula (`= + - @`, tab, CR) dan memakai retensi manual 30 hari.
+- **Authority**: `students.import` ditambahkan oleh migration `2029_07_27_000002` hanya ke peran `admin-sistem` dan `operator-sekolah`; tidak mengubah kemampuan lain. Unduh template tidak memerlukan `students.import`.
+
+Frontend: `Student.vue` menampilkan tombol Import hanya bila `students.import`; dialog `StudentImportDialog.vue` menjalankan unggah → preview (siap/invalid) → commit, menampilkan `409` dari `data.data.errors`, dan memuat ulang daftar setelah sukses. Ekspor/impor pegawai, pilihan kolom ekspor, dan rekap sekolah berada di 05b/05c (belum diimplementasikan).
+
 ## Aktual
 Resource di `/api`, dilindungi auth:sanctum: users, status-users, type-users, firstlogin; provinces/regencies/districts/villages; school-years/semesters/education-levels; genders/religions/blood-types/professions/family-status; education-schools/student-statuses/student-entries/student-majors/phase-statuses; students/school-levels/school-rombels/student-rombels; employees (alias deprecated: employee)/employee-statuses/employee-types/employments/marital-statuses; school-profile/subjects/activities.
 `/api/user` mengambil actor. `/api/check-auth` mengembalikan authenticated + user atau null. Route auth web mencakup login/logout/register/forgot-password/reset-password dan email verification. Daftar route bukan bukti semua handler lengkap.

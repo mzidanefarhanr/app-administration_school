@@ -24,6 +24,14 @@ Tes yang ditemukan terutama auth Breeze dan ExampleTest. `laravel-api/phpunit.xm
 Tetapkan `.env.testing`/konfigurasi test yang tidak berisi koneksi sekolah aktif. Pastikan config cache tidak mengarahkan test ke DB development/produksi. Gunakan database disposable dengan nama khusus; tambahkan guard yang menggagalkan tes jika nama/driver tidak sesuai. SQLite boleh untuk tes cepat bila migration kompatibel; FK, enum, unique dan concurrency yang kritis harus diuji MySQL terisolasi. Verifikasi database runtime tanpa mencetak password.
 Storage uji memakai fake/temp disk; backup/restore mengarah ke target test, tidak ke direktori aktif. Seeder uji sintetis. Jangan menjalankan RefreshDatabase atau migrate:fresh sampai isolasi dipastikan.
 
+## Subfase 05a — impor siswa (bukti 2026-10-30)
+- `laravel-api/tests/Feature/Import/StudentImportTest.php` (baru): **18 tes / 97 assertion PASS** — template berizin, guest/tanpa kemampuan, unggah valid → preview tanpa mutasi, campuran error → batch `invalid` + CSV error privat, commit all-or-nothing, duplikat dalam berkas, mode update match NIS lalu NIK (bukan nama), batch pembuat lain → 404, batch kedaluwarsa/berubah → 409 tanpa mutasi, netralisasi formula CSV, dan batas baris. Memakai `Storage::fake('local')` dan `RefreshDatabase` pada SQLite in-memory terjaga.
+- Suite regresi pada isolated testing config: **170 tes / 1.097 assertion / 13 skipped PASS**.
+- `./vendor/bin/pint --test` pada file PHP berubah: **PASS** (16 file).
+- Frontend: `vue-app/tests/student-import-params.test.mjs` (baru, `node --test`) **3 tes PASS**; `npm run build` **PASS 26,02 s**.
+- UAT terisolasi `.uat-phase05` (SQLite, API `127.0.0.1:18023`, SPA `127.0.0.1:14023`, cookie `school_phase05_session`): `prepare`/`status` sukses; 300 siswa sintetis + 200 pegawai (100 guru/100 staf); kemampuan `students.import` hadir untuk dua peran. Browser DOM: impor valid 406→409 siswa, campuran 1 valid/2 error ditolak tanpa mutasi (total tetap 409), update via NIS, unduh template, **0 console error**.
+- **NOT RUN**: verifikasi UAT via MariaDB/InnoDB, konkurensi dua tab, dan pemeriksaan visual screenshot. Bukti ini bukan penerimaan pemilik; checklist manual 05a masih **PENDING**.
+
 ## Matriks minimum per perubahan
 | Area | Kasus wajib |
 |---|---|
@@ -40,7 +48,7 @@ Storage uji memakai fake/temp disk; backup/restore mengarah ke target test, tida
 
 ## Perintah
 Dari laravel-api: `php artisan test --filter=<test-relevan>` setelah isolasi; Pint `./vendor/bin/pint --test <path-berubah>`.
-Dari vue-app: `npm run build`; `npx eslint <path-berubah>` non-fix bila ESLint tersedia. Baseline script lint --fix memutasi file. Frontend unit/E2E runner baru belum ada, pilih hanya jika kebutuhan fase membenarkan penambahan.
+Dari vue-app: `npm run build`; `npx eslint <path-berubah>` non-fix bila ESLint tersedia. Baseline script lint --fix memutasi file. Sejak 05a tersedia unit test Node murni via `node --test tests/*.test.mjs` (contoh `student-import-params.test.mjs`); belum ada runner E2E browser.
 Jalankan tes relevan dahulu, lalu suite regresi pada milestone perubahan lintas domain. Bedakan tes yang baru ditambahkan, baseline gagal, perubahan gagal, dan yang tidak dijalankan.
 
 ## Status bukti

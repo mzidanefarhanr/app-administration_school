@@ -40,6 +40,13 @@ API mayoritas hanya auth:sanctum. Beberapa controller akun membedakan tipe secar
 - **UI**: menu Teachers/Employees dan route `/public/teachers` + `/public/employees` memakai `requiresAbility: employees.view`; tombol New/Archived/Edit/Archive/Restore/Link/Export mengikuti kemampuan aktual. Pencabutan izin berlaku pada request berikutnya.
 - **Tidak ada perubahan peran/kemampuan** pada 04b. `forceDelete` tetap ditolak.
 
+## Implementasi Subfase 05a (impor siswa CSV)
+- **Kemampuan baru `students.import`** (katalog `AbilityCatalog`, migration `2029_07_27_000002`) hanya diberikan ke peran **Admin Sistem** dan **Operator Sekolah** (DEC-25 D5). Tidak mengubah kemampuan lain, tidak membuat bypass "admin boleh segalanya".
+- **Route matrix**: `GET /api/imports/students/template` → `students.view` (isi hanya header); `POST /api/imports/students`, `GET /api/imports/{batch}`, `POST /api/imports/{batch}/commit`, `GET /api/imports/{batch}/errors` → `students.import`. Guest `401`; tanpa kemampuan `403`.
+- **Scope objek**: batch hanya dapat dibaca/di-commit/diunduh error-nya oleh `created_by` pembuat dan hanya `domain=students`; aktor berizin lain menerima **404** agar keberadaan batch tidak terungkap. Ini ditegakkan di server (bukan dengan menyembunyikan tombol).
+- **Server-side validation**: berkas CSV/TXT UTF-8 ≤ 5 MB dan ≤ 2.000 baris; `mode` `insert`/`update`; validasi baris memakai `StudentRules` yang sama dengan form create/update. Commit `all-or-nothing` dalam transaksi + `lockForUpdate`; baris berubah/kedaluwarsa → `409` tanpa mutasi parsial. Audit domain tercatat server; berkas error tetap privat.
+- **UI**: tombol Import di `Student.vue` hanya tampil bila `students.import`; dialog impor tidak menambah akses baru. Pencabutan izin berlaku pada request berikutnya.
+
 ## Matriks target — usulan, bukan role yang sudah ada
 | Kemampuan | Admin | Operator | Kepala sekolah | Guru/wali kelas |
 |---|---|---|---|---|
