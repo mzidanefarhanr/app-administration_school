@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-31] Subfase 05b — Penerimaan manual pemilik (#1–#14) dan kebijakan siklus UAT per fase
+- Type: Docs
+- Scope / fase: Subfase 05b di atas `main` @ `5633726`; dokumentasi penerimaan dan operasional; tidak ada perubahan kode aplikasi.
+- Files touched: `reports/feature-update/PHASE-05B-MANUAL-REVIEW.md`, `PHASE-05B-REPORT.md`, `INDEX.md`, `HANDOFF.md`, `CHANGELOG.md`, `docs/TESTING.md`, `docs/REQUIREMENTS.md`, `docs/DECISIONS.md` (DEC-27), `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-05-IMPORT-EXPORT.md`, `PROJECT_CONTEXT.md`.
+- What changed: mencatat pernyataan pemilik **"Pengujian nomor 1-14 sudah berhasil dan saya approved."** (2026-10-31 WIB) sebagai penerimaan 05b checklist #1–#14; mencatat **DEC-27** (lingkungan UAT per fase dihentikan setelah fase lulus); mencatat bukti penghentian server UAT 04b/05 (PID/port, command line diverifikasi) dan perintah restart.
+- Why: penerimaan manual pemilik dicatat terpisah dari implementasi; server UAT fase yang sudah tidak diuji tidak perlu terus berjalan.
+- Validation: `taskkill /T /F` pada PID 2336/11284 (14022), 12416 (18022), 13456/996 (14023), 17188 (18023); verifikasi `Get-NetTCPConnection` → port 14022/14023/18022/18023 bebas; Apache 80/443 dan MariaDB 3306 tetap listening. **NOT RUN**: tidak ada tes aplikasi ulang; penerimaan berdasarkan pernyataan pemilik, bukan pengujian ulang agen. Item NOT RUN 05b tetap NOT RUN.
+- Notes / risks: penghentian hanya proses UAT terisolasi; data `.uat-phase04b`/`.uat-phase05` dan kredensial privat dipertahankan; tidak ada merge/deploy/force-push, perubahan dependency/service/`.env`, atau akses DB terlarang.
+- Evidence: `reports/feature-update/PHASE-05B-MANUAL-REVIEW.md`, `PHASE-05B-REPORT.md`, `HANDOFF.md`; baseline `5633726`.
+
 ## [2026-10-30] Subfase 05b — Impor pegawai dan pilihan kolom ekspor
 - Type: Feature
 - Scope / fase: Subfase 05b (Fase 05) di atas `main` @ `4f1fec0`; implementasi `ad74309`; dokumentasi `c5afdc4` (di-push ke `origin/main`).

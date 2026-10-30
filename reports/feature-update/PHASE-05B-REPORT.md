@@ -1,8 +1,8 @@
 # Laporan Subfase 05b — Impor Pegawai dan Pilihan Kolom Ekspor
 
-Tanggal: implementasi 2026-10-30 WIB; dokumentasi 2026-10-31 WIB. Branch: `main`. HEAD sebelum paket 05b: `4f1fec0` (dokumentasi rencana 05b); implementasi dikomit sebagai **`ad74309`**, dokumentasi sebagai **`c5afdc4`**, keduanya di-push ke `origin/main` (`4f1fec0..c5afdc4`, `main...origin/main` sinkron) agar dapat direview di GitHub.
+Tanggal: implementasi 2026-10-30 WIB; dokumentasi 2026-10-31 WIB; penerimaan pemilik 2026-10-31 WIB. Branch: `main`. HEAD sebelum paket 05b: `4f1fec0` (dokumentasi rencana 05b); implementasi dikomit sebagai **`ad74309`**, dokumentasi sebagai **`c5afdc4`**, keduanya di-push ke `origin/main` (`4f1fec0..c5afdc4`, `main...origin/main` sinkron) agar dapat direview di GitHub.
 Keputusan pemilik: **DEC-26** (APPROVED 2026-10-30 WIB; D1–D7, pernyataan "Saya setuju D1-D7").
-Status teknis: **IMPLEMENTED — agent-verified (2026-10-30/31)**. Status review pemilik: **PENDING**.
+Status teknis: **IMPLEMENTED — agent-verified (2026-10-30/31)**. Status review pemilik: **APPROVED 2026-10-31 WIB — checklist #1–#14** per pernyataan pemilik.
 Rencana: `reports/feature-update/PHASE-05B-PLAN.md`. Checklist manual: `reports/feature-update/PHASE-05B-MANUAL-REVIEW.md`.
 
 ## 1. Outcome dan cakupan
@@ -85,7 +85,9 @@ Sampel baru di `.uat-phase05/samples/` (ignored, tidak dikomit):
 
 Nilai referensi UAT yang dipakai (dibaca read-only dari SQLite UAT): Employee Type `Pendidik`/`Tenaga Kependidikan`; Status `Guru Tetap Yayasan`/`Pegawai Tetap Yayasan`; Employment 1–17 (sampel memakai `Guru Mata Pelajaran`, `Guru Bimbingan Konseling`, `Tenaga Administrasi Sekolah`); Gender `Laki-Laki`/`Perempuan`; Religion `Islam`; Marital Status `Belum Menikah`; Subject `Matematika`/`Bahasa Inggris`/`Ilmu Pengetahuan Alam (IPA)`; Regency `Synthetic Regency` + District `Synthetic District`.
 
-Checklist 14 skenario tersedia di `PHASE-05B-MANUAL-REVIEW.md` (izin 403/404, template, insert valid + leading zero, campuran/ditolak, update parsial, NIK immutable, Subject Teacher/Staff, Regency+District, duplikat NIK/arsip, kolom ekspor default/PII, filter ekspor, batas berkas/baris, UI arsip, audit/privasi). Runtime: SPA `127.0.0.1:14023`, API `127.0.0.1:18023`, akun `uat.operator` (manage/import) dan `uat.kepsek` (view+export, tanpa manage/import). Password hanya di runtime terabaikan; tidak dicetak.
+Checklist 14 skenario tersedia di `PHASE-05B-MANUAL-REVIEW.md` (izin 403/404, template, insert valid + leading zero, campuran/ditolak, update parsial, NIK immutable, Subject Teacher/Staff, Regency+District, duplikat NIK/arsip, kolom ekspor default/PII, filter ekspor, batas berkas/baris, UI arsip, audit/privasi). Runtime saat review: SPA `127.0.0.1:14023`, API `127.0.0.1:18023`, akun `uat.operator` (manage/import) dan `uat.kepsek` (view+export, tanpa manage/import). Password hanya di runtime terabaikan; tidak dicetak.
+
+**Penerimaan pemilik (2026-10-31 WIB):** pemilik menyatakan **"Pengujian nomor 1-14 sudah berhasil dan saya approved."** Checklist #1–#14 **APPROVED**. Pernyataan pemilik adalah satu-satunya bukti penerimaan; agen tidak mengulang skenario, dan item NOT RUN tetap NOT RUN. Setelah penerimaan, server UAT 04b/05 dihentikan (lihat §5 dan HANDOFF).
 
 ## 5. Risiko dan keputusan
 
@@ -95,17 +97,17 @@ Checklist 14 skenario tersedia di `PHASE-05B-MANUAL-REVIEW.md` (izin 403/404, te
 - **Berkas privat & formula**: source/errors di disk privat; sel dinetralkan; retensi 30 hari masih manual sehingga file dapat menumpuk bila operator tidak membersihkan.
 - **Batas**: 2.000 baris/5 MB dan 10.000 baris ekspor ditolak `422`, tidak dipotong.
 - **Refactor mesin impor**: kontrak siswa dipertahankan; regresi 18/97 mengunci perilaku. Perubahan perilaku siswa tidak diotorisasi pada 05b.
-- **UAT**: migration 05b sudah diterapkan ke `.uat-phase05` (isolated) tetapi **belum** ke UAT 04b/MariaDB/produksi; server tidak di-restart.
+- **UAT**: migration 05b sudah diterapkan ke `.uat-phase05` (isolated) tetapi **belum** ke UAT 04b/MariaDB/produksi. Server UAT fase 04b (14022/18022) dan 05 (14023/18023) **dihentikan 2026-10-31** setelah fase lulus, sesuai kebijakan siklus UAT per fase (DEC-27); data/storage UAT dipertahankan dan perintah restart tercatat di checklist/HANDOFF.
 - Risiko browser/visual belum diverifikasi agen; pemilik perlu menjalankan checklist pada browser nyata.
 
 ## 6. Sinkronisasi dokumen
 
-Diperbarui: `CHANGELOG.md`, `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `docs/DATABASE.md`, `docs/REQUIREMENTS.md` (FR-06), `docs/TESTING.md`, `docs/DECISIONS.md` (DEC-26 sudah dicatat saat otorisasi), `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-05-IMPORT-EXPORT.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, laporan ini dan checklist manual. `PROJECT_CONTEXT.md` mendapat addendum 05b.
+Diperbarui: `CHANGELOG.md`, `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `docs/DATABASE.md`, `docs/REQUIREMENTS.md` (FR-06), `docs/TESTING.md`, `docs/DECISIONS.md` (DEC-26 dan DEC-27), `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-05-IMPORT-EXPORT.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, laporan ini dan checklist manual. `PROJECT_CONTEXT.md` mendapat addendum 05b dan catatan penerimaan.
 
-Commit/push dilakukan agar pemilik dapat meninjau implementasi langsung di GitHub; commit/push bukan penerimaan manual. Tidak ada merge/deploy/force-push, perubahan `.env` utama, dependency/lockfile, service, DB terlarang, atau migrasi database operasional.
+Commit/push dilakukan agar pemilik dapat meninjau implementasi langsung di GitHub; commit/push bukan penerimaan manual. Penerimaan #1–#14 dicatat pada commit dokumentasi tersendiri. Tidak ada merge/deploy/force-push, perubahan `.env` utama, dependency/lockfile, service, DB terlarang, atau migrasi database operasional.
 
 ## 7. Langkah berikutnya
 
-1. Pemilik meninjau `PHASE-05B-MANUAL-REVIEW.md` pada `.uat-phase05` (14023/18023); jalankan `employees-import-valid.csv` sebelum `employees-import-update.csv`.
-2. Penerimaan manual dicatat pada commit dokumentasi tersendiri setelah pernyataan pemilik; item NOT RUN tetap NOT RUN.
-3. Rekap sekolah (05c) menunggu contoh format (DEC-12 PROPOSED) dan instruksi terpisah.
+1. ~~Pemilik meninjau `PHASE-05B-MANUAL-REVIEW.md` pada `.uat-phase05`~~ — **SELESAI 2026-10-31 WIB**: #1–#14 APPROVED per pernyataan pemilik.
+2. Penerimaan dicatat pada commit dokumentasi tersendiri; item NOT RUN tetap NOT RUN. Server UAT 04b/05 sudah dihentikan sesuai DEC-27.
+3. Rekap sekolah (05c) menunggu contoh format (DEC-12 PROPOSED) dan instruksi terpisah; jangan mulai 05c tanpa instruksi pemilik.

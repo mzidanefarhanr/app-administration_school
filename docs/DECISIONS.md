@@ -202,6 +202,16 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 - Dampak: ability `employees.import` (admin-sistem + operator-sekolah), ekstraksi mesin impor 05a tanpa mengubah kontrak siswa, endpoint `/api/imports/employees/*`, registry kolom ekspor + `GET /api/employees/export/options`, UI impor/dialog kolom pada Teachers/Employees. Migration additive saja; tidak ada perubahan tabel domain atau data operasional.
 - Status: APPROVED. Fase affected: 05b.
 
+### DEC-27 — Siklus hidup lingkungan UAT per fase (APPROVED, 2026-10-31 WIB)
+- Konteks: pemilik menyatakan pada 2026-10-31 WIB: "Pengujian nomor 1-14 sudah berhasil dan saya approved. Ada tambahan, lingkungan uji pada port tertentu disetiap fase, jika sudah dilewati bisa diabort agar tidak jalan terus sementara sudah tidak dites."
+- Pilihan pemilik:
+  1. Setiap fase/subfase memakai lingkungan UAT terisolasi pada port tetapnya masing-masing (04b: SPA 14022/API 18022; 05: SPA 14023/API 18023).
+  2. Setelah checklist manual fase tersebut lulus dan diterima pemilik, server UAT fase itu **dihentikan** agar tidak terus berjalan tanpa pengujian.
+  3. Penghentian hanya pada proses tree server UAT fase terkait setelah command line/PID diverifikasi; data dan storage `.uat-*` dipertahankan, dan perintah restart dicatat di dokumentasi fase/HANDOFF.
+  4. Server bersama/Apache (80/443), MariaDB (3306), konfigurasi PHP/service, dependency, dan resource aplikasi lain tidak boleh disentuh. Fase yang masih menunggu review tetap berjalan sampai keputusan pemilik.
+- Bukti pelaksanaan 2026-10-31: 04b Vite 14022 (PID 2336 + esbuild 11284) dan PHP 18022 (PID 12416), serta 05 Vite 14023 (PID 13456 + esbuild 996) dan PHP 18023 (PID 17188), dihentikan dengan `taskkill /T /F` setelah verifikasi command line; port 14022/14023/18022/18023 bebas; Apache 80/443 dan MariaDB 3306 tetap berjalan; `.uat-phase04b`/`.uat-phase05` tidak diubah.
+- Status: APPROVED. Fase affected: seluruh fase dengan UAT terisolasi (04b, 05, dan fase berikutnya).
+
 ### Keputusan yang masih OPEN (belum diputuskan)
 
 ## Register
@@ -217,6 +227,7 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 | DEC-07 | Jenis dan approval izin | Siswa/guru, approver, delegasi, perubahan/pembatalan keputusan | OPEN | 08a |
 | DEC-25 | Impor siswa/pegawai, template English, izin impor, laporan error, UAT 05 | All-or-nothing per batch; update siswa via NIS (NIK alternatif), pegawai via NIK; CSV UTF-8 ≤5 MB/2.000 baris; template full English; `students.import`/`employees.import` untuk admin-sistem + operator-sekolah; laporan error privat 30 hari; UAT `.uat-phase05` 14023/18023; rekap 05b menunggu contoh format | APPROVED (2026-10-30 WIB) | 05a |
 | DEC-26 | Rencana 05b: impor pegawai dan pilihan kolom ekspor | Ekspor kolom hanya pegawai; 10 kolom default + 15 PII khusus `employees.manage`; NIK wajib update/opsional insert; update parsial via NIK; Regency+District berpasangan; template 22 kolom; UAT `.uat-phase05` | APPROVED (2026-10-30 WIB) | 05b |
+| DEC-27 | Siklus hidup lingkungan UAT per fase | Hentikan server UAT fase setelah checklist lulus/APPROVED; verifikasi PID/command line; pertahankan data `.uat-*`, catat perintah restart; jangan sentuh Apache/MariaDB/service/dependency | APPROVED (2026-10-31 WIB) | 04b/05+ |
 | DEC-08 | Impor data campuran | Preview wajib; default usulan validasi semua sebelum commit per batch kecil; update hanya eksplisit | APPROVED (2026-10-30, disahkan DEC-25) | 05a |
 | DEC-09 | Backup dan retensi | Lokasi, jadwal, RPO/RTO, enkripsi, lama simpan | APPROVED (2026-10-17) | 02b |
 | DEC-10 | Jadwal dan jurnal | Jam/sesi, exception libur/cancel/reschedule, batas waktu pengisian | OPEN | 10a |

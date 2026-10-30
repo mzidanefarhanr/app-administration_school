@@ -1,11 +1,19 @@
 # Checklist Review Manual — Subfase 05b (Impor Pegawai & Pilihan Kolom Ekspor)
 
-Tanggal: 2026-10-31 WIB. Baseline implementasi: `ad74309` (di atas `4f1fec0`). Status: **MENUNGGU REVIEW PEMILIK**. Checklist ini bukan bukti agen; agen **tidak** menjalankan browser untuk 05b (otomasi diblokir kebijakan sesi).
+Tanggal: 2026-10-31 WIB. Baseline implementasi: `ad74309` (di atas `4f1fec0`). Status: **OWNER APPROVED 2026-10-31 WIB — seluruh #1–#14**. Checklist ini bukan bukti agen; agen **tidak** menjalankan browser untuk 05b (otomasi diblokir kebijakan sesi).
+
+## Status penerimaan pemilik
+
+- Pernyataan pemilik 2026-10-31 WIB: **"Pengujian nomor 1-14 sudah berhasil dan saya approved."**
+- Cakupan: seluruh skenario #1–#14 pada lingkungan UAT terisolasi `.uat-phase05`. Pernyataan pemilik adalah satu-satunya bukti penerimaan; agen tidak mengulang skenario.
+- Batas: penerimaan tidak mengotorisasi merge, deploy, migrasi data legacy/MariaDB/produksi, perubahan dependency/service, atau 05c. Item NOT RUN agen tetap NOT RUN.
 
 ## Lingkungan
 
-- SPA: `http://127.0.0.1:14023` (Vite dev, source working tree; tidak di-restart)
-- API: `http://127.0.0.1:18023` (PHP built-in, tidak di-restart)
+- Server UAT 05 (SPA 14023/API 18023) sudah **dihentikan 2026-10-31** setelah penerimaan, sesuai kebijakan siklus UAT per fase (DEC-27). Data/storage `.uat-phase05` dipertahankan; Apache/MariaDB tidak disentuh.
+- Untuk mengulang review: dari `laravel-api` jalankan `C:\xampp\php82-operational\php.exe -S 127.0.0.1:18023 -t public scripts/phase05-uat.php`; dari `vue-app` jalankan `npm run dev -- --host 127.0.0.1 --port 14023 --strictPort`.
+- SPA: `http://127.0.0.1:14023` (Vite dev, source working tree)
+- API: `http://127.0.0.1:18023` (PHP built-in)
 - Database: `.uat-phase05/database.sqlite` (terisolasi; migration `2029_07_28_000001` sudah diterapkan)
 - Akun:
   - `uat.operator` — `admin-sistem`/`operator-sekolah`: `employees.view`, `employees.manage`, `employees.export`, `employees.import`
@@ -38,5 +46,5 @@ Tanggal: 2026-10-31 WIB. Baseline implementasi: `ad74309` (di atas `4f1fec0`). S
 - Jalankan #4 sebelum #6 agar NIK target update ada.
 - Setelah #5, tidak ada baris yang ditulis (all-or-nothing); total harus tetap 203.
 - Bila ingin mengulang #4, gunakan NIK baru atau hapus/arsipkan record hasil uji melalui UI (jangan edit SQLite langsung).
-- Item NOT RUN agen: browser/visual, MariaDB/InnoDB, two-tab concurrency, retensi otomatis, rekap sekolah, XLSX.
-- Persetujuan pemilik dicatat terpisah dari bukti agen; tulis nomor yang benar-benar diuji dan berhasil.
+- Item NOT RUN agen: browser/visual, MariaDB/InnoDB, two-tab concurrency, retensi otomatis, rekap sekolah, XLSX. Penerimaan pemilik 2026-10-31 tidak mengubah item ini menjadi PASS.
+- Status akhir 2026-10-31 WIB: **#1–#14 APPROVED** berdasarkan pernyataan pemilik; tidak ada pengujian ulang oleh agen.
