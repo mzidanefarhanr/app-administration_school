@@ -189,6 +189,19 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 - Catatan konsistensi (2026-10-30): teks D1 awalnya memuat batas 500 baris per commit yang bertentangan dengan D3 (2.000 baris per berkas) dan tidak disampaikan pemilik pada jawaban terakhir. Implementasi 05a memakai batas berkas 2.000 baris/5 MB dan commit all-or-nothing; koreksi ini dicatat agar kontrak dan kode konsisten.
 - Status: APPROVED. Fase affected: 05a, 05b, 05c.
 
+### DEC-26 — Rencana Subfase 05b: impor pegawai dan pilihan kolom ekspor (APPROVED, 2026-10-30 WIB)
+- Konteks: pemilik meninjau `reports/feature-update/PHASE-05B-PLAN.md` (baseline `4f1fec0`) dan menyatakan **"Saya setuju D1-D7"** pada 2026-10-30 WIB. Persetujuan ini menutup gate rencana 05b; bukan otorisasi merge/deploy, migration data operasional, atau penambahan dependency.
+- Pilihan pemilik:
+  1. **D1 — Cakupan pilihan kolom**: hanya ekspor pegawai (Teachers dan Employees berbagi direktori/ekspor). Kolom ekspor siswa tidak berubah pada 05b.
+  2. **D2 — Kolom sensitif**: default ekspor tetap 10 kolom operasional 04b; 15 kolom PII (NIK, NPWP, No. KK, tempat/tanggal lahir, alamat, RT/RW, kode pos, telepon, email, agama, kecamatan, kabupaten, status pernikahan) hanya dapat diminta pemegang `employees.manage`; permintaan tanpa izin ditolak 403.
+  3. **D3 — NIK pada impor**: wajib pada mode update (kunci pencocokan) dan opsional pada mode insert; 16 digit, disimpan sebagai string, unik termasuk record arsip.
+  4. **D4 — Semantik update**: parsial seperti 05a; sel kosong berarti tidak berubah; NIK tidak dapat diubah; validasi memakai gabungan nilai lama + sel terisi; perpindahan tipe ke Non-teaching Employee mengosongkan Subject.
+  5. **D5 — Identifikasi District**: pasangan Regency + District; District dicari dalam Regency; nama District ambigu atau Subject ambigu menghasilkan error baris, bukan pilihan acak.
+  6. **D6 — Template impor**: 22 kolom English sesuai PHASE-05B-PLAN §4.2; kolom akun tidak termasuk.
+  7. **D7 — UAT**: memakai kembali `.uat-phase05` (14023/18023); environment 04b tidak diubah.
+- Dampak: ability `employees.import` (admin-sistem + operator-sekolah), ekstraksi mesin impor 05a tanpa mengubah kontrak siswa, endpoint `/api/imports/employees/*`, registry kolom ekspor + `GET /api/employees/export/options`, UI impor/dialog kolom pada Teachers/Employees. Migration additive saja; tidak ada perubahan tabel domain atau data operasional.
+- Status: APPROVED. Fase affected: 05b.
+
 ### Keputusan yang masih OPEN (belum diputuskan)
 
 ## Register
@@ -203,6 +216,7 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 | DEC-06 | Format nomor dan persetujuan surat | Format, reset counter, pejabat penandatangan, kapan nomor diterbitkan | OPEN | 07b |
 | DEC-07 | Jenis dan approval izin | Siswa/guru, approver, delegasi, perubahan/pembatalan keputusan | OPEN | 08a |
 | DEC-25 | Impor siswa/pegawai, template English, izin impor, laporan error, UAT 05 | All-or-nothing per batch; update siswa via NIS (NIK alternatif), pegawai via NIK; CSV UTF-8 ≤5 MB/2.000 baris; template full English; `students.import`/`employees.import` untuk admin-sistem + operator-sekolah; laporan error privat 30 hari; UAT `.uat-phase05` 14023/18023; rekap 05b menunggu contoh format | APPROVED (2026-10-30 WIB) | 05a |
+| DEC-26 | Rencana 05b: impor pegawai dan pilihan kolom ekspor | Ekspor kolom hanya pegawai; 10 kolom default + 15 PII khusus `employees.manage`; NIK wajib update/opsional insert; update parsial via NIK; Regency+District berpasangan; template 22 kolom; UAT `.uat-phase05` | APPROVED (2026-10-30 WIB) | 05b |
 | DEC-08 | Impor data campuran | Preview wajib; default usulan validasi semua sebelum commit per batch kecil; update hanya eksplisit | APPROVED (2026-10-30, disahkan DEC-25) | 05a |
 | DEC-09 | Backup dan retensi | Lokasi, jadwal, RPO/RTO, enkripsi, lama simpan | APPROVED (2026-10-17) | 02b |
 | DEC-10 | Jadwal dan jurnal | Jam/sesi, exception libur/cancel/reschedule, batas waktu pengisian | OPEN | 10a |

@@ -47,6 +47,13 @@ API mayoritas hanya auth:sanctum. Beberapa controller akun membedakan tipe secar
 - **Server-side validation**: berkas CSV/TXT UTF-8 ≤ 5 MB dan ≤ 2.000 baris; `mode` `insert`/`update`; validasi baris memakai `StudentRules` yang sama dengan form create/update. Commit `all-or-nothing` dalam transaksi + `lockForUpdate`; baris berubah/kedaluwarsa → `409` tanpa mutasi parsial. Audit domain tercatat server; berkas error tetap privat.
 - **UI**: tombol Import di `Student.vue` hanya tampil bila `students.import`; dialog impor tidak menambah akses baru. Pencabutan izin berlaku pada request berikutnya.
 
+## Implementasi Subfase 05b (impor pegawai & pilihan kolom ekspor)
+- **Kemampuan baru `employees.import`** (katalog `AbilityCatalog`, migration `2029_07_28_000001`) hanya diberikan ke **Admin Sistem** dan **Operator Sekolah** (DEC-26). Tidak mengubah peran/kemampuan lain; template cukup `employees.view`.
+- **Route matrix**: `GET /api/imports/employees/template` → `employees.view` (hanya header); `POST /api/imports/employees`, `GET /api/imports/employees/{batch}`, `POST .../commit`, `GET .../errors` → `employees.import`. Guest `401`; tanpa kemampuan `403`.
+- **Scope objek**: batch impor pegawai hanya dapat dibaca/di-commit/diunduh error-nya oleh `created_by` pembuat dan `domain=employees`; aktor berizin lain atau domain lain menerima **404**.
+- **Kolom ekspor sensitif**: `GET /api/employees/export/options` menyembunyikan metadata 15 kolom PII dari aktor tanpa `employees.manage`; `GET /api/employees/export` menolak **403** bila `columns` memuat kolom sensitif tanpa `employees.manage`. Default ekspor tetap 10 kolom operasional; ini pembatasan tambahan, bukan pengurangan izin `employees.export` yang sudah ada.
+- **UI**: Teachers/Employees menampilkan Import CSV hanya bila `employees.import` (dan tidak di mode arsip); dialog ekspor hanya menampilkan kelompok sensitif bila opsi server mengizinkan. Pencabutan izin berlaku pada request berikutnya; tombol tersembunyi bukan pengganti enforcement server.
+
 ## Matriks target — usulan, bukan role yang sudah ada
 | Kemampuan | Admin | Operator | Kepala sekolah | Guru/wali kelas |
 |---|---|---|---|---|

@@ -1,7 +1,7 @@
 # Rencana Fase 05 — Impor, Ekspor dan Kualitas Data
 
 - Tanggal: 2026-10-30 (WIB). Branch: `main`. Baseline kode: `b093db7` (04b diterima pemilik dan sudah di-push).
-- Status dokumen: **DISETUJUI PEMILIK 2026-10-30 WIB sebagai DEC-25** (D1–D8). Subfase **05a IMPLEMENTED (agent-verified) dan owner APPROVED 2026-10-30 WIB (#1–#12)**; **05b PLAN PREPARED 2026-10-30 (`PHASE-05B-PLAN.md`), menunggu D1–D7/DEC-26**; 05c belum dimulai.
+- Status dokumen: **DISETUJUI PEMILIK 2026-10-30 WIB sebagai DEC-25** (D1–D8). Subfase **05a IMPLEMENTED (agent-verified) dan owner APPROVED 2026-10-30 WIB (#1–#12)**; **05b IMPLEMENTED (`ad74309`, agent-verified 2026-10-31; DEC-26 APPROVED 2026-10-30 WIB), review pemilik PENDING**; 05c belum dimulai.
 - Fase 05: subfase **05a (impor siswa) → 05b (ekspor & impor pegawai) → 05c (pemeriksaan kelengkapan)**, dikerjakan satu per satu atas instruksi pemilik.
 - Dokumen acuan: `roadmap/phases/PHASE-05-IMPORT-EXPORT.md`, `docs/DECISIONS.md` (DEC-08, DEC-12, DEC-14, DEC-20, DEC-24), `docs/REQUIREMENTS.md` (FR-06), `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `docs/DATABASE.md`, `docs/TESTING.md`.
 - Gate: **DEC-08 dan D1–D8 sudah APPROVED 2026-10-30 WIB sebagai DEC-25**; DEC-12 tetap PROPOSED untuk rekap 05b.
@@ -146,7 +146,7 @@ Runtime `.uat-phase05` (D7), seed sintetis ≥300 siswa dan ≥100 pegawai, file
 
 ## 6. Garis besar Subfase 05b — Ekspor & impor pegawai
 
-> Rencana rinci sudah tersedia di `PHASE-05B-PLAN.md` (2026-10-30, baseline `4e95706`); status **RENCANA — MENUNGGU D1–D7 (usulan DEC-26)**. Bagian ini tetap menjadi ringkasan garis besar.
+> Rencana rinci sudah tersedia di `PHASE-05B-PLAN.md` (2026-10-30, baseline `4e95706`); status **DISETUJUI (DEC-26) dan IMPLEMENTED `ad74309`**; bukti di `PHASE-05B-REPORT.md`. Bagian ini tetap menjadi ringkasan garis besar.
 
 - Tambah pilihan kolom ekspor sesuai izin; kolom sensitif tetap dibatasi `employees.manage`.
 - Rekap sekolah **hanya** setelah pemilik memberikan contoh format (DEC-12).

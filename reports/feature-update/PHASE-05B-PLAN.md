@@ -1,10 +1,10 @@
 # Rencana Subfase 05b — Impor Pegawai dan Pilihan Kolom Ekspor
 
 - Tanggal: 2026-10-30 (WIB). Branch: `main`. Baseline: `4e95706` (commit penerimaan 05a); `main...origin/main` sinkron.
-- Status: **RENCANA — MENUNGGU KEPUTUSAN PEMILIK (usulan DEC-26)**. Belum ada implementasi 05b.
+- Status: **DISETUJUI PEMILIK 2026-10-30 WIB (DEC-26, D1–D7); IMPLEMENTED `ad74309` (agent-verified 2026-10-31); review manual PENDING**. Dokumen ini tetap menjadi rencana acuan; bukti aktual dan NOT RUN ada di `PHASE-05B-REPORT.md`.
 - Scope: sesuai DEC-25 D8 — **impor pegawai CSV** dan **pilihan kolom ekspor pegawai**. Rekap sekolah tetap ditunda menunggu contoh format (DEC-12 PROPOSED) dan bukan bagian 05b.
-- Dokumen acuan: `PHASE-05-PLAN.md` §6, `roadmap/phases/PHASE-05-IMPORT-EXPORT.md`, `docs/DECISIONS.md` (DEC-04, DEC-24, DEC-25), `docs/REQUIREMENTS.md` (FR-05/FR-06), `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `docs/DATABASE.md`, `docs/TESTING.md`.
-- Gate: pemilik menjawab **D1–D7** di Bagian 6; keputusan dicatat sebagai **DEC-26** sebelum implementasi dimulai.
+- Dokumen acuan: `PHASE-05-PLAN.md` §6, `roadmap/phases/PHASE-05-IMPORT-EXPORT.md`, `docs/DECISIONS.md` (DEC-04, DEC-24, DEC-25, DEC-26), `docs/REQUIREMENTS.md` (FR-05/FR-06), `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `docs/DATABASE.md`, `docs/TESTING.md`.
+- Gate: pemilik menjawab **D1–D7** di Bagian 6 dan menyatakan "Saya setuju D1-D7"; keputusan dicatat sebagai **DEC-26**.
 
 ---
 

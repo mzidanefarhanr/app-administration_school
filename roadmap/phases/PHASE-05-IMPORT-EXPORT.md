@@ -1,8 +1,8 @@
 # Fase 05 — Impor, ekspor dan kualitas data
 
-Status teknis: **05a IMPLEMENTED (agent-verified 2026-10-30)**; **05b PLAN PREPARED 2026-10-30 (awaiting DEC-26)**; 05c NOT STARTED. Status review: **05a APPROVED 2026-10-30 WIB (#1–#12)**; 05b/05c PENDING.
-Dependensi: 03,04; DEC-08, DEC-25. Baseline rencana: b02a87f; baseline paket 05a: HEAD `b093db7` sebelum commit; implementasi 05a `58828a6`; baseline rencana 05b `4e95706`.
-Rencana rinci: `reports/feature-update/PHASE-05-PLAN.md` dan `reports/feature-update/PHASE-05B-PLAN.md`. Keputusan D1–D8 **APPROVED 2026-10-30 WIB sebagai DEC-25**; keputusan 05b D1–D7 **MENUNGGU (usulan DEC-26)**; DEC-12 (format rekap sekolah) masih PROPOSED. Laporan: `reports/feature-update/PHASE-05A-REPORT.md`; checklist manual: `reports/feature-update/PHASE-05A-MANUAL-REVIEW.md`.
+Status teknis: **05a IMPLEMENTED (agent-verified 2026-10-30)**; **05b IMPLEMENTED (`ad74309`, agent-verified 2026-10-31)**; 05c NOT STARTED. Status review: **05a APPROVED 2026-10-30 WIB (#1–#12)**; **05b PENDING (#1–#14)**; 05c PENDING.
+Dependensi: 03,04; DEC-08, DEC-25, DEC-26. Baseline rencana: b02a87f; baseline paket 05a: HEAD `b093db7` sebelum commit; implementasi 05a `58828a6`; baseline rencana 05b `4f1fec0`; implementasi 05b `ad74309`.
+Rencana rinci: `reports/feature-update/PHASE-05-PLAN.md` dan `reports/feature-update/PHASE-05B-PLAN.md`. Keputusan D1–D8 **APPROVED 2026-10-30 WIB sebagai DEC-25**; keputusan 05b D1–D7 **APPROVED 2026-10-30 WIB sebagai DEC-26**; DEC-12 (format rekap sekolah) masih PROPOSED. Laporan: `reports/feature-update/PHASE-05A-REPORT.md`, `reports/feature-update/PHASE-05B-REPORT.md`; checklist manual: `reports/feature-update/PHASE-05A-MANUAL-REVIEW.md`, `reports/feature-update/PHASE-05B-MANUAL-REVIEW.md`.
 
 ## Status implementasi 05a (2026-10-30)
 
@@ -11,7 +11,16 @@ Rencana rinci: `reports/feature-update/PHASE-05-PLAN.md` dan `reports/feature-up
 - Endpoint: template (`students.view`), upload/show/commit/errors (`students.import`, hanya pembuat batch; 404 untuk pengguna berizin lain). Ability `students.import` untuk `admin-sistem`/`operator-sekolah`.
 - Migration additive `2029_07_27_000001` (`import_batches`) dan `2029_07_27_000002` (ability); `App\Support\StudentRules` menyatukan aturan form + impor.
 - UAT terisolasi `.uat-phase05` (SQLite; launcher `scripts/phase05-uat.php`). Bukti: 18 tes impor/97 assertion; regresi 170/1097 (13 skipped); Pint 16 file; 3 unit test Node; build 26,02 s; browser DOM valid/campuran/update/template, 0 console error.
-- **Belum**: impor pegawai, pilihan kolom ekspor, rekap sekolah (05b/05c), XLSX, job antrean, scheduler retensi. MariaDB/concurrency/two-tab/screenshot NOT RUN.
+- **Saat 05a selesai, belum dikerjakan**: impor pegawai, pilihan kolom ekspor, rekap sekolah (dikerjakan pada 05b/05c), XLSX, job antrean, scheduler retensi. MariaDB/concurrency/two-tab/screenshot NOT RUN.
+
+## Status implementasi 05b (2026-10-31)
+
+- Mesin impor 05a diekstrak ke `App\Services\Imports\ImportService`; kontrak siswa tidak berubah (regresi 18/97 PASS). Impor pegawai: template English 22 kolom, match update **NIK**, NIK wajib update/opsional insert, update parsial, validasi gabungan via `EmployeeRules`, Subject Teacher/Staff, Regency+District, error privat `Row,Field,Message,NIK,NUPTK`, commit all-or-nothing.
+- Ability `employees.import` (migration additive `2029_07_28_000001`) hanya untuk `admin-sistem`/`operator-sekolah`; template cukup `employees.view`.
+- Ekspor pegawai: registry 10 kolom operasional default + 15 kolom PII; PII hanya `employees.manage` (tanpa izin `403`); `GET /api/employees/export/options`; kolom tak dikenal `422`; urutan registry; batas 10.000 baris.
+- UI: `EmployeeImportDialog.vue` + `EmployeeExportDialog.vue` pada Teachers/Employees; Import hanya untuk `employees.import` dan bukan mode arsip.
+- Bukti: 28/189 + 15/60 tes (**43/249**); suite **402 passed / 13 skipped / 3.587 assertions**; Pint 15 file; 15 unit Node; ESLint file baru 0 error; build 28,46 s; migration diterapkan ke `.uat-phase05` dengan data tetap 409 siswa/200 pegawai.
+- **Belum/NOT RUN**: browser/visual UAT 05b (otomasi browser diblokir kebijakan sesi), MariaDB/InnoDB, two-tab concurrency, retensi otomatis, rekap sekolah (05c), XLSX. Review pemilik **PENDING** (`PHASE-05B-MANUAL-REVIEW.md` #1–#14); sampel `employees-import-valid.csv` harus dijalankan sebelum update.
 
 ## Tujuan dan scope
 Impor, ekspor dan kualitas data. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis.
@@ -39,7 +48,7 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 ### 05b — Impor pegawai dan pilihan kolom ekspor
 Scope (DEC-25): Impor pegawai memakai mesin dan rule domain sendiri (match **NIK**); pilihan kolom ekspor dengan batas kolom sensitif/izin; escape formula CSV berbahaya; error dilaporkan per baris. **Rekap sekolah ditunda** menunggu contoh format (DEC-12 PROPOSED), bukan bagian 05b sampai format disepakati. Dapodik hanya pencocokan file bila dipilih.
 
-**Rencana rinci:** `reports/feature-update/PHASE-05B-PLAN.md` (2026-10-30, baseline `4e95706`). Status **RENCANA — MENUNGGU D1–D7 (usulan DEC-26)**; belum ada implementasi. Rencana mencakup: ekstraksi mesin impor 05a yang menjaga perilaku siswa, ability `employees.import`, template 22 kolom English, match update via NIK, aturan Subject Teacher/Non-teaching, identifikasi Regency+District, laporan error `Row,Field,Message,NIK,NUPTK`, registry 10 kolom operasional + 15 kolom sensitif (khusus `employees.manage`), endpoint `/api/employees/export/options`, UI impor/kolom ekspor, dan UAT pada `.uat-phase05`.
+**Rencana rinci:** `reports/feature-update/PHASE-05B-PLAN.md`. Status **IMPLEMENTED (`ad74309`, agent-verified 2026-10-31); review pemilik PENDING**. Implementasi mencakup: ekstraksi mesin impor 05a yang menjaga perilaku siswa, ability `employees.import`, template 22 kolom English, match update via NIK, aturan Subject Teacher/Non-teaching, identifikasi Regency+District, laporan error `Row,Field,Message,NIK,NUPTK`, registry 10 kolom operasional + 15 kolom sensitif (khusus `employees.manage`), endpoint `/api/employees/export/options`, UI impor/kolom ekspor, dan UAT pada `.uat-phase05`. Bukti dan NOT RUN ada di `PHASE-05B-REPORT.md`.
 
 Kriteria penerimaan: Filter list/export konsisten, sensitive columns dibatasi, spreadsheet formula tidak aktif dari input tak tepercaya, error dilaporkan per baris.
 

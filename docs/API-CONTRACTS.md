@@ -177,7 +177,7 @@ Daftar, rekap, dan ekspor siswa server-side (DEC-22). Definisi bersama `App\Supp
 - **`GET /api/employees/account-candidates`** (`employees.manage`): maks. 20 akun `users` aktif, tidak terhapus, belum tertaut profil lain; opsional `search`; payload `id`, `name`, `username`, `email`.
 - **`POST /api/employees/{id}/link-account`** (`employees.manage`): body `user_id` + `version`; hanya akun kandidat; mengisi `user_id` dan `user_id_resolved_at`; tidak mengubah role/abilities. Akun nonaktif/tertaut/re-link `422`; versi usang `409`.
 - **`POST /api/employees/{id}/unlink-account`** (`employees.manage`): body `version`; mengosongkan `user_id` dan mengisi `account_unlinked_at`; fallback NIK legacy tidak diaktifkan kembali; unlink ulang `422`.
-- **`GET /api/employees/export`** (`employees.view` + `employees.export`): mengikuti filter yang sama dengan daftar (tanpa paginasi/arsip). CSV UTF-8 BOM, `X-Content-Type-Options: nosniff`, 10 kolom eksplisit: `Name`, `Employee Type`, `Employee Status`, `Employment`, `Subject`, `NUPTK`, `Gender`, `Employment Start Date (TMT)`, `Exit Date`, `Archived At`; reference values in English, canonical stored names/IDs unchanged. Hasil melebihi `employees.export_max_rows` (default 10.000) → `422` (tidak dipotong). Sel dinetralkan terhadap formula (`= + - @`, tab, CR).
+- **`GET /api/employees/export`** (`employees.view` + `employees.export`): mengikuti filter yang sama dengan daftar (tanpa paginasi/arsip). CSV UTF-8 BOM, `X-Content-Type-Options: nosniff`, default 10 kolom operasional: `Name`, `Employee Type`, `Employee Status`, `Employment`, `Subject`, `NUPTK`, `Gender`, `Employment Start Date (TMT)`, `Exit Date`, `Archived At`; reference values in English, canonical stored names/IDs unchanged. Sejak 05b menerima `columns` (lihat bagian 05b). Hasil melebihi `employees.export_max_rows` (default 10.000) → `422` (tidak dipotong). Sel dinetralkan terhadap formula (`= + - @`, tab, CR).
 - **Privasi & audit**: `EmployeeResource` memisahkan payload daftar dan sensitif; allowlist audit `Loggable` tidak memuat `name`, `nik`, maupun `archive_reason`.
 
 ## Perubahan Subfase 05a (DEC-25) — impor siswa CSV
@@ -201,7 +201,39 @@ Preview tanpa mutasi, commit **all-or-nothing** dalam satu transaksi. Header Eng
 - **Berkas & privasi**: sumber dan laporan error disimpan di disk privat `imports.disk` (default `local`) pada `imports/{token}/source.csv` dan `imports/{token}/errors.csv`; tidak ada URL publik. CSV error menetralkan formula (`= + - @`, tab, CR) dan memakai retensi manual 30 hari.
 - **Authority**: `students.import` ditambahkan oleh migration `2029_07_27_000002` hanya ke peran `admin-sistem` dan `operator-sekolah`; tidak mengubah kemampuan lain. Unduh template tidak memerlukan `students.import`.
 
-Frontend: `Student.vue` menampilkan tombol Import hanya bila `students.import`; dialog `StudentImportDialog.vue` menjalankan unggah → preview (siap/invalid) → commit, menampilkan `409` dari `data.data.errors`, dan memuat ulang daftar setelah sukses. Ekspor/impor pegawai, pilihan kolom ekspor, dan rekap sekolah berada di 05b/05c (belum diimplementasikan).
+Frontend: `Student.vue` menampilkan tombol Import hanya bila `students.import`; dialog `StudentImportDialog.vue` menjalankan unggah → preview (siap/invalid) → commit, menampilkan `409` dari `data.data.errors`, dan memuat ulang daftar setelah sukses.
+
+## Perubahan Subfase 05b (DEC-26) — impor pegawai dan pilihan kolom ekspor
+
+Mesin impor 05a diekstrak menjadi `App\Services\Imports\ImportService` (abstrak) + `StudentImportService`/`EmployeeImportService`; perilaku dan endpoint siswa tidak berubah. Batch tetap milik pembuat dan domainnya; pengguna berizin lain atau domain berbeda menerima **404**.
+
+### Impor pegawai
+
+| Method | Endpoint | Izin | Ringkas |
+|---|---|---|---|
+| GET | `/api/imports/employees/template` | `employees.view` | Unduh `employee-import-template.csv` (header saja), `text/csv; charset=UTF-8` |
+| POST | `/api/imports/employees` | `employees.import` | Multipart `file` + `mode` (`insert`/`update`) → `201` ringkasan batch + preview/error terbatas |
+| GET | `/api/imports/employees/{batch}` | `employees.import` | Ringkasan batch current user (`token` sebagai route key) |
+| POST | `/api/imports/employees/{batch}/commit` | `employees.import` | Commit batch `ready`; `200` ringkasan `committed` |
+| GET | `/api/imports/employees/{batch}/errors` | `employees.import` | Unduh CSV error privat; `404` bila batch tanpa laporan error |
+
+- **Kolom template v1 (22, English, urutan bebas)**: `Name`, `NIK`, `NUPTK`, `Employee Type`, `Employee Status`, `Employment`, `Subject`, `Gender`, `Religion`, `Marital Status`, `Regency`, `District`, `TMT`, `Exit Date`, `Place of Birth`, `Date of Birth`, `Address`, `RT`, `RW`, `Zip Code`, `Phone`, `Email`. Kolom akun tidak termasuk.
+- **Referensi**: Employee Type/Status, Employment, Gender, Religion, Marital Status dicocokkan berdasarkan nama English; nilai tak dikenal → error baris. `Subject` dicari pada mata pelajaran aktif; nama tidak ada/ambigu → error baris (bukan pilihan acak). `District` dicari di dalam `Regency` yang diberikan; pasangan tidak cocok/ambigu → error baris.
+- **Mode `insert`**: `NIK` opsional; bila diisi harus 16 digit string dan unik termasuk record arsip. **Mode `update`**: `NIK` wajib sebagai kunci pencocokan; baris tanpa match atau match record arsip → error baris; NIK tidak dapat diubah.
+- **Update parsial**: sel kosong berarti nilai tersimpan dipertahankan; validasi memakai gabungan nilai lama + sel terisi (aturan `App\Support\EmployeeRules`, sama dengan form). `Name` opsional saat update. Baris tanpa perubahan → error "No values to update on this row.". Jika `Employee Type` diisi `Tenaga Kependidikan`, `Subject` dikosongkan; `Pendidik` wajib Subject, non-teaching prohibited.
+- **Batas**: `mimes:csv,txt`, `imports.employees.max_size_kb` (5.120 KB) dan `max_rows` (2.000). Melebihi batas atau header tidak sesuai → `422`, bukan dipotong. `mode` selain `insert`/`update` → `422`.
+- **Commit**: batch `invalid`/kedaluwarsa (TTL `imports.employees.batch_ttl_minutes`, 120 menit)/hash berubah/validasi ulang gagal → `409` tanpa mutasi. Sukses menulis semua baris dalam satu transaksi + `lockForUpdate`, menaikkan `version`, dan mencatat audit domain.
+- **Preview**: `row`, `action` (`insert`/`update`), `name`, `nik`, `nuptk`, `employee_type`.
+- **Laporan error**: CSV privat `imports/{token}/errors.csv` dengan header `Row,Field,Message,NIK,NUPTK`; formula dinetralkan; retensi manual 30 hari.
+- **Authority**: `employees.import` ditambahkan migration `2029_07_28_000001` hanya ke `admin-sistem` dan `operator-sekolah`; template cukup `employees.view`.
+
+### Pilihan kolom ekspor pegawai
+
+- **`GET /api/employees/export/options`** (`employees.view` + `employees.export`): `data.default` berisi 10 key operasional; `data.columns` berisi `{key, header, sensitive}`; kolom sensitif hanya disertakan bila aktor memegang `employees.manage`; `data.sensitive_allowed` boolean.
+- **`GET /api/employees/export?columns=...`**: `columns` berupa daftar key dipisah koma (maks. 500 karakter). Tanpa `columns`/kosong → default 10 kolom. Urutan keluaran selalu urutan registry, bukan urutan permintaan. Key tak dikenal → `422`. Kolom sensitif tanpa `employees.manage` → `403` (tidak ada fallback diam-diam).
+- **Registry**: 10 key default (`name`, `employee_type`, `employee_status`, `employment`, `subject`, `nuptk`, `gender`, `tmt_employee`, `exit_date`, `archived_at`) + 15 key sensitif (`nik`, `npwp`, `no_kk`, `place_of_birth`, `date_of_birth`, `address`, `rt`, `rw`, `zip_code`, `wa_number`, `email`, `religion`, `regency`, `district`, `marital_status`). Nama file `employees_YYYYmmdd_His.csv`; BOM UTF-8, `nosniff`, netralisasi formula, batas 10.000 baris → `422`.
+
+Frontend: `EmployeeDirectory.vue` (dipakai Teachers dan Employees) menampilkan tombol Export CSV (dialog kolom) dan Import CSV hanya bila `employees.import` dan tidak dalam mode arsip; `EmployeeImportDialog.vue`, `EmployeeExportDialog.vue`, `employeeImportParams.mjs`, dan `buildEmployeeExportParams` mengirim filter + kolom terpilih. Rekap sekolah tetap 05c (DEC-12 PROPOSED).
 
 ## Aktual
 Resource di `/api`, dilindungi auth:sanctum: users, status-users, type-users, firstlogin; provinces/regencies/districts/villages; school-years/semesters/education-levels; genders/religions/blood-types/professions/family-status; education-schools/student-statuses/student-entries/student-majors/phase-statuses; students/school-levels/school-rombels/student-rombels; employees (alias deprecated: employee)/employee-statuses/employee-types/employments/marital-statuses; school-profile/subjects/activities.
