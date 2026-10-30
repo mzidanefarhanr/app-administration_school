@@ -1,6 +1,10 @@
 # Konteks proyek
 
-## Current addendum — 2026-10-31 (Subfase 05b — owner accepted)
+## Current addendum — 2026-10-31 (Rencana Subfase 05c)
+
+The detailed 05c plan (data completeness inspection for students and employees, missing/invalid/duplicate/blocked lists, operator review status) is available at `reports/feature-update/PHASE-05C-PLAN.md`, prepared above baseline `8b091cf`. Status is **PLAN PREPARED**; proposed decisions D1–D7 await the owner's answers and are recorded as **DEC-28 PROPOSED** in `docs/DECISIONS.md`. **No code, migration, route, UI, ability, or data has been changed.** Proposed scope: explicit denominators (placed students / active employees), student unplaced NIK as `blocked` outside the percentage, duplicate candidates without auto-merge, versioned review table scoped by school year, corrections through existing audited forms, and 120 synthetic `UAT-DQ` fixtures in `.uat-phase05`. School recap remains out of scope and deferred (DEC-12 PROPOSED).
+
+## Previous addendum — 2026-10-31 (Subfase 05b — owner accepted)
 
 Employee CSV import and employee export column options are **implemented, agent-verified, and owner APPROVED 2026-10-31 WIB (#1–#14)** on `main` above `4f1fec0`; implementation commit `ad74309`, documentation `c5afdc4`, acceptance documentation `c19c7f0`. Owner authorization is DEC-26 ("Saya setuju D1-D7", APPROVED 2026-10-30 WIB). Acceptance is based solely on the owner's statement **"Pengujian nomor 1-14 sudah berhasil dan saya approved."**; the agent did not rerun the scenarios. It does not authorize merge/deployment, operational DB migration, dependency/service changes, or 05c.
 

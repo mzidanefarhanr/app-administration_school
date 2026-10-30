@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-31] Subfase 05c — Rencana pemeriksaan kelengkapan (PLAN PREPARED, DEC-28 PROPOSED)
+- Type: Docs
+- Scope / fase: Rencana Subfase 05c di atas `main` @ `8b091cf`; tidak ada perubahan kode, migration, route, UI, ability, dependency, atau data.
+- Files touched: `reports/feature-update/PHASE-05C-PLAN.md` (baru), `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-05-IMPORT-EXPORT.md`, `docs/DECISIONS.md` (DEC-28 PROPOSED), `docs/REQUIREMENTS.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: menambahkan rencana rinci 05c — definisi populasi/denominator siswa (placed) dan pegawai (active), incomplete vs blocked untuk NIK siswa unplaced, profil field wajib, deteksi kandidat duplikat tanpa auto-merge, tabel review berversi per tahun ajaran, enam endpoint `data-quality` tanpa ability baru, UI Data Quality + deep link ke form lama, fixture 120 record `UAT-DQ` pada `.uat-phase05`, matriks tes, risiko, dan batas scope. Mencatat tujuh keputusan D1–D7 sebagai **DEC-28 PROPOSED**.
+- Why: melanjutkan Fase 05 ke subfase 05c; keputusan bisnis (profil, duplikat, review, UAT) memerlukan jawaban pemilik sebelum implementasi.
+- Validation: pemeriksaan dokumen/tautan dan konsistensi status saja. **NOT RUN**: tidak ada tes backend/frontend, build, browser, atau migrasi karena paket ini hanya dokumentasi rencana.
+- Notes / risks: rekap sekolah tetap di luar scope dan menunggu contoh format (DEC-12 PROPOSED); tidak ada merge/deploy/force-push, perubahan dependency/service/`.env`, atau akses DB terlarang. Implementasi belum dimulai sampai D1–D7 dijawab.
+- Evidence: `reports/feature-update/PHASE-05C-PLAN.md`; baseline `8b091cf`; status rencana dan usulan DEC-28 tercatat di dokumen terkait.
+
 ## [2026-10-31] Subfase 05b — Penerimaan manual pemilik (#1–#14) dan kebijakan siklus UAT per fase
 - Type: Docs
 - Scope / fase: Subfase 05b di atas `main` @ `5633726`; dokumentasi penerimaan dan operasional; tidak ada perubahan kode aplikasi.

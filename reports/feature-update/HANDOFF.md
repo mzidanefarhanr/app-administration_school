@@ -1,6 +1,16 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-10-31 (Subfase 05b impor pegawai & pilihan kolom ekspor — OWNER APPROVED; server UAT fase lulus dihentikan)
+## Current checkpoint — 2026-10-31 (Rencana Subfase 05c disiapkan; menunggu D1–D7)
+
+- **Status:** `reports/feature-update/PHASE-05C-PLAN.md` is **PLAN PREPARED**, based on `main` @ `8b091cf` (05b acceptance documentation; `main...origin/main` synced before this package). Proposed decisions D1–D7 are recorded as **DEC-28 PROPOSED** in `docs/DECISIONS.md`; the owner has not answered them. **No code, migration, route, UI, ability, dependency, or data was changed.**
+- **Plan content:** student and employee completeness with explicit denominators (placed students / active employees); student unplaced NIK as `blocked` outside the percentage; required-field profiles; duplicate candidates (never name-only, no auto-merge); persisted versioned review table scoped by school year, writes gated by `students.manage`/`employees.manage`; six `data-quality` endpoints without new abilities; Data Quality page with deep links to existing audited forms; 120 synthetic `UAT-DQ` fixtures in `.uat-phase05`; full backend/frontend/UAT test plan.
+- **Boundaries preserved:** no school recap (DEC-12 PROPOSED), no auto-merge/bulk correction/inline edit, no new ability, no operational/MariaDB/04b DB access, no `.env`/service/dependency changes. UAT servers remain stopped per DEC-27; `.uat-*` data preserved.
+- **Git verification:** package is committed and pushed after documentation checks; actual SHA is reported in the closing message and recorded at the next checkpoint. No `.github/workflows`, so push triggers no deployment. Selective staging excludes `.uat-phase05/`, `.uat-phase04b/`, sample CSVs, runtime DB/logs/credentials, `console.txt`, and `vue-app/test-results/`; `git diff --cached --check` is run before commit.
+- **Next:** owner answers D1–D7; if approved, record DEC-28 as APPROVED in a separate commit and implement 05c only after explicit instruction. Do not start 05c implementation or Phase 06 in this package.
+
+---
+
+## Previous checkpoint — 2026-10-31 (Subfase 05b impor pegawai & pilihan kolom ekspor — OWNER APPROVED; server UAT fase lulus dihentikan)
 
 - **Acceptance:** the owner stated on 2026-10-31 WIB, "Pengujian nomor 1-14 sudah berhasil dan saya approved." Checklist #1–#14 in `PHASE-05B-MANUAL-REVIEW.md` are **APPROVED**. That statement is the sole acceptance evidence; the agent did not rerun the scenarios. Acceptance covers 05b on the isolated `.uat-phase05` SQLite UAT only; it does not authorize merge, deployment, legacy/MariaDB/production migration, dependency/service changes, or 05c. Agent NOT RUN items (browser/visual UAT, MariaDB/InnoDB, two-tab, automatic retention, XLSX) remain NOT RUN.
 - **Documentation package:** this acceptance/policy documentation is committed and pushed separately as **`c19c7f0`** (above implementation `ad74309` and implementation documentation `c5afdc4`); `main...origin/main` synced after `git push`. This checkpoint update follows in a separate commit and records that SHA; no future SHA is claimed.

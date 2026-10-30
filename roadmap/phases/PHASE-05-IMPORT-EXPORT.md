@@ -1,8 +1,8 @@
 # Fase 05 — Impor, ekspor dan kualitas data
 
-Status teknis: **05a IMPLEMENTED (agent-verified 2026-10-30)**; **05b IMPLEMENTED (`ad74309`, agent-verified 2026-10-31)**; 05c NOT STARTED. Status review: **05a APPROVED 2026-10-30 WIB (#1–#12)**; **05b APPROVED 2026-10-31 WIB (#1–#14)**; 05c PENDING. Server UAT 04b/05 dihentikan setelah penerimaan sesuai DEC-27; data `.uat-*` dipertahankan.
-Dependensi: 03,04; DEC-08, DEC-25, DEC-26, DEC-27. Baseline rencana: b02a87f; baseline paket 05a: HEAD `b093db7` sebelum commit; implementasi 05a `58828a6`; baseline rencana 05b `4f1fec0`; implementasi 05b `ad74309`.
-Rencana rinci: `reports/feature-update/PHASE-05-PLAN.md` dan `reports/feature-update/PHASE-05B-PLAN.md`. Keputusan D1–D8 **APPROVED 2026-10-30 WIB sebagai DEC-25**; keputusan 05b D1–D7 **APPROVED 2026-10-30 WIB sebagai DEC-26**; DEC-12 (format rekap sekolah) masih PROPOSED. Laporan: `reports/feature-update/PHASE-05A-REPORT.md`, `reports/feature-update/PHASE-05B-REPORT.md`; checklist manual: `reports/feature-update/PHASE-05A-MANUAL-REVIEW.md`, `reports/feature-update/PHASE-05B-MANUAL-REVIEW.md`.
+Status teknis: **05a IMPLEMENTED (agent-verified 2026-10-30)**; **05b IMPLEMENTED (`ad74309`, agent-verified 2026-10-31)**; **05c PLAN PREPARED (2026-10-31, belum ada implementasi)**. Status review: **05a APPROVED 2026-10-30 WIB (#1–#12)**; **05b APPROVED 2026-10-31 WIB (#1–#14)**; 05c PENDING (D1–D7, DEC-28 PROPOSED). Server UAT 04b/05 dihentikan setelah penerimaan sesuai DEC-27; data `.uat-*` dipertahankan.
+Dependensi: 03,04; DEC-08, DEC-25, DEC-26, DEC-27; DEC-28 (PROPOSED untuk 05c). Baseline rencana: b02a87f; baseline paket 05a: HEAD `b093db7` sebelum commit; implementasi 05a `58828a6`; baseline rencana 05b `4f1fec0`; implementasi 05b `ad74309`; baseline rencana 05c `8b091cf`.
+Rencana rinci: `reports/feature-update/PHASE-05-PLAN.md`, `PHASE-05B-PLAN.md`, dan `PHASE-05C-PLAN.md`. Keputusan D1–D8 **APPROVED 2026-10-30 WIB sebagai DEC-25**; keputusan 05b D1–D7 **APPROVED 2026-10-30 WIB sebagai DEC-26**; usulan 05c D1–D7 **PROPOSED sebagai DEC-28**; DEC-12 (format rekap sekolah) masih PROPOSED. Laporan: `reports/feature-update/PHASE-05A-REPORT.md`, `reports/feature-update/PHASE-05B-REPORT.md`; checklist manual: `reports/feature-update/PHASE-05A-MANUAL-REVIEW.md`, `reports/feature-update/PHASE-05B-MANUAL-REVIEW.md`.
 
 ## Status implementasi 05a (2026-10-30)
 
@@ -11,7 +11,7 @@ Rencana rinci: `reports/feature-update/PHASE-05-PLAN.md` dan `reports/feature-up
 - Endpoint: template (`students.view`), upload/show/commit/errors (`students.import`, hanya pembuat batch; 404 untuk pengguna berizin lain). Ability `students.import` untuk `admin-sistem`/`operator-sekolah`.
 - Migration additive `2029_07_27_000001` (`import_batches`) dan `2029_07_27_000002` (ability); `App\Support\StudentRules` menyatukan aturan form + impor.
 - UAT terisolasi `.uat-phase05` (SQLite; launcher `scripts/phase05-uat.php`). Bukti: 18 tes impor/97 assertion; regresi 170/1097 (13 skipped); Pint 16 file; 3 unit test Node; build 26,02 s; browser DOM valid/campuran/update/template, 0 console error.
-- **Saat 05a selesai, belum dikerjakan**: impor pegawai, pilihan kolom ekspor, rekap sekolah (dikerjakan pada 05b/05c), XLSX, job antrean, scheduler retensi. MariaDB/concurrency/two-tab/screenshot NOT RUN.
+- **Saat 05a selesai, belum dikerjakan**: impor pegawai, pilihan kolom ekspor, XLSX, job antrean, scheduler retensi. Rekap sekolah tetap menunggu DEC-12 (bukan bagian 05a–05c). MariaDB/concurrency/two-tab/screenshot NOT RUN.
 
 ## Status implementasi 05b (2026-10-31)
 
@@ -20,7 +20,7 @@ Rencana rinci: `reports/feature-update/PHASE-05-PLAN.md` dan `reports/feature-up
 - Ekspor pegawai: registry 10 kolom operasional default + 15 kolom PII; PII hanya `employees.manage` (tanpa izin `403`); `GET /api/employees/export/options`; kolom tak dikenal `422`; urutan registry; batas 10.000 baris.
 - UI: `EmployeeImportDialog.vue` + `EmployeeExportDialog.vue` pada Teachers/Employees; Import hanya untuk `employees.import` dan bukan mode arsip.
 - Bukti: 28/189 + 15/60 tes (**43/249**); suite **402 passed / 13 skipped / 3.587 assertions**; Pint 15 file; 15 unit Node; ESLint file baru 0 error; build 28,46 s; migration diterapkan ke `.uat-phase05` dengan data tetap 409 siswa/200 pegawai.
-- **Belum/NOT RUN**: browser/visual UAT 05b (otomasi browser diblokir kebijakan sesi), MariaDB/InnoDB, two-tab concurrency, retensi otomatis, rekap sekolah (05c), XLSX. Review pemilik **APPROVED 2026-10-31 WIB (#1–#14)** berdasarkan pernyataan pemilik, bukan pengujian ulang agen; item NOT RUN tetap NOT RUN. Server UAT 04b/05 dihentikan 2026-10-31 (DEC-27); perintah restart ada di `PHASE-05B-MANUAL-REVIEW.md`/HANDOFF.
+- **Belum/NOT RUN**: browser/visual UAT 05b (otomasi browser diblokir kebijakan sesi), MariaDB/InnoDB, two-tab concurrency, retensi otomatis, rekap sekolah (menunggu DEC-12), XLSX. Review pemilik **APPROVED 2026-10-31 WIB (#1–#14)** berdasarkan pernyataan pemilik, bukan pengujian ulang agen; item NOT RUN tetap NOT RUN. Server UAT 04b/05 dihentikan 2026-10-31 (DEC-27); perintah restart ada di `PHASE-05B-MANUAL-REVIEW.md`/HANDOFF.
 
 ## Tujuan dan scope
 Impor, ekspor dan kualitas data. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis.
@@ -66,6 +66,9 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 ```
 
 ### 05c — Pemeriksaan kelengkapan
+
+Rencana rinci: `reports/feature-update/PHASE-05C-PLAN.md` (baseline `8b091cf`, status **PLAN PREPARED**). Tujuh keputusan pemilik D1–D7 dicatat sebagai **DEC-28 PROPOSED**; implementasi belum dimulai dan tidak boleh menebak jawaban. Usulan scope: kelengkapan siswa (denominator placed, unplaced NIK = blocked di luar persentase) dan pegawai (denominator active, aturan Pendidik/Tenaga Kependidikan), kandidat duplikat tanpa auto-merge, tabel review berversi per tahun ajaran, koreksi lewat form lama, dan 120 fixture sintetis `UAT-DQ` pada `.uat-phase05`. Rekap sekolah tetap menunggu DEC-12 dan bukan bagian 05c.
+
 Scope: Aturan kelengkapan kontekstual, daftar duplikat/invalid/missing, link ke record berizin, status review operator; jangan auto-merge orang berdasar nama.
 
 Kriteria penerimaan: Angka kelengkapan dengan denominator jelas; siswa NIK belum tersedia dibedakan incomplete vs blocked sesuai aturan; correction ter-audit.
