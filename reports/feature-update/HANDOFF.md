@@ -13,7 +13,7 @@
 - **NOT RUN:** 05a MariaDB integration/concurrency, two-tab scenarios, screenshot/visual checks, automatic 30-day cleanup (manual by D6), XLSX, employee import, column options, school recap. These remain NOT RUN after owner acceptance and are not converted to PASS.
 - **Git verification:** implementation `58828a6`, documentation `a3e19d4`, checkpoint `ad7bb9c` pushed to `origin/main`; `main...origin/main` synced after `git fetch`. Acceptance is recorded in a separate documentation commit after this checkpoint. No `.github/workflows`, so pushes trigger no deployment. `git diff --cached --check` passed before each commit; remaining untracked items are only owner artefacts `console.txt` and `vue-app/test-results/`, plus ignored runtime/credentials (`.uat-phase05/`).
 - **Working tree warning:** do not commit `.uat-phase05/`, sample CSVs, runtime databases/logs, credentials, `console.txt`, or `vue-app/test-results/`. Per owner instruction, review packages are pushed before manual checks with selective staging; push is not approval.
-- **Next:** 05b (employee import + export column options) awaits explicit owner instruction; school recap awaits a format sample (DEC-12 PROPOSED). Merge/deployment remain unauthorized.
+- **Next:** 05b plan is prepared in `PHASE-05B-PLAN.md` (2026-10-30, baseline `4e95706`) and awaits owner answers to D1–D7 (proposed DEC-26) plus explicit implementation instruction. Do not start 05b code before those decisions. School recap awaits a format sample (DEC-12 PROPOSED). Merge/deployment remain unauthorized.
 
 ---
 

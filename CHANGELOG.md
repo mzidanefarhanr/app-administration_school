@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-30] Subfase 05b — Rencana impor pegawai dan pilihan kolom ekspor
+- Type: Docs
+- Scope / fase: Perencanaan Subfase 05b (Fase 05) di atas `main` @ `4e95706`; tidak ada implementasi, migration, route, UI, dependency, atau perubahan data.
+- Files touched: `reports/feature-update/PHASE-05B-PLAN.md` (baru), `reports/feature-update/PHASE-05-PLAN.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-05-IMPORT-EXPORT.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: rencana rinci 05b berisi audit mesin impor 05a/ekspor 04b, desain impor pegawai (template 22 kolom English, match NIK, aturan Subject Teacher/Non-teaching, Regency+District, laporan error privat `Row,Field,Message,NIK,NUPTK`), registry 10 kolom operasional + 15 kolom sensitif khusus `employees.manage`, endpoint `/api/employees/export/options`, rencana UI, matriks tes/UAT, risiko, dan **7 keputusan pemilik D1–D7 (usulan DEC-26)**.
+- Why: melanjutkan Fase 05 sesuai DEC-25 D8 (impor pegawai + pilihan kolom ekspor) dengan audit source aktual; keputusan bisnis tidak boleh ditebak.
+- Validation: **NOT RUN** — entri dokumentasi; tidak ada tes, build, migration, atau koneksi DB yang dijalankan. Rencana belum diimplementasikan.
+- Notes / risks: status **RENCANA — MENUNGGU D1–D7 (usulan DEC-26)**. Rekap sekolah (DEC-12), Dapodik, XLSX, akun pegawai, dan 05c di luar scope. Default ekspor 10 kolom dan perilaku 05a direncanakan tidak berubah; PII ekspor hanya untuk `employees.manage`. Tidak ada merge/deploy/force-push atau perubahan dependency/service.
+- Evidence: `reports/feature-update/PHASE-05B-PLAN.md`; baseline `4e95706`; `main...origin/main` sinkron sebelum penyusunan.
+
 ## [2026-10-30] Subfase 05a — Penerimaan manual pemilik (checklist #1–#12 APPROVED)
 - Type: Docs
 - Scope / fase: Penerimaan Subfase 05a oleh pemilik pada UAT SQLite terisolasi `.uat-phase05`; tidak mengubah kode, schema, UI, konfigurasi, atau lingkungan.

@@ -1,8 +1,8 @@
 # Fase 05 — Impor, ekspor dan kualitas data
 
-Status teknis: **05a IMPLEMENTED (agent-verified 2026-10-30)**; 05b/05c NOT STARTED. Status review: **05a APPROVED 2026-10-30 WIB (#1–#12)**; 05b/05c PENDING.
-Dependensi: 03,04; DEC-08, DEC-25. Baseline rencana: b02a87f; baseline paket 05a: HEAD `b093db7` sebelum commit; implementasi 05a `58828a6`.
-Rencana rinci: `reports/feature-update/PHASE-05-PLAN.md`. Keputusan D1–D8 **APPROVED 2026-10-30 WIB sebagai DEC-25**; DEC-12 (format rekap sekolah) masih PROPOSED. Laporan: `reports/feature-update/PHASE-05A-REPORT.md`; checklist manual: `reports/feature-update/PHASE-05A-MANUAL-REVIEW.md`.
+Status teknis: **05a IMPLEMENTED (agent-verified 2026-10-30)**; **05b PLAN PREPARED 2026-10-30 (awaiting DEC-26)**; 05c NOT STARTED. Status review: **05a APPROVED 2026-10-30 WIB (#1–#12)**; 05b/05c PENDING.
+Dependensi: 03,04; DEC-08, DEC-25. Baseline rencana: b02a87f; baseline paket 05a: HEAD `b093db7` sebelum commit; implementasi 05a `58828a6`; baseline rencana 05b `4e95706`.
+Rencana rinci: `reports/feature-update/PHASE-05-PLAN.md` dan `reports/feature-update/PHASE-05B-PLAN.md`. Keputusan D1–D8 **APPROVED 2026-10-30 WIB sebagai DEC-25**; keputusan 05b D1–D7 **MENUNGGU (usulan DEC-26)**; DEC-12 (format rekap sekolah) masih PROPOSED. Laporan: `reports/feature-update/PHASE-05A-REPORT.md`; checklist manual: `reports/feature-update/PHASE-05A-MANUAL-REVIEW.md`.
 
 ## Status implementasi 05a (2026-10-30)
 
@@ -38,6 +38,8 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 
 ### 05b — Impor pegawai dan pilihan kolom ekspor
 Scope (DEC-25): Impor pegawai memakai mesin dan rule domain sendiri (match **NIK**); pilihan kolom ekspor dengan batas kolom sensitif/izin; escape formula CSV berbahaya; error dilaporkan per baris. **Rekap sekolah ditunda** menunggu contoh format (DEC-12 PROPOSED), bukan bagian 05b sampai format disepakati. Dapodik hanya pencocokan file bila dipilih.
+
+**Rencana rinci:** `reports/feature-update/PHASE-05B-PLAN.md` (2026-10-30, baseline `4e95706`). Status **RENCANA — MENUNGGU D1–D7 (usulan DEC-26)**; belum ada implementasi. Rencana mencakup: ekstraksi mesin impor 05a yang menjaga perilaku siswa, ability `employees.import`, template 22 kolom English, match update via NIK, aturan Subject Teacher/Non-teaching, identifikasi Regency+District, laporan error `Row,Field,Message,NIK,NUPTK`, registry 10 kolom operasional + 15 kolom sensitif (khusus `employees.manage`), endpoint `/api/employees/export/options`, UI impor/kolom ekspor, dan UAT pada `.uat-phase05`.
 
 Kriteria penerimaan: Filter list/export konsisten, sensitive columns dibatasi, spreadsheet formula tidak aktif dari input tak tepercaya, error dilaporkan per baris.
 

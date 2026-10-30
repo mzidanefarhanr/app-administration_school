@@ -6,6 +6,8 @@ Student CSV import is **implemented and agent-verified; owner APPROVED 2026-10-3
 
 Contract: `GET /api/imports/students/template` (`students.view`); `POST /api/imports/students`, batch show/commit/errors (`students.import`, creator-only, other authorized users 404). Batches live in `import_batches`; source/error CSV stay in private `imports/{token}` storage. Header is strict English 17 columns; `App\Support\StudentRules` is shared with the student form. Migrations `2029_07_27_000001`/`000002` are additive.
 
+Next subphase: `reports/feature-update/PHASE-05B-PLAN.md` (2026-10-30, baseline `4e95706`) covers employee CSV import + employee export column options. Status **PLAN PREPARED — awaiting owner decisions D1–D7 (proposed DEC-26)**; no 05b code, routes, migration or UI exist. The plan preserves the 05a contract and the default 10-column employee export; sensitive export columns are limited to `employees.manage`. School recap remains deferred (DEC-12 PROPOSED).
+
 Isolated UAT `.uat-phase05` (SQLite; SPA `127.0.0.1:14023`, API `127.0.0.1:18023`, cookie `school_phase05_session`; launcher `scripts/phase05-uat.php`) holds 300 synthetic students + 200 employees (100/100). Agent evidence: import 18/97, regression 170/1097 (13 skipped), Pint 16, 3 Node tests, build 26.02 s, browser DOM flows with 0 console errors. MariaDB/concurrency/two-tab/screenshot and automatic retention are NOT RUN. Owner checklist 05a is APPROVED (#1–#12); acceptance is the owner's statement, not a rerun.
 
 ## Current correction addendum — 2026-10-29

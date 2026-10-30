@@ -4,6 +4,10 @@ Versi dokumen: 1.0, 14 Oktober 2026 (WIB); audit HEAD 15 Oktober 2026.
 Baseline kode: `b02a87f0d57adffec297ed465a8afcd8e8d7ec59`; HEAD audit `b699feccd65357a10f7430c165400906e6394d49` (delta = paket docs saja, kode tidak berubah).
 Historical drafting status (2026-10-14/15): DRAFT; Fase 00 PARTIAL. The original “all other phases not started” statement is obsolete; current statuses are in the table and correction addendum below.
 
+## Addendum — 2026-10-30 (Rencana Subfase 05b)
+
+Rencana rinci 05b (impor pegawai CSV + pilihan kolom ekspor pegawai) tersedia di `reports/feature-update/PHASE-05B-PLAN.md`, disusun di atas `4e95706`. Status: **RENCANA — MENUNGGU D1–D7 (usulan DEC-26)**; belum ada implementasi, migration, route, UI, atau perubahan data. Rekap sekolah tetap ditunda (DEC-12 PROPOSED). Rencana mencakup ekstraksi mesin impor 05a yang kompatibel, ability `employees.import`, template 22 kolom, match NIK, registry kolom ekspor dengan PII hanya untuk `employees.manage`, serta rencana tes/UAT pada `.uat-phase05`.
+
 ## Correction addendum — 2026-10-30 (Subfase 05a)
 
 DEC-25 (APPROVED 2026-10-30 WIB) authorizes Phase 05 with: all-or-nothing commit; student match by NIS then NIK (employee by NIK in 05b); UTF-8 CSV, 5 MB / 2,000 rows; full English; `students.import` for Admin Sistem and Operator Sekolah only; private error reports with manual 30-day retention; separate `.uat-phase05`; 05b = employee import + export column options, school recap deferred pending a format sample (DEC-12 PROPOSED).
@@ -28,7 +32,7 @@ Fondasi keamanan + backup dahulu; penyelesaian pendataan; pengolahan massal dan 
 | 02 | [Audit terpercaya dan backup yang dapat dipulihkan](phases/PHASE-02-BACKUP-AUDIT.md) | 01; DEC-02 dan DEC-09 untuk backup | **IMPLEMENTED & VERIFIED** (02a, 02b, 02c selesai; 154 test backend PASS; round-trip MariaDB PASS) | **DITERIMA LENGKAP & DITUTUP** (02a APPROVED 2026-10-19; 02b APPROVED 2026-10-20; 02c APPROVED 2026-10-20 WIB) |
 | 03 | [Pendataan siswa lengkap dan aman](phases/PHASE-03-STUDENTS.md) | 01; 02 sebelum data operasional; DEC-05, DEC-20 | **IMPLEMENTED & VERIFIED** (03a, 03b, 03c selesai; 229 test backend PASS; 18 unit test frontend PASS; UAT browser & smoke PASS) | **DITERIMA LENGKAP & DITUTUP** (03a APPROVED 2026-10-21; 03b APPROVED 2026-10-21; 03c APPROVED 2026-10-26 WIB) |
 | 04 | [Guru dan pegawai](phases/PHASE-04-EMPLOYEES.md) | 01; 02; DEC-04; DEC-24 | **04a and 04b IMPLEMENTED and owner-accepted** (latest SQLite 96/1738, frontend 42/build PASS; scoped operator browser + three-role HTTP; agent-side other-role browser UI, two-tab/print/screenshot and 04b MariaDB NOT RUN) | **04a APPROVED 2026-10-29; 04b #1–#18 APPROVED 2026-10-30 WIB per owner statement** |
-| 05 | [Impor, ekspor dan kualitas data](phases/PHASE-05-IMPORT-EXPORT.md) | 03,04; DEC-08, DEC-25 | **IN PROGRESS — 05a IMPLEMENTED (agent-verified 2026-10-30)**; 05b (impor pegawai + pilihan kolom ekspor) dan 05c NOT STARTED | **05a APPROVED 2026-10-30 WIB (#1–#12)**; 05b/05c PENDING |
+| 05 | [Impor, ekspor dan kualitas data](phases/PHASE-05-IMPORT-EXPORT.md) | 03,04; DEC-08, DEC-25 | **IN PROGRESS — 05a IMPLEMENTED (agent-verified 2026-10-30); 05b PLAN PREPARED (awaiting DEC-26)**; 05c NOT STARTED | **05a APPROVED 2026-10-30 WIB (#1–#12)**; 05b/05c PENDING |
 | 06 | [Siklus tahun ajaran dan rombel](phases/PHASE-06-ACADEMIC-YEAR.md) | 03,04; DEC-05 | NOT STARTED | PENDING |
 | 07 | [Persuratan dan generator dokumen](phases/PHASE-07-LETTERS.md) | 01,02; siswa/guru siap untuk auto-fill; DEC-06,11 | NOT STARTED | PENDING |
 | 08 | [Perizinan siswa dan guru](phases/PHASE-08-LEAVES.md) | 01,03,04; file privat Fase07a atau service ekuivalen; DEC-07 | NOT STARTED | PENDING |
