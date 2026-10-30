@@ -214,11 +214,11 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 
 ### Keputusan yang masih OPEN (belum diputuskan)
 
-## Usulan keputusan (belum disetujui)
+## Keputusan lanjutan (disetujui 2026-10-31)
 
-### DEC-28 — Rencana Subfase 05c: pemeriksaan kelengkapan siswa dan pegawai (PROPOSED, 2026-10-31 WIB)
-- Konteks: rencana `reports/feature-update/PHASE-05C-PLAN.md` disusun di atas baseline `8b091cf`. Pemilik **belum** menjawab D1–D7; belum ada kode, migration, route, UI, ability, atau data yang diubah. Rekap sekolah tetap menunggu DEC-12 (PROPOSED).
-- Usulan yang menunggu keputusan pemilik:
+### DEC-28 — Rencana Subfase 05c: pemeriksaan kelengkapan siswa dan pegawai (APPROVED, 2026-10-31 WIB)
+- Konteks: pemilik meninjau `reports/feature-update/PHASE-05C-PLAN.md` (baseline `8b091cf`) dan menyatakan **"Saya setuju D1-D7."** pada 2026-10-31 WIB. Persetujuan ini menutup gate rencana 05c dan mengotorisasi implementasi 05c; bukan otorisasi merge/deploy, migration data operasional, penambahan dependency, atau Fase 06. Rekap sekolah tetap menunggu DEC-12 (PROPOSED).
+- Pilihan pemilik (D1–D7, sesuai rekomendasi rencana):
   1. **D1 — Cakupan**: kelengkapan siswa + pegawai; daftar missing/invalid/duplikat/blocked; review operator. Tanpa rekap sekolah, auto-merge, atau koreksi massal.
   2. **D2 — Profil/denominator siswa**: denominator = siswa placed non-archived; wajib NIK, NIS, NISN, Gender, Birthplace, Birthdate, Religion; siswa unplaced dengan NIK missing/invalid = `blocked` (di luar persentase); field kontak/keluarga advisory.
   3. **D3 — Profil/denominator pegawai**: denominator = pegawai active non-archived (`exit_date` null atau belum lewat); wajib NIK + type/status/employment/gender/religion/marital/district/TMT; `Pendidik` wajib NUPTK + Subject; `Tenaga Kependidikan` dengan Subject = invalid; separated/archived excluded.
@@ -226,8 +226,8 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
   5. **D5 — Review**: tabel persisten `data_quality_reviews`; status open/acknowledged/ignored; alasan terbatas; tulis = `students.manage`/`employees.manage`, baca = view; versi + `409`; persentase tetap dari data mentah; review siswa terikat `school_year_id`.
   6. **D6 — Koreksi**: tautan ke halaman/form yang ada (`?openStudent=`/`?openEmployee=`); koreksi lewat endpoint teraudit yang sudah ada; tanpa edit inline/merge API.
   7. **D7 — UAT**: reuse `.uat-phase05` (14023/18023) + 120 record sintetis `UAT-DQ` guarded/idempotent; data lama tidak di-reset; server dihentikan setelah penerimaan (DEC-27).
-- Dampak bila disetujui: enam endpoint `/api/data-quality/*`, service `App\Services\DataQuality\*`, migration additive `data_quality_reviews`, halaman Data Quality, dukungan OR pada guard/menu; tanpa ability baru dan tanpa perubahan tabel domain 05a/05b.
-- Status: **PROPOSED — menunggu jawaban D1–D7; implementasi belum dimulai.** Fase affected: 05c.
+- Dampak: enam endpoint `/api/data-quality/*`, service `App\Services\DataQuality\*`, migration additive `data_quality_reviews`, halaman Data Quality, dukungan OR pada guard/menu; tanpa ability baru dan tanpa perubahan tabel domain 05a/05b.
+- Status: **APPROVED — implementasi 05c diotorisasi; merge/deploy tidak.** Fase affected: 05c.
 
 ## Register
 
@@ -243,7 +243,7 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 | DEC-25 | Impor siswa/pegawai, template English, izin impor, laporan error, UAT 05 | All-or-nothing per batch; update siswa via NIS (NIK alternatif), pegawai via NIK; CSV UTF-8 ≤5 MB/2.000 baris; template full English; `students.import`/`employees.import` untuk admin-sistem + operator-sekolah; laporan error privat 30 hari; UAT `.uat-phase05` 14023/18023; rekap 05b menunggu contoh format | APPROVED (2026-10-30 WIB) | 05a |
 | DEC-26 | Rencana 05b: impor pegawai dan pilihan kolom ekspor | Ekspor kolom hanya pegawai; 10 kolom default + 15 PII khusus `employees.manage`; NIK wajib update/opsional insert; update parsial via NIK; Regency+District berpasangan; template 22 kolom; UAT `.uat-phase05` | APPROVED (2026-10-30 WIB) | 05b |
 | DEC-27 | Siklus hidup lingkungan UAT per fase | Hentikan server UAT fase setelah checklist lulus/APPROVED; verifikasi PID/command line; pertahankan data `.uat-*`, catat perintah restart; jangan sentuh Apache/MariaDB/service/dependency | APPROVED (2026-10-31 WIB) | 04b/05+ |
-| DEC-28 | Rencana 05c: pemeriksaan kelengkapan siswa/pegawai + review operator | Denominator placed/active eksplisit; siswa unplaced NIK = blocked; profil field wajib; kandidat duplikat tanpa auto-merge; tabel review berversi per tahun ajaran; koreksi lewat form lama; UAT `.uat-phase05` + 120 fixture | **PROPOSED (menunggu D1–D7)** | 05c |
+| DEC-28 | Rencana 05c: pemeriksaan kelengkapan siswa/pegawai + review operator | Denominator placed/active eksplisit; siswa unplaced NIK = blocked; profil field wajib; kandidat duplikat tanpa auto-merge; tabel review berversi per tahun ajaran; koreksi lewat form lama; UAT `.uat-phase05` + 120 fixture | APPROVED (2026-10-31 WIB) | 05c |
 | DEC-08 | Impor data campuran | Preview wajib; default usulan validasi semua sebelum commit per batch kecil; update hanya eksplisit | APPROVED (2026-10-30, disahkan DEC-25) | 05a |
 | DEC-09 | Backup dan retensi | Lokasi, jadwal, RPO/RTO, enkripsi, lama simpan | APPROVED (2026-10-17) | 02b |
 | DEC-10 | Jadwal dan jurnal | Jam/sesi, exception libur/cancel/reschedule, batas waktu pengisian | OPEN | 10a |

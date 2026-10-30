@@ -1,6 +1,6 @@
 # Fase 05 — Impor, ekspor dan kualitas data
 
-Status teknis: **05a IMPLEMENTED (agent-verified 2026-10-30)**; **05b IMPLEMENTED (`ad74309`, agent-verified 2026-10-31)**; **05c PLAN PREPARED (2026-10-31, belum ada implementasi)**. Status review: **05a APPROVED 2026-10-30 WIB (#1–#12)**; **05b APPROVED 2026-10-31 WIB (#1–#14)**; 05c PENDING (D1–D7, DEC-28 PROPOSED). Server UAT 04b/05 dihentikan setelah penerimaan sesuai DEC-27; data `.uat-*` dipertahankan.
+Status teknis: **05a IMPLEMENTED (agent-verified 2026-10-30)**; **05b IMPLEMENTED (`ad74309`, agent-verified 2026-10-31)**; **05c IN PROGRESS (rencana disetujui sebagai DEC-28, 2026-10-31)**. Status review: **05a APPROVED 2026-10-30 WIB (#1–#12)**; **05b APPROVED 2026-10-31 WIB (#1–#14)**; 05c PENDING. Server UAT 04b/05 dihentikan setelah penerimaan sesuai DEC-27; data `.uat-*` dipertahankan.
 Dependensi: 03,04; DEC-08, DEC-25, DEC-26, DEC-27; DEC-28 (PROPOSED untuk 05c). Baseline rencana: b02a87f; baseline paket 05a: HEAD `b093db7` sebelum commit; implementasi 05a `58828a6`; baseline rencana 05b `4f1fec0`; implementasi 05b `ad74309`; baseline rencana 05c `8b091cf`.
 Rencana rinci: `reports/feature-update/PHASE-05-PLAN.md`, `PHASE-05B-PLAN.md`, dan `PHASE-05C-PLAN.md`. Keputusan D1–D8 **APPROVED 2026-10-30 WIB sebagai DEC-25**; keputusan 05b D1–D7 **APPROVED 2026-10-30 WIB sebagai DEC-26**; usulan 05c D1–D7 **PROPOSED sebagai DEC-28**; DEC-12 (format rekap sekolah) masih PROPOSED. Laporan: `reports/feature-update/PHASE-05A-REPORT.md`, `reports/feature-update/PHASE-05B-REPORT.md`; checklist manual: `reports/feature-update/PHASE-05A-MANUAL-REVIEW.md`, `reports/feature-update/PHASE-05B-MANUAL-REVIEW.md`.
 
@@ -67,7 +67,7 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 
 ### 05c — Pemeriksaan kelengkapan
 
-Rencana rinci: `reports/feature-update/PHASE-05C-PLAN.md` (baseline `8b091cf`, status **PLAN PREPARED**). Tujuh keputusan pemilik D1–D7 dicatat sebagai **DEC-28 PROPOSED**; implementasi belum dimulai dan tidak boleh menebak jawaban. Usulan scope: kelengkapan siswa (denominator placed, unplaced NIK = blocked di luar persentase) dan pegawai (denominator active, aturan Pendidik/Tenaga Kependidikan), kandidat duplikat tanpa auto-merge, tabel review berversi per tahun ajaran, koreksi lewat form lama, dan 120 fixture sintetis `UAT-DQ` pada `.uat-phase05`. Rekap sekolah tetap menunggu DEC-12 dan bukan bagian 05c.
+Rencana rinci: `reports/feature-update/PHASE-05C-PLAN.md` (baseline `8b091cf`). Tujuh keputusan pemilik D1–D7 **APPROVED 2026-10-31 WIB sebagai DEC-28** ("Saya setuju D1-D7"); implementasi 05c diotorisasi dan sedang berjalan. Usulan scope: kelengkapan siswa (denominator placed, unplaced NIK = blocked di luar persentase) dan pegawai (denominator active, aturan Pendidik/Tenaga Kependidikan), kandidat duplikat tanpa auto-merge, tabel review berversi per tahun ajaran, koreksi lewat form lama, dan 120 fixture sintetis `UAT-DQ` pada `.uat-phase05`. Rekap sekolah tetap menunggu DEC-12 dan bukan bagian 05c.
 
 Scope: Aturan kelengkapan kontekstual, daftar duplikat/invalid/missing, link ke record berizin, status review operator; jangan auto-merge orang berdasar nama.
 

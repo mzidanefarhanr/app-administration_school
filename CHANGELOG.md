@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-31] Subfase 05c — Pemilik menyetujui D1–D7 (DEC-28 APPROVED)
+- Type: Docs
+- Scope / fase: Rencana Subfase 05c; tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `docs/DECISIONS.md` (DEC-28 APPROVED), `reports/feature-update/PHASE-05C-PLAN.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-05-IMPORT-EXPORT.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: mencatat pernyataan pemilik **"Saya setuju D1-D7."** (2026-10-31 WIB) sebagai **DEC-28 APPROVED**; rencana 05c berstatus PLAN APPROVED dan implementasi 05c diotorisasi.
+- Why: gate keputusan S1 pada rencana 05c sudah dijawab; implementasi dapat dimulai tanpa menebak pilihan bisnis.
+- Validation: pemeriksaan dokumen/status. **NOT RUN**: tidak ada tes aplikasi pada entri dokumentasi ini.
+- Notes / risks: persetujuan tidak mencakup merge/deploy, migration DB operasional, dependency/service, atau Fase 06. Rekap sekolah tetap menunggu DEC-12 PROPOSED.
+- Evidence: `docs/DECISIONS.md` (DEC-28); `reports/feature-update/PHASE-05C-PLAN.md`.
+
 ## [2026-10-31] Subfase 05c — Rencana pemeriksaan kelengkapan (PLAN PREPARED, DEC-28 PROPOSED)
 - Type: Docs
 - Scope / fase: Rencana Subfase 05c di atas `main` @ `8b091cf`; tidak ada perubahan kode, migration, route, UI, ability, dependency, atau data.
