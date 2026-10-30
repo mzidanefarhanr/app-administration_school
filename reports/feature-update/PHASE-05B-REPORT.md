@@ -1,6 +1,6 @@
 # Laporan Subfase 05b — Impor Pegawai dan Pilihan Kolom Ekspor
 
-Tanggal: implementasi 2026-10-30 WIB; dokumentasi/checkpoint 2026-10-31 WIB. Branch: `main`. HEAD sebelum paket 05b: `4f1fec0` (dokumentasi rencana 05b); implementasi dikomit sebagai **`ad74309`**; commit dokumentasi dicatat pada HANDOFF/checkpoint setelah dibuat.
+Tanggal: implementasi 2026-10-30 WIB; dokumentasi 2026-10-31 WIB. Branch: `main`. HEAD sebelum paket 05b: `4f1fec0` (dokumentasi rencana 05b); implementasi dikomit sebagai **`ad74309`**, dokumentasi sebagai **`c5afdc4`**, keduanya di-push ke `origin/main` (`4f1fec0..c5afdc4`, `main...origin/main` sinkron) agar dapat direview di GitHub.
 Keputusan pemilik: **DEC-26** (APPROVED 2026-10-30 WIB; D1–D7, pernyataan "Saya setuju D1-D7").
 Status teknis: **IMPLEMENTED — agent-verified (2026-10-30/31)**. Status review pemilik: **PENDING**.
 Rencana: `reports/feature-update/PHASE-05B-PLAN.md`. Checklist manual: `reports/feature-update/PHASE-05B-MANUAL-REVIEW.md`.

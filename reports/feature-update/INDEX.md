@@ -2,7 +2,7 @@
 
 ## Current checkpoint — 2026-10-31
 
-Subfase 05b (impor pegawai + pilihan kolom ekspor) **IMPLEMENTED** pada `main` @ implementasi `ad74309` (baseline `4f1fec0`), dengan otorisasi DEC-26 (APPROVED 2026-10-30 WIB; "Saya setuju D1-D7"). Bukti agen: 43/249 tes baru, suite 402 passed/13 skipped/3.587 assertions, Pint 15 file, 15 unit Node, build 28,46 s; migration `2029_07_28_000001` diterapkan ke `.uat-phase05` (409 siswa/200 pegawai tetap). **Review pemilik PENDING** pada `PHASE-05B-MANUAL-REVIEW.md` (#1–#14); browser/visual UAT agen **NOT RUN** (otomasi browser diblokir kebijakan sesi). Rekap sekolah tetap menunggu format (DEC-12 PROPOSED).
+Subfase 05b (impor pegawai + pilihan kolom ekspor) **IMPLEMENTED** pada `main` @ implementasi `ad74309`, dokumentasi `c5afdc4` (baseline `4f1fec0`), di-push ke `origin/main`, dengan otorisasi DEC-26 (APPROVED 2026-10-30 WIB; "Saya setuju D1-D7"). Bukti agen: 43/249 tes baru, suite 402 passed/13 skipped/3.587 assertions, Pint 15 file, 15 unit Node, build 28,46 s; migration `2029_07_28_000001` diterapkan ke `.uat-phase05` (409 siswa/200 pegawai tetap). **Review pemilik PENDING** pada `PHASE-05B-MANUAL-REVIEW.md` (#1–#14); browser/visual UAT agen **NOT RUN** (otomasi browser diblokir kebijakan sesi). Rekap sekolah tetap menunggu format (DEC-12 PROPOSED).
 
 ## Correction addendum — 2026-10-29
 
