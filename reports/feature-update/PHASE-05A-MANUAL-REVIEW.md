@@ -1,9 +1,15 @@
 # Phase 05a — Owner Manual Review (Students CSV Import)
 
-- Date prepared: 2026-10-30 WIB. Branch: `main`; HEAD before 05a package: `b093db7`. Package 05a is **uncommitted** while this checklist is PENDING.
+- Date prepared: 2026-10-30 WIB. Branch: `main`; HEAD before 05a package: `b093db7`. Implementation `58828a6`, documentation `a3e19d4`, checkpoint `ad7bb9c`, all pushed to `origin/main`.
 - Technical report: `PHASE-05A-REPORT.md`. Decision: **DEC-25** (D1–D8, APPROVED 2026-10-30 WIB).
-- Owner status: **PENDING** — all scenarios below are **NOT RUN** by the owner. Agent DOM/HTTP verification does **not** count as owner acceptance.
+- Owner status: **APPROVED 2026-10-30 WIB** — the owner stated: "Pengujian nomor 1-12 sudah berhasil dan saya approved." All 12 scenarios below are APPROVED by that statement. The agent did not rerun the scenarios to record acceptance; agent DOM/HTTP verification is separate evidence.
 - Scope: student CSV import only (05a). Employee import, export column options and school recap are not part of this checklist.
+
+## Owner acceptance
+
+- Statement: "Pengujian nomor 1-12 sudah berhasil dan saya approved." (owner, 2026-10-30 WIB).
+- Meaning: checklist #1–#12 are APPROVED. The owner's statement is the sole acceptance evidence; the agent did not rerun the scenarios, tests, build or migrations for this record.
+- Boundary: acceptance covers 05a on the isolated `.uat-phase05` SQLite UAT only. It does not authorize merge, deployment, migration of legacy/MariaDB/production data, dependency/service changes, or 05b/05c work. Agent NOT RUN items (05a MariaDB/concurrency, two-tab, screenshot/visual) remain NOT RUN and are not converted to PASS.
 
 ## Safe review environment
 
@@ -49,18 +55,18 @@ Do not restart/stop the existing 04b UAT or any owner service, alter `.env`/serv
 
 | # | Scenario | Steps and expected result | Owner status |
 |---|---|---|---|
-| 1 | Isolation and fixtures | Run the `status` command. Expected: isolation guard PASS, `students.import` on `admin-sistem`/`operator-sekolah`, 409 students and 100+100 employees. | PENDING |
-| 2 | Permission visibility | Sign in as `uat.operator` → Students; **Import** button is visible next to Export. Sign in as `uat.kepsek` (new session/incognito): Import button is absent. | PENDING |
-| 3 | Template download | Students → Import → **Download Template**. Expected: CSV named `student-import-template.csv` with 17 English headers (`Name,NIK,NIS,NISN,Gender,...,Phone`). | PENDING |
-| 4 | Valid preview without mutation | Upload `students-import-valid.csv` → **Upload and Preview**. Expected: Status “Ready to commit”, Total 3 / Valid 3 / Invalid 0, rows NIS 42001–42003 marked **Insert**, and the page total behind the dialog stays 409. | PENDING |
-| 5 | Commit valid batch | Click **Commit Import**. Expected: green committed state, toast “3 student(s) imported.”, dialog preview retained, and the Students total becomes **412** after the list refreshes. | PENDING |
-| 6 | Duplicate identity blocked | Upload the same `students-import-valid.csv` again. Expected: Status “Needs fixes”, all rows invalid with NIK/NIS/NISN “already registered”, no Commit button, total remains 412. | PENDING |
-| 7 | Mixed file all-or-nothing | Upload `students-import-mixed.csv`. Expected: 1 valid / 2 invalid, Status “Needs fixes”, no Commit button, error list shows “NIK must be exactly 16 digits” (row 3) and “Unknown Gender value” (row 4). Total unchanged. | PENDING |
-| 8 | Error report download | In the mixed result click **Download Error Report**. Expected: CSV with headers `Row,Field,Message,NIS,NIK` and exactly those two errors. The file must come from the private endpoint, not a public URL. | PENDING |
-| 9 | Update mode by NIS | After step 5, choose Mode **Update existing students** → upload `students-import-update.csv` → Preview. Expected: one row, Action **Update**, NIS 40001 (Name shows “-”). Commit: toast “1 student(s) imported.”, Phase05-equivalent row (Synthetic Import One) becomes **Female**, and total stays 412 (no new row). | PENDING |
-| 10 | Header validation | Upload a CSV with an unknown or missing column (e.g. rename `NIS` to `Nomor Induk`). Expected: upload rejected with an English message naming the unknown/missing header; no batch committed. | PENDING |
-| 11 | File type and size limits | Try a `.txt`/`.xlsx` file and a file over 5 MB. Expected: client blocks with an English message; the server rejects oversized/invalid uploads with 422 rather than truncating. | PENDING |
-| 12 | Empty / no data rows | Upload a CSV containing only the header. Expected: server rejects with a clear English validation message; no batch is created. | PENDING |
+| 1 | Isolation and fixtures | Run the `status` command. Expected: isolation guard PASS, `students.import` on `admin-sistem`/`operator-sekolah`, 409 students and 100+100 employees. | APPROVED |
+| 2 | Permission visibility | Sign in as `uat.operator` → Students; **Import** button is visible next to Export. Sign in as `uat.kepsek` (new session/incognito): Import button is absent. | APPROVED |
+| 3 | Template download | Students → Import → **Download Template**. Expected: CSV named `student-import-template.csv` with 17 English headers (`Name,NIK,NIS,NISN,Gender,...,Phone`). | APPROVED |
+| 4 | Valid preview without mutation | Upload `students-import-valid.csv` → **Upload and Preview**. Expected: Status “Ready to commit”, Total 3 / Valid 3 / Invalid 0, rows NIS 42001–42003 marked **Insert**, and the page total behind the dialog stays 409. | APPROVED |
+| 5 | Commit valid batch | Click **Commit Import**. Expected: green committed state, toast “3 student(s) imported.”, dialog preview retained, and the Students total becomes **412** after the list refreshes. | APPROVED |
+| 6 | Duplicate identity blocked | Upload the same `students-import-valid.csv` again. Expected: Status “Needs fixes”, all rows invalid with NIK/NIS/NISN “already registered”, no Commit button, total remains 412. | APPROVED |
+| 7 | Mixed file all-or-nothing | Upload `students-import-mixed.csv`. Expected: 1 valid / 2 invalid, Status “Needs fixes”, no Commit button, error list shows “NIK must be exactly 16 digits” (row 3) and “Unknown Gender value” (row 4). Total unchanged. | APPROVED |
+| 8 | Error report download | In the mixed result click **Download Error Report**. Expected: CSV with headers `Row,Field,Message,NIS,NIK` and exactly those two errors. The file must come from the private endpoint, not a public URL. | APPROVED |
+| 9 | Update mode by NIS | After step 5, choose Mode **Update existing students** → upload `students-import-update.csv` → Preview. Expected: one row, Action **Update**, NIS 40001 (Name shows “-”). Commit: toast “1 student(s) imported.”, Phase05-equivalent row (Synthetic Import One) becomes **Female**, and total stays 412 (no new row). | APPROVED |
+| 10 | Header validation | Upload a CSV with an unknown or missing column (e.g. rename `NIS` to `Nomor Induk`). Expected: upload rejected with an English message naming the unknown/missing header; no batch committed. | APPROVED |
+| 11 | File type and size limits | Try a `.txt`/`.xlsx` file and a file over 5 MB. Expected: client blocks with an English message; the server rejects oversized/invalid uploads with 422 rather than truncating. | APPROVED |
+| 12 | Empty / no data rows | Upload a CSV containing only the header. Expected: server rejects with a clear English validation message; no batch is created. | APPROVED |
 
 Notes for reporting issues: include the scenario number, what you saw, and any browser console/network error (HTTP status). Do not paste student PII or the UAT password.
 

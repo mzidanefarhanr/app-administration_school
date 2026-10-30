@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-30] Subfase 05a — Penerimaan manual pemilik (checklist #1–#12 APPROVED)
+- Type: Docs
+- Scope / fase: Penerimaan Subfase 05a oleh pemilik pada UAT SQLite terisolasi `.uat-phase05`; tidak mengubah kode, schema, UI, konfigurasi, atau lingkungan.
+- Files touched: `reports/feature-update/PHASE-05A-MANUAL-REVIEW.md`, `reports/feature-update/PHASE-05A-REPORT.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `reports/feature-update/PHASE-05-PLAN.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-05-IMPORT-EXPORT.md`, `docs/REQUIREMENTS.md`, `docs/TESTING.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: status review 05a dari PENDING menjadi **APPROVED**; checklist #1–#12 ditandai disetujui; dicatat kutipan pernyataan pemilik, provenansi bukti, dan batas cakupan penerimaan.
+- Why: Pemilik menyatakan "Pengujian nomor 1-12 sudah berhasil dan saya approved." (2026-10-30 WIB).
+- Validation: **NOT RUN** — entri dokumentasi; agen tidak menjalankan ulang skenario #1–#12, tes, build, migration, atau koneksi DB untuk mencatat persetujuan ini. Sumber bukti satu-satunya adalah pernyataan pemilik.
+- Notes / risks: Persetujuan hanya mencakup implementasi 05a pada UAT terisolasi. Tidak mengotorisasi merge, deploy, migration UAT/produksi/legacy/MariaDB, reset database, perubahan dependency/service, atau pekerjaan 05b/05c. Item NOT RUN agen (05a MariaDB/concurrency, two-tab, screenshot/visual, retensi otomatis) tetap NOT RUN dan tidak diubah menjadi PASS. Implementasi `58828a6`, dokumentasi `a3e19d4`, checkpoint `ad7bb9c` sudah di-push; penerimaan ini dicatat pada commit dokumentasi terpisah.
+- Evidence: Pernyataan pemilik "Pengujian nomor 1-12 sudah berhasil dan saya approved." (2026-10-30 WIB); `reports/feature-update/PHASE-05A-MANUAL-REVIEW.md` bagian Owner acceptance.
+
 ## [2026-10-30] Subfase 05a — Impor siswa CSV (commit `58828a6`; review pemilik PENDING)
 - Type: Feature | Schema Change | Docs
 - Scope / fase: Subfase 05a (Fase 05: Impor, ekspor dan kualitas data), DEC-25 D1–D8, di atas `main` @ `b093db7`. Tidak ada merge/deploy/force-push, perubahan `.env` utama, dependency/lockfile, service, atau akses DB terlarang.
@@ -26,6 +36,7 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 - Validation: `php artisan test tests/Feature/Import` **18 tes / 97 assertions PASS**; regresi Import+Student+Employee **170 passed / 1.097 assertions / 13 skipped PASS** (skip = integrasi MariaDB tanpa password); `pint --test` **16 file PASS**; `node --test tests/student-import-params.test.mjs` **3 PASS**; `npm run build` **PASS 26,02 s**; launcher `scripts/phase05-uat.php status` guard PASS, Students 406, Employees 200 (100/100), ability present; browser DOM valid 406→409, campuran 1 valid/2 invalid ditolak tanpa mutasi (total 409), update via NIS, template CSV, **0 console error**. **NOT RUN**: MariaDB 05a/concurrency, two-tab, screenshot, retensi otomatis, XLSX.
 - Notes / risks: implementasi dikomit sebagai `58828a6` (`feat(phase-05a)`) dan dokumentasi `a3e19d4` (`docs(phase-05a)`) di-push ke `origin/main` agar dapat direview di GitHub sebelum cek manual; `main...origin/main` sinkron. Review pemilik masih **PENDING**; commit/push bukan penerimaan. 12 skenario `PHASE-05A-MANUAL-REVIEW.md` **PENDING**. Contoh CSV di `.uat-phase05/samples/` diabaikan Git dan telah dikunci ulang ke identitas belum terpakai (valid 42001–42003, mixed 43001–43003, update target 40001). File runtime/DB/log/kredensial dan artefak pemilik (`console.txt`, `vue-app/test-results/`) tidak di-commit. Retensi 30 hari masih manual (D6).
 - Evidence: `reports/feature-update/PHASE-05A-REPORT.md` (E1–E12), `PHASE-05A-MANUAL-REVIEW.md`, `PHASE-05-PLAN.md`; implementasi `58828a6` dan dokumentasi `a3e19d4` di atas `b093db7`.
+- Addendum 2026-10-30: status review PENDING pada entri ini bersifat historis; penerimaan pemilik atas checklist #1–#12 dicatat pada entri penerimaan di atas. Bukti dan angka validasi entri ini tidak diubah.
 
 ## [2026-10-30] Subfase 04b — Commit dan push koreksi + penerimaan pemilik
 - Type: Chore | Docs

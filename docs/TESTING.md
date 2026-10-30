@@ -30,7 +30,7 @@ Storage uji memakai fake/temp disk; backup/restore mengarah ke target test, tida
 - `./vendor/bin/pint --test` pada file PHP berubah: **PASS** (16 file).
 - Frontend: `vue-app/tests/student-import-params.test.mjs` (baru, `node --test`) **3 tes PASS**; `npm run build` **PASS 26,02 s**.
 - UAT terisolasi `.uat-phase05` (SQLite, API `127.0.0.1:18023`, SPA `127.0.0.1:14023`, cookie `school_phase05_session`): `prepare`/`status` sukses; 300 siswa sintetis + 200 pegawai (100 guru/100 staf); kemampuan `students.import` hadir untuk dua peran. Browser DOM: impor valid 406→409 siswa, campuran 1 valid/2 error ditolak tanpa mutasi (total tetap 409), update via NIS, unduh template, **0 console error**.
-- **NOT RUN**: verifikasi UAT via MariaDB/InnoDB, konkurensi dua tab, dan pemeriksaan visual screenshot. Bukti ini bukan penerimaan pemilik; checklist manual 05a masih **PENDING**.
+- **NOT RUN**: verifikasi UAT via MariaDB/InnoDB, konkurensi dua tab, dan pemeriksaan visual screenshot. Bukti ini bukan penerimaan pemilik; checklist manual 05a **APPROVED 2026-10-30 WIB (#1–#12)** berdasarkan pernyataan pemilik, bukan pengujian ulang agen. Item NOT RUN tetap NOT RUN.
 
 ## Matriks minimum per perubahan
 | Area | Kasus wajib |

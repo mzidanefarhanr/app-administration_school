@@ -2,7 +2,7 @@
 
 Tanggal WIB: 2026-10-30. Branch: `main`. HEAD sebelum paket 05a: `b093db7` (dokumentasi penerimaan 04b); implementasi 05a dikomit sebagai **`58828a6`** dan dokumentasi sebagai **`a3e19d4`**, di-push ke `origin/main` untuk review manual di GitHub (`main...origin/main` sinkron). Review pemilik tetap PENDING.
 Keputusan pemilik: **DEC-25** (APPROVED 2026-10-30 WIB; D1–D8).
-Status teknis: **IMPLEMENTED — agent-verified (2026-10-30)**. Status review pemilik: **PENDING**.
+Status teknis: **IMPLEMENTED — agent-verified (2026-10-30)**. Status review pemilik: **APPROVED 2026-10-30 WIB** (checklist #1–#12; pernyataan pemilik "Pengujian nomor 1-12 sudah berhasil dan saya approved").
 Laporan rencana: `reports/feature-update/PHASE-05-PLAN.md`. Checklist manual: `reports/feature-update/PHASE-05A-MANUAL-REVIEW.md`.
 
 ## 1. Outcome dan cakupan
@@ -71,7 +71,7 @@ Setelah verifikasi, contoh CSV di launcher dan `.uat-phase05/samples/` **dikunci
 
 ## 4. UAT manual
 
-Checklist `PHASE-05A-MANUAL-REVIEW.md` disiapkan dengan status **PENDING** untuk 12 skenario. Runtime: SPA `http://127.0.0.1:14023`, API `http://127.0.0.1:18023`, akun `uat.operator` (dan peran view-only `uat.kepsek` untuk skenario izin). Password hanya di runtime terabaikan `.uat-phase05/account-password.txt`; tidak dicetak di laporan/Git.
+Checklist `PHASE-05A-MANUAL-REVIEW.md`: **#1–#12 APPROVED 2026-10-30 WIB** berdasarkan pernyataan pemilik. Runtime: SPA `http://127.0.0.1:14023`, API `http://127.0.0.1:18023`, akun `uat.operator` (dan peran view-only `uat.kepsek` untuk skenario izin). Password hanya di runtime terabaikan `.uat-phase05/account-password.txt`; tidak dicetak di laporan/Git. Penerimaan ini tidak mengubah bukti agen yang tercatat dan tidak mencakup item NOT RUN.
 
 ## 5. Risiko, blocker dan keputusan
 
@@ -87,10 +87,10 @@ Checklist `PHASE-05A-MANUAL-REVIEW.md` disiapkan dengan status **PENDING** untuk
 
 Diperbarui: `CHANGELOG.md`, `docs/API-CONTRACTS.md`, `docs/DATABASE.md`, `docs/ACCESS-CONTROL.md`, `docs/REQUIREMENTS.md` (FR-06), `docs/TESTING.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-05-IMPORT-EXPORT.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, laporan ini dan checklist manual. `PROJECT_CONTEXT.md` mendapat addendum 05a.
 
-Commit/push dilakukan agar pemilik dapat meninjau implementasi langsung di GitHub sebelum cek manual; **commit/push bukan penerimaan manual**. Tidak ada merge/deploy/force-push, perubahan `.env` utama, dependency, service, DB terlarang, atau migrasi database operasional.
+Commit/push dilakukan agar pemilik dapat meninjau implementasi langsung di GitHub; commit/push bukan penerimaan manual. Penerimaan manual datang kemudian dan dicatat pada commit dokumentasi tersendiri. Tidak ada merge/deploy/force-push, perubahan `.env` utama, dependency, service, DB terlarang, atau migrasi database operasional.
 
 ## 7. Langkah berikutnya
 
-1. Pemilik menguji 12 skenario pada UAT `.uat-phase05` dan menyatakan hasil + persetujuan.
-2. Setelah persetujuan: commit+push paket 05a (implementasi; dokumentasi/penerimaan pada commit terpisah sesuai aturan repo), lalu perbarui status ROADMAP/INDEX/HANDOFF dengan SHA aktual.
+1. Pemilik telah menguji 12 skenario pada UAT `.uat-phase05` dan menyatakan **APPROVED** (2026-10-30 WIB); tercatat di `PHASE-05A-MANUAL-REVIEW.md`.
+2. Implementasi `58828a6`, dokumentasi `a3e19d4`, dan checkpoint `ad7bb9c` sudah di-push ke `origin/main`; penerimaan ini dicatat pada commit dokumentasi terpisah.
 3. Subfase 05b (impor pegawai + pilihan kolom ekspor) menunggu instruksi pemilik; rekap sekolah menunggu contoh format (DEC-12 masih PROPOSED).

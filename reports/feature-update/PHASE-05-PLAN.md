@@ -1,7 +1,7 @@
 # Rencana Fase 05 — Impor, Ekspor dan Kualitas Data
 
 - Tanggal: 2026-10-30 (WIB). Branch: `main`. Baseline kode: `b093db7` (04b diterima pemilik dan sudah di-push).
-- Status dokumen: **DISETUJUI PEMILIK 2026-10-30 WIB sebagai DEC-25** (D1–D8). Subfase **05a IMPLEMENTED (agent-verified 2026-10-30; owner review PENDING)**; 05b/05c belum dimulai.
+- Status dokumen: **DISETUJUI PEMILIK 2026-10-30 WIB sebagai DEC-25** (D1–D8). Subfase **05a IMPLEMENTED (agent-verified) dan owner APPROVED 2026-10-30 WIB (#1–#12)**; 05b/05c belum dimulai.
 - Fase 05: subfase **05a (impor siswa) → 05b (ekspor & impor pegawai) → 05c (pemeriksaan kelengkapan)**, dikerjakan satu per satu atas instruksi pemilik.
 - Dokumen acuan: `roadmap/phases/PHASE-05-IMPORT-EXPORT.md`, `docs/DECISIONS.md` (DEC-08, DEC-12, DEC-14, DEC-20, DEC-24), `docs/REQUIREMENTS.md` (FR-06), `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `docs/DATABASE.md`, `docs/TESTING.md`.
 - Gate: **DEC-08 dan D1–D8 sudah APPROVED 2026-10-30 WIB sebagai DEC-25**; DEC-12 tetap PROPOSED untuk rekap 05b.

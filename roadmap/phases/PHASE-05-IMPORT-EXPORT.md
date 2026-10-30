@@ -1,6 +1,6 @@
 # Fase 05 — Impor, ekspor dan kualitas data
 
-Status teknis: **05a IMPLEMENTED (agent-verified 2026-10-30)**; 05b/05c NOT STARTED. Status review: **PENDING** (checklist manual 05a belum dijalankan pemilik).
+Status teknis: **05a IMPLEMENTED (agent-verified 2026-10-30)**; 05b/05c NOT STARTED. Status review: **05a APPROVED 2026-10-30 WIB (#1–#12)**; 05b/05c PENDING.
 Dependensi: 03,04; DEC-08, DEC-25. Baseline rencana: b02a87f; baseline paket 05a: HEAD `b093db7` sebelum commit; implementasi 05a `58828a6`.
 Rencana rinci: `reports/feature-update/PHASE-05-PLAN.md`. Keputusan D1–D8 **APPROVED 2026-10-30 WIB sebagai DEC-25**; DEC-12 (format rekap sekolah) masih PROPOSED. Laporan: `reports/feature-update/PHASE-05A-REPORT.md`; checklist manual: `reports/feature-update/PHASE-05A-MANUAL-REVIEW.md`.
 
@@ -18,7 +18,7 @@ Impor, ekspor dan kualitas data. Kerjakan satu subfase per instruksi pemilik; ja
 
 ## Subfase
 
-### 05a — Impor siswa (SELESAI — IMPLEMENTED 2026-10-30; owner review PENDING)
+### 05a — Impor siswa (SELESAI — IMPLEMENTED 2026-10-30; owner APPROVED 2026-10-30 WIB #1–#12)
 Scope: Template/version, mapping kolom, preview tanpa mutasi, validasi baris/FK/identity, mode insert/update eksplisit, hasil dan error download privat; batch token idempotent. Implementasi tidak menambah dependency baru (parser CSV memakai fungsi PHP standar); tidak ada Excel library.
 
 Kriteria penerimaan: Leading zero utuh; preview tidak mengubah DB; kasus campuran error mengikuti kebijakan; retry tidak menduplikasi; update tidak menimpa record luar scope.
