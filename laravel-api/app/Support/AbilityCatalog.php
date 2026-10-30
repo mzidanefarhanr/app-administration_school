@@ -40,6 +40,7 @@ final class AbilityCatalog
             'students.view' => self::def('students', 'Melihat data siswa.', false),
             'students.manage' => self::def('students', 'Menambah/mengubah/menghapus data siswa.', false),
             'students.export' => self::def('students', 'Mengekspor data siswa sesuai lingkup akses.', true),
+            'students.import' => self::def('students', 'Mengimpor data siswa dari berkas CSV tervalidasi.', true),
 
             // Pegawai
             'employees.view' => self::def('employees', 'Melihat data pegawai.', false),
@@ -84,7 +85,7 @@ final class AbilityCatalog
                     'roles.view', 'roles.manage', 'abilities.manage',
                     'users.view', 'users.manage', 'access.assign', 'audit.view', 'backup.manage',
                     'master.view', 'master.manage',
-                    'students.view', 'students.manage', 'students.export',
+                    'students.view', 'students.manage', 'students.export', 'students.import',
                     'employees.view', 'employees.manage', 'employees.export',
                     'letters.view', 'letters.manage',
                     'leaves.view', 'leaves.manage',
@@ -99,7 +100,7 @@ final class AbilityCatalog
                 'protected' => false,
                 'abilities' => [
                     'master.view', 'master.manage',
-                    'students.view', 'students.manage', 'students.export',
+                    'students.view', 'students.manage', 'students.export', 'students.import',
                     'employees.view', 'employees.manage', 'employees.export',
                     'letters.view', 'letters.manage',
                     'leaves.view', 'leaves.manage',

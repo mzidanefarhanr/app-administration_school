@@ -6,6 +6,7 @@ import { useToast } from "primevue/usetoast";
 import apiLogin from '@/apiLogin';
 import gifSuccess from '@/assets/gif/success.gif';
 import { buildStudentExportParams } from './studentExportParams.mjs';
+import StudentImportDialog from './StudentImportDialog.vue';
 import { referenceLabel, displayReferenceOptions } from '@/utils/referenceLabels.mjs';
 
 const toast = useToast();
@@ -345,6 +346,18 @@ const exportCSV = async () => {
         }
         toast.add({ severity: 'error', summary: 'Export', detail, life: 4000 });
     }
+};
+
+const onStudentsImported = (summary) => {
+    const rows = summary?.committed_rows ?? 0;
+    toast.add({
+        severity: 'success',
+        summary: 'Import',
+        detail: `${rows} student(s) imported.`,
+        life: 4000,
+    });
+    listPage.value = 1;
+    fetchStudentList();
 };
 
 const clearFilter = () => {
@@ -774,6 +787,7 @@ const studentFormDialog   = ref(false);
 const studentDetailDialog = ref(false);
 const archiveDialog       = ref(false);
 const archivedListDialog  = ref(false);
+const importDialog        = ref(false);
 const conflictDialog      = ref(false);
 const conflictMessage     = ref('');
 const conflictReloadAction = ref(null);
@@ -1348,6 +1362,7 @@ onMounted(() => {
                             <Select v-model="listRombelId" :options="rombelOptions" optionLabel="name" optionValue="id" placeholder="Class" showClear class="w-full xl:w-48" :disabled="listPlacement === 'unplaced'" @change="onListFilterChange" />
                             <div class="flex flex-wrap gap-2">
                                 <Button v-if="useAuthStore.can('students.export')" icon="pi pi-external-link" label="Export" @click="exportCSV($event)" />
+                                <Button v-if="useAuthStore.can('students.import')" icon="pi pi-upload" label="Import" severity="secondary" variant="outlined" @click="importDialog = true" />
                                 <Button v-if="canManage" icon="pi pi-user-plus" label="New Student" @click="openCreateStudent" />
                                 <Button v-if="canManage" icon="pi pi-inbox" label="Archived" severity="secondary" variant="outlined" @click="openArchivedList" />
                                 <Button type="button" icon="pi pi-filter-slash" label="Clear" variant="outlined" @click="clearFilter()" />
@@ -2833,4 +2848,7 @@ onMounted(() => {
             <Button label="Reload Latest" icon="pi pi-refresh" :loading="reloadingConflict" :disabled="reloadingConflict" @click="reloadAfterConflict" />
         </template>
     </Dialog>
+
+    <!-- ── 05a: Import Students (DEC-25) ──────────────────────────────────────── -->
+    <StudentImportDialog v-model:visible="importDialog" @imported="onStudentsImported" />
 </template>

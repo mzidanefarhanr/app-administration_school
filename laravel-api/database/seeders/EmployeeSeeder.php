@@ -89,12 +89,23 @@ class EmployeeSeeder extends Seeder
         $connection = config('database.default');
         $database = config("database.connections.{$connection}.database");
         $memory = app()->environment('testing') && $connection === 'sqlite' && $database === ':memory:';
-        $expected = base_path('../.uat-phase04b/database.sqlite');
-        $uat = app()->environment('uat') && $connection === 'sqlite'
-            && is_file($expected) && realpath((string) $database) === realpath($expected);
+        $expected = [
+            base_path('../.uat-phase04b/database.sqlite'),
+            base_path('../.uat-phase05/database.sqlite'),
+        ];
+        $uat = false;
+
+        if (app()->environment('uat') && $connection === 'sqlite' && is_file((string) $database)) {
+            foreach ($expected as $path) {
+                if (is_file($path) && realpath((string) $database) === realpath($path)) {
+                    $uat = true;
+                    break;
+                }
+            }
+        }
 
         if ((! $memory && ! $uat) || config("database.connections.{$connection}.url")) {
-            throw new RuntimeException('Employee seeding requires SQLite in-memory tests or the isolated phase-04b SQLite UAT database.');
+            throw new RuntimeException('Employee seeding requires SQLite in-memory tests or an isolated SQLite UAT database (.uat-phase04b/.uat-phase05).');
         }
     }
 }

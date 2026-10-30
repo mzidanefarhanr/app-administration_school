@@ -17,6 +17,7 @@ use App\Http\Controllers\EmploymentController;
 use App\Http\Controllers\FamilyStatusController;
 use App\Http\Controllers\FirstLoginController;
 use App\Http\Controllers\GenderController;
+use App\Http\Controllers\ImportController;
 use App\Http\Controllers\MaritalStatusController;
 use App\Http\Controllers\PhaseStatusController;
 use App\Http\Controllers\ProfessionController;
@@ -156,6 +157,19 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
             ->except(['index', 'show'])
             ->middleware('can:master.manage');
     }
+
+    // Fase 05a (DEC-25) - impor siswa CSV: preview tanpa mutasi, commit all-or-nothing.
+    // Template hanya berisi header, jadi cukup students.view (lihat PHASE-05-PLAN 5.2).
+    Route::get('/imports/students/template', [ImportController::class, 'studentsTemplate'])
+        ->middleware('can:students.view');
+    Route::post('/imports/students', [ImportController::class, 'importStudents'])
+        ->middleware('can:students.import');
+    Route::get('/imports/{batch}', [ImportController::class, 'show'])
+        ->middleware('can:students.import');
+    Route::post('/imports/{batch}/commit', [ImportController::class, 'commit'])
+        ->middleware('can:students.import');
+    Route::get('/imports/{batch}/errors', [ImportController::class, 'errors'])
+        ->middleware('can:students.import');
 
     // Fase 01a — ekspor siswa (CSV) terlindungi: students.view + students.export.
     Route::get('/students/export', [StudentExportController::class, 'export'])
