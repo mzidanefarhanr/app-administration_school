@@ -29,6 +29,14 @@ const useAuthStore = authStore();
 const school_years = ref([]);
 const school_years_now = ref('');
 const school_years_pick = ref([]);
+const academicPeriod = ref(null);
+const academicPeriodError = ref('');
+const activeSchoolYear = computed(() => academicPeriod.value?.active?.school_year ?? null);
+const activeSemester = computed(() => academicPeriod.value?.active?.semester ?? null);
+const selectedYearRow = computed(() =>
+    school_years.value.find((year) => year.id === school_years_now.value?.id) ?? null
+);
+const selectedYearLocked = computed(() => selectedYearRow.value?.is_locked === true);
 const searchQuery = ref([]);
 const filtered_Cat1 = ref([]);
 const active_students = ref('');
@@ -67,44 +75,50 @@ var titleSuccess = ref('');
 var fieldSuccess = ref('');
 const visibleStaticBackdropWaiting = ref(false);
 
+const fetchAcademicPeriod = async () => {
+    try {
+        const response = await apiLogin.get('/api/academic/period');
+        academicPeriod.value = response.data?.data ?? null;
+        academicPeriodError.value = '';
+    } catch (error) {
+        academicPeriod.value = null;
+        academicPeriodError.value = error.response?.data?.message ?? 'Failed to load the active academic period.';
+    }
+};
+
 //method fetchDataSchoolYears
 const fetchDataSchoolYears = async () => {
-    //fetch data
     school_years.value.length = 0;
-    await apiLogin.get('/api/school-years')
-    .then(response => {
-        //set response data to state "Students"
+    try {
+        const response = await apiLogin.get('/api/school-years');
         school_years.value = response.data.data;
-        // console.log(school_years.value);
-        fetchDataSelected();
-    });
+    } catch (error) {
+        toast.add({ severity: 'error', summary: 'School Years', detail: error.response?.data?.message ?? 'Failed to load school years.', life: 4000 });
+    }
 
+    // Default to the configured active period. Never guess a year from the calendar.
+    if (!school_years_now.value && activeSchoolYear.value?.id) {
+        school_years_now.value = school_years.value.find((year) => year.id === activeSchoolYear.value.id) ?? activeSchoolYear.value;
+    }
+
+    fetchDataSelected();
 }
 
 //method fetchDataSelected
 const fetchDataSelected = async () => {
-    //fetch data
     school_years_pick.value.length = 0;
+
+    if (!school_years_now.value?.id) {
+        loading.value = false;
+        listRows.value = [];
+        listMeta.value = { current_page: 1, per_page: length_rows_pick.value, total: 0, last_page: 1 };
+        listRecap.value = { total_matches: 0, placed_count: 0, unplaced_count: 0, by_gender: [], by_rombel: [] };
+        rombelOptions.value = [];
+        return;
+    }
+
     loading.value = true;
-    let years_now = new Date().getFullYear();
-    let years_tomorrow = years_now + 1;
-    let month_now = new Date().getMonth() + 1;
-    let years_combine = '';
-    if (month_now > 6) {
-        years_combine = years_now+"/"+years_tomorrow;
-    } else {
-        years_combine = (years_now-1)+"/"+(years_tomorrow-1);
-    }
-    // let years_combine = years_now+"/"+years_tomorrow;
-    if (!school_years_now.value) {
-        school_years_now.value = school_years.value.find(school_year => school_year.name === years_combine);
-        fetchDataStudentRombels();
-        // console.log("school_years is reset");
-    } else {
-        fetchDataStudentRombels();
-        // console.log("school_years is : "+school_years_now.value.name);
-    }
-    // console.log(school_years_now.value);
+    fetchDataStudentRombels();
 }
 
 const fetchRombelOptions = async () => {
@@ -194,6 +208,12 @@ const rowDisplayNumber = (index) => (listMeta.value.current_page - 1) * listMeta
 
 //method fetchDataStudentRombels
 const fetchDataStudentRombels = async () => {
+    if (!school_years_now.value?.id) {
+        school_years_pick.value = [];
+        rombelOptions.value = [];
+        loading.value = false;
+        return;
+    }
     //fetch data
     school_years_pick.value.length = 0;
     dt.value = null;
@@ -248,9 +268,8 @@ const fetchDataUserRole = async () => {
     // console.log(useAuthStore.AllUserAssign);
     saveUser.value = useAuthStore.AllUserAssign;
 
-    fetchDataSchoolYears();
-
-    // fetchDataStudentRombels();
+    await fetchAcademicPeriod();
+    await fetchDataSchoolYears();
 };
 
 function handleSchoolYearsChange() {
@@ -1076,9 +1095,20 @@ const restoreStudent = async (student) => {
     }
 };
 
+const placementBlockedMessage = () => {
+    if (!school_years_now.value?.id) return 'Select a school year first.';
+    if (selectedYearLocked.value) return 'This school year is locked. Unlock it before placing students.';
+    return '';
+};
+
 const openAssignRombel = async (row) => {
     const id = rowStudentId(row);
     if (!id) return;
+    const blocked = placementBlockedMessage();
+    if (blocked) {
+        toast.add({ severity: 'warn', summary: 'Assign Class', detail: blocked, life: 4000 });
+        return;
+    }
     try {
         const res = await apiLogin.get(`/api/students/${id}`);
         const student = res.data.data;
@@ -1103,6 +1133,11 @@ const openAssignRombel = async (row) => {
 const openTransferRombel = async (row) => {
     const id = rowStudentId(row);
     if (!id) return;
+    const blocked = placementBlockedMessage();
+    if (blocked) {
+        toast.add({ severity: 'warn', summary: 'Transfer Class', detail: blocked, life: 4000 });
+        return;
+    }
     try {
         const res = await apiLogin.get(`/api/students/${id}`);
         const student = res.data.data;
@@ -1132,6 +1167,12 @@ const openTransferRombel = async (row) => {
 const confirmPlacement = async () => {
     if (isSubmittingPlacement.value) return;
     placementErrors.value = {};
+
+    const blocked = placementBlockedMessage();
+    if (blocked) {
+        toast.add({ severity: 'warn', summary: placementMode.value === 'assign' ? 'Assign Class' : 'Transfer Class', detail: blocked, life: 4000 });
+        return;
+    }
 
     if (!placementForm.value.target_rombel_id) {
         placementErrors.value = { target_rombel_id: ['Target class is required.'] };
@@ -1196,7 +1237,13 @@ onMounted(async () => {
         <div class="bg-surface-0 dark:bg-surface-900 px-6 py-8 md:px-12 lg:px-20">
             <div class="flex items-start flex-col md:justify-between md:flex-row">
                 <div>
-                    <div class="font-bold text-3xl text-surface-900 dark:text-surface-0 mb-4">Students - {{ school_years_now ? school_years_now.name : "" }}</div>
+                    <div class="font-bold text-3xl text-surface-900 dark:text-surface-0 mb-2">Students - {{ school_years_now ? school_years_now.name : "No Year Selected" }}</div>
+                    <div class="flex flex-wrap items-center gap-2 mb-3">
+                        <Tag v-if="activeSchoolYear" severity="success"
+                            :value="`Active period: ${activeSchoolYear.name}${activeSemester ? ' · ' + activeSemester.name : ''}`" />
+                        <Tag v-else value="No active academic period" severity="warn" />
+                        <Tag v-if="selectedYearLocked" value="Locked" severity="danger" />
+                    </div>
                     <div class="flex items-center text-surface-700 dark:text-surface-300 flex-wrap gap-8">
                         <!-- <div class="flex items-center gap-2">
                             <i class="pi pi-graduation-cap !text-base !leading-normal" />
@@ -1241,10 +1288,26 @@ onMounted(async () => {
             </div>
         </div>
 
+        <div class="px-6 md:px-12 lg:px-20 mt-4 flex flex-col gap-2">
+            <Message v-if="!activeSchoolYear" severity="warn" :closable="false">
+                No active academic period is configured. Select a school year manually or ask an administrator to set the active period.
+                <router-link v-if="useAuthStore.can('master.manage')" to="/public/schoolyears" class="underline font-semibold ml-1">
+                    Manage School Years
+                </router-link>
+            </Message>
+            <Message v-if="academicPeriodError" severity="error" :closable="false">
+                {{ academicPeriodError }}
+            </Message>
+            <Message v-if="selectedYearLocked" severity="warn" :closable="false">
+                This school year is locked{{ selectedYearRow?.lock_reason ? ` (${selectedYearRow.lock_reason})` : '' }}.
+                Class assignment and transfers are disabled until it is unlocked.
+            </Message>
+        </div>
+
         <div class="flex mt-8">
             <div class="card flex flex-col gap-4 w-full">
                 <!-- ── Group Navigation Bar ─────────────────────────────────────────── -->
-                <div class="flex items-center gap-2 px-3 py-2
+                <div class="flex flex-wrap items-center gap-2 px-3 py-2
                             border border-surface-200 dark:border-surface-700
                             rounded-lg bg-surface-0 dark:bg-surface-950">
                     <button
@@ -1415,8 +1478,14 @@ onMounted(async () => {
                         <template #body="{ data }">
                             <Button icon="pi pi-eye" variant="outlined" rounded class="mr-2" v-tooltip.top="'View Detail'" @click="viewStudentDetail(data)" />
                             <Button v-if="canManage" icon="pi pi-pencil" variant="outlined" rounded class="mr-2" v-tooltip.top="'Edit Student'" @click="openEditStudent(data)" />
-                            <Button v-if="canManage && data.placement === 'unplaced'" icon="pi pi-user-plus" variant="outlined" rounded severity="info" class="mr-2" v-tooltip.top="'Assign Class'" @click="openAssignRombel(data)" />
-                            <Button v-if="canManage && data.placement === 'placed'" icon="pi pi-arrow-right-arrow-left" variant="outlined" rounded severity="warn" class="mr-2" v-tooltip.top="'Transfer Class'" @click="openTransferRombel(data)" />
+                            <Button v-if="canManage && data.placement === 'unplaced'" icon="pi pi-user-plus" variant="outlined" rounded severity="info" class="mr-2"
+                                :disabled="selectedYearLocked"
+                                v-tooltip.top="selectedYearLocked ? 'This school year is locked.' : 'Assign Class'"
+                                @click="openAssignRombel(data)" />
+                            <Button v-if="canManage && data.placement === 'placed'" icon="pi pi-arrow-right-arrow-left" variant="outlined" rounded severity="warn" class="mr-2"
+                                :disabled="selectedYearLocked"
+                                v-tooltip.top="selectedYearLocked ? 'This school year is locked.' : 'Transfer Class'"
+                                @click="openTransferRombel(data)" />
                             <Button v-if="canManage" icon="pi pi-inbox" variant="outlined" rounded severity="danger" v-tooltip.top="'Archive Student'" @click="openArchiveStudent(data)" />
                         </template>
                     </Column>
@@ -2804,9 +2873,12 @@ onMounted(async () => {
                     <span class="text-surface-500 font-medium">NIS:</span>
                     <span>{{ placementTarget.nis }}</span>
                 </div>
-                <div class="flex justify-between">
+                <div class="flex justify-between items-center gap-2">
                     <span class="text-surface-500 font-medium">Academic Year:</span>
-                    <span class="font-medium text-primary">{{ school_years_now?.name ?? '-' }}</span>
+                    <span class="font-medium text-primary flex items-center gap-2">
+                        {{ school_years_now?.name ?? '-' }}
+                        <Tag v-if="selectedYearLocked" value="Locked" severity="danger" />
+                    </span>
                 </div>
                 <div v-if="placementMode === 'transfer'" class="flex justify-between">
                     <span class="text-surface-500 font-medium">Current Class:</span>
@@ -2835,13 +2907,17 @@ onMounted(async () => {
                           :class="{ 'p-invalid': placementErrors.reason }" />
                 <small v-if="placementErrors.reason" class="text-red-500 text-xs">{{ placementErrors.reason[0] }}</small>
             </div>
+
+            <small v-if="selectedYearLocked" class="text-orange-600 dark:text-orange-400">
+                This school year is locked. Unlock it before placing students.
+            </small>
         </div>
         <template #footer>
             <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="isSubmittingPlacement" @click="placementDialog = false" />
             <Button :label="placementMode === 'assign' ? 'Assign Class' : 'Transfer Student'"
                     :icon="placementMode === 'assign' ? 'pi pi-user-plus' : 'pi pi-arrow-right-arrow-left'"
                     :severity="placementMode === 'assign' ? 'info' : 'warn'"
-                    :loading="isSubmittingPlacement" :disabled="isSubmittingPlacement"
+                    :loading="isSubmittingPlacement" :disabled="isSubmittingPlacement || selectedYearLocked"
                     @click="confirmPlacement" />
         </template>
     </Dialog>

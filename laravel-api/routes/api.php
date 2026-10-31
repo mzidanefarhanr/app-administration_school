@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AbilityController;
+use App\Http\Controllers\AcademicPeriodController;
 use App\Http\Controllers\AccessAssignmentController;
 // use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\ActivityController;
@@ -128,6 +129,16 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         ->except(['index', 'show'])->middleware('can:master.manage');
     // Fase 01a: firstlogin hanya untuk akun actor sendiri (update saja).
     Route::match(['put', 'patch'], '/firstlogin/{firstlogin}', [FirstLoginController::class, 'update']);
+    // Fase 06a (DEC-29) — periode akademik aktif dan lock tahun ajaran.
+    Route::get('/academic/period', [AcademicPeriodController::class, 'show'])
+        ->middleware('can:students.view');
+    Route::put('/academic/period', [AcademicPeriodController::class, 'update'])
+        ->middleware('can:master.manage');
+    Route::post('/school-years/{id}/lock', [SchoolYearController::class, 'lock'])
+        ->middleware('can:master.manage');
+    Route::post('/school-years/{id}/unlock', [SchoolYearController::class, 'unlock'])
+        ->middleware('can:master.manage');
+
     // Fase 01a — penegakan kemampuan pada endpoint master/referensi.
     // Read = master.view, Write = master.manage.
     $masterResources = [
@@ -241,6 +252,8 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         ->middleware('can:employees.view');
     Route::get('/employees/account-candidates', [EmployeeController::class, 'accountCandidates'])
         ->middleware('can:employees.manage');
+    Route::get('/employees/teacher-options', [EmployeeController::class, 'teacherOptions'])
+        ->middleware('can:employees.view');
     Route::post('/employees/{id}/restore', [EmployeeController::class, 'restore'])
         ->middleware('can:employees.manage');
     Route::post('/employees/{id}/link-account', [EmployeeController::class, 'linkAccount'])

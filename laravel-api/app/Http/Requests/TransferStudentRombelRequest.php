@@ -3,7 +3,9 @@
 namespace App\Http\Requests;
 
 use App\Models\SchoolRombel;
+use App\Models\SchoolYear;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class TransferStudentRombelRequest extends FormRequest
 {
@@ -23,8 +25,14 @@ class TransferStudentRombelRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'school_year_id' => ['required', 'integer', 'exists:school_years,id'],
-            'target_rombel_id' => ['required', 'integer', 'exists:school_rombels,id'],
+            'school_year_id' => [
+                'required', 'integer',
+                Rule::exists('school_years', 'id')->whereNull('deleted_at'),
+            ],
+            'target_rombel_id' => [
+                'required', 'integer',
+                Rule::exists('school_rombels', 'id')->whereNull('deleted_at'),
+            ],
             'expected_student_version' => ['required', 'integer'],
             'expected_membership_version' => ['required', 'integer'],
             'reason' => ['nullable', 'string', 'max:255'],
@@ -39,6 +47,14 @@ class TransferStudentRombelRequest extends FormRequest
         $validator->after(function ($validator) {
             $yearId = $this->input('school_year_id');
             $targetRombelId = $this->input('target_rombel_id');
+
+            if ($yearId) {
+                $schoolYear = SchoolYear::find($yearId);
+
+                if ($schoolYear && $schoolYear->locked_at !== null) {
+                    $validator->errors()->add('school_year_id', 'The selected academic year is locked. Unlock it before moving students.');
+                }
+            }
 
             if ($yearId && $targetRombelId) {
                 $belongs = SchoolRombel::where('id', $targetRombelId)
@@ -61,7 +77,7 @@ class TransferStudentRombelRequest extends FormRequest
     {
         return [
             'school_year_id.required' => 'Academic year is required.',
-            'school_year_id.exists' => 'The selected academic year does not exist.',
+            'school_year_id.exists' => 'The selected academic year is not available.',
             'target_rombel_id.required' => 'Target class is required.',
             'target_rombel_id.exists' => 'The selected target class does not exist.',
             'target_rombel_id.integer' => 'Target class must be an integer.',

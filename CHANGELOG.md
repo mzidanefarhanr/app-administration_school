@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-31] Subfase 06a — Periode akademik, lock tahun ajaran, dan rombel
+- Type: Feature | Schema Change | Docs
+- Scope / fase: **06a saja** di atas `main` @ `25875c9` (DEC-29 APPROVED). 06b/06c, merge/deploy, migrasi database operasional/MariaDB, dan perubahan dependency/service/`.env` tidak termasuk.
+- Files touched: tiga migration additive `2029_07_30_*`; `AcademicSetting`, `AcademicPeriodController`; `SchoolYearController`, `SchoolRombelController`, `StudentRombelController`, `EmployeeController`, request assign/transfer/kelas, model `SchoolYear`/`SchoolRombel`/`Employee`, policy `SchoolYear`/`SchoolRombel`, `routes/api.php`; `SchoolYears.vue`, `SchoolRombels.vue`, `Student.vue`, `AppMenu.vue`, `router/index.js`; `tests/Feature/Academic/*`; `scripts/phase06-uat.php`; dokumen kontrak, roadmap, laporan, checklist.
+- What changed: periode aktif singleton `academic_settings` (tanpa menebak nilai awal); `school_years` mendapat tanggal + lock beralasan/aktor/audit; CRUD kelas berfungsi dengan nama unik per tahun case-insensitive, `expected_version` + `409`, delete ditolak bila ada riwayat (termasuk soft-deleted), dan wali kelas dari profil `Pendidik` aktif (`class_teach_employee_id`) sambil mempertahankan `class_teach_id` legacy; assign/transfer 03d menolak tahun locked/soft-deleted; UI School Years/Classes/Students + grup menu Academic; route Classes diselaraskan ke `students.view`; UAT terisolasi `.uat-phase06` dengan fixture 130 siswa/12 kelas/10 guru aktif/4 staf.
+- Why: fondasi periode aktif, lock, dan kelas yang benar diperlukan sebelum 06b/06c; scaffold kelas sebelumnya tidak dapat menyimpan data atau memilih guru tanpa akun.
+- Validation: `php artisan test tests/Feature/Academic` **20 passed/145 assertions**; regresi 03d **27/104**; suite penuh **437 passed/13 skipped/3.971 assertions**; Pint **22 files PASS**; `npm run build` **PASS 806 modules/21,55 s**; `npx eslint --quiet` **exit 0**; UAT `.uat-phase06` checklist #1–#12 dijalankan agen (browser DOM + API + audit). **NOT RUN:** MariaDB/InnoDB migration/backfill dan konkurensi lock, race multi-proses, dua tab nyata, screenshot/visual regression, 06b/06c, CRUD semester, unique index DB nama kelas.
+- Notes / risks: `school_rombels_count` pada School Years menghitung kelas soft-deleted agar tahun tidak dapat dihapus saat masih memiliki riwayat; tahun aktif tidak dapat lock/delete dan tahun locked tidak dapat active/delete; lock idempotent; nama kelas belum memakai unique index DB (D6). Server UAT 14024/18024 tetap berjalan sampai penerimaan (DEC-27). Review manual pemilik **PENDING**; commit+push paket review bukan penerimaan.
+- Evidence: `reports/feature-update/PHASE-06A-REPORT.md`; `reports/feature-update/PHASE-06A-MANUAL-REVIEW.md`; SHA paket dicatat pada checkpoint berikutnya.
+
 ## [2026-10-31] Fase 06 — Pemilik menyetujui D1–D8 (DEC-29 APPROVED)
 - Type: Docs
 - Scope / fase: Rencana Fase 06; implementasi **06a** diotorisasi. Tidak ada perubahan kode aplikasi pada entri ini.

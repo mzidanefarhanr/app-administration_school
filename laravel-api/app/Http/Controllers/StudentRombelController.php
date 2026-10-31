@@ -7,6 +7,8 @@ use App\Http\Requests\StoreStudentRombelRequest;
 use App\Http\Requests\TransferStudentRombelRequest;
 use App\Http\Requests\UpdateStudentRombelRequest;
 use App\Http\Resources\StatusResource;
+use App\Models\SchoolRombel;
+use App\Models\SchoolYear;
 use App\Models\Student;
 use App\Models\StudentRombel;
 use Carbon\Carbon;
@@ -178,17 +180,35 @@ class StudentRombelController extends Controller
 
         try {
             $result = DB::transaction(function () use ($id, $schoolYearId, $rombelId, $expectedStudentVersion, $today) {
-                // 1. Lock student row first (consistent locking order, including trashed to reject cleanly)
+                // 1. Lock the academic year first and enforce the period lock (DEC-29 D3)
+                $schoolYear = SchoolYear::whereKey($schoolYearId)
+                    ->whereNull('deleted_at')
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $schoolYear) {
+                    abort(response()->json([
+                        'message' => 'The selected academic year is not available.',
+                    ], 422));
+                }
+
+                if ($schoolYear->locked_at !== null) {
+                    abort(response()->json([
+                        'message' => 'The selected academic year is locked. Unlock it before placing students.',
+                    ], 422));
+                }
+
+                // 2. Lock student row first (consistent locking order, including trashed to reject cleanly)
                 $student = Student::withTrashed()->where('id', $id)->lockForUpdate()->firstOrFail();
 
-                // 2. Reject if archived
+                // 3. Reject if archived
                 if ($student->trashed()) {
                     abort(response()->json([
                         'message' => 'Cannot assign a class to an archived student.',
                     ], 422));
                 }
 
-                // 3. Optimistic locking on student version
+                // 4. Optimistic locking on student version
                 if ((int) $student->version !== $expectedStudentVersion) {
                     abort(response()->json([
                         'message' => 'Conflict: The student record has been updated by another user. Please reload the latest data.',
@@ -196,7 +216,21 @@ class StudentRombelController extends Controller
                     ], 409));
                 }
 
-                // 4. Verify no active membership exists for this student in this academic year
+                // 5. Re-verify the target class inside the transaction; locking the
+                //    row blocks a concurrent class deletion from committing.
+                $targetClass = SchoolRombel::whereKey($rombelId)
+                    ->where('school_year_id', $schoolYearId)
+                    ->whereNull('deleted_at')
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $targetClass) {
+                    abort(response()->json([
+                        'message' => 'The selected target class is not available.',
+                    ], 422));
+                }
+
+                // 6. Verify no active membership exists for this student in this academic year
                 $existingActive = StudentRombel::where(function ($q) use ($student) {
                     $q->where('student_id', $student->id);
                     if (! empty($student->nik)) {
@@ -218,7 +252,7 @@ class StudentRombelController extends Controller
                     ], 409));
                 }
 
-                // 5. Create new membership
+                // 7. Create new membership
                 $membership = StudentRombel::create([
                     'student_id' => $student->id,
                     'student_nik' => $student->nik,
@@ -228,7 +262,7 @@ class StudentRombelController extends Controller
                     'version' => 1,
                 ]);
 
-                // 6. Increment student version
+                // 8. Increment student version
                 $student->version = (int) $student->version + 1;
                 $student->save();
 
@@ -286,17 +320,35 @@ class StudentRombelController extends Controller
             $result = DB::transaction(function () use (
                 $id, $schoolYearId, $targetRombelId, $expectedStudentVersion, $expectedMembershipVersion, $reason, $today
             ) {
-                // 1. Lock student row first (consistent locking order, including trashed to reject cleanly)
+                // 1. Lock the academic year first and enforce the period lock (DEC-29 D3)
+                $schoolYear = SchoolYear::whereKey($schoolYearId)
+                    ->whereNull('deleted_at')
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $schoolYear) {
+                    abort(response()->json([
+                        'message' => 'The selected academic year is not available.',
+                    ], 422));
+                }
+
+                if ($schoolYear->locked_at !== null) {
+                    abort(response()->json([
+                        'message' => 'The selected academic year is locked. Unlock it before moving students.',
+                    ], 422));
+                }
+
+                // 2. Lock student row first (consistent locking order, including trashed to reject cleanly)
                 $student = Student::withTrashed()->where('id', $id)->lockForUpdate()->firstOrFail();
 
-                // 2. Reject if archived
+                // 3. Reject if archived
                 if ($student->trashed()) {
                     abort(response()->json([
                         'message' => 'Cannot transfer class membership for an archived student.',
                     ], 422));
                 }
 
-                // 3. Optimistic locking on student version
+                // 4. Optimistic locking on student version
                 if ((int) $student->version !== $expectedStudentVersion) {
                     abort(response()->json([
                         'message' => 'Conflict: The student record has been updated by another user. Please reload the latest data.',
@@ -304,7 +356,7 @@ class StudentRombelController extends Controller
                     ], 409));
                 }
 
-                // 4. Find active membership in this academic year
+                // 5. Find active membership in this academic year
                 $activeMembership = StudentRombel::where(function ($q) use ($student) {
                     $q->where('student_id', $student->id);
                     if (! empty($student->nik)) {
@@ -325,7 +377,7 @@ class StudentRombelController extends Controller
                     ], 422));
                 }
 
-                // 5. Reject if target rombel is identical to current rombel
+                // 6. Reject if target rombel is identical to current rombel
                 if ((int) $activeMembership->school_rombel === $targetRombelId) {
                     abort(response()->json([
                         'message' => 'Target class must be different from current class.',
@@ -333,7 +385,21 @@ class StudentRombelController extends Controller
                     ], 422));
                 }
 
-                // 6. Optimistic locking on membership version
+                // 7. Re-verify the target class inside the transaction; locking the
+                //    row blocks a concurrent class deletion from committing.
+                $targetClass = SchoolRombel::whereKey($targetRombelId)
+                    ->where('school_year_id', $schoolYearId)
+                    ->whereNull('deleted_at')
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $targetClass) {
+                    abort(response()->json([
+                        'message' => 'The selected target class is not available.',
+                    ], 422));
+                }
+
+                // 8. Optimistic locking on membership version
                 if ((int) $activeMembership->version !== $expectedMembershipVersion) {
                     abort(response()->json([
                         'message' => 'Conflict: The student class membership has been modified by another operator. Please reload.',
@@ -341,7 +407,7 @@ class StudentRombelController extends Controller
                     ], 409));
                 }
 
-                // 7. Close old membership with latest_student_exit_date = today (DEC-23 #5)
+                // 9. Close old membership with latest_student_exit_date = today (DEC-23 #5)
                 // Note: student_status_id is NOT changed to Mutasi Keluar!
                 $activeMembership->latest_student_exit_date = $today;
                 if (! empty($reason)) {
@@ -350,7 +416,7 @@ class StudentRombelController extends Controller
                 $activeMembership->version = (int) $activeMembership->version + 1;
                 $activeMembership->save();
 
-                // 8. Create new membership in target rombel
+                // 10. Create new membership in target rombel
                 $newMembership = StudentRombel::create([
                     'student_id' => $student->id,
                     'student_nik' => $student->nik,
@@ -360,7 +426,7 @@ class StudentRombelController extends Controller
                     'version' => 1,
                 ]);
 
-                // 9. Increment student version
+                // 11. Increment student version
                 $student->version = (int) $student->version + 1;
                 $student->save();
 

@@ -25,9 +25,15 @@ const model = ref([
             { label: 'Education Schools', icon: 'pi pi-fw pi-building-columns', to: '/public/educationschools' },
             { label: 'Phase Status', icon: 'pi pi-fw pi-building', to: '/public/phasestatuses', class: 'rotated-icon' },
             { label: 'Professions', icon: 'pi pi-fw pi-briefcase', to: '/public/professions', class: 'rotated-icon' },
-            { label: 'Classes', icon: 'pi pi-fw pi-book', to: '/public/schoolrombels', class: 'rotated-icon' },
-            { label: 'School Years', icon: 'pi pi-fw pi-calendar', to: '/public/schoolyears', class: 'rotated-icon' },
             { label: 'Student Majors', icon: 'pi pi-fw pi-calendar', to: '/public/studentmajors', class: 'rotated-icon' },
+        ]
+    },
+    {
+        label: 'Academic',
+        requires: null,
+        items: [
+            { label: 'Classes', icon: 'pi pi-fw pi-book', to: '/public/schoolrombels', requires: 'students.view' },
+            { label: 'School Years', icon: 'pi pi-fw pi-calendar', to: '/public/schoolyears', requires: 'master.view' },
         ]
     },
     {

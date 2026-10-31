@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Traits\Loggable;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -168,6 +170,28 @@ class Employee extends Model
         }
 
         return null;
+    }
+
+    /**
+     * Eligibility for homeroom teacher: active Pendidik profile whose exit_date
+     * has not passed (DEC-29 D4). Fails closed when the Pendidik type is absent.
+     */
+    public function scopeEligibleHomeroomTeacher(Builder $query): Builder
+    {
+        $teacherTypeId = EmployeeType::where('name', 'Pendidik')->value('id');
+
+        if ($teacherTypeId === null) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        $today = Carbon::now('Asia/Jakarta')->toDateString();
+
+        return $query->whereNull('employees.deleted_at')
+            ->where('employees.employee_type_id', $teacherTypeId)
+            ->where(function (Builder $builder) use ($today) {
+                $builder->whereNull('employees.exit_date')
+                    ->orWhere('employees.exit_date', '>=', $today);
+            });
     }
 
     public function employeeStatus(): BelongsTo

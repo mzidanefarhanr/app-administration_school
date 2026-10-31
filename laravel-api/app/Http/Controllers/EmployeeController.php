@@ -311,6 +311,41 @@ class EmployeeController extends Controller
         ], 200);
     }
 
+    /**
+     * Lightweight homeroom teacher options: active Pendidik profiles only,
+     * id and name, no personal data (Fase 06a, DEC-29 D4).
+     */
+    public function teacherOptions(Request $request): JsonResponse
+    {
+        $this->authorize('employees.view');
+
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $search = trim((string) ($validated['search'] ?? ''));
+
+        $query = Employee::query()
+            ->eligibleHomeroomTeacher()
+            ->select(['employees.id', 'employees.name'])
+            ->orderBy('employees.name')
+            ->limit(50);
+
+        if ($search !== '') {
+            $query->where('employees.name', 'like', "%{$search}%");
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Homeroom teacher options retrieved successfully.',
+            'data' => $query->get()
+                ->map(fn (Employee $employee) => [
+                    'id' => $employee->id,
+                    'name' => $employee->name,
+                ])->values(),
+        ], 200);
+    }
+
     public function linkAccount(Request $request, $id): JsonResponse
     {
         $validated = $request->validate([

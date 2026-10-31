@@ -1,7 +1,7 @@
 # Fase 06 — Siklus tahun ajaran dan rombel
 
-Status teknis: NOT STARTED. Status review: PENDING. Semua tes/browser/manual: NOT RUN.
-Dependensi: 03,04; DEC-05. Baseline rencana: b02a87f; audit ulang HEAD saat pelaksanaan.
+Status teknis: **06a IMPLEMENTED & agent-verified (2026-10-31); 06b/06c NOT STARTED.** Status review: **PENDING — checklist 06a #1–#12 menunggu pemilik.** Tes/browser 06a dijalankan agen; item MariaDB/konkurensi/dua-tab tetap NOT RUN.
+Dependensi: 03,04; DEC-05. Baseline rencana: b02a87f; implementasi 06a di atas `main` @ `25875c9` (DEC-29 APPROVED).
 
 Rencana terbaru (2026-10-31): `reports/feature-update/PHASE-06-PLAN.md` (baseline `ffa71e3`) — **PLAN APPROVED 2026-10-31 WIB (DEC-29)**; implementasi **06a** diotorisasi, 06b/06c belum. Audit HEAD menemukan: `school_years` belum memiliki periode aktif/lock/tanggal; `semesters` global tanpa relasi tahun dan tanpa CRUD; CRUD Classes masih scaffold (`authorize(): false`, `class_teach_id` tidak fillable); wali kelas menunjuk `users` sehingga guru tanpa akun tidak dapat dipilih; route/menu Classes (`master.view`) tidak selaras dengan API (`students.*`); assign/transfer 03d belum memeriksa tahun locked/soft-deleted. Rencana mengusulkan urutan 06a → 06b → 06c dan UAT baru `.uat-phase06`.
 
@@ -14,6 +14,8 @@ Siklus tahun ajaran dan rombel. Kerjakan satu subfase per instruksi pemilik; jan
 Scope: Tahun/semester aktif eksplisit; rombel dan wali kelas sesuai akun/profil keputusan; lock periode; aturan satu keanggotaan per siswa/periode jika disetujui.
 
 Kriteria penerimaan: Year kosong/locked tertangani; create/update membership tervalidasi; siswa tidak berada di dua rombel yang dilarang.
+
+Status implementasi 2026-10-31: **IMPLEMENTED — agent-verified; review pemilik PENDING.** Periode aktif singleton `academic_settings` (tanpa menebak nilai awal); `school_years` tanggal + lock beralasan/aktor/audit; tahun aktif tidak dapat lock/delete; tahun locked menolak CRUD kelas dan assign/transfer; CRUD kelas berfungsi dengan nama unik per tahun case-insensitive, `expected_version` + `409`, delete ditolak bila ada riwayat termasuk soft-deleted; wali kelas dari profil `Pendidik` aktif (`class_teach_employee_id`) dengan `class_teach_id` legacy; UI School Years/Classes/Students + menu Academic; UAT `.uat-phase06`. Bukti: 20 tes akademik/145 assertions, regresi 03d 27/104, suite 437 passed/13 skipped/3.971 assertions, Pint 22 file, build 21,55 s, browser/API checklist #1–#12. Detail di `reports/feature-update/PHASE-06A-REPORT.md` dan `PHASE-06A-MANUAL-REVIEW.md`. Merge/deploy dan migrasi database operasional tidak diotorisasi; 06b/06c belum dimulai.
 
 Prompt setelah subfase ini dipilih:
 ```text

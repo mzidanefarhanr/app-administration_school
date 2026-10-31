@@ -259,9 +259,26 @@ Enam endpoint baru, tanpa ability baru. Baca memakai `students.view`/`employees.
 
 Frontend: `DataQuality.vue`, `DataQualityReviewDialog.vue`, `dataQualityParams.mjs`, `routeAbility.mjs`, dan dukungan `canAny` pada store; deep link additive di `Student.vue` dan `EmployeeDirectory.vue`. Rekap sekolah tetap menunggu DEC-12 (PROPOSED).
 
+## Perubahan Subfase 06a (DEC-29) — periode aktif, lock tahun ajaran, dan kelas
+
+Empat endpoint baru dan satu endpoint opsi wali kelas; tanpa ability baru. Baca periode memakai `students.view`; tulis periode/lock memakai `master.manage`; kelas tetap `students.view`/`students.manage`; opsi guru `employees.view`.
+
+| Method | Endpoint | Izin | Ringkas |
+|---|---|---|---|
+| GET | `/api/academic/period` | `students.view` | `data.active` (`school_year`, `semester`, atau null), `data.school_years` (tanggal/active/locked/reason), `data.semesters` |
+| PUT | `/api/academic/period` | `master.manage` | `active_school_year_id`, `active_semester_id`; menolak tahun locked/soft-deleted dan semester tidak valid (`422`); transaksi + row lock |
+| POST | `/api/school-years/{id}/lock` | `master.manage` | `reason` wajib (maks. 255); tahun aktif `422`; lock ulang idempotent tanpa menimpa alasan |
+| POST | `/api/school-years/{id}/unlock` | `master.manage` | `reason` wajib (maks. 255); unlock idempotent; lock/unlock diaudit |
+| GET | `/api/employees/teacher-options?search=` | `employees.view` | Hanya profil `Pendidik` aktif (`exit_date` null/≥ hari ini), payload `id`,`name`, limit 50, `search` maks. 100 |
+
+- **School Years**: `GET /api/school-years` kini memuat `start_date`, `end_date`, `is_active`, `is_locked`, `locked_at`, `locked_by`, `lock_reason`, `school_rombels_count`. Create/update menerima tanggal nullable `Y-m-d` dan menolak urutan terbalik (`422`). Delete (tetap membutuhkan `delete=true`) ditolak `422` bila tahun aktif, locked, atau masih direferensikan kelas **termasuk kelas soft-deleted**; tahun not-found `404`.
+- **School Rombels**: `GET /api/school-rombels?school_year_id=` mengembalikan `version`, `school_year` (termasuk `is_locked`), `school_level`, `student_major`, `class_teach_employee`, `class_teach` legacy, `memberships_count`, `active_members_count`. Create/update memakai `name` (wajib, maks. 100), `school_year_id`/`school_level_id` wajib non-deleted, `student_major_id`/`class_teach_employee_id` opsional; `expected_version` wajib untuk update/delete. Nama unik per tahun secara case-insensitive (`422`); tahun locked (`422`); wali non-`Pendidik` aktif (`422`); tahun/tingkat/jurusan tidak dapat diubah bila sudah ada riwayat keanggotaan. Update/delete versi basi → `409` dengan `current_version` dan `data` terbaru; delete ditolak bila ada riwayat `student_rombels` termasuk soft-deleted.
+- **Assign/transfer 03d**: `POST /api/students/{id}/assign-rombel` dan `/transfer-rombel` mengunci baris tahun lebih dulu di transaksi; tahun locked → `422` "The selected academic year is locked. Unlock it before placing/moving students."; tahun atau kelas soft-deleted ditolak validasi. Aturan single-active, versi siswa/membership, dan audit 03d tidak berubah.
+- **UI**: `/public/schoolyears` (periode aktif + lock + tanggal) dan `/public/schoolrombels` (CRUD kelas + konflik versi) berada di grup menu **Academic**; route Classes memakai `students.view`, School Years `master.view`. Students memakai periode aktif dari server dan menonaktifkan assign/transfer saat tahun locked.
+
 ## Aktual
 Resource di `/api`, dilindungi auth:sanctum: users, status-users, type-users, firstlogin; provinces/regencies/districts/villages; school-years/semesters/education-levels; genders/religions/blood-types/professions/family-status; education-schools/student-statuses/student-entries/student-majors/phase-statuses; students/school-levels/school-rombels/student-rombels; employees (alias deprecated: employee)/employee-statuses/employee-types/employments/marital-statuses; school-profile/subjects/activities.
-`/api/user` mengambil actor. `/api/check-auth` mengembalikan authenticated + user atau null. Route auth web mencakup login/logout/register/forgot-password/reset-password dan email verification. Sejak 05c tersedia `/api/data-quality/students/*` dan `/api/data-quality/employees/*` (enam route). Daftar route bukan bukti semua handler lengkap.
+`/api/user` mengambil actor. `/api/check-auth` mengembalikan authenticated + user atau null. Route auth web mencakup login/logout/register/forgot-password/reset-password dan email verification. Sejak 05c tersedia `/api/data-quality/students/*` dan `/api/data-quality/employees/*` (enam route). Sejak 06a tersedia `/api/academic/period`, `/api/school-years/{id}/lock`, `/api/school-years/{id}/unlock`, dan `/api/employees/teacher-options`. Daftar route bukan bukti semua handler lengkap.
 `GET /api/student-rombels/{id}` baseline memakai ID tahun ajaran untuk mengembalikan daftar keanggotaan, bukan ID membership. Pertahankan consumer atau migrasikan bersama; jangan mengubah makna `{id}` diam-diam.
 Frontend reusable memakai POST dengan `_method` untuk update/delete. Audit method/payload sebenarnya sebelum memigrasi menjadi PUT/DELETE.
 

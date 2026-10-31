@@ -3,7 +3,9 @@
 namespace App\Http\Requests;
 
 use App\Models\SchoolRombel;
+use App\Models\SchoolYear;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class AssignStudentRombelRequest extends FormRequest
 {
@@ -23,8 +25,14 @@ class AssignStudentRombelRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'school_year_id' => ['required', 'integer', 'exists:school_years,id'],
-            'school_rombel_id' => ['required', 'integer', 'exists:school_rombels,id'],
+            'school_year_id' => [
+                'required', 'integer',
+                Rule::exists('school_years', 'id')->whereNull('deleted_at'),
+            ],
+            'school_rombel_id' => [
+                'required', 'integer',
+                Rule::exists('school_rombels', 'id')->whereNull('deleted_at'),
+            ],
             'expected_student_version' => ['required', 'integer'],
         ];
     }
@@ -37,6 +45,14 @@ class AssignStudentRombelRequest extends FormRequest
         $validator->after(function ($validator) {
             $yearId = $this->input('school_year_id');
             $rombelId = $this->input('school_rombel_id');
+
+            if ($yearId) {
+                $schoolYear = SchoolYear::find($yearId);
+
+                if ($schoolYear && $schoolYear->locked_at !== null) {
+                    $validator->errors()->add('school_year_id', 'The selected academic year is locked. Unlock it before placing students.');
+                }
+            }
 
             if ($yearId && $rombelId) {
                 $belongs = SchoolRombel::where('id', $rombelId)
@@ -59,7 +75,7 @@ class AssignStudentRombelRequest extends FormRequest
     {
         return [
             'school_year_id.required' => 'Academic year is required.',
-            'school_year_id.exists' => 'The selected academic year does not exist.',
+            'school_year_id.exists' => 'The selected academic year is not available.',
             'school_rombel_id.required' => 'Target class is required.',
             'school_rombel_id.exists' => 'The selected target class does not exist.',
             'school_rombel_id.integer' => 'Target class must be an integer.',

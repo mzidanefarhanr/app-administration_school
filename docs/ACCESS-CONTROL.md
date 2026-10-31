@@ -61,6 +61,13 @@ API mayoritas hanya auth:sanctum. Beberapa controller akun membedakan tipe secar
 - **Privasi**: daftar/summary tidak memuat NIK/alamat/telepon/medis; audit review hanya metadata temuan. Review ignored tidak menyembunyikan issue baru karena issue key mengikat versi record.
 - **UI**: menu dan route `/public/data-quality` memakai daftar ability `['students.view','employees.view']` (OR) melalui `routeAbility.mjs`/`canAny`; string ability tunggal pada route lain tetap berperilaku sama. Tombol review hanya tampil untuk pemegang manage; server tetap menegakkan `403`.
 
+## Implementasi Subfase 06a (periode akademik, lock tahun, dan kelas)
+- **Tanpa ability baru**: periode aktif dibaca dengan `students.view`; penetapan periode dan lock/unlock memakai `master.manage`; School Years tetap `master.view`/`master.manage`; Classes memakai `students.view`/`students.manage` (diselaraskan dengan API 06a); opsi wali kelas memakai `employees.view`. Tidak mengubah peran/kemampuan atau menambah bypass.
+- **Route matrix**: `GET /api/academic/period` → `students.view`; `PUT /api/academic/period`, `POST /api/school-years/{id}/lock`, `POST /api/school-years/{id}/unlock` → `master.manage`; `GET/POST/PUT/DELETE /api/school-rombels` → `students.view`/`students.manage`; `GET /api/employees/teacher-options` → `employees.view`; assign/transfer → `students.manage`. Guest `401`; tanpa kemampuan `403` (principal view-only tidak dapat mengubah kelas/periode/lock).
+- **Policy terpusat**: `SchoolRombelPolicy` (`students.view/manage`; restore/forceDelete `false`) dan `SchoolYearPolicy` (`master.view/manage`; `lock`/`unlock` membutuhkan `master.manage`). Penolakan objek tetap di server, bukan sekadar menyembunyikan tombol.
+- **Batas objek**: wali kelas hanya profil `Pendidik` aktif; tahun locked menolak create/update/delete kelas dan assign/transfer di server; tahun aktif tidak dapat dikunci/dihapus; tahun locked tidak dapat dijadikan aktif/dihapus. Alasan lock/unlock wajib dan tercatat pada audit.
+- **UI**: grup menu **Academic** dengan Classes (`students.view`) dan School Years (`master.view`); halaman Students menonaktifkan assign/transfer saat tahun terkunci. Tombol tersembunyi/nonaktif bukan pengganti enforcement server.
+
 ## Matriks target — usulan, bukan role yang sudah ada
 | Kemampuan | Admin | Operator | Kepala sekolah | Guru/wali kelas |
 |---|---|---|---|---|
