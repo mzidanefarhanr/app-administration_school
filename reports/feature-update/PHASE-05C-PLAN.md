@@ -1,7 +1,7 @@
 # Rencana Subfase 05c — Pemeriksaan Kelengkapan
 
 - Tanggal: 2026-10-31 (WIB). Branch: `main`. Baseline: `8b091cf` (penerimaan 05b); `main...origin/main` sinkron.
-- Status: **PLAN APPROVED — DEC-28 (D1–D7) disetujui pemilik 2026-10-31 WIB ("Saya setuju D1-D7").** Implementasi 05c diotorisasi; merge/deploy tidak. Dokumen ini tetap rencana, bukan laporan implementasi.
+- Status: **PLAN APPROVED — DEC-28 (D1–D7) disetujui pemilik 2026-10-31 WIB ("Saya setuju D1-D7").** Implementasi 05c diotorisasi, telah selesai pada `c2fddfa`, dan checklist #1–#14 **APPROVED pemilik 2026-10-31 WIB**; merge/deploy tidak. Dokumen ini tetap rencana, bukan laporan implementasi.
 - Scope: pemeriksaan kelengkapan **siswa** dan **pegawai**, daftar missing/invalid/duplikat/blocked, serta status review operator. **Rekap sekolah tidak termasuk** (DEC-12 masih PROPOSED, menunggu contoh format; penomoran subfase ditentukan kemudian).
 - Dokumen acuan: `reports/feature-update/PHASE-05-PLAN.md` §7, `roadmap/phases/PHASE-05-IMPORT-EXPORT.md`, `docs/DECISIONS.md` (DEC-12, DEC-20, DEC-21, DEC-22, DEC-24, DEC-25, DEC-26, DEC-27), `docs/REQUIREMENTS.md` (FR-06), `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `docs/DATABASE.md`, `docs/TESTING.md`.
 - Gate: pemilik menjawab **D1–D7** dan menyatakan persetujuan; keputusan dicatat sebagai **DEC-28**. **Selesai 2026-10-31 WIB — DEC-28 APPROVED ("Saya setuju D1-D7").**

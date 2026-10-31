@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-31] Subfase 05c — Penerimaan manual pemilik (#1–#14) dan penghentian UAT 05
+- Type: Docs
+- Scope / fase: Subfase 05c di atas `main` @ `c2fddfa`; dokumentasi penerimaan dan operasional; tidak ada perubahan kode aplikasi.
+- Files touched: `reports/feature-update/PHASE-05C-MANUAL-REVIEW.md`, `PHASE-05C-REPORT.md`, `PHASE-05C-PLAN.md`, `PHASE-05-PLAN.md`, `INDEX.md`, `HANDOFF.md`, `CHANGELOG.md`, `docs/TESTING.md`, `docs/REQUIREMENTS.md`, `docs/DECISIONS.md` (DEC-28), `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-05-IMPORT-EXPORT.md`, `PROJECT_CONTEXT.md`.
+- What changed: mencatat pernyataan pemilik **"Pengujian nomor 1-14 sudah berhasil dan saya approved."** (2026-10-31 WIB) sebagai penerimaan 05c checklist #1–#14; mencatat bukti penghentian server UAT 05 (PID 10336 Vite/19196 PHP diverifikasi command line, `taskkill /T /F`, port 14023/18023 bebas) dan perintah restart.
+- Why: penerimaan manual pemilik dicatat terpisah dari implementasi; server UAT fase yang sudah diterima tidak perlu terus berjalan (DEC-27).
+- Validation: `Get-CimInstance Win32_Process` memverifikasi command line kedua PID; `taskkill /T /F` menghentikan tree; `netstat` menunjukkan 14023/18023 bebas, Apache 80/443 (PID 1304) dan MariaDB 3306 (PID 18244) tetap listening. **NOT RUN**: tidak ada tes aplikasi ulang; penerimaan berdasarkan pernyataan pemilik, bukan pengujian ulang agen. Item NOT RUN 05c (dua tab/409 browser, MariaDB/InnoDB, uji beban, screenshot visual) tetap NOT RUN.
+- Notes / risks: penghentian hanya proses UAT terisolasi; data `.uat-phase05` dan kredensial privat dipertahankan; tidak ada merge/deploy/force-push, perubahan dependency/service/`.env`, atau akses DB terlarang. Rekap sekolah tetap menunggu DEC-12 (PROPOSED).
+- Evidence: `reports/feature-update/PHASE-05C-MANUAL-REVIEW.md`, `PHASE-05C-REPORT.md`, `HANDOFF.md`; baseline `c2fddfa`.
+
 ## [2026-10-31] Subfase 05c — Pemeriksaan kelengkapan siswa/pegawai dan review operator
 - Type: Feature
 - Scope / fase: Subfase 05c (DEC-28 APPROVED 2026-10-31 WIB); tidak ada perubahan pada rekap sekolah, kontrak impor 05a/05b, dependency, atau DB operasional.

@@ -2,7 +2,7 @@
 
 Tanggal: implementasi dan verifikasi agen 2026-10-31 WIB. Branch: `main`. Baseline: `037b1c6` (pencatatan DEC-28 APPROVED); commit implementasi 05c: **`c2fddfa`**.
 Keputusan pemilik: **DEC-28** (APPROVED 2026-10-31 WIB; D1–D7, pernyataan "Saya setuju D1-D7.").
-Status teknis: **IMPLEMENTED — agent-verified (2026-10-31)**. Status review pemilik: **PENDING** sampai checklist manual dijalankan.
+Status teknis: **IMPLEMENTED — agent-verified (2026-10-31)**. Status review pemilik: **APPROVED 2026-10-31 WIB (checklist #1–#14)** berdasarkan pernyataan pemilik **"Pengujian nomor 1-14 sudah berhasil dan saya approved."**; agen tidak mengulang skenario.
 Rencana: `reports/feature-update/PHASE-05C-PLAN.md`. Checklist manual: `reports/feature-update/PHASE-05C-MANUAL-REVIEW.md`.
 
 ## 1. Outcome dan cakupan
@@ -119,16 +119,16 @@ Checklist rinci ada di `PHASE-05C-MANUAL-REVIEW.md` (14 skenario). Ringkasnya: d
 - **Privasi**: pesan issue tidak menyalin nilai field; payload daftar tidak memuat NIK/alamat/telepon/medis; audit model hanya metadata temuan. Tes negatif mengunci perilaku ini.
 - **Bug yang ditemukan dan diperbaiki saat verifikasi**: validasi review awalnya hanya memeriksa halaman pertama daftar issue (default 20), sehingga acknowledge issue di luar halaman pertama menghasilkan `409` palsu. Diperbaiki dengan `hasIssue()` pada kedua inspector (memeriksa seluruh hasil analisis) dan dua tes regresi; suite data quality tetap PASS.
 - **Batas**: scan memakai `chunkById(500)`; dataset sekolah normal. Uji beban belum dijalankan dan dicatat NOT RUN.
-- **UAT lifecycle**: server 14023/18023 dihentikan hanya setelah pemilik menerima checklist (DEC-27); data `.uat-phase05` dipertahankan.
+- **UAT lifecycle**: server 14023/18023 **dihentikan 2026-10-31** setelah pemilik menerima checklist (DEC-27). Command line PID 10336 (Vite) dan 19196 (PHP) diverifikasi sebelum `taskkill /T /F`; port terverifikasi bebas; Apache 80/443 dan MariaDB 3306 tetap berjalan; data `.uat-phase05` dipertahankan.
 
 ## 6. Sinkronisasi dokumen
 
 Diperbarui: `docs/API-CONTRACTS.md` (enam endpoint, parameter, bentuk issue/review/summary), `docs/ACCESS-CONTROL.md` (reuse view/manage; review write = manage; tanpa ability baru), `docs/DATABASE.md` (tabel `data_quality_reviews`), `docs/REQUIREMENTS.md` (FR-06: kelengkapan tersedia; rekap sekolah OPEN), `docs/TESTING.md` (bukti dan NOT RUN), `docs/DECISIONS.md` (catatan implementasi DEC-28), `CHANGELOG.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-05-IMPORT-EXPORT.md`, `reports/feature-update/PHASE-05-PLAN.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, laporan ini, dan checklist manual.
 
-Commit/push dilakukan agar pemilik dapat meninjau implementasi di GitHub; commit/push bukan penerimaan manual. Penerimaan checklist #1–#14 (bila disetujui) dicatat pada commit dokumentasi tersendiri. Tidak ada merge/deploy/force-push, perubahan `.env` utama, dependency/lockfile, service, DB terlarang, atau migrasi database operasional/MariaDB.
+Commit/push dilakukan agar pemilik dapat meninjau implementasi di GitHub; commit/push bukan penerimaan manual. Penerimaan checklist #1–#14 dicatat pada commit dokumentasi tersendiri berdasarkan pernyataan pemilik. Tidak ada merge/deploy/force-push, perubahan `.env` utama, dependency/lockfile, service, DB terlarang, atau migrasi database operasional/MariaDB.
 
 ## 7. Langkah berikutnya
 
-1. Pemilik meninjau `PHASE-05C-MANUAL-REVIEW.md` pada `.uat-phase05` (server 14023/18023 masih berjalan).
-2. Setelah pernyataan penerimaan, checklist dicatat pada commit dokumentasi tersendiri; server UAT dihentikan sesuai DEC-27 dan data `.uat-phase05` dipertahankan.
+1. ~~Pemilik meninjau `PHASE-05C-MANUAL-REVIEW.md` pada `.uat-phase05`.~~ **Selesai 2026-10-31 WIB: seluruh #1–#14 APPROVED** berdasarkan pernyataan pemilik.
+2. ~~Setelah pernyataan penerimaan, checklist dicatat pada commit dokumentasi tersendiri; server UAT dihentikan.~~ **Selesai**: penerimaan dicatat pada commit dokumentasi tersendiri; server 14023/18023 dihentikan, port bebas, data `.uat-phase05` dipertahankan.
 3. Rekap sekolah menunggu contoh format (DEC-12 PROPOSED) dan instruksi terpisah; jangan mulai rekap atau Fase 06 tanpa instruksi pemilik.

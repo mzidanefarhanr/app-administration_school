@@ -2,7 +2,13 @@
 
 Subfase: 05c — pemeriksaan kelengkapan siswa dan pegawai, daftar missing/invalid/duplikat/blocked, status review operator.
 Keputusan: **DEC-28 APPROVED** (D1–D7, 2026-10-31 WIB). Laporan teknis: `reports/feature-update/PHASE-05C-REPORT.md`.
-Baseline implementasi: `main` pada `c2fddfa` (di atas `037b1c6`).
+Baseline implementasi: `main` pada `c2fddfa` (di atas `037b1c6`). Status: **OWNER APPROVED 2026-10-31 WIB — seluruh #1–#14**. Pernyataan pemilik adalah satu-satunya bukti penerimaan; agen tidak mengulang skenario dan item NOT RUN tetap NOT RUN.
+
+## Status penerimaan pemilik
+
+- Pernyataan pemilik 2026-10-31 WIB: **"Pengujian nomor 1-14 sudah berhasil dan saya approved."**
+- Cakupan: seluruh skenario #1–#14 pada lingkungan UAT terisolasi `.uat-phase05`. Pernyataan pemilik adalah satu-satunya bukti penerimaan; agen tidak mengulang skenario.
+- Batas: penerimaan tidak mengotorisasi merge, deploy, migrasi data legacy/MariaDB/produksi, perubahan dependency/service, rekap sekolah, atau Fase 06. Item NOT RUN agen tetap NOT RUN.
 
 ## Lingkungan UAT (terisolasi)
 
@@ -12,7 +18,7 @@ Baseline implementasi: `main` pada `c2fddfa` (di atas `037b1c6`).
 - Launcher: `laravel-api/scripts/phase05-uat.php`
 - Akun: **`uat.operator`** (manage siswa/pegawai, dapat menulis review) dan **`uat.kepsek`** (view-only; tidak dapat menulis review). Password hanya ada di runtime privat `.uat-phase05`; tidak dicetak di dokumen.
 
-Status saat paket ini diserahkan: server SPA (PID 10336) dan API (PID 19196) **masih berjalan**. Sesuai DEC-27, server dihentikan setelah checklist dinyatakan lulus/APPROVED; data `.uat-phase05` dipertahankan.
+Status: server SPA (PID 10336) dan API (PID 19196) **dihentikan 2026-10-31** setelah penerimaan, sesuai DEC-27. Command line kedua proses diverifikasi sebelum `taskkill /T /F`; port 14023/18023 terverifikasi bebas; Apache 80/443 dan MariaDB 3306 tidak disentuh; data `.uat-phase05` dipertahankan.
 
 Perintah restart bila server sudah berhenti:
 

@@ -1,7 +1,7 @@
 # Rencana Fase 05 — Impor, Ekspor dan Kualitas Data
 
 - Tanggal: 2026-10-30 (WIB). Branch: `main`. Baseline kode: `b093db7` (04b diterima pemilik dan sudah di-push).
-- Status dokumen: **DISETUJUI PEMILIK 2026-10-30 WIB sebagai DEC-25** (D1–D8). Subfase **05a IMPLEMENTED (agent-verified) dan owner APPROVED 2026-10-30 WIB (#1–#12)**; **05b IMPLEMENTED (`ad74309`, agent-verified 2026-10-31; DEC-26 APPROVED 2026-10-30 WIB) dan owner APPROVED 2026-10-31 WIB (#1–#14)**; **05c IMPLEMENTED (agent-verified 2026-10-31; DEC-28 APPROVED 2026-10-31 WIB), review manual pemilik PENDING**.
+- Status dokumen: **DISETUJUI PEMILIK 2026-10-30 WIB sebagai DEC-25** (D1–D8). Subfase **05a IMPLEMENTED (agent-verified) dan owner APPROVED 2026-10-30 WIB (#1–#12)**; **05b IMPLEMENTED (`ad74309`, agent-verified 2026-10-31; DEC-26 APPROVED 2026-10-30 WIB) dan owner APPROVED 2026-10-31 WIB (#1–#14)**; **05c IMPLEMENTED (`c2fddfa`, agent-verified 2026-10-31; DEC-28 APPROVED 2026-10-31 WIB) dan owner APPROVED 2026-10-31 WIB (#1–#14)**.
 - Fase 05: subfase **05a (impor siswa) → 05b (ekspor & impor pegawai) → 05c (pemeriksaan kelengkapan)**, dikerjakan satu per satu atas instruksi pemilik.
 - Dokumen acuan: `roadmap/phases/PHASE-05-IMPORT-EXPORT.md`, `docs/DECISIONS.md` (DEC-08, DEC-12, DEC-14, DEC-20, DEC-24), `docs/REQUIREMENTS.md` (FR-06), `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `docs/DATABASE.md`, `docs/TESTING.md`.
 - Gate: **DEC-08 dan D1–D8 sudah APPROVED 2026-10-30 WIB sebagai DEC-25**; DEC-12 tetap PROPOSED untuk rekap 05b.
@@ -159,7 +159,7 @@ Runtime `.uat-phase05` (D7), seed sintetis ≥300 siswa dan ≥100 pegawai, file
 - Denominator kelengkapan harus eksplisit; siswa tanpa NIK dibedakan **incomplete** vs **blocked** sesuai DEC-20.
 - Koreksi manual ter-audit; tidak ada penggabungan otomatis berdasarkan nama.
 
-Status 2026-10-31: **IMPLEMENTED — agent-verified** (DEC-28 APPROVED 2026-10-31 WIB). Enam endpoint `/api/data-quality/*`, tabel `data_quality_reviews`, UI Data Quality + deep link, dan 120 fixture `UAT-DQ` selesai; review manual pemilik **PENDING**. Bukti di `PHASE-05C-REPORT.md`; checklist di `PHASE-05C-MANUAL-REVIEW.md`. Rekap sekolah tetap menunggu DEC-12 (PROPOSED).
+Status 2026-10-31: **IMPLEMENTED — agent-verified, dan checklist #1–#14 APPROVED pemilik 2026-10-31 WIB** (DEC-28 APPROVED 2026-10-31 WIB). Enam endpoint `/api/data-quality/*`, tabel `data_quality_reviews`, UI Data Quality + deep link, dan 120 fixture `UAT-DQ` selesai; implementasi `c2fddfa`. Server UAT 14023/18023 dihentikan setelah penerimaan (DEC-27); data `.uat-phase05` dipertahankan. Bukti di `PHASE-05C-REPORT.md`; checklist di `PHASE-05C-MANUAL-REVIEW.md`. Rekap sekolah tetap menunggu DEC-12 (PROPOSED).
 
 ---
 
