@@ -6,6 +6,7 @@ use App\Http\Resources\StatusResource;
 use App\Models\AcademicSetting;
 use App\Models\SchoolRombel;
 use App\Models\SchoolYear;
+use App\Models\StudentProgressionBatch;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -203,6 +204,18 @@ class SchoolYearController extends Controller
                 if ($classCount > 0) {
                     abort(response()->json([
                         'message' => "This record is still being referenced by {$classCount} Class(es).",
+                    ], 422));
+                }
+
+                $batchCount = StudentProgressionBatch::query()
+                    ->where(fn ($query) => $query
+                        ->where('source_school_year_id', $schoolYear->id)
+                        ->orWhere('target_school_year_id', $schoolYear->id))
+                    ->count();
+
+                if ($batchCount > 0) {
+                    abort(response()->json([
+                        'message' => "This record is still being referenced by {$batchCount} progression batch(es).",
                     ], 422));
                 }
 

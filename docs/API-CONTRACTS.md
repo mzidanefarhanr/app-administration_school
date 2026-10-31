@@ -276,9 +276,29 @@ Empat endpoint baru dan satu endpoint opsi wali kelas; tanpa ability baru. Baca 
 - **Assign/transfer 03d**: `POST /api/students/{id}/assign-rombel` dan `/transfer-rombel` mengunci baris tahun lebih dulu di transaksi; tahun locked → `422` "The selected academic year is locked. Unlock it before placing/moving students."; tahun atau kelas soft-deleted ditolak validasi. Aturan single-active, versi siswa/membership, dan audit 03d tidak berubah.
 - **UI**: `/public/schoolyears` (periode aktif + lock + tanggal) dan `/public/schoolrombels` (CRUD kelas + konflik versi) berada di grup menu **Academic**; route Classes memakai `students.view`, School Years `master.view`. Students memakai periode aktif dari server dan menonaktifkan assign/transfer saat tahun locked.
 
+## Perubahan Subfase 06b (DEC-30) — naik kelas, tinggal kelas, dan lulus
+
+Enam endpoint baru di `/api/academic/progression`; tanpa ability baru. Baca opsi/roster/riwayat memakai `students.view`; preview dan commit memakai `students.manage`.
+
+| Method | Endpoint | Izin | Ringkas |
+|---|---|---|---|
+| GET | `/api/academic/progression/options?source_school_year_id=&target_school_year_id=` | `students.view` | Tahun sumber/tujuan (tanggal, lock, active), kelas per tahun, `max_batch_size=500` |
+| GET | `/api/academic/progression/roster?source_school_year_id=&target_school_year_id=&rombel_ids[]=&search=` | `students.view` | Siswa non-archived dengan tepat satu keanggotaan aktif di tahun sumber; item memuat `student_version`, `membership_id`/`membership_version`, kelas sumber, `eligible`, `ineligible_reason`; maksimum 500 baris + `truncated`/`ambiguous_legacy_count` |
+| POST | `/api/academic/progression/preview` | `students.manage` | Validasi tanpa mutasi; `200` + `token`/`expires_at`/`batch_id`/`summary`/`items`, atau `422` item konflik tanpa batch |
+| POST | `/api/academic/progression/commit` | `students.manage` | `token` 64 hex; transaksi atomik; `409` itemized tanpa mutasi bila versi/data berubah; `200` replay (`replayed: true`) bila sudah committed; token kedaluwarsa `422`; token akun lain `403` |
+| GET | `/api/academic/progression/batches?source_school_year_id=&target_school_year_id=` | `students.view` | Riwayat batch committed untuk semua pembaca; batch preview hanya milik pembuatnya; tanpa token/decisions mentah |
+| GET | `/api/academic/progression/batches/{id}` | `students.view` | Detail hasil committed; preview milik akun lain `403` |
+
+- **Payload preview**: `source_school_year_id`, `target_school_year_id` (berbeda, non-deleted), `graduation_date` (`Y-m-d`, wajib bila ada graduate), `decisions` 1–500 dengan `student_id`/`membership_id` unik, `expected_student_version`, `expected_membership_version`, `decision` (`promote`/`retain`/`graduate`/`skip`), `target_rombel_id` wajib untuk promote. Server tidak menerima nama/NIK sebagai kunci.
+- **Commit dan lock**: urutan lock batch → tahun → siswa → keanggotaan → kelas tujuan; target harus unlocked bila ada promote, sumber harus unlocked bila ada graduate; retain/skip tidak memerlukan lock. Promote membuat keanggotaan baru di tahun tujuan (status `Aktif`, tanggal masuk `start_date` tujuan, versi 1); graduate mengubah keanggotaan sumber menjadi status `Lulus` (id 6) dengan exit/graduation date dan versi+1; retain/skip tidak memutasi. `students.version` naik hanya untuk siswa yang berubah.
+- **Token**: acak 256-bit, hanya SHA-256 yang disimpan, berlaku 30 menit, terikat pada `created_by`; batch tidak dihapus otomatis dan tidak memiliki endpoint delete. Tahun ajaran yang direferensikan batch tidak dapat dihapus (`422`).
+- **UI**: `/public/progression` di grup menu **Academic** memakai `students.view`; preview/commit hanya untuk pemegang `students.manage`; halaman Students memakai `counts[6]` untuk kartu Graduated.
+
+Frontend: `StudentProgression.vue` (wizard Years → Students & Decisions → Preview → Result, keputusan persisten lintas filter, dialog `409` + **Reload & Preview Again**, riwayat/detail), route/menu Academic, dan perbaikan kartu Graduated di `Student.vue`.
+
 ## Aktual
 Resource di `/api`, dilindungi auth:sanctum: users, status-users, type-users, firstlogin; provinces/regencies/districts/villages; school-years/semesters/education-levels; genders/religions/blood-types/professions/family-status; education-schools/student-statuses/student-entries/student-majors/phase-statuses; students/school-levels/school-rombels/student-rombels; employees (alias deprecated: employee)/employee-statuses/employee-types/employments/marital-statuses; school-profile/subjects/activities.
-`/api/user` mengambil actor. `/api/check-auth` mengembalikan authenticated + user atau null. Route auth web mencakup login/logout/register/forgot-password/reset-password dan email verification. Sejak 05c tersedia `/api/data-quality/students/*` dan `/api/data-quality/employees/*` (enam route). Sejak 06a tersedia `/api/academic/period`, `/api/school-years/{id}/lock`, `/api/school-years/{id}/unlock`, dan `/api/employees/teacher-options`. Daftar route bukan bukti semua handler lengkap.
+`/api/user` mengambil actor. `/api/check-auth` mengembalikan authenticated + user atau null. Route auth web mencakup login/logout/register/forgot-password/reset-password dan email verification. Sejak 05c tersedia `/api/data-quality/students/*` dan `/api/data-quality/employees/*` (enam route). Sejak 06a tersedia `/api/academic/period`, `/api/school-years/{id}/lock`, `/api/school-years/{id}/unlock`, dan `/api/employees/teacher-options`. Sejak 06b tersedia enam route `/api/academic/progression/*` (options, roster, preview, commit, batches, batches/{id}). Daftar route bukan bukti semua handler lengkap.
 `GET /api/student-rombels/{id}` baseline memakai ID tahun ajaran untuk mengembalikan daftar keanggotaan, bukan ID membership. Pertahankan consumer atau migrasikan bersama; jangan mengubah makna `{id}` diam-diam.
 Frontend reusable memakai POST dengan `_method` untuk update/delete. Audit method/payload sebenarnya sebelum memigrasi menjadi PUT/DELETE.
 

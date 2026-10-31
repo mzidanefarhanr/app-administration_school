@@ -1,7 +1,7 @@
 # Fase 06 — Siklus tahun ajaran dan rombel
 
-Status teknis: **06a IMPLEMENTED & agent-verified (2026-10-31); 06b PLAN APPROVED (DEC-30) dan implementasi sedang dikerjakan; 06c NOT STARTED.** Status review: **06a OWNER APPROVED 2026-10-31 WIB (#1–#12).** Tes/browser 06a dijalankan agen; item MariaDB/konkurensi/dua-tab tetap NOT RUN. Implementasi 06a: `d8d9874`.
-Dependensi: 03,04; DEC-05. Baseline rencana: b02a87f; implementasi 06a di atas `main` @ `25875c9` (DEC-29 APPROVED).
+Status teknis: **06a IMPLEMENTED & agent-verified (2026-10-31); 06b IMPLEMENTED & agent-verified (2026-10-31); 06c NOT STARTED.** Status review: **06a OWNER APPROVED 2026-10-31 WIB (#1–#12); 06b OWNER REVIEW PENDING (#1–#14).** Tes/browser 06a/06b dijalankan agen; item MariaDB/konkurensi/dua-tab tetap NOT RUN. Implementasi 06a: `d8d9874`; implementasi 06b di atas `main` @ `6dcd432`.
+Dependensi: 03,04; DEC-05; DEC-30. Baseline rencana: b02a87f; implementasi 06a di atas `main` @ `25875c9` (DEC-29 APPROVED).
 
 Rencana terbaru (2026-10-31): `reports/feature-update/PHASE-06-PLAN.md` (baseline `ffa71e3`) — **PLAN APPROVED 2026-10-31 WIB (DEC-29)**; implementasi **06a** selesai. Rencana rinci 06b tersedia di `reports/feature-update/PHASE-06B-PLAN.md` (baseline `1799cf7`) — **PLAN APPROVED 2026-10-31 WIB (DEC-30, D1–D9)** berdasarkan pernyataan **"Saya setuju dieksekusi"**; implementasi 06b diotorisasi. Audit HEAD menemukan: `school_years` belum memiliki periode aktif/lock/tanggal; `semesters` global tanpa relasi tahun dan tanpa CRUD; CRUD Classes masih scaffold (`authorize(): false`, `class_teach_id` tidak fillable); wali kelas menunjuk `users` sehingga guru tanpa akun tidak dapat dipilih; route/menu Classes (`master.view`) tidak selaras dengan API (`students.*`); assign/transfer 03d belum memeriksa tahun locked/soft-deleted. Rencana mengusulkan urutan 06a → 06b → 06c dan UAT baru `.uat-phase06`.
 
@@ -34,7 +34,7 @@ Scope: Preview siswa sumber, target kelas, status dan exception; commit atomik/b
 
 Kriteria penerimaan: Preview tanpa mutasi; retry aman; tinggal/lulus tidak dipindah otomatis; data sumber dan decoy tetap benar.
 
-Status per 2026-10-31: **PLAN APPROVED (DEC-30); implementasi sedang dikerjakan.** Rencana rinci di `reports/feature-update/PHASE-06B-PLAN.md` (baseline `1799cf7`) mencakup semantik promote/retain/graduate/skip, roster eligibility, token commit 30 menit terikat aktor, tabel `student_progression_batches`, endpoint options/roster/preview/commit/batches, wizard Academic → Progression, matriks tes, dan fixture UAT `prepare-progression` pada `.uat-phase06`. Sembilan keputusan **D1–D9 disetujui pemilik 2026-10-31 WIB ("Saya setuju dieksekusi")** sebagai **DEC-30 APPROVED**; review manual belum.
+Status per 2026-10-31: **IMPLEMENTED — agent-verified; OWNER REVIEW PENDING.** Rencana rinci di `reports/feature-update/PHASE-06B-PLAN.md` (baseline `1799cf7`) disetujui sebagai **DEC-30 APPROVED** ("Saya setuju dieksekusi"). Implementasi: preview tanpa mutasi, commit atomik ber-token (256-bit hash, 30 menit, terikat pembuat, ≤500 keputusan, `409` itemized, replay idempoten), `promote`/`retain`/`graduate`/`skip`, tabel `student_progression_batches`, riwayat (preview hanya pembuat), guard hapus tahun, UI Academic → Progression, audit tanpa NIK, dan kartu Graduated `counts[6]`. Bukti: 11 tes progresi/150 assertions, suite 448 passed/13 skipped/4.121 assertions, Pint 10 file, build 26,36 s, browser/API UAT `.uat-phase06` (commit campuran, replay, 409, view-only 403, audit). Detail: `PHASE-06B-REPORT.md` dan `PHASE-06B-MANUAL-REVIEW.md`. Server UAT tetap berjalan sampai penerimaan (DEC-27).
 
 Prompt setelah subfase ini dipilih:
 ```text

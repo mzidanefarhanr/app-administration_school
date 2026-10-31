@@ -33,6 +33,7 @@ const model = ref([
         requires: null,
         items: [
             { label: 'Classes', icon: 'pi pi-fw pi-book', to: '/public/schoolrombels', requires: 'students.view' },
+            { label: 'Progression', icon: 'pi pi-fw pi-sitemap', to: '/public/progression', requires: 'students.view' },
             { label: 'School Years', icon: 'pi pi-fw pi-calendar', to: '/public/schoolyears', requires: 'master.view' },
         ]
     },

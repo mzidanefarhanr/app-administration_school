@@ -1,11 +1,11 @@
 # Rencana Subfase 06b — Naik Kelas, Tinggal Kelas, dan Lulus
 
 - Tanggal: 2026-10-31 (WIB). Branch: `main`. Baseline: `1799cf7` (penerimaan 06a #1–#12; implementasi 06a `d8d9874`).
-- Status dokumen: **PLAN APPROVED — pemilik menyatakan "Saya setuju dieksekusi" pada 2026-10-31 WIB; dicatat sebagai DEC-30 APPROVED (D1–D9).** Implementasi 06b diotorisasi dan sedang dikerjakan.
+- Status dokumen: **PLAN APPROVED — pemilik menyatakan "Saya setuju dieksekusi" pada 2026-10-31 WIB; dicatat sebagai DEC-30 APPROVED (D1–D9).** Implementasi 06b **IMPLEMENTED & agent-verified 2026-10-31**; review manual #1–#14 PENDING. Bukti dan checklist ada di `PHASE-06B-REPORT.md` dan `PHASE-06B-MANUAL-REVIEW.md`.
 - Cakupan: **06b saja** — proses akhir tahun ajaran: `promote` (naik kelas), `retain` (tinggal kelas), `graduate` (lulus), `skip` (tidak diproses), dengan **preview tanpa mutasi** dan **commit atomik ber-token**.
 - Di luar cakupan: 06c (mutasi masuk/keluar, pembatalan, koreksi periode terkunci), CRUD semester, rekap sekolah (DEC-12), merge/deploy, migrasi database operasional/MariaDB, perubahan dependency/service/`.env`.
 - Dokumen acuan: `reports/feature-update/PHASE-06-PLAN.md` §6 (outline 06b, Q1–Q6), `roadmap/phases/PHASE-06-ACADEMIC-YEAR.md`, `docs/DECISIONS.md` (DEC-05, DEC-20, DEC-21, DEC-23, DEC-27, DEC-29), `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `docs/DATABASE.md`, `docs/TESTING.md`.
-- Gate: 06a **OWNER APPROVED 2026-10-31 WIB (#1–#12)**. **D1–D9 disetujui pemilik 2026-10-31 WIB ("Saya setuju dieksekusi") sebagai DEC-30 APPROVED**; implementasi 06b diotorisasi. Persetujuan ini bukan merge/deploy dan bukan izin migrasi database operasional.
+- Gate: 06a **OWNER APPROVED 2026-10-31 WIB (#1–#12)**. **D1–D9 disetujui pemilik 2026-10-31 WIB ("Saya setuju dieksekusi") sebagai DEC-30 APPROVED**; implementasi 06b selesai dan agent-verified. Persetujuan ini bukan merge/deploy dan bukan izin migrasi database operasional.
 
 ---
 

@@ -59,6 +59,12 @@ const router = createRouter({
                     component: () => import('@/views/pages/public/SchoolRombels.vue')
                 },
                 {
+                    path: '/public/progression',
+                    name: 'progression',
+                    meta: { breadcrumb: 'Progression', requiresAbility: 'students.view' },
+                    component: () => import('@/views/pages/public/StudentProgression.vue')
+                },
+                {
                     path: '/public/studentmajors',
                     name: 'studentmajors',
                     meta: { breadcrumb: 'Student Majors', requiresAbility: 'master.view' },

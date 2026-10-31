@@ -239,7 +239,8 @@ const fetchDataStudentRombels = async () => {
         index_active_students = counts[1] || 0;
         index_mutation_students = counts[2] || 0;
         index_dropout_students = counts[3] || 0;
-        index_graduation_students = counts[4] || 0;
+        // Status 6 = Lulus (status 4 = Mengundurkan Diri).
+        index_graduation_students = counts[6] || 0;
         if (school_years_pick.value.length > 0) {
 
             active_students.value = index_active_students;

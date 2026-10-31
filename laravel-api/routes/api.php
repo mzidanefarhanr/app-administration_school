@@ -38,6 +38,7 @@ use App\Http\Controllers\StudentDataQualityController;
 use App\Http\Controllers\StudentEntryController;
 use App\Http\Controllers\StudentExportController;
 use App\Http\Controllers\StudentMajorController;
+use App\Http\Controllers\StudentProgressionController;
 use App\Http\Controllers\StudentRombelController;
 use App\Http\Controllers\StudentStatusController;
 use App\Http\Controllers\SubjectController;
@@ -138,6 +139,22 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         ->middleware('can:master.manage');
     Route::post('/school-years/{id}/unlock', [SchoolYearController::class, 'unlock'])
         ->middleware('can:master.manage');
+
+    // Fase 06b (DEC-30) — progresi akhir tahun: preview tanpa mutasi, commit atomik ber-token.
+    Route::prefix('academic/progression')->group(function () {
+        Route::get('/options', [StudentProgressionController::class, 'options'])
+            ->middleware('can:students.view');
+        Route::get('/roster', [StudentProgressionController::class, 'roster'])
+            ->middleware('can:students.view');
+        Route::post('/preview', [StudentProgressionController::class, 'preview'])
+            ->middleware('can:students.manage');
+        Route::post('/commit', [StudentProgressionController::class, 'commit'])
+            ->middleware('can:students.manage');
+        Route::get('/batches', [StudentProgressionController::class, 'batches'])
+            ->middleware('can:students.view');
+        Route::get('/batches/{id}', [StudentProgressionController::class, 'showBatch'])
+            ->middleware('can:students.view');
+    });
 
     // Fase 01a — penegakan kemampuan pada endpoint master/referensi.
     // Read = master.view, Write = master.manage.

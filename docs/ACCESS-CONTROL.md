@@ -68,6 +68,12 @@ API mayoritas hanya auth:sanctum. Beberapa controller akun membedakan tipe secar
 - **Batas objek**: wali kelas hanya profil `Pendidik` aktif; tahun locked menolak create/update/delete kelas dan assign/transfer di server; tahun aktif tidak dapat dikunci/dihapus; tahun locked tidak dapat dijadikan aktif/dihapus. Alasan lock/unlock wajib dan tercatat pada audit.
 - **UI**: grup menu **Academic** dengan Classes (`students.view`) dan School Years (`master.view`); halaman Students menonaktifkan assign/transfer saat tahun terkunci. Tombol tersembunyi/nonaktif bukan pengganti enforcement server.
 
+## Implementasi Subfase 06b (progresi akhir tahun)
+- **Tanpa ability baru**: opsi, roster, riwayat, dan detail batch memakai `students.view`; preview dan commit memakai `students.manage`. Tidak mengubah peran/kemampuan atau menambah bypass.
+- **Route matrix**: `GET /api/academic/progression/options`, `GET /roster`, `GET /batches`, `GET /batches/{id}` → `students.view`; `POST /preview`, `POST /commit` → `students.manage`; route UI `/public/progression` → `students.view`. Guest `401`; tanpa kemampuan `403` (principal view-only tidak dapat preview/commit).
+- **Batas objek**: batch preview hanya dapat dilihat dan di-commit oleh pembuatnya (detail/list preview akun lain tidak terlihat/`403`); batch committed dapat dibaca semua pemegang `students.view`. Commit juga memeriksa token (hash, kedaluwarsa 30 menit) dan tahun ajaran (target unlocked untuk promote, sumber unlocked untuk graduate), bukan hanya tombol UI.
+- **UI**: menu **Academic → Progression**; tombol/step preview/commit hanya tampil untuk `students.manage`; view-only melihat riwayat committed dan banner **View-only access**. Server tetap menegakkan `403`.
+
 ## Matriks target — usulan, bukan role yang sudah ada
 | Kemampuan | Admin | Operator | Kepala sekolah | Guru/wali kelas |
 |---|---|---|---|---|

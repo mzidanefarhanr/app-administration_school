@@ -25,10 +25,12 @@ class StudentRombel extends Model
      */
     protected array $auditableAttributes = [
         'student_id',
-        'student_nik',
         'school_rombel',
         'student_status_id',
         'student_entry_id',
+        'latest_student_entry_date',
+        'latest_student_exit_date',
+        'latest_student_graduation_date',
         'archived_at',
         'version',
     ];

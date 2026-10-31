@@ -21,7 +21,7 @@ Pengguna utama operator; admin mengatur akses; guru/wali kelas dan kepala sekola
 | FR-04 | Siswa | Tambah/detail/ubah/arsip/restore, validasi identitas, keluarga, alamat, kebutuhan administrasi, tanpa wajib akun login siswa | 03 |
 | FR-05 | Guru/pegawai | Biodata dan status kerja, relasi akun opsional bila kebijakan disetujui; penugasan dipisah dari akun | 04 |
 | FR-06 | Impor/ekspor | Preview, validasi tiap baris, keputusan insert/update, laporan gagal, izin ekspor, identitas tetap string | 05 |
-| FR-07 | Tahun ajaran/rombel | Tahun aktif eksplisit dan lock per tahun (06a implemented 2026-10-31; agent-verified, review pemilik PENDING); CRUD kelas + wali kelas dari profil pegawai; kenaikan, tinggal kelas, lulus, mutasi melalui preview (06b/06c belum); periode lama utuh | 06 |
+| FR-07 | Tahun ajaran/rombel | Tahun aktif eksplisit dan lock per tahun (06a implemented dan diterima pemilik 2026-10-31); CRUD kelas + wali kelas dari profil pegawai (06a); kenaikan, tinggal kelas, lulus melalui preview tanpa mutasi + commit atomik ber-token dan riwayat batch (06b implemented 2026-10-31, review pemilik PENDING); mutasi masuk/keluar dan koreksi periode terkunci (06c belum); periode lama utuh | 06 |
 | FR-08 | Surat masuk | Agenda, nomor/tanggal sumber, pengirim, kategori, lampiran privat, disposisi, deadline, status tindak lanjut | 07 |
 | FR-09 | Surat keluar | Draft, nomor unik sesuai format disepakati, persetujuan, PDF, versi template dan snapshot data | 07 |
 | FR-10 | Izin | Siswa/guru, tanggal/rentang, alasan, lampiran, status diajukan/disetujui/ditolak/dibatalkan, rekap | 08 |

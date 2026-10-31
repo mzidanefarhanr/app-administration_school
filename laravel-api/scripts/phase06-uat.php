@@ -304,6 +304,126 @@ if ($command === 'prepare') {
     exit(0);
 }
 
+if ($command === 'prepare-progression') {
+    $sourceYear = App\Models\SchoolYear::where('name', '2026/2027')->first();
+    $targetYear = App\Models\SchoolYear::where('name', '2027/2028')->first();
+    foreach (['Aktif', 'Mutasi Keluar', 'Drop Out', 'Mengundurkan Diri', 'Meninggal Dunia', 'Lulus'] as $statusName) {
+        App\Models\StudentStatus::firstOrCreate(['name' => $statusName]);
+    }
+    $statusActive = App\Models\StudentStatus::where('name', 'Aktif')->first();
+    $statusGraduated = App\Models\StudentStatus::where('name', 'Lulus')->first();
+    $entryNew = App\Models\StudentEntry::where('name', 'Siswa Baru')->first();
+    if (! $sourceYear || ! $targetYear || ! $statusActive || ! $statusGraduated || ! $entryNew) {
+        throw new RuntimeException('Run the prepare command first (years, statuses, entries, and classes are required).');
+    }
+    if ((int) $statusGraduated->id !== App\Services\Academic\StudentProgressionService::GRADUATED_STATUS_ID) {
+        throw new RuntimeException('The Lulus status ID must be '.App\Services\Academic\StudentProgressionService::GRADUATED_STATUS_ID.' for progression graduate commits.');
+    }
+
+    $classFor = function (App\Models\SchoolYear $year, string $name): App\Models\SchoolRombel {
+        $class = App\Models\SchoolRombel::where('school_year_id', $year->id)->where('name', $name)->first();
+        if (! $class) {
+            throw new RuntimeException('Missing class '.$name.' for year '.$year->name.'; run prepare first.');
+        }
+
+        return $class;
+    };
+    $sourceClasses = [
+        'X-1' => $classFor($sourceYear, 'X-1'),
+        'X-2' => $classFor($sourceYear, 'X-2'),
+        'XI-1' => $classFor($sourceYear, 'XI-1'),
+        'XI-2' => $classFor($sourceYear, 'XI-2'),
+        'XII-1' => $classFor($sourceYear, 'XII-1'),
+    ];
+    $targetClasses = [
+        'XI-1' => $classFor($targetYear, 'XI-1'),
+        'XII-1' => $classFor($targetYear, 'XII-1'),
+        'XII-2' => $classFor($targetYear, 'XII-2'),
+    ];
+
+    // 20 siswa sintetis UAT-P06B: naik satu jurusan, naik lintas jurusan,
+    // tinggal kelas, lulus, serta dua siswa yang sudah punya keanggotaan di tahun tujuan.
+    $specs = [
+        ['source' => 'X-1', 'conflict' => false],   // 1-4: naik, jurusan sama (X-1 -> XI-1)
+        ['source' => 'X-1', 'conflict' => false],
+        ['source' => 'X-1', 'conflict' => false],
+        ['source' => 'X-1', 'conflict' => false],
+        ['source' => 'X-1', 'conflict' => true],    // 5-6: sudah punya keanggotaan aktif di XI-1 tujuan
+        ['source' => 'X-1', 'conflict' => true],
+        ['source' => 'X-2', 'conflict' => false],   // 7-10: naik lintas jurusan (IPS -> IPA)
+        ['source' => 'X-2', 'conflict' => false],
+        ['source' => 'X-2', 'conflict' => false],
+        ['source' => 'X-2', 'conflict' => false],
+        ['source' => 'XI-1', 'conflict' => false],  // 11-14: naik, jurusan sama (XI-1 -> XII-1)
+        ['source' => 'XI-1', 'conflict' => false],
+        ['source' => 'XI-1', 'conflict' => false],
+        ['source' => 'XI-1', 'conflict' => false],
+        ['source' => 'XII-1', 'conflict' => false], // 15-17: kandidat lulus (tanpa kelas tujuan)
+        ['source' => 'XII-1', 'conflict' => false],
+        ['source' => 'XII-1', 'conflict' => false],
+        ['source' => 'XI-2', 'conflict' => false],  // 18-19: naik tanpa jurusan (XI-2 -> XII-2)
+        ['source' => 'XI-2', 'conflict' => false],
+        ['source' => 'X-1', 'conflict' => false],   // 20: kandidat tinggal kelas (tanpa kelas tujuan)
+    ];
+
+    $male = App\Models\Gender::firstOrCreate(['name' => 'Laki-Laki']);
+    $female = App\Models\Gender::firstOrCreate(['name' => 'Perempuan']);
+    $religion = App\Models\Religion::firstOrCreate(['name' => 'Islam']);
+
+    $createdStudents = 0;
+    $reusedStudents = 0;
+    $createdSourceMemberships = 0;
+    $createdTargetMemberships = 0;
+
+    foreach ($specs as $offset => $spec) {
+        $i = $offset + 1;
+        $serial = str_pad((string) $i, 4, '0', STR_PAD_LEFT);
+        $student = App\Models\Student::firstOrCreate(
+            ['nik' => '97'.str_pad((string) $i, 14, '0', STR_PAD_LEFT)],
+            [
+                'name' => 'UAT-P06B Progression Student '.$serial,
+                'birthplace' => 'Synthetic City',
+                'birthdate' => '2010-08-'.str_pad((string) (($i % 28) + 1), 2, '0', STR_PAD_LEFT),
+                'gender_id' => ($i % 2 === 0 ? $female : $male)->id,
+                'religion_id' => $religion->id,
+                'nis' => 'P06B-'.$serial,
+                'nisn' => '97'.str_pad((string) $i, 8, '0', STR_PAD_LEFT),
+            ]
+        );
+        $student->wasRecentlyCreated ? $createdStudents++ : $reusedStudents++;
+
+        $sourceMembership = App\Models\StudentRombel::firstOrCreate(
+            ['student_id' => $student->id, 'school_rombel' => $sourceClasses[$spec['source']]->id],
+            [
+                'student_nik' => $student->nik,
+                'student_status_id' => $statusActive->id,
+                'student_entry_id' => $entryNew->id,
+            ]
+        );
+        if ($sourceMembership->wasRecentlyCreated) {
+            $createdSourceMemberships++;
+        }
+
+        if ($spec['conflict']) {
+            $conflictMembership = App\Models\StudentRombel::firstOrCreate(
+                ['student_id' => $student->id, 'school_rombel' => $targetClasses['XI-1']->id],
+                [
+                    'student_nik' => $student->nik,
+                    'student_status_id' => $statusActive->id,
+                    'student_entry_id' => $entryNew->id,
+                ]
+            );
+            if ($conflictMembership->wasRecentlyCreated) {
+                $createdTargetMemberships++;
+            }
+        }
+    }
+
+    fwrite(STDOUT, 'UAT-P06B students: '.count($specs).' ('.$createdStudents.' created, '.$reusedStudents.' reused); source memberships +'.$createdSourceMemberships.', conflict target memberships +'.$createdTargetMemberships.". No data was reset.\n");
+    fwrite(STDOUT, "Targets: 1-4 X-1->XI-1; 5-6 X-1 with existing XI-1 membership; 7-10 X-2->XI-1 (cross-major); 11-14 XI-1->XII-1; 15-17 XII-1 graduate; 18-19 XI-2->XII-2; 20 X-1 retain.\n");
+    exit(0);
+}
+
 if ($command === 'status') {
     fwrite(STDOUT, "[ISOLATION GUARD PASS] Dedicated phase-06 SQLite UAT; no MariaDB connection.\n");
     $sourceYear = App\Models\SchoolYear::where('name', '2026/2027')->first();
@@ -323,7 +443,11 @@ if ($command === 'status') {
         .' active, '.App\Models\Employee::whereHas('employeeType', fn ($query) => $query->where('name', 'Pendidik'))->whereNotNull('exit_date')->count()." separated\n");
     fwrite(STDOUT, 'Staff: '.App\Models\Employee::whereHas('employeeType', fn ($query) => $query->where('name', 'Tenaga Kependidikan'))->count()."\n");
     fwrite(STDOUT, 'Active period: '.($settings?->active_school_year_id ?? 'none').' / '.($settings?->active_semester_id ?? 'none')."\n");
+    $progressionBatches = Illuminate\Support\Facades\Schema::hasTable('student_progression_batches')
+        ? (string) App\Models\StudentProgressionBatch::count()
+        : 'not migrated';
+    fwrite(STDOUT, 'UAT-P06B: '.App\Models\Student::where('name', 'like', 'UAT-P06B%')->count().' students; progression batches: '.$progressionBatches."\n");
     exit(0);
 }
 
-throw new RuntimeException('Allowed commands: init, prepare, status. Serve using PHP -S 127.0.0.1:18024 with this router.');
+throw new RuntimeException('Allowed commands: init, prepare, prepare-progression, status. Serve using PHP -S 127.0.0.1:18024 with this router.');
