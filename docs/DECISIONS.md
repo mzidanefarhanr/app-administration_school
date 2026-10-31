@@ -227,7 +227,8 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
   6. **D6 — Koreksi**: tautan ke halaman/form yang ada (`?openStudent=`/`?openEmployee=`); koreksi lewat endpoint teraudit yang sudah ada; tanpa edit inline/merge API.
   7. **D7 — UAT**: reuse `.uat-phase05` (14023/18023) + 120 record sintetis `UAT-DQ` guarded/idempotent; data lama tidak di-reset; server dihentikan setelah penerimaan (DEC-27).
 - Dampak: enam endpoint `/api/data-quality/*`, service `App\Services\DataQuality\*`, migration additive `data_quality_reviews`, halaman Data Quality, dukungan OR pada guard/menu; tanpa ability baru dan tanpa perubahan tabel domain 05a/05b.
-- Status: **APPROVED — implementasi 05c diotorisasi; merge/deploy tidak.** Fase affected: 05c.
+- Implementasi: **IMPLEMENTED — agent-verified 2026-10-31**; enam endpoint, tabel review, UI, dan fixture UAT 120 record selesai. Bukti: `tests/Feature/DataQuality/DataQualityApiTest.php` **15 tes/239 assertions**, suite penuh **417 passed/13 skipped/3.826 assertions**, Pint 21 file, 17 tes Node, build 38,18 s. Review manual pemilik **PENDING**; merge/deploy tetap tidak diotorisasi. Rekap sekolah tetap di luar 05c (DEC-12 PROPOSED).
+- Status: **APPROVED — implementasi 05c diotorisasi dan telah diimplementasikan; merge/deploy tidak.** Fase affected: 05c.
 
 ## Register
 

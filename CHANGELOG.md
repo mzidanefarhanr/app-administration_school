@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-31] Subfase 05c — Pemeriksaan kelengkapan siswa/pegawai dan review operator
+- Type: Feature
+- Scope / fase: Subfase 05c (DEC-28 APPROVED 2026-10-31 WIB); tidak ada perubahan pada rekap sekolah, kontrak impor 05a/05b, dependency, atau DB operasional.
+- Files touched: `laravel-api/app/Services/DataQuality/*` (profil, inspector, issue key, review service), `app/Http/Controllers/{Student,Employee}DataQualityController.php`, request data quality, `app/Models/DataQualityReview.php`, `config/data_quality.php`, migration `2029_07_29_000001_create_data_quality_reviews_table.php`, `routes/api.php`, `scripts/phase05-uat.php`, `tests/Feature/DataQuality/DataQualityApiTest.php`; `vue-app/src/views/pages/public/{DataQuality.vue,DataQualityReviewDialog.vue,dataQualityParams.mjs,Student.vue,EmployeeDirectory.vue}`, `vue-app/src/router/{index.js,routeAbility.mjs}`, `vue-app/src/layout/AppMenu.vue`, `vue-app/src/stores/authStore.js`, tes Node `data-quality-params.test.mjs` + `route-ability.test.mjs`; dokumentasi terkait.
+- What changed: menambahkan pemeriksaan kelengkapan siswa (denominator placed; NIK unplaced = blocked di luar persentase) dan pegawai (denominator active; aturan Pendidik/Tenaga Kependidikan), daftar `missing`/`invalid`/`duplicate`/`blocked`, kandidat duplikat tanpa auto-merge, tabel review berversi `data_quality_reviews` (open/acknowledged/ignored + alasan, versi + 409, audit tanpa PII), enam endpoint `/api/data-quality/*` tanpa ability baru, halaman Data Quality English dengan deep link ke form lama, dukungan OR ability pada guard/menu, dan fixture UAT 120 record `UAT-DQ` yang guarded/idempotent.
+- Why: melengkapi Fase 05 dengan pemeriksaan kualitas data dan alur review operator tanpa mengubah data domain atau menambah izin; rekap sekolah menunggu format DEC-12.
+- Validation: `php artisan test tests/Feature/DataQuality` **15 passed / 239 assertions (9,90 s)**; suite penuh **417 passed / 13 skipped / 3.826 assertions (260,36 s)**; Pint **21 file PASS**; `node --test tests/data-quality-params.test.mjs tests/route-ability.test.mjs` **17 tests, 0 fail**; `npm run build` **PASS 38,18 s**; ESLint read-only **0 error** (warning lama Prettier/CRLF); `route:list --path=data-quality` **6 route**; `prepare-data-quality` idempotent (**0 record** pada run kedua, 60+60 fixture, tally 35 siswa/25 pegawai); browser DOM UAT siswa/pegawai/review/deep link/390 px, **0 console message**. **NOT RUN:** dua tab/409 browser, MariaDB/InnoDB data quality, uji beban, screenshot/visual regression, rekap sekolah, XLSX.
+- Notes / risks: status review tidak mengubah persentase; `issue_key` mengikat versi record dan tahun ajaran sehingga koreksi membuka temuan baru; server UAT 14023/18023 masih berjalan untuk review dan dihentikan setelah penerimaan (DEC-27); data `.uat-phase05` dipertahankan. Commit implementasi dan dokumentasi dicatat di HANDOFF/checkpoint berikutnya; push bukan penerimaan.
+- Evidence: `reports/feature-update/PHASE-05C-REPORT.md`, `reports/feature-update/PHASE-05C-MANUAL-REVIEW.md`, `docs/DECISIONS.md` (DEC-28).
+
 ## [2026-10-31] Subfase 05c — Pemilik menyetujui D1–D7 (DEC-28 APPROVED)
 - Type: Docs
 - Scope / fase: Rencana Subfase 05c; tidak ada perubahan kode aplikasi pada entri ini.

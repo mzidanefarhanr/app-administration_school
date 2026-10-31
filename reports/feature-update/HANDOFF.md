@@ -1,13 +1,26 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-10-31 (DEC-28 APPROVED; implementasi 05c berjalan)
+## Current checkpoint — 2026-10-31 (05c implemented; owner review pending)
+
+- **Status:** 05c (student/employee completeness inspection and keyed reviews) is **IMPLEMENTED and agent-verified** on `main` at implementation commit `c2fddfa` (baseline `037b1c6`); documentation is committed separately. Owner manual review is **PENDING**; commit/push is not acceptance.
+- **Authorization:** DEC-28 APPROVED 2026-10-31 WIB ("Saya setuju D1-D7") for D1–D7 in `PHASE-05C-PLAN.md`. Scope remains 05c only; no merge, deployment, operational/MariaDB migration, dependency/service changes, school recap (DEC-12 PROPOSED) or Phase 06.
+- **Implemented:** completeness profiles/inspectors with explicit denominators (placed non-archived students; active employees), unplaced student NIK as `blocked` outside the percentage, required-field findings, duplicate candidates without auto-merge, `data_quality_reviews` versioned per school year, six `data-quality` endpoints gated by existing `students.view`/`students.manage` and `employees.view`/`employees.manage`, Data Quality SPA page with review dialog and deep links to existing audited forms, and idempotent `UAT-DQ` fixture preparation (60 students + 60 employees; second run created 0).
+- **Agent evidence (actual):** DataQuality 15 tests/239 assertions PASS; full suite 417 passed, 13 skipped, 3,826 assertions (260.36 s); Pint 21 files; Node 17 tests PASS; ESLint 0 errors; build PASS 38.18 s; 6 routes registered; migration `2029_07_29_000001` applied only to isolated `.uat-phase05`. Browser UAT: Student 021 acknowledge/ignore/reopen v3, Teacher 021 acknowledge/reopen, duplicate Teacher 034 ignore/reopen v3, deep links Student 430 / Teacher 242 / Staff 228, 390px no page overflow, 0 console messages.
+- **UAT:** isolated `.uat-phase05` SQLite, SPA `127.0.0.1:14023`, API `127.0.0.1:18023`, cookie `school_phase05_session`; servers are **running for owner review** and will be stopped after acceptance per DEC-27. Current numbers: students denominator 153, complete 30/incomplete 123 (19.6%), blocked 10, duplicates 8 pairs/16, reviews 144 Open; employees denominator 250, separated 10, incomplete 220 (12.0%), duplicates 5/10, reviews 325 Open.
+- **NOT RUN (agent):** MariaDB/InnoDB behavior for the new table, two-tab concurrency, full multi-role browser coverage beyond the operator/`uat.kepsek` checks, performance/load scan, and XLSX; these stay NOT RUN regardless of owner acceptance.
+- **Git:** branch `main`; implementation `c2fddfa`; documentation/acceptance status recorded in separate commits; no `.github/workflows`, so push triggers no deployment. Selective staging excludes `.uat-phase05/`, `.uat-phase04b/`, runtime DB/logs/credentials, `console.txt`, and `vue-app/test-results/`.
+- **Next:** owner reviews `PHASE-05C-MANUAL-REVIEW.md` (#1–#14) on GitHub against the running UAT; acceptance is recorded in a separate documentation commit; then stop UAT servers (DEC-27). Do not start Phase 06 or the school recap.
+
+---
+
+## Previous checkpoint — 2026-10-31 (DEC-28 APPROVED; implementasi 05c dimulai)
 
 - **Approval:** the owner stated on 2026-10-31 WIB, **"Saya setuju D1-D7."**, approving the 05c plan decisions in `PHASE-05C-PLAN.md` as **DEC-28 APPROVED**. This authorizes 05c implementation only; it does not authorize merge, deployment, operational/MariaDB migration, dependency/service changes, or Phase 06.
-- **Status:** 05c implementation is in progress on `main` above `ded2257`; the plan remains at `reports/feature-update/PHASE-05C-PLAN.md`. No report or acceptance is claimed until implementation verification and owner review.
+- **Status:** 05c implementation was started on `main` above `ded2257`; the plan remains at `reports/feature-update/PHASE-05C-PLAN.md`. No report or acceptance was claimed until implementation verification and owner review.
 - **Plan content:** student and employee completeness with explicit denominators (placed students / active employees); student unplaced NIK as `blocked` outside the percentage; required-field profiles; duplicate candidates (never name-only, no auto-merge); persisted versioned review table scoped by school year, writes gated by `students.manage`/`employees.manage`; six `data-quality` endpoints without new abilities; Data Quality page with deep links to existing audited forms; 120 synthetic `UAT-DQ` fixtures in `.uat-phase05`; full backend/frontend/UAT test plan.
-- **Boundaries preserved:** no school recap (DEC-12 PROPOSED), no auto-merge/bulk correction/inline edit, no new ability, no operational/MariaDB/04b DB access, no `.env`/service/dependency changes. UAT servers remain stopped per DEC-27; `.uat-*` data preserved.
+- **Boundaries preserved:** no school recap (DEC-12 PROPOSED), no auto-merge/bulk correction/inline edit, no new ability, no operational/MariaDB/04b DB access, no `.env`/service/dependency changes.
 - **Git verification:** DEC-28 approval documentation is committed and pushed separately; actual SHA is reported at the next checkpoint. No `.github/workflows`, so push triggers no deployment. Selective staging excludes `.uat-phase05/`, `.uat-phase04b/`, sample CSVs, runtime DB/logs/credentials, `console.txt`, and `vue-app/test-results/`; `git diff --cached --check` is run before commit.
-- **Next:** implement 05c per the approved plan (S2–S7), verify backend/frontend/UAT, prepare report and manual checklist, then commit/push the review package. Do not start Phase 06 or the school recap.
+- **Next (historical):** implement 05c per the approved plan (S2–S7), verify backend/frontend/UAT, prepare report and manual checklist, then commit/push the review package. See the current checkpoint above.
 
 ---
 

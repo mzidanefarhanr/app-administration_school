@@ -54,6 +54,13 @@ API mayoritas hanya auth:sanctum. Beberapa controller akun membedakan tipe secar
 - **Kolom ekspor sensitif**: `GET /api/employees/export/options` menyembunyikan metadata 15 kolom PII dari aktor tanpa `employees.manage`; `GET /api/employees/export` menolak **403** bila `columns` memuat kolom sensitif tanpa `employees.manage`. Default ekspor tetap 10 kolom operasional; ini pembatasan tambahan, bukan pengurangan izin `employees.export` yang sudah ada.
 - **UI**: Teachers/Employees menampilkan Import CSV hanya bila `employees.import` (dan tidak di mode arsip); dialog ekspor hanya menampilkan kelompok sensitif bila opsi server mengizinkan. Pencabutan izin berlaku pada request berikutnya; tombol tersembunyi bukan pengganti enforcement server.
 
+## Implementasi Subfase 05c (pemeriksaan kelengkapan dan review)
+- **Tanpa ability baru**: baca memakai `students.view` (siswa) dan `employees.view` (pegawai); tulis review memakai `students.manage` dan `employees.manage` (DEC-28 D5). Tidak mengubah peran/kemampuan atau menambah bypass.
+- **Route matrix**: `GET /api/data-quality/students/summary` + `GET /api/data-quality/students/issues` → `students.view`; `PUT /api/data-quality/students/reviews/{issueKey}` → `students.manage`; `GET /api/data-quality/employees/summary` + `GET /api/data-quality/employees/issues` → `employees.view`; `PUT /api/data-quality/employees/reviews/{issueKey}` → `employees.manage`. Guest `401`; tanpa kemampuan `403` (view-only tidak dapat menulis review).
+- **Scope dan validasi review**: server memeriksa issue key, versi record subject/related, dan versi review; review siswa terikat `school_year_id`, review pegawai menolak `school_year_id`. Review tidak mengubah data domain maupun persentase, dan tidak melakukan merge/koreksi.
+- **Privasi**: daftar/summary tidak memuat NIK/alamat/telepon/medis; audit review hanya metadata temuan. Review ignored tidak menyembunyikan issue baru karena issue key mengikat versi record.
+- **UI**: menu dan route `/public/data-quality` memakai daftar ability `['students.view','employees.view']` (OR) melalui `routeAbility.mjs`/`canAny`; string ability tunggal pada route lain tetap berperilaku sama. Tombol review hanya tampil untuk pemegang manage; server tetap menegakkan `403`.
+
 ## Matriks target — usulan, bukan role yang sudah ada
 | Kemampuan | Admin | Operator | Kepala sekolah | Guru/wali kelas |
 |---|---|---|---|---|
