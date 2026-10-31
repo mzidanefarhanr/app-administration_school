@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-31] Fase 06a — Pemilik menyetujui checklist #1–#12 (OWNER APPROVED)
+- Type: Docs
+- Scope / fase: Penerimaan manual Subfase **06a**; tidak ada perubahan kode, migration, route, UI, atau data pada entri ini.
+- Files touched: `reports/feature-update/PHASE-06A-MANUAL-REVIEW.md`, `reports/feature-update/PHASE-06A-REPORT.md`, `PROJECT_CONTEXT.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-06-ACADEMIC-YEAR.md`, `docs/DECISIONS.md`, `reports/feature-update/PHASE-06-PLAN.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `CHANGELOG.md`.
+- What changed: mencatat pernyataan pemilik **"Pengujian nomor 1-12 sudah berhasil dan saya approved."** (2026-10-31 WIB) sebagai penerimaan checklist #1–#12; status 06a menjadi **IMPLEMENTED & OWNER APPROVED**; server UAT 14024/18024 dihentikan setelah penerimaan sesuai DEC-27 dan data `.uat-phase06` dipertahankan.
+- Why: penerimaan pemilik dicatat pada commit dokumentasi tersendiri, terpisah dari commit implementasi `d8d9874`; server fase yang sudah lulus dihentikan agar tidak berjalan tanpa dipakai.
+- Validation: command line PID 19240 (SPA) dan 2388 (API) diverifikasi sebelum `taskkill /T /F`; `netstat` memastikan port 14024/18024 bebas; `.uat-phase06` (database/storage/password runtime) tetap ada; Apache 80/443 dan MariaDB 3306 tidak disentuh. **NOT RUN:** agen tidak mengulang skenario #1–#12; item MariaDB/konkurensi/dua-tab/screenshot tetap NOT RUN.
+- Notes / risks: penerimaan tidak mengotorisasi merge, deploy, migrasi data legacy/MariaDB/produksi, perubahan dependency/service, atau 06b/06c. Rekap sekolah tetap menunggu DEC-12 (PROPOSED).
+- Evidence: `reports/feature-update/PHASE-06A-MANUAL-REVIEW.md`; `reports/feature-update/PHASE-06A-REPORT.md`; implementasi `d8d9874`.
+
 ## [2026-10-31] Subfase 06a — Periode akademik, lock tahun ajaran, dan rombel
 - Type: Feature | Schema Change | Docs
 - Scope / fase: **06a saja** di atas `main` @ `25875c9` (DEC-29 APPROVED). 06b/06c, merge/deploy, migrasi database operasional/MariaDB, dan perubahan dependency/service/`.env` tidak termasuk.

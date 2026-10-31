@@ -1,8 +1,8 @@
 # Laporan Subfase 06a — Periode Akademik dan Rombel
 
-Tanggal: implementasi dan verifikasi agen 2026-10-31 WIB. Branch: `main`. Baseline induk: `25875c9` (pencatatan DEC-29 APPROVED); paket implementasi+dokumentasi 06a belum memiliki SHA saat laporan ini ditulis — SHA aktual dicatat pada checkpoint berikutnya setelah commit+push.
+Tanggal: implementasi dan verifikasi agen 2026-10-31 WIB; penerimaan pemilik 2026-10-31 WIB. Branch: `main`. Baseline induk: `25875c9` (pencatatan DEC-29 APPROVED); implementasi+dokumentasi 06a: `d8d9874`.
 Keputusan pemilik: **DEC-29** (APPROVED 2026-10-31 WIB; D1–D8, pernyataan "Saya setuju D1-D8 dilakukan.").
-Status teknis: **IMPLEMENTED — agent-verified (2026-10-31)**. Status review pemilik: **PENDING — menunggu review manual checklist #1–#12**.
+Status teknis: **IMPLEMENTED — agent-verified (2026-10-31)**. Status review pemilik: **OWNER APPROVED 2026-10-31 WIB — checklist #1–#12** berdasarkan pernyataan "Pengujian nomor 1-12 sudah berhasil dan saya approved."
 Rencana: `reports/feature-update/PHASE-06-PLAN.md` (§5). Checklist manual: `reports/feature-update/PHASE-06A-MANUAL-REVIEW.md`.
 
 ## 1. Outcome dan cakupan
@@ -85,11 +85,11 @@ Kontrak endpoint (detail di `docs/API-CONTRACTS.md`):
 - Uji browser dua tab untuk konflik `409` kelas oleh dua operator; konflik diuji lewat API + dialog dengan data basi, bukan dua tab nyata.
 - Screenshot/visual regression berbasis file gambar; bukti browser berupa snapshot DOM/pengukuran layout, bukan artefak gambar yang dikomit.
 - 06b (naik/tinggal/lulus), 06c (mutasi/koreksi), CRUD semester, dan unique index DB nama kelas — di luar scope 06a.
-- Penerimaan manual pemilik; status review tetap PENDING sampai pernyataan pemilik.
+- Penerimaan manual pemilik: **OWNER APPROVED 2026-10-31 WIB (#1–#12)**; agen tidak mengulang skenario dan item NOT RUN agen tetap NOT RUN.
 
 ## 4. UAT manual
 
-Environment: `.uat-phase06` SQLite terisolasi, SPA `http://127.0.0.1:14024` (PID 19240), API `http://127.0.0.1:18024` (PID 2388), cookie `school_phase06_session`, launcher `laravel-api/scripts/phase06-uat.php`. Kedua server **masih berjalan** untuk review pemilik; hentikan setelah penerimaan sesuai DEC-27.
+Environment: `.uat-phase06` SQLite terisolasi, SPA `http://127.0.0.1:14024`, API `http://127.0.0.1:18024`, cookie `school_phase06_session`, launcher `laravel-api/scripts/phase06-uat.php`. Kedua server **dihentikan 2026-10-31** setelah penerimaan, sesuai DEC-27 (PID 19240/2388 diverifikasi; port bebas; data `.uat-phase06` dipertahankan).
 
 Akun review: `uat.operator` (manage) dan `uat.kepsek` (view-only). Password hanya berada di runtime `.uat-phase06/account-password.txt` yang diabaikan; tidak dicetak di dokumen. Fixture juga memakai `uat.waka` untuk profil guru tanpa akun terpisah.
 
@@ -127,16 +127,16 @@ Catatan otomasi: PrimeVue AutoComplete di lingkungan ini hanya memicu pencarian 
 - **Imutabilitas struktural**: tahun/tingkat/jurusan terkunci setelah ada riwayat keanggotaan (termasuk soft-deleted), sedangkan nama dan wali kelas masih dapat diubah selama tahun belum locked.
 - **Perbaikan 390 px**: tab group pada Students tidak membungkus (pre-existing) sehingga halaman melebar; `flex-wrap` ditambahkan pada container dan diukur ulang (`docScrollWidth` 375). Tidak mengubah perilaku desktop.
 - **Batas bukti**: seluruh UAT memakai SQLite; MariaDB, race multi-proses, dan dua tab nyata tetap NOT RUN. Migrasi belum dijalankan pada database operasional atau `.uat-phase05`.
-- **UAT lifecycle**: server 14024/18024 dipertahankan sampai pemilik menyatakan penerimaan; setelah itu dihentikan sesuai DEC-27 dan data `.uat-phase06` dipertahankan.
+- **UAT lifecycle**: server 14024/18024 dihentikan 2026-10-31 setelah penerimaan pemilik, sesuai DEC-27; data `.uat-phase06` dipertahankan dan perintah restart tercatat di checklist.
 
 ## 6. Sinkronisasi dokumen
 
 Diperbarui: `docs/DATABASE.md` (tabel/kolom 06a), `docs/API-CONTRACTS.md` (endpoint periode/lock/teacher-options dan aturan kelas), `docs/ACCESS-CONTROL.md` (matriks izin periode/kelas), `docs/TESTING.md` (bukti dan NOT RUN 06a), `docs/DECISIONS.md` (catatan implementasi DEC-29), `docs/REQUIREMENTS.md` (FR-07 status), `CHANGELOG.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-06-ACADEMIC-YEAR.md`, `reports/feature-update/PHASE-06-PLAN.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, laporan ini, dan checklist manual.
 
-Commit/push dilakukan agar pemilik dapat meninjau implementasi di GitHub; commit/push bukan penerimaan manual. Penerimaan checklist #1–#12 akan dicatat pada commit dokumentasi tersendiri berdasarkan pernyataan pemilik. Tidak ada merge/deploy/force-push, perubahan `.env` utama, dependency/lockfile, service, DB terlarang, atau migrasi database operasional/MariaDB.
+Commit/push dilakukan agar pemilik dapat meninjau implementasi di GitHub; commit/push bukan penerimaan manual. Penerimaan checklist #1–#12 dicatat pada commit dokumentasi tersendiri berdasarkan pernyataan pemilik 2026-10-31 WIB. Tidak ada merge/deploy/force-push, perubahan `.env` utama, dependency/lockfile, service, DB terlarang, atau migrasi database operasional/MariaDB.
 
 ## 7. Langkah berikutnya
 
-1. Pemilik meninjau `PHASE-06A-MANUAL-REVIEW.md` pada `.uat-phase06` (checklist #1–#12) dan menyatakan hasilnya.
-2. Bila diterima, penerimaan dicatat pada commit dokumentasi tersendiri; server UAT 14024/18024 dihentikan dan data `.uat-phase06` dipertahankan (DEC-27).
-3. 06b/06c menunggu rencana dan keputusan pemilik terpisah; jangan mulai otomatis. Merge/deploy tetap tidak diotorisasi.
+1. Penerimaan **#1–#12** sudah dicatat 2026-10-31 WIB; server UAT 14024/18024 sudah dihentikan dan data `.uat-phase06` dipertahankan (DEC-27).
+2. Rencana **06b** (naik/tinggal/lulus) disusun di `reports/feature-update/PHASE-06B-PLAN.md` dan menunggu keputusan pemilik; implementasi belum dimulai.
+3. 06c menunggu rencana dan keputusan pemilik terpisah; merge/deploy tetap tidak diotorisasi.

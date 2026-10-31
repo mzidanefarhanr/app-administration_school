@@ -2,22 +2,23 @@
 
 Subfase: 06a — periode aktif eksplisit, lock tahun ajaran, CRUD kelas, wali kelas dari profil pegawai, dan penegakan lock pada penempatan siswa.
 Keputusan: **DEC-29 APPROVED** (D1–D8, 2026-10-31 WIB). Laporan teknis: `reports/feature-update/PHASE-06A-REPORT.md`.
-Baseline induk: `main` pada `25875c9`. Status: **IMPLEMENTED — agent-verified; menunggu review manual pemilik (checklist #1–#12)**. Paket implementasi+dokumentasi belum memiliki SHA saat checklist ini ditulis; SHA aktual dicatat pada checkpoint berikutnya.
+Baseline induk: `main` pada `25875c9`; implementasi+dokumentasi 06a: `d8d9874`. Status: **IMPLEMENTED — agent-verified; OWNER APPROVED 2026-10-31 WIB — checklist #1–#12**.
 
 ## Status penerimaan pemilik
 
-- Belum ada pernyataan penerimaan untuk 06a. Status review: **PENDING**.
-- Setelah pemilik menyatakan hasil review, penerimaan (atau temuan) dicatat pada commit dokumentasi tersendiri; commit/push paket review bukan penerimaan.
+- Pernyataan pemilik 2026-10-31 WIB: **"Pengujian nomor 1-12 sudah berhasil dan saya approved."**
+- Cakupan: seluruh skenario #1–#12 pada lingkungan UAT terisolasi `.uat-phase06`. Pernyataan pemilik adalah satu-satunya bukti penerimaan; agen tidak mengulang skenario.
+- Batas: penerimaan tidak mengotorisasi merge, deploy, migrasi data legacy/MariaDB/produksi, perubahan dependency/service, 06b, atau 06c. Merge/deploy tetap tidak diotorisasi.
 
 ## Lingkungan UAT (terisolasi)
 
-- SPA: `http://127.0.0.1:14024` (PID 19240)
-- API: `http://127.0.0.1:18024` (PID 2388)
+- SPA: `http://127.0.0.1:14024`
+- API: `http://127.0.0.1:18024`
 - Data: `.uat-phase06` SQLite; cookie `school_phase06_session`
 - Launcher: `laravel-api/scripts/phase06-uat.php`
 - Akun: **`uat.operator`** (dapat mengelola kelas/periode) dan **`uat.kepsek`** (view-only). Password hanya ada di runtime privat `.uat-phase06/account-password.txt`; tidak dicetak di dokumen.
 
-Status server: **masih berjalan** untuk review. Setelah penerimaan, hentikan sesuai DEC-27; data `.uat-phase06` dipertahankan.
+Status server: SPA (PID 19240) dan API (PID 2388) **dihentikan 2026-10-31** setelah penerimaan, sesuai DEC-27. Command line kedua proses diverifikasi sebelum `taskkill /T /F`; port 14024/18024 terverifikasi bebas; Apache 80/443 dan MariaDB 3306 tidak disentuh; data `.uat-phase06` dipertahankan.
 
 Perintah restart bila server sudah berhenti:
 
