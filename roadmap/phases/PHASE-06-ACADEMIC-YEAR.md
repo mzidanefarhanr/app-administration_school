@@ -3,6 +3,8 @@
 Status teknis: NOT STARTED. Status review: PENDING. Semua tes/browser/manual: NOT RUN.
 Dependensi: 03,04; DEC-05. Baseline rencana: b02a87f; audit ulang HEAD saat pelaksanaan.
 
+Rencana terbaru (2026-10-31): `reports/feature-update/PHASE-06-PLAN.md` (baseline `ffa71e3`) — status **DRAFT, menunggu keputusan pemilik D1–D8**. Audit HEAD menemukan: `school_years` belum memiliki periode aktif/lock/tanggal; `semesters` global tanpa relasi tahun dan tanpa CRUD; CRUD Classes masih scaffold (`authorize(): false`, `class_teach_id` tidak fillable); wali kelas menunjuk `users` sehingga guru tanpa akun tidak dapat dipilih; route/menu Classes (`master.view`) tidak selaras dengan API (`students.*`); assign/transfer 03d belum memeriksa tahun locked/soft-deleted. Rencana mengusulkan urutan 06a → 06b → 06c dan UAT baru `.uat-phase06`. Implementasi 06a belum diotorisasi sampai D1–D8 disetujui dan dicatat sebagai DEC baru.
+
 ## Tujuan dan scope
 Siklus tahun ajaran dan rombel. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Tidak ada pekerjaan implementasi yang telah dilakukan dalam penyusunan dokumen ini.
 
@@ -18,8 +20,7 @@ Prompt setelah subfase ini dipilih:
 Baca AGENTS.md, ROADMAP, HANDOFF dan PHASE-06-ACADEMIC-YEAR.md.
 Kerjakan subfase 06a saja: Periode dan rombel sesuai scope dan kriteria dokumen.
 Audit HEAD dan consumer/kontrak aktual sebelum edit; keputusan terkait belum
-APPROVED jangan ditebak bila menentukan perilaku. Scope ini belum memberi izin
-commit/push/merge/deploy atau mutasi data operasional.
+APPROVED jangan ditebak bila menentukan perilaku. Scope ini tidak memberi izin merge/deploy atau mutasi data operasional; commit+push paket review mengikuti aturan repo.
 Gunakan fixture/DB/storage terisolasi; jalankan verifikasi relevan dan catat hasil
 aktual. Jika browser tidak tersedia, jelaskan dan berikan checklist manual.
 Sinkronkan kontrak affected, CHANGELOG, laporan, INDEX, HANDOFF dan ROADMAP.
@@ -36,8 +37,7 @@ Prompt setelah subfase ini dipilih:
 Baca AGENTS.md, ROADMAP, HANDOFF dan PHASE-06-ACADEMIC-YEAR.md.
 Kerjakan subfase 06b saja: Naik kelas/tinggal kelas/lulus sesuai scope dan kriteria dokumen.
 Audit HEAD dan consumer/kontrak aktual sebelum edit; keputusan terkait belum
-APPROVED jangan ditebak bila menentukan perilaku. Scope ini belum memberi izin
-commit/push/merge/deploy atau mutasi data operasional.
+APPROVED jangan ditebak bila menentukan perilaku. Scope ini tidak memberi izin merge/deploy atau mutasi data operasional; commit+push paket review mengikuti aturan repo.
 Gunakan fixture/DB/storage terisolasi; jalankan verifikasi relevan dan catat hasil
 aktual. Jika browser tidak tersedia, jelaskan dan berikan checklist manual.
 Sinkronkan kontrak affected, CHANGELOG, laporan, INDEX, HANDOFF dan ROADMAP.
@@ -54,8 +54,7 @@ Prompt setelah subfase ini dipilih:
 Baca AGENTS.md, ROADMAP, HANDOFF dan PHASE-06-ACADEMIC-YEAR.md.
 Kerjakan subfase 06c saja: Mutasi dan koreksi sesuai scope dan kriteria dokumen.
 Audit HEAD dan consumer/kontrak aktual sebelum edit; keputusan terkait belum
-APPROVED jangan ditebak bila menentukan perilaku. Scope ini belum memberi izin
-commit/push/merge/deploy atau mutasi data operasional.
+APPROVED jangan ditebak bila menentukan perilaku. Scope ini tidak memberi izin merge/deploy atau mutasi data operasional; commit+push paket review mengikuti aturan repo.
 Gunakan fixture/DB/storage terisolasi; jalankan verifikasi relevan dan catat hasil
 aktual. Jika browser tidak tersedia, jelaskan dan berikan checklist manual.
 Sinkronkan kontrak affected, CHANGELOG, laporan, INDEX, HANDOFF dan ROADMAP.

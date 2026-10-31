@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-31] Fase 06 — Rencana siklus tahun ajaran dan rombel (PLAN PREPARED, D1–D8 PROPOSED)
+- Type: Docs
+- Scope / fase: Rencana Fase 06 di atas `main` @ `ffa71e3`; tidak ada perubahan kode, migration, route, UI, ability, dependency, atau data.
+- Files touched: `reports/feature-update/PHASE-06-PLAN.md` (baru), `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-06-ACADEMIC-YEAR.md`, `CHANGELOG.md`.
+- What changed: menambahkan rencana rinci Fase 06 — audit aktual, urutan 06a→06b→06c, delapan keputusan pemilik D1–D8, desain 06a (periode aktif singleton, lock tahun ajaran, CRUD rombel berversi, wali kelas dari profil `employees`, penegakan lock pada assign/transfer), garis besar 06b/06c dengan pertanyaan terbuka, matriks tes, risiko, dan UAT baru `.uat-phase06`; menyelaraskan kata commit+push pada prompt subfase dengan aturan repo.
+- Why: melanjutkan roadmap ke Fase 06; keputusan bisnis periode aktif, lock, wali kelas, akses, dan UAT memerlukan persetujuan pemilik sebelum implementasi.
+- Validation: pemeriksaan dokumen/tautan dan konsistensi status saja. **NOT RUN**: tidak ada tes backend/frontend, build, browser, migrasi, atau UAT.
+- Notes / risks: implementasi 06a belum diotorisasi sampai D1–D8 disetujui dan dicatat sebagai DEC baru; tidak ada merge/deploy/force-push, perubahan dependency/service/`.env`, akses DB terlarang, atau perubahan `.uat-phase05`/`.uat-phase04b`. Rekap sekolah tetap menunggu DEC-12 PROPOSED.
+- Evidence: `reports/feature-update/PHASE-06-PLAN.md`; baseline `ffa71e3`.
+
 ## [2026-10-31] Subfase 05c — Penerimaan manual pemilik (#1–#14) dan penghentian UAT 05
 - Type: Docs
 - Scope / fase: Subfase 05c di atas `main` @ `c2fddfa`; dokumentasi penerimaan dan operasional; tidak ada perubahan kode aplikasi.
