@@ -1,14 +1,15 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-10-31 (Rencana Fase 06 disiapkan; menunggu D1–D8)
+## Current checkpoint — 2026-10-31 (DEC-29 APPROVED; implementasi 06a dimulai)
 
-- **Status:** `reports/feature-update/PHASE-06-PLAN.md` disiapkan atas permintaan pemilik untuk rencana fase berikutnya. Status **DRAFT — MENUNGGU KEPUTUSAN PEMILIK D1–D8**; paket hanya dokumentasi. Tidak ada migration, kode, tes, UAT, atau mutasi data yang dijalankan; semua status implementasi **NOT STARTED**, semua verifikasi **NOT RUN**.
+- **Approval:** pemilik menyatakan pada 2026-10-31 WIB, **"Saya setuju D1-D8 dilakukan."**, menyetujui delapan keputusan rencana Fase 06 di `PHASE-06-PLAN.md` sebagai **DEC-29 APPROVED**. Otorisasi mencakup implementasi **06a** saja; tidak mencakup merge/deploy, migration database operasional, perubahan dependency/service, atau pelaksanaan 06b/06c. Rekap sekolah tetap menunggu format (DEC-12 PROPOSED).
+- **Status:** `PHASE-06-PLAN.md` berstatus **PLAN APPROVED**; implementasi 06a dimulai. Rencana hanya dokumentasi; belum ada kode/migration/tes/UAT saat persetujuan dicatat.
 - **Baseline:** `main` di `ffa71e3` (05c owner-approved dan sudah di-push). Paket rencana dikomit dan di-push terpisah; SHA-nya dicatat pada checkpoint berikutnya, bukan diklaim di sini.
 - **Isi rencana:** audit aktual (school_years tanpa periode aktif/lock/tanggal; semesters global tanpa relasi tahun dan tanpa CRUD; SchoolRombelController/Requests masih scaffold; `class_teach_id` tidak fillable dan menunjuk `users`; mismatch route/menu Classes `master.view` vs API `students.*`; 03d belum memeriksa tahun locked/soft-deleted; belum ada promosi/kelulusan/mutasi), urutan yang diusulkan **06a → 06b → 06c**, desain 06a, garis besar 06b/06c dengan pertanyaan terbuka, matriks tes, risiko, dan rencana UAT terpisah.
 - **Keputusan yang menunggu pemilik (D1–D8):** D1 tabel singleton `academic_settings` untuk periode aktif (tanpa menebak tahun saat migration); D2 `start_date`/`end_date` nullable pada `school_years`; D3 lock per tahun ajaran dengan alasan + audit, tahun aktif tidak boleh lock; D4 wali kelas dari profil `employees` (`class_teach_employee_id`, hanya `Pendidik` aktif) dengan `class_teach_id` dipertahankan; D5 tanpa ability baru (Classes `students.*`, periode/lock `master.manage`) dan menu Academic; D6 nama unik per tahun + `expected_version` + delete ditolak bila ada riwayat; D7 field wajib `name`/`school_year_id`/`school_level_id`, jurusan dan wali opsional; D8 UAT baru `.uat-phase06` (SQLite, API 18024, SPA 14024, cookie `school_phase06_session`, fixture ≥120 siswa) dihentikan setelah penerimaan (DEC-27).
 - **Batas:** rencana ini tidak mengotorisasi implementasi 06a sebelum D1–D8 disetujui dan dicatat sebagai DEC baru; tidak ada merge/deploy/force-push/rewrite; tidak menyentuh database operasional, MariaDB, `.env`, service, dependency, `.uat-phase05`, atau `.uat-phase04b`. Rekap sekolah tetap menunggu format (DEC-12 PROPOSED).
 - **Git:** selective staging (hanya dokumen); `git diff --cached --check` sebelum commit; repo tanpa `.github/workflows` sehingga push tidak memicu deployment. Artefak pemilik `console.txt` dan `vue-app/test-results/` tetap tidak di-commit.
-- **Next:** pemilik meninjau `PHASE-06-PLAN.md` di GitHub dan menyatakan setuju/menolak D1–D8. Setelah disetujui, keputusan dicatat di `docs/DECISIONS.md` lalu implementasi **06a saja**, berhenti untuk review.
+- **Next:** implementasi **06a saja** sesuai DEC-29 (migration additive, periode aktif, lock, CRUD rombel, wali kelas `employees`, penegakan lock pada assign/transfer, UI, tes, UAT `.uat-phase06`), lalu berhenti untuk review pemilik. Jangan memulai 06b/06c tanpa rencana dan keputusan terpisah.
 
 ---
 

@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-31] Fase 06 — Pemilik menyetujui D1–D8 (DEC-29 APPROVED)
+- Type: Docs
+- Scope / fase: Rencana Fase 06; implementasi **06a** diotorisasi. Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `docs/DECISIONS.md` (DEC-29 APPROVED), `reports/feature-update/PHASE-06-PLAN.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-06-ACADEMIC-YEAR.md`, `CHANGELOG.md`.
+- What changed: mencatat pernyataan pemilik **"Saya setuju D1-D8 dilakukan."** (2026-10-31 WIB) sebagai **DEC-29 APPROVED**; rencana Fase 06 berstatus PLAN APPROVED dan implementasi 06a diotorisasi.
+- Why: gate keputusan rencana Fase 06 sudah dijawab; implementasi 06a dapat dimulai tanpa menebak pilihan bisnis.
+- Validation: pemeriksaan dokumen/status. **NOT RUN**: tidak ada tes aplikasi pada entri dokumentasi ini.
+- Notes / risks: persetujuan tidak mencakup merge/deploy, migration DB operasional, dependency/service, atau 06b/06c. Rekap sekolah tetap menunggu DEC-12 PROPOSED.
+- Evidence: `docs/DECISIONS.md` (DEC-29); `reports/feature-update/PHASE-06-PLAN.md`.
+
 ## [2026-10-31] Fase 06 — Rencana siklus tahun ajaran dan rombel (PLAN PREPARED, D1–D8 PROPOSED)
 - Type: Docs
 - Scope / fase: Rencana Fase 06 di atas `main` @ `ffa71e3`; tidak ada perubahan kode, migration, route, UI, ability, dependency, atau data.
