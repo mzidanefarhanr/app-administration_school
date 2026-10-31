@@ -2,13 +2,13 @@
 
 ## Current checkpoint — 2026-10-31 (Rencana 06b disiapkan; menunggu keputusan pemilik)
 
-- **Status:** rencana rinci **06b (naik/tinggal/lulus)** tersedia di `PHASE-06B-PLAN.md` sebagai **PLAN PREPARED — D1–D9 PROPOSED**. Tidak ada kode, migration, route, UI, ability, dependency, atau data yang diubah. Implementasi belum diotorisasi.
+- **Status:** rencana rinci **06b (naik/tinggal/lulus)** tersedia di `PHASE-06B-PLAN.md` dan **APPROVED 2026-10-31 WIB** — pemilik menyatakan **"Saya setuju dieksekusi"**, dicatat sebagai **DEC-30 APPROVED (D1–D9)**; implementasi 06b sedang dikerjakan. 06c tetap memerlukan rencana dan keputusan terpisah.
 - **Scope plan:** preview tanpa mutasi + commit atomik ber-token untuk `promote`/`retain`/`graduate`/`skip`; tabel additive `student_progression_batches`; endpoint opsi/roster/preview/commit/riwayat; UI Academic → Progression; perbaikan kartu statistik Graduated (`counts[6]`); UAT pakai ulang `.uat-phase06` dengan fixture `prepare-progression`.
-- **Key decisions awaiting owner:** D1 semantik keputusan; D2 tanggal; D3 roster/pemetaan/legacy; D4 lock target vs sumber; D5 token 30 menit/hash/aktor/batch 500/409/replay; D6 ability dan menu; D7 audit/riwayat/guard hapus tahun; D8 UAT reuse `.uat-phase06`; D9 non-goals (06c terpisah).
+- **Key decisions approved:** D1 semantik keputusan; D2 tanggal; D3 roster/pemetaan/legacy; D4 lock target vs sumber; D5 token 30 menit/hash/aktor/batch 500/409/replay; D6 ability dan menu; D7 audit/riwayat/guard hapus tahun; D8 UAT reuse `.uat-phase06`; D9 non-goals (06c terpisah).
 - **Audit facts:** status siswa hidup di `student_rombels`, bukan `students`; belum ada endpoint/UI/tes progresi; `school_levels` tanpa urutan sehingga target kelas harus eksplisit; `.uat-phase06` memiliki 73 keanggotaan aktif di 2026/2027 dan 30 di 2027/2028; tahun 2027/2028 masih locked.
-- **Pre-existing finding:** kartu Graduated di Students memakai `counts[4]` padahal `Lulus` = id 6; direncanakan diperbaiki pada 06b dan diuji.
-- **Git:** branch `main`; baseline `1799cf7` (penerimaan 06a #1–#12; implementasi `d8d9874`). Repository has no `.github/workflows`.
-- **Next:** pemilik meninjau D1–D9 di `PHASE-06B-PLAN.md`. Bila disetujui, keputusan dicatat sebagai DEC-30 dan implementasi 06b dimulai; jangan memulai 06b/06c sebelum itu, dan jangan merge/deploy.
+- **Pre-existing finding:** kartu Graduated di Students memakai `counts[4]` padahal `Lulus` = id 6; diperbaiki pada 06b dan diuji.
+- **Git:** branch `main`; peluncuran 06b di atas `b708bf1` (rencana) / `1799cf7` (penerimaan 06a). Repository has no `.github/workflows`.
+- **Next:** selesaikan implementasi, tes, UAT `prepare-progression`, dan paket review 06b; jangan merge/deploy atau mulai 06c.
 
 ---
 

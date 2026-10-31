@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-31] Fase 06b — Pemilik menyetujui rencana (DEC-30 APPROVED)
+- Type: Docs
+- Scope / fase: Rencana Subfase **06b**; implementasi 06b diotorisasi. Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `docs/DECISIONS.md` (DEC-30 APPROVED), `reports/feature-update/PHASE-06B-PLAN.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-06-ACADEMIC-YEAR.md`, `CHANGELOG.md`.
+- What changed: mencatat pernyataan pemilik **"Saya setuju dieksekusi"** (2026-10-31 WIB) sebagai **DEC-30 APPROVED** untuk D1–D9; rencana 06b menjadi PLAN APPROVED dan implementasi 06b dimulai.
+- Why: gate keputusan rencana 06b sudah dijawab; implementasi dapat berjalan tanpa menebak keputusan bisnis.
+- Validation: pemeriksaan dokumen/status. **NOT RUN**: tidak ada tes aplikasi pada entri dokumentasi ini.
+- Notes / risks: persetujuan tidak mencakup merge/deploy, migrasi DB operasional/MariaDB, dependency/service/`.env`, atau 06c. Rekap sekolah tetap menunggu DEC-12 PROPOSED.
+- Evidence: `docs/DECISIONS.md` (DEC-30); `reports/feature-update/PHASE-06B-PLAN.md`.
+
 ## [2026-10-31] Fase 06b — Rencana naik/tinggal/lulus disiapkan (PLAN PREPARED, D1–D9 PROPOSED)
 - Type: Docs
 - Scope / fase: Rencana Subfase **06b** di atas `main` @ `1799cf7`; tidak ada perubahan kode, migration, route, UI, ability, dependency, atau data.
