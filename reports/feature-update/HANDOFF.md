@@ -2,12 +2,12 @@
 
 ## Current checkpoint — 2026-10-31 (Subfase 06b implemented, review pending)
 
-- **Status:** 06b (naik/tinggal/lulus: preview tanpa mutasi + commit atomik ber-token) is **IMPLEMENTED and agent-verified 2026-10-31** on `main` above `6dcd432` (DEC-30 APPROVED; owner statement **"Saya setuju dieksekusi."**). Owner manual review is **PENDING** (`PHASE-06B-MANUAL-REVIEW.md` #1–#14).
+- **Status:** 06b (naik/tinggal/lulus: preview tanpa mutasi + commit atomik ber-token) is **IMPLEMENTED and agent-verified 2026-10-31** on `main` above `6dcd432` (implementation package `c1dde67`, pushed; DEC-30 APPROVED; owner statement **"Saya setuju dieksekusi."**). Owner manual review is **PENDING** (`PHASE-06B-MANUAL-REVIEW.md` #1–#14).
 - **Evidence:** progression 11 tests/150 assertions; full suite **448 passed/13 skipped/4,121 assertions (250.68 s)**; Pint 10 files; `route:list` 6 progression routes; build 26.36 s; ESLint 0 errors; browser/API UAT in `.uat-phase06` — batch #1 committed (2 promote, 1 graduate, 1 retain; target memberships 126/127), replay `200 replayed:true`, itemized `409` with zero mutation, principal sees only committed history with preview/commit/detail-preview `403`, audit without token/decisions, Graduated card counts status 6.
 - **Fixes during UAT:** `prepare-progression` now ensures all six baseline statuses and requires `Lulus` id 6 (graduate commit previously failed FK 500 with full rollback); UI decisions persist across roster filters; batch list hides previews from non-creators (`committed OR created_by`); `student_nik` removed from `StudentRombel` audit allowlist.
 - **UAT state:** `.uat-phase06`, SPA 14024, API 18024 remain **running** for owner review (DEC-27 stop after acceptance). 153 students (150 `UAT-P06`, incl. 20 `UAT-P06B`), 12 classes, both years unlocked, batch #2 preview intentionally left (stale token, cannot commit). Data 06a not reset.
 - **NOT RUN (agent):** MariaDB/InnoDB and MySQL trigger behavior for graduate; multi-process/two-tab race for `409`; source-year lock in browser (active year cannot be locked; covered by automated T12); 500-decision benchmark; screenshot-based visual regression. These remain NOT RUN regardless of owner review.
-- **Git:** branch `main`; implementation package commit recorded after push in the next checkpoint. No `.github/workflows`.
+- **Git:** branch `main`; implementation package `c1dde67` (pushed); `main...origin/main` synced after `git push`. No `.github/workflows`, so push triggers no deployment. Selective staging excludes `.uat-phase06/`, `console.txt`, `vue-app/test-results/`, runtime DB/logs/credentials, and `.env`.
 - **Next:** owner runs `PHASE-06B-MANUAL-REVIEW.md`; after acceptance, record approval in a separate documentation commit and stop UAT servers per DEC-27. Do not merge/deploy or start 06c.
 
 ## Previous checkpoint — 2026-10-31 (Rencana 06b disiapkan; menunggu keputusan pemilik)

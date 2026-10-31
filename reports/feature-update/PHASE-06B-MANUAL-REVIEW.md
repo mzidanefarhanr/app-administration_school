@@ -2,7 +2,7 @@
 
 Subfase: 06b — preview tanpa mutasi, commit atomik ber-token, riwayat batch, dan wizard Academic → Progression.
 Keputusan: **DEC-30 APPROVED** (D1–D9, 2026-10-31 WIB). Laporan teknis: `reports/feature-update/PHASE-06B-REPORT.md`.
-Baseline induk: `main` pada `6dcd432` (pencatatan DEC-30). Status: **IMPLEMENTED — agent-verified; OWNER REVIEW PENDING**.
+Baseline induk: `main` pada `6dcd432` (pencatatan DEC-30); implementasi `c1dde67`. Status: **IMPLEMENTED — agent-verified; OWNER REVIEW PENDING**.
 
 ## Status penerimaan pemilik
 

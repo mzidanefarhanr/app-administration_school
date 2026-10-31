@@ -25,7 +25,7 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 - Why: menyelesaikan proses akhir tahun ajaran yang selama ini belum ada, dengan mutasi atomik, audit, dan kontrol konkurensi sesuai DEC-30.
 - Validation: `php artisan test --filter=StudentProgressionTest` **11 passed/150 assertions**; suite penuh **448 passed/13 skipped/4.121 assertions (250,68 s)**; Pint **10 files PASS**; `route:list` **6 route**; `npm run build` **PASS 26,36 s**; ESLint read-only **0 error**; UAT `.uat-phase06` (153 siswa/12 kelas/2 batch) — commit campuran, replay, `409`, view-only `403`, audit, Graduated card. **NOT RUN:** MariaDB/InnoDB + trigger MySQL, race multi-proses/dua tab nyata, lock sumber di browser, benchmark 500 keputusan, visual regression, penerimaan pemilik.
 - Notes / risks: batch #2 preview dan tahun target unlocked sengaja dipertahankan di UAT; baris audit lama #22/#24 memuat NIK sintetis sebelum perbaikan allowlist (audit append-only tidak diubah). Server UAT tetap berjalan sampai penerimaan; data `.uat-phase06` dipertahankan.
-- Evidence: `reports/feature-update/PHASE-06B-REPORT.md`, `reports/feature-update/PHASE-06B-MANUAL-REVIEW.md`; SHA paket dicatat pada checkpoint HANDOFF setelah push.
+- Evidence: `reports/feature-update/PHASE-06B-REPORT.md`, `reports/feature-update/PHASE-06B-MANUAL-REVIEW.md`; paket implementasi+dokumentasi `c1dde67` (di-push ke `origin/main`).
 
 ## [2026-10-31] Fase 06b — Pemilik menyetujui rencana (DEC-30 APPROVED)
 - Type: Docs
