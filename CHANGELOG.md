@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-10-31] Fase 06b — Rencana naik/tinggal/lulus disiapkan (PLAN PREPARED, D1–D9 PROPOSED)
+- Type: Docs
+- Scope / fase: Rencana Subfase **06b** di atas `main` @ `1799cf7`; tidak ada perubahan kode, migration, route, UI, ability, dependency, atau data.
+- Files touched: `reports/feature-update/PHASE-06B-PLAN.md` (baru), `reports/feature-update/HANDOFF.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/PHASE-06-PLAN.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-06-ACADEMIC-YEAR.md`, `CHANGELOG.md`.
+- What changed: menambahkan rencana rinci 06b — audit aktual (status siswa berada pada `student_rombels`, belum ada kode/endpoint/tes naik kelas, `school_levels` tanpa urutan, bug lama kartu "Graduated" `Student.vue` memakai `counts[4]` alih-alih `counts[6]`), semantik promote/retain/graduate/skip, kriteria roster, tabel `student_progression_batches` + token commit 30 menit terikat aktor, endpoint options/roster/preview/commit/batches, wizard Academic → Progression, matriks tes T1–T16, fixture `prepare-progression` pada `.uat-phase06`, risiko, non-goals, dan sembilan keputusan **D1–D9 PROPOSED**.
+- Why: melanjutkan Fase 06 ke subfase berikutnya; keputusan bisnis tanggal efektif, semantik lulus, sumber roster, dan batas lock memerlukan persetujuan pemilik sebelum implementasi.
+- Validation: pemeriksaan dokumen/tautan dan konsistensi status saja. **NOT RUN**: tidak ada tes backend/frontend, build, browser, migrasi, atau UAT.
+- Notes / risks: implementasi 06b belum diotorisasi sampai D1–D9 disetujui dan dicatat sebagai DEC-30; **DEC-30 belum diajukan**. Tidak ada merge/deploy/force-push, perubahan dependency/service/`.env`, akses DB terlarang, atau perubahan `.uat-phase05`/`.uat-phase04b`/`.uat-phase06` (tidak ada server UAT dijalankan pada entri ini).
+- Evidence: `reports/feature-update/PHASE-06B-PLAN.md`; baseline `1799cf7`.
+
 ## [2026-10-31] Fase 06a — Pemilik menyetujui checklist #1–#12 (OWNER APPROVED)
 - Type: Docs
 - Scope / fase: Penerimaan manual Subfase **06a**; tidak ada perubahan kode, migration, route, UI, atau data pada entri ini.

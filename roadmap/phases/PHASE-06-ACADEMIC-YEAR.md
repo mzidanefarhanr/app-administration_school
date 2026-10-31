@@ -1,9 +1,9 @@
 # Fase 06 — Siklus tahun ajaran dan rombel
 
-Status teknis: **06a IMPLEMENTED & agent-verified (2026-10-31); 06b/06c NOT STARTED.** Status review: **06a OWNER APPROVED 2026-10-31 WIB (#1–#12).** Tes/browser 06a dijalankan agen; item MariaDB/konkurensi/dua-tab tetap NOT RUN. Implementasi 06a: `d8d9874`.
+Status teknis: **06a IMPLEMENTED & agent-verified (2026-10-31); 06b PLAN PREPARED (D1–D9 PROPOSED); 06c NOT STARTED.** Status review: **06a OWNER APPROVED 2026-10-31 WIB (#1–#12).** Tes/browser 06a dijalankan agen; item MariaDB/konkurensi/dua-tab tetap NOT RUN. Implementasi 06a: `d8d9874`.
 Dependensi: 03,04; DEC-05. Baseline rencana: b02a87f; implementasi 06a di atas `main` @ `25875c9` (DEC-29 APPROVED).
 
-Rencana terbaru (2026-10-31): `reports/feature-update/PHASE-06-PLAN.md` (baseline `ffa71e3`) — **PLAN APPROVED 2026-10-31 WIB (DEC-29)**; implementasi **06a** diotorisasi, 06b/06c belum. Audit HEAD menemukan: `school_years` belum memiliki periode aktif/lock/tanggal; `semesters` global tanpa relasi tahun dan tanpa CRUD; CRUD Classes masih scaffold (`authorize(): false`, `class_teach_id` tidak fillable); wali kelas menunjuk `users` sehingga guru tanpa akun tidak dapat dipilih; route/menu Classes (`master.view`) tidak selaras dengan API (`students.*`); assign/transfer 03d belum memeriksa tahun locked/soft-deleted. Rencana mengusulkan urutan 06a → 06b → 06c dan UAT baru `.uat-phase06`.
+Rencana terbaru (2026-10-31): `reports/feature-update/PHASE-06-PLAN.md` (baseline `ffa71e3`) — **PLAN APPROVED 2026-10-31 WIB (DEC-29)**; implementasi **06a** diotorisasi, 06b/06c belum. Rencana rinci 06b tersedia di `reports/feature-update/PHASE-06B-PLAN.md` (baseline `1799cf7`) — **PLAN PREPARED, D1–D9 PROPOSED; menunggu keputusan pemilik; DEC-30 belum diajukan**; belum ada implementasi 06b. Audit HEAD menemukan: `school_years` belum memiliki periode aktif/lock/tanggal; `semesters` global tanpa relasi tahun dan tanpa CRUD; CRUD Classes masih scaffold (`authorize(): false`, `class_teach_id` tidak fillable); wali kelas menunjuk `users` sehingga guru tanpa akun tidak dapat dipilih; route/menu Classes (`master.view`) tidak selaras dengan API (`students.*`); assign/transfer 03d belum memeriksa tahun locked/soft-deleted. Rencana mengusulkan urutan 06a → 06b → 06c dan UAT baru `.uat-phase06`.
 
 ## Tujuan dan scope
 Siklus tahun ajaran dan rombel. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Tidak ada pekerjaan implementasi yang telah dilakukan dalam penyusunan dokumen ini.
@@ -33,6 +33,8 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 Scope: Preview siswa sumber, target kelas, status dan exception; commit atomik/bounded dengan token; riwayat tahun lama tidak ditimpa; hasil tiap siswa.
 
 Kriteria penerimaan: Preview tanpa mutasi; retry aman; tinggal/lulus tidak dipindah otomatis; data sumber dan decoy tetap benar.
+
+Status per 2026-10-31: **PLAN PREPARED — belum diimplementasikan.** Rencana rinci di `reports/feature-update/PHASE-06B-PLAN.md` (baseline `1799cf7`) mencakup semantik promote/retain/graduate/skip, roster eligibility, token commit 30 menit terikat aktor, tabel `student_progression_batches`, endpoint options/roster/preview/commit/batches, wizard Academic → Progression, matriks tes, dan fixture UAT `prepare-progression` pada `.uat-phase06`. Sembilan keputusan **D1–D9 masih PROPOSED** dan menunggu persetujuan pemilik; **DEC-30 belum diajukan** dan implementasi belum diotorisasi.
 
 Prompt setelah subfase ini dipilih:
 ```text

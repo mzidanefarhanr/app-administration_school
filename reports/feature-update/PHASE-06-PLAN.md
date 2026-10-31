@@ -1,7 +1,7 @@
 # Rencana Fase 06 — Siklus Tahun Ajaran dan Rombel
 
 - Tanggal: 2026-10-31 (WIB). Branch: `main`. Baseline kode: `ffa71e3` (05c diterima pemilik dan sudah di-push).
-- Status dokumen: **PLAN APPROVED — D1–D8 disetujui pemilik 2026-10-31 WIB ("Saya setuju D1-D8 dilakukan.") dan dicatat sebagai DEC-29 APPROVED.** Implementasi 06a **IMPLEMENTED & agent-verified 2026-10-31** dan **checklist pemilik #1–#12 APPROVED 2026-10-31 WIB**; 06b/06c memerlukan rencana dan keputusan terpisah.
+- Status dokumen: **PLAN APPROVED — D1–D8 disetujui pemilik 2026-10-31 WIB ("Saya setuju D1-D8 dilakukan.") dan dicatat sebagai DEC-29 APPROVED.** Implementasi 06a **IMPLEMENTED & agent-verified 2026-10-31** dan **checklist pemilik #1–#12 APPROVED 2026-10-31 WIB**; 06b/06c memerlukan rencana dan keputusan terpisah. Rencana rinci **06b** sudah disiapkan di `reports/feature-update/PHASE-06B-PLAN.md` (baseline `1799cf7`) dengan **D1–D9 PROPOSED**; menunggu keputusan pemilik dan belum diimplementasikan.
 - Fase 06: **06a (periode dan rombel) → 06b (naik/tinggal/lulus) → 06c (mutasi dan koreksi)**, dikerjakan satu subfase per instruksi pemilik. Rencana ini merinci 06a dan memberi garis besar 06b/06c; keputusan 06b/06c diajukan terpisah sebelum subfase tersebut dimulai.
 - Dokumen acuan: `roadmap/phases/PHASE-06-ACADEMIC-YEAR.md`, `docs/DECISIONS.md` (DEC-05, DEC-20, DEC-21, DEC-23, DEC-27, DEC-29), `docs/REQUIREMENTS.md` (FR-07), `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `docs/DATABASE.md`, `docs/TESTING.md`.
 - Gate: D1–D8 telah disetujui dan dicatat sebagai **DEC-29 APPROVED (2026-10-31 WIB)**; implementasi 06a diotorisasi. Persetujuan ini bukan merge/deploy dan bukan izin migrasi database operasional.

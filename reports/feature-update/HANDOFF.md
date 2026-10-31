@@ -1,6 +1,18 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-10-31 (Subfase 06a owner-accepted)
+## Current checkpoint — 2026-10-31 (Rencana 06b disiapkan; menunggu keputusan pemilik)
+
+- **Status:** rencana rinci **06b (naik/tinggal/lulus)** tersedia di `PHASE-06B-PLAN.md` sebagai **PLAN PREPARED — D1–D9 PROPOSED**. Tidak ada kode, migration, route, UI, ability, dependency, atau data yang diubah. Implementasi belum diotorisasi.
+- **Scope plan:** preview tanpa mutasi + commit atomik ber-token untuk `promote`/`retain`/`graduate`/`skip`; tabel additive `student_progression_batches`; endpoint opsi/roster/preview/commit/riwayat; UI Academic → Progression; perbaikan kartu statistik Graduated (`counts[6]`); UAT pakai ulang `.uat-phase06` dengan fixture `prepare-progression`.
+- **Key decisions awaiting owner:** D1 semantik keputusan; D2 tanggal; D3 roster/pemetaan/legacy; D4 lock target vs sumber; D5 token 30 menit/hash/aktor/batch 500/409/replay; D6 ability dan menu; D7 audit/riwayat/guard hapus tahun; D8 UAT reuse `.uat-phase06`; D9 non-goals (06c terpisah).
+- **Audit facts:** status siswa hidup di `student_rombels`, bukan `students`; belum ada endpoint/UI/tes progresi; `school_levels` tanpa urutan sehingga target kelas harus eksplisit; `.uat-phase06` memiliki 73 keanggotaan aktif di 2026/2027 dan 30 di 2027/2028; tahun 2027/2028 masih locked.
+- **Pre-existing finding:** kartu Graduated di Students memakai `counts[4]` padahal `Lulus` = id 6; direncanakan diperbaiki pada 06b dan diuji.
+- **Git:** branch `main`; baseline `1799cf7` (penerimaan 06a #1–#12; implementasi `d8d9874`). Repository has no `.github/workflows`.
+- **Next:** pemilik meninjau D1–D9 di `PHASE-06B-PLAN.md`. Bila disetujui, keputusan dicatat sebagai DEC-30 dan implementasi 06b dimulai; jangan memulai 06b/06c sebelum itu, dan jangan merge/deploy.
+
+---
+
+## Previous checkpoint — 2026-10-31 (Subfase 06a owner-accepted)
 
 - **Status:** 06a (periode akademik aktif, lock tahun ajaran, CRUD kelas, wali kelas dari profil pegawai, penegakan lock pada penempatan) is **IMPLEMENTED, agent-verified, and OWNER APPROVED 2026-10-31 WIB (#1–#12)** on `main` above `25875c9`; implementation package `d8d9874`.
 - **Acceptance:** owner statement 2026-10-31 WIB **"Pengujian nomor 1-12 sudah berhasil dan saya approved."** covers checklist #1–#12 in `PHASE-06A-MANUAL-REVIEW.md`. That statement is the sole acceptance evidence; the agent did not rerun scenarios, and agent NOT RUN items remain NOT RUN. Acceptance does not authorize merge, deploy, operational/MariaDB migration, dependency/service changes, or 06b/06c.
@@ -9,8 +21,8 @@
 - **Agent evidence (actual, 2026-10-31):** academic tests **20 passed/145 assertions**; 03d placement regression **27 passed/104 assertions**; full suite **437 passed / 13 skipped / 3.971 assertions** (skips are MariaDB integration without password); Pint **22 files PASS**; `npm run build` **PASS 806 modules/21.55 s**; `npx eslint --quiet` **exit 0** (non-quiet warnings are environmental Prettier/CRLF). UAT `.uat-phase06`: 133 students (130 `UAT-P06`), 12 classes, 10 active teachers + 1 separated, 4 staff, active period 2026/2027 · Ganjil; browser DOM + API checks #1–#12 passed.
 - **UAT:** isolated `.uat-phase06` SQLite (SPA 14024 / API 18024, cookie `school_phase06_session`, launcher `scripts/phase06-uat.php`). Servers were **stopped on 2026-10-31** after acceptance per DEC-27 (PIDs 19240/2388 verified, ports free, Apache/MariaDB untouched); `.uat-phase06` data/storage is preserved and restart commands are in the manual review.
 - **NOT RUN (agent):** MariaDB/InnoDB migration/backfill and lock concurrency, multi-process race between lock and assign/transfer, real two-tab `409`, screenshot/visual regression, semester CRUD, unique DB index for class names (deferred by D6), 06b/06c. These remain NOT RUN regardless of owner acceptance.
-- **Git:** branch `main`; implementation package `d8d9874` (pushed); acceptance documentation commit recorded separately after the owner statement (its SHA appears in the next checkpoint). Repository has no `.github/workflows`, so push triggers no deployment. Selective staging excludes `.uat-phase06/`, `console.txt`, `vue-app/test-results/`, runtime DB/logs/credentials, and `.env`.
-- **Next:** prepare and submit the separate **06b** plan (`PHASE-06B-PLAN.md`) for owner decision; do not start 06b/06c implementation, merge, or deploy before approval.
+- **Git:** branch `main`; implementation package `d8d9874` (pushed); acceptance documentation commit `1799cf7` (pushed). Repository has no `.github/workflows`, so push triggers no deployment. Selective staging excludes `.uat-phase06/`, `console.txt`, `vue-app/test-results/`, runtime DB/logs/credentials, and `.env`.
+- **Next:** 06b plan prepared (`PHASE-06B-PLAN.md`) and awaiting owner decision; do not start implementation, merge, or deploy before approval.
 
 ---
 
