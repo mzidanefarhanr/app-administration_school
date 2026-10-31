@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
+import { useRoute } from 'vue-router';
 import Button from 'primevue/button';
 import { authStore } from '@/stores/authStore';
 import { useToast } from "primevue/usetoast";
@@ -10,6 +11,7 @@ import StudentImportDialog from './StudentImportDialog.vue';
 import { referenceLabel, displayReferenceOptions } from '@/utils/referenceLabels.mjs';
 
 const toast = useToast();
+const route = useRoute();
 const doughnutData = ref(null);
 const ChartStudentsData = ref(null);
 const barData = ref(null);
@@ -906,6 +908,15 @@ const viewStudentDetail = async (row) => {
     }
 };
 
+// Tautan dari halaman Data Quality membuka dialog detail yang sudah ada.
+const openStudentFromQuery = async () => {
+    const raw = Array.isArray(route.query.openStudent) ? route.query.openStudent[0] : route.query.openStudent;
+    const id = Number(raw);
+    if (!Number.isInteger(id) || id <= 0) return;
+
+    await viewStudentDetail({ id });
+};
+
 const buildStudentPayload = (form) => {
     const payload = {};
     studentFormKeys.forEach((key) => { payload[key] = form[key]; });
@@ -1174,9 +1185,10 @@ const confirmPlacement = async () => {
     }
 };
 
-onMounted(() => {
+onMounted(async () => {
     fetchDataUserRole();
     activeSub.value = groupItems[0].subItems[0].id;
+    await openStudentFromQuery();
 });
 </script>
 <template>

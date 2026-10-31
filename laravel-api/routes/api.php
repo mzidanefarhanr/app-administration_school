@@ -10,6 +10,7 @@ use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\EducationLevelController;
 use App\Http\Controllers\EducationSchoolController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\EmployeeDataQualityController;
 use App\Http\Controllers\EmployeeExportController;
 use App\Http\Controllers\EmployeeStatusController;
 use App\Http\Controllers\EmployeeTypeController;
@@ -32,6 +33,7 @@ use App\Http\Controllers\SchoolYearController;
 use App\Http\Controllers\SemesterController;
 use App\Http\Controllers\StatusUserController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\StudentDataQualityController;
 use App\Http\Controllers\StudentEntryController;
 use App\Http\Controllers\StudentExportController;
 use App\Http\Controllers\StudentMajorController;
@@ -183,6 +185,25 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         ->middleware('can:employees.import');
     Route::get('/imports/employees/{batch}/errors', [ImportController::class, 'errorsEmployee'])
         ->middleware('can:employees.import');
+
+    // Fase 05c (DEC-28) — pemeriksaan kelengkapan dan status review.
+    Route::prefix('data-quality/students')->group(function () {
+        Route::get('/summary', [StudentDataQualityController::class, 'summary'])
+            ->middleware('can:students.view');
+        Route::get('/issues', [StudentDataQualityController::class, 'issues'])
+            ->middleware('can:students.view');
+        Route::put('/reviews/{issueKey}', [StudentDataQualityController::class, 'review'])
+            ->middleware('can:students.manage');
+    });
+
+    Route::prefix('data-quality/employees')->group(function () {
+        Route::get('/summary', [EmployeeDataQualityController::class, 'summary'])
+            ->middleware('can:employees.view');
+        Route::get('/issues', [EmployeeDataQualityController::class, 'issues'])
+            ->middleware('can:employees.view');
+        Route::put('/reviews/{issueKey}', [EmployeeDataQualityController::class, 'review'])
+            ->middleware('can:employees.manage');
+    });
 
     // Fase 01a — ekspor siswa (CSV) terlindungi: students.view + students.export.
     Route::get('/students/export', [StudentExportController::class, 'export'])

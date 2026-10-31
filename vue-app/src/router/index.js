@@ -1,6 +1,7 @@
 import AppLayout from '@/layout/AppLayout.vue';
 import { createRouter, createWebHistory } from 'vue-router';
 import { authStore } from '../stores/authStore';
+import { isRouteAbilitySatisfied } from './routeAbility.mjs';
 
 const router = createRouter({
     history: createWebHistory(),
@@ -68,6 +69,12 @@ const router = createRouter({
                     name: 'students',
                     meta: { breadcrumb: 'Students', requiresAbility: 'students.view' },
                     component: () => import('@/views/pages/public/Student.vue')
+                },
+                {
+                    path: '/public/data-quality',
+                    name: 'dataquality',
+                    meta: { breadcrumb: 'Data Quality', requiresAbility: ['students.view', 'employees.view'] },
+                    component: () => import('@/views/pages/public/DataQuality.vue')
                 },
                 {
                     path: '/public/teachers',
@@ -290,10 +297,12 @@ router.beforeEach(async (to, from, next) => {
         return;
     }
 
-    // Evaluasi kemampuan spesifik per halaman (berlaku pada navigasi langsung dan antar-child)
+    // Evaluasi kemampuan spesifik per halaman (berlaku pada navigasi langsung dan antar-child).
+    // `requiresAbility` boleh berupa satu string (lama) atau array yang lolos bila salah satu ada.
     const requiredAbility = to.meta?.requiresAbility;
-    if (requiredAbility && !useAuthStore.can(requiredAbility)) {
-        console.warn(`Access denied: missing required ability "${requiredAbility}".`);
+    if (!isRouteAbilitySatisfied(requiredAbility, useAuthStore)) {
+        const missing = Array.isArray(requiredAbility) ? requiredAbility.join(' or ') : requiredAbility;
+        console.warn(`Access denied: missing required ability "${missing}".`);
         next({ path: '/auth/access' });
         return;
     }

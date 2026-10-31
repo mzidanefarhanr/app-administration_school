@@ -41,7 +41,13 @@ export const authStore = defineStore('auth', {
         // Peran tampilan (slug) pengguna login.
         roles: (state) => state.identity?.roles || [],
         // Pemeriksaan kemampuan bernama terpusat.
-        can: (state) => (ability) => Array.isArray(state.abilities) && state.abilities.includes(ability)
+        can: (state) => (ability) => Array.isArray(state.abilities) && state.abilities.includes(ability),
+        // Pemeriksaan OR untuk halaman yang menerima salah satu kemampuan.
+        canAny: (state) => (abilities) =>
+            Array.isArray(abilities) &&
+            abilities.length > 0 &&
+            Array.isArray(state.abilities) &&
+            abilities.some((ability) => state.abilities.includes(ability))
     },
 
     actions: {

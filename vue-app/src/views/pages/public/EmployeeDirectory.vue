@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import Button from 'primevue/button';
 import { useToast } from 'primevue/usetoast';
 import { authStore } from '@/stores/authStore';
@@ -22,6 +23,7 @@ const props = defineProps({
 });
 
 const toast = useToast();
+const route = useRoute();
 const store = authStore();
 
 const canManage = computed(() => store.can('employees.manage'));
@@ -206,6 +208,15 @@ const openDetail = async (row) => {
     detailVisible.value = true;
 };
 
+// Tautan dari halaman Data Quality membuka dialog detail yang sudah ada.
+const openEmployeeFromQuery = async () => {
+    const raw = Array.isArray(route.query.openEmployee) ? route.query.openEmployee[0] : route.query.openEmployee;
+    const id = Number(raw);
+    if (!Number.isInteger(id) || id <= 0) return;
+
+    await openDetail({ id });
+};
+
 const openCreate = () => {
     selectedEmployee.value = null;
     formVisible.value = true;
@@ -311,7 +322,8 @@ onMounted(async () => {
         listError.value = `${pageTitle.value} reference data is not available. Ask an administrator to seed the reference data.`;
         return;
     }
-    fetchList();
+    await fetchList();
+    await openEmployeeFromQuery();
 });
 
 // Routes share this component, so a direct switch between Teachers and

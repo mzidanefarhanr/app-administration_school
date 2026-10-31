@@ -37,6 +37,7 @@ const model = ref([
             { label: 'Students', icon: 'pi pi-fw pi-graduation-cap', to: '/public/students', requires: 'students.view' },
             { label: 'Teachers', icon: 'pi pi-fw pi-slack', to: '/public/teachers', requires: 'employees.view' },
             { label: 'Employees', icon: 'pi pi-fw pi-address-book', to: '/public/employees', requires: 'employees.view' },
+            { label: 'Data Quality', icon: 'pi pi-fw pi-check-circle', to: '/public/data-quality', requires: ['students.view', 'employees.view'] },
             { label: 'Letters Form', icon: 'pi pi-fw pi-book', to: '#' },
         ]
     },
@@ -188,8 +189,12 @@ const model = ref([
     }
 ]);
 
-// Bila pengguna dapat mengakses setidaknya satu kemampuan grup.
-const canSee = (requires) => !requires || useAuthStore.can(requires);
+// Bila pengguna dapat mengakses setidaknya satu kemampuan grup/item.
+const canSee = (requires) => {
+    if (!requires) return true;
+
+    return Array.isArray(requires) ? useAuthStore.canAny(requires) : useAuthStore.can(requires);
+};
 
 // Item grup yang tampil, difilter berdasarkan kemampuan dan item individual.
 const visibleModel = computed(() =>

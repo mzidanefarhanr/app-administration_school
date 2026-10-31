@@ -186,6 +186,278 @@ if ($command === 'prepare') {
     fwrite(STDOUT, 'Sample files: .uat-phase05/samples/students-import-valid.csv, students-import-mixed.csv and students-import-update.csv'."\n");
     exit(0);
 }
+if ($command === 'prepare-data-quality') {
+    $marker = 'UAT-DQ';
+    $year = App\Models\SchoolYear::where('name', '2026/2027')->first();
+    $rombel = $year
+        ? App\Models\SchoolRombel::where('school_year_id', $year->id)->where('name', 'X-1')->first()
+        : null;
+    if (! $year || ! $rombel) {
+        throw new RuntimeException('Run the prepare command first: school year 2026/2027 and rombel X-1 are required.');
+    }
+
+    $genderMale = App\Models\Gender::where('name', 'Laki-Laki')->firstOrFail();
+    $genderFemale = App\Models\Gender::where('name', 'Perempuan')->firstOrFail();
+    $religion = App\Models\Religion::where('name', 'Islam')->firstOrFail();
+    $statusActive = App\Models\StudentStatus::where('name', 'Aktif')->firstOrFail();
+    $entryNew = App\Models\StudentEntry::where('name', 'Siswa Baru')->firstOrFail();
+
+    $teacherType = App\Models\EmployeeType::where('name', 'Pendidik')->firstOrFail();
+    $staffType = App\Models\EmployeeType::where('name', 'Tenaga Kependidikan')->firstOrFail();
+    $teacherStatus = App\Models\EmployeeStatus::where('name', 'Guru Tetap Yayasan')->firstOrFail();
+    $staffStatus = App\Models\EmployeeStatus::where('name', 'Pegawai Tetap Yayasan')->firstOrFail();
+    $teacherEmployment = App\Models\Employment::where('name', 'Guru Mata Pelajaran')->firstOrFail();
+    $staffEmployment = App\Models\Employment::where('name', 'Tenaga Administrasi Sekolah')->firstOrFail();
+    $district = App\Models\District::where('name', 'Synthetic District')->firstOrFail();
+    $maritalStatus = App\Models\MaritalStatus::where('name', 'Belum Menikah')->firstOrFail();
+    $subjects = App\Models\Subject::whereIn('name', ['Matematika', 'Bahasa Inggris', 'Ilmu Pengetahuan Alam (IPA)'])
+        ->orderBy('id')
+        ->get()
+        ->keyBy('name');
+    if ($subjects->count() !== 3) {
+        throw new RuntimeException('Run the prepare command first: synthetic subjects are required.');
+    }
+    $subjectNames = $subjects->keys()->values()->all();
+
+    $studentSpecs = [];
+    for ($serial = 1; $serial <= 60; $serial++) {
+        $slot = str_pad((string) $serial, 3, '0', STR_PAD_LEFT);
+        $spec = [
+            'slot' => $slot,
+            'placed' => true,
+            'name' => $marker.' Student '.$slot,
+            'nik' => '9999'.str_pad((string) $serial, 12, '0', STR_PAD_LEFT),
+            'nis' => 'DQ-S-'.$slot,
+            'nisn' => '9999'.str_pad((string) $serial, 6, '0', STR_PAD_LEFT),
+            'birthdate' => date('Y-m-d', strtotime('2011-01-01 + '.($serial - 1).' days')),
+        ];
+        if ($serial >= 21 && $serial <= 25) {
+            $spec['nik'] = null;
+        } elseif ($serial >= 26 && $serial <= 30) {
+            $spec['nik'] = '90000'.str_pad((string) $serial, 5, '0', STR_PAD_LEFT);
+        } elseif ($serial >= 31 && $serial <= 35) {
+            $spec['nisn'] = null;
+        } elseif ($serial >= 36 && $serial <= 40) {
+            $spec['birthdate'] = null;
+        } elseif ($serial >= 41 && $serial <= 50) {
+            $spec['nik'] = null;
+            $spec['placed'] = false;
+        } elseif ($serial >= 51 && $serial <= 60) {
+            $pair = intdiv($serial - 51, 2) + 1;
+            $spec['name'] = $marker.' Duplicate Pair '.$pair;
+            $spec['birthdate'] = '2012-06-0'.$pair;
+        }
+        $studentSpecs[] = $spec;
+    }
+
+    $reservedStudentNiks = array_values(array_filter(array_column($studentSpecs, 'nik')));
+    $studentCollision = App\Models\Student::withTrashed()
+        ->where(function ($query) use ($reservedStudentNiks) {
+            $query->where('nis', 'like', 'DQ-S-%')
+                ->orWhere('nisn', 'like', '9999%')
+                ->orWhereIn('nik', $reservedStudentNiks);
+        })
+        ->where('name', 'not like', $marker.'%')
+        ->exists();
+    if ($studentCollision) {
+        throw new RuntimeException('Existing students outside the UAT-DQ fixture use reserved NIK/NIS/NISN values.');
+    }
+
+    $employeeSpecs = [];
+    $employeeSerial = 0;
+    $nikSerial = 0;
+    $addEmployee = function (string $name, bool $teacher, array $options = []) use (&$employeeSpecs, &$employeeSerial, &$nikSerial): void {
+        $employeeSerial++;
+        $withNik = $options['with_nik'] ?? true;
+        if ($withNik) {
+            $nikSerial++;
+        }
+        $employeeSpecs[] = [
+            'name' => $name,
+            'teacher' => $teacher,
+            'nuptk' => $options['nuptk'] ?? null,
+            'subject_name' => $options['subject_name'] ?? null,
+            'nik' => $withNik ? '9998'.str_pad((string) $nikSerial, 12, '0', STR_PAD_LEFT) : null,
+            'exit_date' => $options['exit_date'] ?? null,
+            'date_of_birth' => $options['date_of_birth'] ?? date('Y-m-d', strtotime('1980-01-01 + '.$employeeSerial.' days')),
+            'serial' => $employeeSerial,
+        ];
+    };
+
+    for ($i = 1; $i <= 10; $i++) {
+        $number = str_pad((string) $i, 3, '0', STR_PAD_LEFT);
+        $addEmployee($marker.' Teacher '.$number, true, [
+            'nuptk' => 'DQ-NUPTK-'.$number,
+            'subject_name' => $subjectNames[($i - 1) % 3],
+        ]);
+    }
+    for ($i = 1; $i <= 10; $i++) {
+        $addEmployee($marker.' Staff '.str_pad((string) $i, 3, '0', STR_PAD_LEFT), false);
+    }
+    for ($i = 21; $i <= 27; $i++) {
+        $number = str_pad((string) $i, 3, '0', STR_PAD_LEFT);
+        $addEmployee($marker.' Teacher '.$number, true, [
+            'subject_name' => $subjectNames[($i - 21) % 3],
+        ]);
+    }
+    for ($i = 21; $i <= 27; $i++) {
+        $addEmployee($marker.' Staff '.str_pad((string) $i, 3, '0', STR_PAD_LEFT), false, ['with_nik' => false]);
+    }
+    for ($i = 28; $i <= 33; $i++) {
+        $number = str_pad((string) $i, 3, '0', STR_PAD_LEFT);
+        $addEmployee($marker.' Teacher '.$number, true, [
+            'with_nik' => false,
+            'nuptk' => 'DQ-NUPTK-'.$number,
+            'subject_name' => $subjectNames[($i - 28) % 3],
+        ]);
+    }
+    for ($i = 34; $i <= 43; $i++) {
+        $pair = intdiv($i - 34, 2) + 1;
+        $addEmployee($marker.' Teacher '.str_pad((string) $i, 3, '0', STR_PAD_LEFT), true, [
+            'nuptk' => 'DQ-NUPTK-DUPLICATE-'.$pair,
+            'subject_name' => $subjectNames[($i - 34) % 3],
+        ]);
+    }
+    for ($i = 1; $i <= 10; $i++) {
+        $addEmployee($marker.' Separated '.str_pad((string) $i, 3, '0', STR_PAD_LEFT), false, [
+            'with_nik' => false,
+            'exit_date' => '2020-12-31',
+        ]);
+    }
+
+    $reservedEmployeeNiks = array_values(array_filter(array_column($employeeSpecs, 'nik')));
+    $reservedNuptks = array_values(array_filter(array_column($employeeSpecs, 'nuptk')));
+    $employeeCollision = App\Models\Employee::withTrashed()
+        ->where(function ($query) use ($reservedEmployeeNiks, $reservedNuptks) {
+            $query->whereIn('nik', $reservedEmployeeNiks)->orWhereIn('nuptk', $reservedNuptks);
+        })
+        ->where('name', 'not like', $marker.'%')
+        ->exists();
+    if ($employeeCollision) {
+        throw new RuntimeException('Existing employees outside the UAT-DQ fixture use reserved NIK/NUPTK values.');
+    }
+
+    $createdStudents = 0;
+    $markerStudents = collect();
+    foreach ($studentSpecs as $spec) {
+        $student = App\Models\Student::firstOrCreate(
+            ['nis' => $spec['nis']],
+            [
+                'name' => $spec['name'],
+                'nik' => $spec['nik'],
+                'birthplace' => 'UAT Synthetic City',
+                'birthdate' => $spec['birthdate'],
+                'gender_id' => ((int) $spec['slot'] % 2 === 0 ? $genderFemale : $genderMale)->id,
+                'religion_id' => $religion->id,
+                'nisn' => $spec['nisn'],
+            ]
+        );
+        $createdStudents += $student->wasRecentlyCreated ? 1 : 0;
+        $markerStudents->push($student);
+
+        if ($spec['placed']) {
+            App\Models\StudentRombel::firstOrCreate(
+                ['student_id' => $student->id, 'school_rombel' => $rombel->id],
+                [
+                    'student_nik' => $student->nik,
+                    'student_status_id' => $statusActive->id,
+                    'student_entry_id' => $entryNew->id,
+                ]
+            );
+        }
+    }
+
+    $createdEmployees = 0;
+    foreach ($employeeSpecs as $spec) {
+        $subject = $spec['subject_name'] !== null ? $subjects->get($spec['subject_name']) : null;
+        $employee = App\Models\Employee::firstOrCreate(
+            ['name' => $spec['name']],
+            [
+                'nik' => $spec['nik'],
+                'employee_type_id' => ($spec['teacher'] ? $teacherType : $staffType)->id,
+                'employee_status_id' => ($spec['teacher'] ? $teacherStatus : $staffStatus)->id,
+                'employment_id' => ($spec['teacher'] ? $teacherEmployment : $staffEmployment)->id,
+                'subject_id' => $subject?->id,
+                'religion_id' => $religion->id,
+                'district_id' => $district->id,
+                'marital_status_id' => $maritalStatus->id,
+                'gender_id' => ($spec['serial'] % 2 === 0 ? $genderFemale : $genderMale)->id,
+                'nuptk' => $spec['nuptk'],
+                'date_of_birth' => $spec['date_of_birth'],
+                'place_of_birth' => 'UAT Synthetic City',
+                'address' => 'UAT Synthetic Address '.$spec['serial'],
+                'tmt_employee' => '2020-01-01',
+                'exit_date' => $spec['exit_date'],
+            ]
+        );
+        $createdEmployees += $employee->wasRecentlyCreated ? 1 : 0;
+    }
+
+    $placedMarker = count(App\Support\StudentDirectory::membershipsFor($markerStudents, (int) $year->id));
+    $activeMarker = App\Models\Employee::where('name', 'like', $marker.'%')->whereNull('exit_date')->count();
+    $separatedMarker = App\Models\Employee::where('name', 'like', $marker.'%')->whereNotNull('exit_date')->count();
+
+    $studentIssues = app(App\Services\DataQuality\StudentCompletenessInspector::class)
+        ->issues((int) $year->id, ['status' => 'all', 'per_page' => 500, 'page' => 1])
+        ->items();
+    $studentMarkerIssues = array_values(array_filter(
+        $studentIssues,
+        fn (array $issue): bool => str_starts_with((string) ($issue['subject']['name'] ?? ''), $marker)
+    ));
+    $employeeIssues = app(App\Services\DataQuality\EmployeeCompletenessInspector::class)
+        ->issues(['status' => 'all', 'per_page' => 1000, 'page' => 1])
+        ->items();
+    $employeeMarkerIssues = array_values(array_filter(
+        $employeeIssues,
+        fn (array $issue): bool => str_starts_with((string) ($issue['subject']['name'] ?? ''), $marker)
+    ));
+
+    $tally = function (array $issues): array {
+        $counts = [];
+        foreach ($issues as $issue) {
+            $key = $issue['type'].':'.$issue['field'];
+            $counts[$key] = ($counts[$key] ?? 0) + 1;
+        }
+        ksort($counts);
+
+        return $counts;
+    };
+
+    $expectedStudentTally = [
+        'blocked:nik' => 10,
+        'duplicate:name_birthdate' => 5,
+        'invalid:nik' => 5,
+        'missing:birthdate' => 5,
+        'missing:nik' => 5,
+        'missing:nisn' => 5,
+    ];
+    $expectedEmployeeTally = [
+        'duplicate:nuptk' => 5,
+        'missing:nik' => 13,
+        'missing:nuptk' => 7,
+    ];
+    $studentTally = $tally($studentMarkerIssues);
+    $employeeTally = $tally($employeeMarkerIssues);
+
+    if ($markerStudents->count() !== 60 || $placedMarker !== 50) {
+        throw new RuntimeException('UAT-DQ student fixture verification failed: 60 students (50 placed) expected.');
+    }
+    if ($separatedMarker !== 10 || $activeMarker !== 50) {
+        throw new RuntimeException('UAT-DQ employee fixture verification failed: 50 active and 10 separated employees expected.');
+    }
+    if ($studentTally !== $expectedStudentTally) {
+        throw new RuntimeException('UAT-DQ student issue tally mismatch: '.json_encode($studentTally));
+    }
+    if ($employeeTally !== $expectedEmployeeTally) {
+        throw new RuntimeException('UAT-DQ employee issue tally mismatch: '.json_encode($employeeTally));
+    }
+
+    fwrite(STDOUT, 'Data quality fixture ready: 60 students ('.$placedMarker.' placed) and 60 employees ('.$activeMarker.' active, '.$separatedMarker.' separated).'."\n");
+    fwrite(STDOUT, 'Created this run: '.$createdStudents.' students, '.$createdEmployees.' employees.'."\n");
+    fwrite(STDOUT, 'UAT-DQ student issues ('.count($studentMarkerIssues).'): '.json_encode($studentTally)."\n");
+    fwrite(STDOUT, 'UAT-DQ employee issues ('.count($employeeMarkerIssues).'): '.json_encode($employeeTally)."\n");
+    exit(0);
+}
 if ($command === 'status') {
     fwrite(STDOUT, "[ISOLATION GUARD PASS] Dedicated phase-05 SQLite UAT; no MariaDB connection.\n");
     fwrite(STDOUT, 'Students: '.App\Models\Student::count()."\n");
@@ -199,6 +471,14 @@ if ($command === 'status') {
     }
     fwrite(STDOUT, 'Import batches: '.App\Models\ImportBatch::count()."\n");
     fwrite(STDOUT, 'Import files: '.count(glob($runtime.'/storage/app/imports/*/source.csv') ?: [])." batches on disk\n");
+    $dqYear = App\Models\SchoolYear::where('name', '2026/2027')->first();
+    if ($dqYear) {
+        $dqStudents = App\Models\Student::where('name', 'like', 'UAT-DQ%')->get();
+        $dqPlaced = count(App\Support\StudentDirectory::membershipsFor($dqStudents, (int) $dqYear->id));
+        fwrite(STDOUT, 'Data quality students: '.$dqStudents->count().' ('.$dqPlaced.' placed)'."\n");
+        fwrite(STDOUT, 'Data quality employees: '.App\Models\Employee::where('name', 'like', 'UAT-DQ%')->count()
+            .' ('.App\Models\Employee::where('name', 'like', 'UAT-DQ%')->whereNull('exit_date')->count().' active)'."\n");
+    }
     exit(0);
 }
-throw new RuntimeException('Allowed commands: init, prepare, status. Serve using PHP -S 127.0.0.1:18023 with this router.');
+throw new RuntimeException('Allowed commands: init, prepare, prepare-data-quality, status. Serve using PHP -S 127.0.0.1:18023 with this router.');
