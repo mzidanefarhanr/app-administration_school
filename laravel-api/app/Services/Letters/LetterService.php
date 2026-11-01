@@ -4,6 +4,7 @@ namespace App\Services\Letters;
 
 use App\Models\Letter;
 use App\Models\LetterAttachment;
+use App\Models\LetterDisposition;
 use App\Models\LetterEvent;
 use App\Models\User;
 use Carbon\Carbon;
@@ -20,7 +21,10 @@ use Illuminate\Validation\ValidationException;
  */
 class LetterService
 {
-    public function __construct(private readonly LetterAttachmentService $attachments) {}
+    public function __construct(
+        private readonly LetterAttachmentService $attachments,
+        private readonly LetterDispositionService $dispositions,
+    ) {}
 
     /**
      * @return array<string, mixed>
@@ -38,6 +42,7 @@ class LetterService
             'max_file_kb' => config('letters.max_file_kb'),
             'max_files_per_letter' => config('letters.max_files_per_letter'),
             'allowed_extensions' => config('letters.allowed_extensions'),
+            'dispositions' => $this->dispositions->options(),
         ];
     }
 
@@ -57,6 +62,13 @@ class LetterService
         $query = Letter::query()
             ->where('direction', Letter::DIRECTION_INCOMING)
             ->withCount('attachments')
+            ->withCount([
+                'dispositions as dispositions_open_count' => fn ($sub) => $sub
+                    ->whereIn('status', LetterDisposition::OPEN_STATUSES),
+                'dispositions as dispositions_overdue_count' => fn ($sub) => $sub
+                    ->whereIn('status', LetterDisposition::OPEN_STATUSES)
+                    ->whereDate('due_date', '<', Carbon::now('Asia/Jakarta')->toDateString()),
+            ])
             ->with(['creator:id,name', 'voider:id,name']);
 
         if ($search !== '') {
@@ -210,6 +222,19 @@ class LetterService
                     'letter_version' => $letter->version,
                     'status' => $letter->status,
                 ]);
+            }
+
+            $openDispositions = $letter->dispositions()->open()->count();
+
+            if ($openDispositions > 0) {
+                $this->conflict(
+                    'open_dispositions',
+                    'This letter cannot be voided while dispositions are still open.',
+                    [
+                        'letter_version' => $letter->version,
+                        'open_dispositions' => $openDispositions,
+                    ],
+                );
             }
 
             $this->assertVersion($letter, $expectedVersion);
@@ -405,7 +430,36 @@ class LetterService
                 ->orderByDesc('created_at')
                 ->orderByDesc('id')
                 ->limit((int) config('letters.events_limit')),
+            'dispositions' => fn ($query) => $query
+                ->with([
+                    'recipient:id,name,employee_type_id,deleted_at',
+                    'recipient.employeeType:id,name',
+                    'assigner:id,name',
+                    'completer:id,name',
+                    'canceller:id,name',
+                ])
+                ->orderBy('due_date')
+                ->orderBy('id'),
         ]);
+
+        $today = Carbon::now('Asia/Jakarta')->toDateString();
+
+        $letter->dispositions->each(function (LetterDisposition $disposition) use ($letter) {
+            $disposition->setRelation('letter', $letter);
+        });
+
+        $letter->setAttribute(
+            'dispositions_open_count',
+            $letter->dispositions->filter(fn (LetterDisposition $disposition) => $disposition->isOpen())->count(),
+        );
+        $letter->setAttribute(
+            'dispositions_overdue_count',
+            $letter->dispositions
+                ->filter(fn (LetterDisposition $disposition) => $disposition->isOpen()
+                    && $disposition->due_date !== null
+                    && $disposition->due_date->format('Y-m-d') < $today)
+                ->count(),
+        );
 
         return $this->serializeLetter($letter, $letter->attachments->count()) + [
             'attachments' => $letter->attachments
@@ -434,6 +488,10 @@ class LetterService
                 ])
                 ->values()
                 ->all(),
+            'dispositions' => $letter->dispositions
+                ->map(fn (LetterDisposition $disposition) => $this->dispositions->serialize($disposition))
+                ->values()
+                ->all(),
         ];
     }
 
@@ -454,8 +512,12 @@ class LetterService
             'category' => $letter->category,
             'notes' => $letter->notes,
             'status' => $letter->status,
+            'workflow_status' => $letter->workflow_status,
+            'lifecycle_status' => $letter->status,
             'version' => $letter->version,
             'attachments_count' => $attachmentsCount,
+            'dispositions_open_count' => (int) ($letter->dispositions_open_count ?? 0),
+            'dispositions_overdue_count' => (int) ($letter->dispositions_overdue_count ?? 0),
             'voided_at' => $letter->voided_at?->toIso8601String(),
             'void_reason' => $letter->void_reason,
             'voided_by' => $letter->voided_by ? [

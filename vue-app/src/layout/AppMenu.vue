@@ -52,6 +52,8 @@ const model = ref([
         requires: 'letters.view',
         items: [
             { label: 'Incoming Letters', icon: 'pi pi-fw pi-inbox', to: '/public/letters/incoming', requires: 'letters.view' },
+            { label: 'Outgoing Letters', icon: 'pi pi-fw pi-send', to: '/public/letters/outgoing', requires: 'letters.view' },
+            { label: 'Dispositions', icon: 'pi pi-fw pi-user-plus', to: '/public/letters/dispositions', requires: 'letters.view' },
         ]
     },
     {

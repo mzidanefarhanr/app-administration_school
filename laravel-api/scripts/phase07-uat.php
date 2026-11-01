@@ -37,6 +37,7 @@ if (PHP_SAPI === 'cli' && $command === 'init') {
         'CACHE_DRIVER' => 'file', 'SESSION_DRIVER' => 'file', 'SESSION_COOKIE' => 'school_phase07_session',
         'SESSION_DOMAIN' => '127.0.0.1', 'SANCTUM_STATEFUL_DOMAINS' => '127.0.0.1:14025',
         'FILESYSTEM_DISK' => 'local', 'QUEUE_CONNECTION' => 'sync', 'MAIL_MAILER' => 'array', 'LOG_CHANNEL' => 'single',
+        'LETTERS_NUMBER_SCHOOL_CODE' => '20512345',
     ];
     file_put_contents($runtime.'/.env', implode("\n", array_map(fn ($key, $value) => $key.'="'.$value.'"', array_keys($env), $env))."\n");
     fwrite(STDOUT, "Isolated SQLite UAT (phase 07) initialized. Credentials remain in .uat-phase07/account-password.txt (ignored).\n");
@@ -226,6 +227,331 @@ if ($command === 'prepare-letters') {
     exit(0);
 }
 
+if ($command === 'prepare-outgoing') {
+    $exit = $kernel->call('migrate', ['--force' => true]);
+    fwrite(STDOUT, $kernel->output());
+    if ($exit !== 0) {
+        exit($exit);
+    }
+
+    $operator = App\Models\User::where('username', 'uat.operator')->first();
+    $principal = App\Models\User::where('username', 'uat.kepsek')->first();
+    if (! $operator || ! $principal) {
+        throw new RuntimeException('Run prepare first (UAT users are required).');
+    }
+    if (trim((string) config('letters.numbering.school_code')) === '') {
+        throw new RuntimeException('Set LETTERS_NUMBER_SCHOOL_CODE in .uat-phase07/.env before preparing outgoing letters.');
+    }
+
+    /** @var App\Services\Letters\OutgoingLetterService $outgoing */
+    $outgoing = $app->make(App\Services\Letters\OutgoingLetterService::class);
+
+    $topics = [
+        'Official Cooperation Reply', 'Student Exchange Confirmation', 'Budget Realization Report',
+        'Teacher Assignment Letter', 'Facility Usage Request', 'National Assessment Readiness',
+        'Parent Coordination Notice', 'Scholarship Recommendation', 'Curriculum Report Submission',
+        'Competition Registration Follow-up',
+    ];
+    $recipients = [
+        'Dinas Pendidikan Sintetis', 'Yayasan Pendidikan UAT', 'Sekolah Mitra Sintetis Nusantara',
+        'Komite Sekolah UAT', 'Balai Teknologi Pendidikan', 'Kantor Wilayah Pendidikan',
+    ];
+    $categories = config('letters.categories');
+    $startingDate = Illuminate\Support\Carbon::create(2026, 1, 5);
+
+    $created = 0;
+    $advanced = 0;
+    $attachmentsAdded = 0;
+
+    for ($i = 1; $i <= 45; $i++) {
+        $subject = sprintf('UAT-P07B Outgoing Letter %03d — %s', $i, $topics[($i - 1) % count($topics)]);
+        $letter = App\Models\Letter::query()
+            ->where('direction', App\Models\Letter::DIRECTION_OUTGOING)
+            ->where('subject', $subject)
+            ->first();
+
+        if (! $letter) {
+            $date = $startingDate->copy()->addDays(($i - 1) % 295);
+            $outgoing->create([
+                'received_date' => $date->format('Y-m-d'),
+                'letter_date' => $date->copy()->subDays($i % 4)->format('Y-m-d'),
+                'sender' => 'Sekolah UAT Sintetis',
+                'recipient' => $recipients[($i - 1) % count($recipients)].' '.sprintf('%02d', (($i - 1) % 12) + 1),
+                'subject' => $subject,
+                'category' => $categories[($i - 1) % count($categories)],
+                'notes' => $i % 8 === 0 ? 'Synthetic outgoing notes for review scenario '.sprintf('%03d', $i).'.' : null,
+            ], $operator);
+            $created++;
+
+            $letter = App\Models\Letter::query()
+                ->where('direction', App\Models\Letter::DIRECTION_OUTGOING)
+                ->where('subject', $subject)
+                ->firstOrFail();
+        }
+
+        $mod = $i % 9;
+        $target = match (true) {
+            in_array($mod, [1, 2, 3], true) => App\Models\Letter::WORKFLOW_DRAFT,
+            in_array($mod, [4, 5], true) => App\Models\Letter::WORKFLOW_REVIEW,
+            in_array($mod, [6, 7], true) => App\Models\Letter::WORKFLOW_APPROVED,
+            $mod === 8 => App\Models\Letter::WORKFLOW_ISSUED,
+            default => App\Models\Letter::WORKFLOW_CANCELLED,
+        };
+
+        for ($step = 0; $step < 6; $step++) {
+            $letter = $letter->fresh();
+            if (! $letter || $letter->workflow_status === $target) {
+                break;
+            }
+
+            $status = (string) $letter->workflow_status;
+            $version = (int) $letter->version;
+            $reason = 'UAT-P07B synthetic cancellation for outgoing letter '.sprintf('%03d', $i).'.';
+
+            if ($target === App\Models\Letter::WORKFLOW_CANCELLED) {
+                if (in_array($status, [App\Models\Letter::WORKFLOW_DRAFT, App\Models\Letter::WORKFLOW_REVIEW], true)) {
+                    $outgoing->cancel($letter->id, $reason, $version, $operator);
+                } elseif (in_array($status, [App\Models\Letter::WORKFLOW_APPROVED, App\Models\Letter::WORKFLOW_ISSUED], true)) {
+                    $outgoing->cancel($letter->id, $reason, $version, $principal);
+                } else {
+                    break;
+                }
+            } elseif ($target === App\Models\Letter::WORKFLOW_ISSUED) {
+                if ($status === App\Models\Letter::WORKFLOW_DRAFT) {
+                    $outgoing->submit($letter->id, $version, $operator);
+                } elseif ($status === App\Models\Letter::WORKFLOW_REVIEW) {
+                    $outgoing->approve($letter->id, 'UAT-P07B synthetic approval note.', $version, $principal);
+                } elseif ($status === App\Models\Letter::WORKFLOW_APPROVED) {
+                    $outgoing->issue($letter->id, $version, $principal);
+                } else {
+                    break;
+                }
+            } elseif ($target === App\Models\Letter::WORKFLOW_APPROVED) {
+                if ($status === App\Models\Letter::WORKFLOW_DRAFT) {
+                    $outgoing->submit($letter->id, $version, $operator);
+                } elseif ($status === App\Models\Letter::WORKFLOW_REVIEW) {
+                    $outgoing->approve($letter->id, 'UAT-P07B synthetic approval note.', $version, $principal);
+                } else {
+                    break;
+                }
+            } elseif ($target === App\Models\Letter::WORKFLOW_REVIEW) {
+                if ($status === App\Models\Letter::WORKFLOW_DRAFT) {
+                    $outgoing->submit($letter->id, $version, $operator);
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
+
+            $advanced++;
+        }
+
+        if ($target === App\Models\Letter::WORKFLOW_DRAFT && $i % 9 === 1) {
+            $letter = $letter->fresh();
+            $name = sprintf('UAT-P07B-OUT-%03d-A1.pdf', $i);
+            if ($letter && $letter->workflow_status === App\Models\Letter::WORKFLOW_DRAFT
+                && ! $letter->attachments()->where('original_name', $name)->exists()) {
+                $path = $runtime.'/tmp/'.$name;
+                file_put_contents($path, "%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [] /Count 0 >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%% ".$name."\n%%EOF\n");
+                $upload = new Illuminate\Http\UploadedFile($path, $name, null, null, true);
+                $outgoing->addAttachment($letter->id, $upload, $operator);
+                @unlink($path);
+                $attachmentsAdded++;
+            }
+        }
+    }
+
+    $outgoingQuery = App\Models\Letter::where('direction', App\Models\Letter::DIRECTION_OUTGOING);
+    $byStatus = (clone $outgoingQuery)->pluck('workflow_status')->countBy();
+    $counter = App\Models\LetterNumberCounter::query()
+        ->where('scope', 'outgoing')
+        ->where('period', Illuminate\Support\Carbon::now('Asia/Jakarta')->format('Y'))
+        ->first();
+
+    fwrite(STDOUT, 'Outgoing letters: '.(clone $outgoingQuery)->count()
+        ." total ({$created} created, {$advanced} transitions), {$attachmentsAdded} attachments added.\n");
+    fwrite(STDOUT, 'By workflow: draft '.($byStatus['draft'] ?? 0).', review '.($byStatus['review'] ?? 0)
+        .', approved '.($byStatus['approved'] ?? 0).', issued '.($byStatus['issued'] ?? 0)
+        .', cancelled '.($byStatus['cancelled'] ?? 0).".\n");
+    fwrite(STDOUT, 'Official numbers: '.(clone $outgoingQuery)->whereNotNull('official_number')->count()
+        .' issued, '.(clone $outgoingQuery)->whereNotNull('official_number')->distinct()->count('official_number')
+        .' unique; counter '.$counter?->period.' = '.($counter?->last_number ?? 0).".\n");
+    exit(0);
+}
+
+if ($command === 'prepare-dispositions') {
+    $exit = $kernel->call('migrate', ['--force' => true]);
+    fwrite(STDOUT, $kernel->output());
+    if ($exit !== 0) {
+        exit($exit);
+    }
+
+    $operator = App\Models\User::where('username', 'uat.operator')->first();
+    if (! $operator) {
+        throw new RuntimeException('Run prepare first (UAT users are required).');
+    }
+
+    $province = App\Models\Province::firstOrCreate(['name' => 'DKI Jakarta UAT']);
+    $regency = App\Models\Regency::firstOrCreate(['province_id' => $province->id, 'name' => 'Jakarta Utara UAT']);
+    $district = App\Models\District::firstOrCreate(['regency_id' => $regency->id, 'name' => 'Koja UAT']);
+    $gender = App\Models\Gender::firstOrCreate(['name' => 'Laki-Laki']);
+    $religion = App\Models\Religion::firstOrCreate(['name' => 'Islam']);
+    $maritalStatus = App\Models\MaritalStatus::firstOrCreate(['name' => 'Belum Menikah']);
+    $status = App\Models\EmployeeStatus::firstOrCreate(['name' => 'Pegawai Tetap Yayasan'], ['abbreviation' => 'PTY']);
+    $teacherType = App\Models\EmployeeType::firstOrCreate(['name' => 'Pendidik']);
+    $staffType = App\Models\EmployeeType::firstOrCreate(['name' => 'Tenaga Kependidikan']);
+    $employment = App\Models\Employment::firstOrCreate(['name' => 'Tetap Yayasan'], ['description' => 'Tetap']);
+    $subject = App\Models\Subject::firstOrCreate(['name' => 'Matematika'], ['description' => 'Matematika']);
+
+    $employeeBase = [
+        'employee_status_id' => $status->id,
+        'employment_id' => $employment->id,
+        'subject_id' => $subject->id,
+        'religion_id' => $religion->id,
+        'district_id' => $district->id,
+        'marital_status_id' => $maritalStatus->id,
+        'gender_id' => $gender->id,
+        'tmt_employee' => '2020-01-01',
+    ];
+
+    $activeEmployees = [];
+    $createdEmployees = 0;
+    for ($i = 1; $i <= 12; $i++) {
+        $name = sprintf('UAT P07B Employee %02d', $i);
+        $employee = App\Models\Employee::where('name', $name)->first();
+        if (! $employee) {
+            $employee = App\Models\Employee::create(array_merge($employeeBase, [
+                'name' => $name,
+                'employee_type_id' => $i % 2 === 0 ? $staffType->id : $teacherType->id,
+            ]));
+            $createdEmployees++;
+        }
+        $activeEmployees[] = $employee;
+    }
+    for ($i = 1; $i <= 2; $i++) {
+        $name = sprintf('UAT P07B Exited %02d', $i);
+        if (! App\Models\Employee::where('name', $name)->exists()) {
+            App\Models\Employee::create(array_merge($employeeBase, [
+                'name' => $name,
+                'employee_type_id' => $teacherType->id,
+                'exit_date' => '2026-10-31',
+            ]));
+            $createdEmployees++;
+        }
+    }
+
+    /** @var App\Services\Letters\LetterDispositionService $dispositions */
+    $dispositions = $app->make(App\Services\Letters\LetterDispositionService::class);
+
+    $letters = App\Models\Letter::query()
+        ->where('direction', App\Models\Letter::DIRECTION_INCOMING)
+        ->where('status', App\Models\Letter::STATUS_ACTIVE)
+        ->orderBy('id')
+        ->take(24)
+        ->get();
+    if ($letters->count() < 12) {
+        throw new RuntimeException('Run prepare-letters first (active incoming letters are required).');
+    }
+
+    $today = Illuminate\Support\Carbon::today('Asia/Jakarta');
+    $created = 0;
+    $reused = 0;
+
+    for ($n = 1; $n <= 32; $n++) {
+        $letter = $letters->get(($n - 1) % $letters->count());
+        $employee = $activeEmployees[($n - 1) % count($activeEmployees)];
+        $existing = App\Models\LetterDisposition::query()
+            ->where('letter_id', $letter->id)
+            ->where('recipient_employee_id', $employee->id)
+            ->first();
+
+        if ($existing) {
+            $reused++;
+
+            continue;
+        }
+
+        $mod = $n % 4;
+        $overdue = in_array($mod, [1, 2], true) && $n % 3 === 0;
+        $due = $overdue ? $today->copy()->subDays(5) : $today->copy()->addDays(7 + ($n % 10));
+
+        $dispositions->create($letter->id, [
+            'recipients' => [$employee->id],
+            'due_date' => $due->format('Y-m-d'),
+            'note' => sprintf('UAT-P07B synthetic disposition %02d for follow-up review.', $n),
+        ], $operator);
+        $created++;
+
+        $row = App\Models\LetterDisposition::query()
+            ->where('letter_id', $letter->id)
+            ->where('recipient_employee_id', $employee->id)
+            ->firstOrFail();
+
+        if ($mod === 2) {
+            $dispositions->update($letter->id, $row->id, ['status' => App\Models\LetterDisposition::STATUS_IN_PROGRESS], (int) $row->version, $operator);
+        } elseif ($mod === 3) {
+            $dispositions->update($letter->id, $row->id, ['status' => App\Models\LetterDisposition::STATUS_IN_PROGRESS], (int) $row->version, $operator);
+            $row = $row->fresh();
+            $dispositions->update($letter->id, $row->id, [
+                'status' => App\Models\LetterDisposition::STATUS_COMPLETED,
+                'follow_up_note' => 'UAT-P07B synthetic follow-up outcome recorded for fixture '.sprintf('%02d', $n).'.',
+            ], (int) $row->version, $operator);
+        } elseif ($mod === 0) {
+            $dispositions->cancel(
+                $letter->id,
+                $row->id,
+                'UAT-P07B synthetic cancellation reason for fixture '.sprintf('%02d', $n).'.',
+                (int) $row->version,
+                $operator,
+            );
+        }
+    }
+
+    $multiCreated = 0;
+    foreach ([22, 23] as $index) {
+        $letter = $letters->get($index);
+        if (! $letter) {
+            continue;
+        }
+
+        $recipientIds = [$activeEmployees[0]->id, $activeEmployees[1]->id, $activeEmployees[2]->id];
+        $exists = App\Models\LetterDisposition::query()
+            ->where('letter_id', $letter->id)
+            ->whereIn('recipient_employee_id', $recipientIds)
+            ->exists();
+
+        if ($exists) {
+            continue;
+        }
+
+        $dispositions->create($letter->id, [
+            'recipients' => $recipientIds,
+            'due_date' => $today->copy()->addDays(14)->format('Y-m-d'),
+            'note' => 'UAT-P07B multi-recipient disposition for committee follow-up.',
+        ], $operator);
+        $multiCreated += count($recipientIds);
+    }
+    $created += $multiCreated;
+
+    $dispoQuery = App\Models\LetterDisposition::query();
+    $byStatus = (clone $dispoQuery)->pluck('status')->countBy();
+    $overdueCount = (clone $dispoQuery)
+        ->whereIn('status', [App\Models\LetterDisposition::STATUS_PENDING, App\Models\LetterDisposition::STATUS_IN_PROGRESS])
+        ->whereDate('due_date', '<', $today->format('Y-m-d'))
+        ->count();
+
+    fwrite(STDOUT, 'Employees: '.App\Models\Employee::query()->count()
+        .' total, '.App\Models\Employee::whereNull('exit_date')->count().' active ('
+        .$createdEmployees." created this run).\n");
+    fwrite(STDOUT, 'Dispositions: '.(clone $dispoQuery)->count()
+        ." total ({$created} created, {$reused} reused); multi-recipient rows added {$multiCreated}.\n");
+    fwrite(STDOUT, 'By status: pending '.($byStatus['pending'] ?? 0).', in_progress '.($byStatus['in_progress'] ?? 0)
+        .', completed '.($byStatus['completed'] ?? 0).', cancelled '.($byStatus['cancelled'] ?? 0)
+        ."; overdue {$overdueCount}.\n");
+    exit(0);
+}
+
 if ($command === 'status') {
     fwrite(STDOUT, "[ISOLATION GUARD PASS] Dedicated phase-07 SQLite UAT; no MariaDB connection.\n");
     $letters = App\Models\Letter::where('direction', 'incoming');
@@ -243,8 +569,26 @@ if ($command === 'status') {
         .' missing, '.App\Models\Letter::where('direction', 'incoming')->where('source_number', 'UAT-P07/DUP/2026/001')->count()
         ." duplicated.\n");
     fwrite(STDOUT, 'Users: '.App\Models\User::count().' (uat.admin, uat.operator, uat.kepsek, uat.waka).'."\n");
+    $outgoing = App\Models\Letter::where('direction', App\Models\Letter::DIRECTION_OUTGOING);
+    $outgoingByStatus = (clone $outgoing)->pluck('workflow_status')->countBy();
+    fwrite(STDOUT, 'Outgoing letters: '.(clone $outgoing)->count().' total; draft '.($outgoingByStatus['draft'] ?? 0)
+        .', review '.($outgoingByStatus['review'] ?? 0).', approved '.($outgoingByStatus['approved'] ?? 0)
+        .', issued '.($outgoingByStatus['issued'] ?? 0).', cancelled '.($outgoingByStatus['cancelled'] ?? 0)
+        .'; '.(clone $outgoing)->whereNotNull('official_number')->count()." official numbers.\n");
+    $counter = App\Models\LetterNumberCounter::query()->where('scope', 'outgoing')
+        ->orderByDesc('period')->first();
+    fwrite(STDOUT, 'Number counter: '.($counter ? $counter->period.' = '.$counter->last_number : 'none')."\n");
+    $dispositions = App\Models\LetterDisposition::query();
+    $dispositionByStatus = (clone $dispositions)->pluck('status')->countBy();
+    fwrite(STDOUT, 'Dispositions: '.(clone $dispositions)->count().' total; pending '.($dispositionByStatus['pending'] ?? 0)
+        .', in_progress '.($dispositionByStatus['in_progress'] ?? 0).', completed '.($dispositionByStatus['completed'] ?? 0)
+        .', cancelled '.($dispositionByStatus['cancelled'] ?? 0).'; overdue '.(clone $dispositions)
+            ->whereIn('status', ['pending', 'in_progress'])
+            ->whereDate('due_date', '<', Illuminate\Support\Carbon::today('Asia/Jakarta')->format('Y-m-d'))->count()."\n");
+    fwrite(STDOUT, 'Employees: '.App\Models\Employee::query()->count().' total; '
+        .App\Models\Employee::whereNull('exit_date')->count()." active.\n");
     fwrite(STDOUT, 'Storage root: '.config('filesystems.disks.local.root')."\n");
     exit(0);
 }
 
-throw new RuntimeException('Allowed commands: init, prepare, prepare-letters, status. Serve using PHP -S 127.0.0.1:18025 with this router.');
+throw new RuntimeException('Allowed commands: init, prepare, prepare-letters, prepare-outgoing, prepare-dispositions, status. Serve using PHP -S 127.0.0.1:18025 with this router.');

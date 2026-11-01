@@ -30,6 +30,24 @@ class Letter extends Model
 
     public const STATUSES = [self::STATUS_ACTIVE, self::STATUS_VOID];
 
+    public const WORKFLOW_DRAFT = 'draft';
+
+    public const WORKFLOW_REVIEW = 'review';
+
+    public const WORKFLOW_APPROVED = 'approved';
+
+    public const WORKFLOW_ISSUED = 'issued';
+
+    public const WORKFLOW_CANCELLED = 'cancelled';
+
+    public const WORKFLOW_STATUSES = [
+        self::WORKFLOW_DRAFT,
+        self::WORKFLOW_REVIEW,
+        self::WORKFLOW_APPROVED,
+        self::WORKFLOW_ISSUED,
+        self::WORKFLOW_CANCELLED,
+    ];
+
     protected $guarded = ['id'];
 
     protected $table = 'letters';
@@ -51,6 +69,12 @@ class Letter extends Model
         'voided_at',
         'voided_by',
         'created_by',
+        'official_number',
+        'workflow_status',
+        'approved_at',
+        'approved_by',
+        'issued_at',
+        'issued_by',
     ];
 
     protected $fillable = [
@@ -60,10 +84,17 @@ class Letter extends Model
         'letter_date',
         'source_number',
         'sender',
+        'recipient',
         'subject',
         'category',
         'notes',
         'status',
+        'workflow_status',
+        'official_number',
+        'approved_at',
+        'approved_by',
+        'issued_at',
+        'issued_by',
         'voided_at',
         'voided_by',
         'void_reason',
@@ -73,6 +104,8 @@ class Letter extends Model
     protected $casts = [
         'received_date' => 'date:Y-m-d',
         'letter_date' => 'date:Y-m-d',
+        'approved_at' => 'datetime',
+        'issued_at' => 'datetime',
         'voided_at' => 'datetime',
         'version' => 'integer',
     ];
@@ -94,9 +127,29 @@ class Letter extends Model
         return $this->hasMany(LetterEvent::class, 'letter_id', 'id');
     }
 
+    public function dispositions(): HasMany
+    {
+        return $this->hasMany(LetterDisposition::class, 'letter_id', 'id');
+    }
+
+    public function approvals(): HasMany
+    {
+        return $this->hasMany(LetterApproval::class, 'letter_id', 'id');
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by', 'id')->withTrashed();
+    }
+
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by', 'id')->withTrashed();
+    }
+
+    public function issuer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'issued_by', 'id')->withTrashed();
     }
 
     public function voider(): BelongsTo
@@ -107,5 +160,10 @@ class Letter extends Model
     public function isVoided(): bool
     {
         return $this->status === self::STATUS_VOID;
+    }
+
+    public function isOutgoing(): bool
+    {
+        return $this->direction === self::DIRECTION_OUTGOING;
     }
 }

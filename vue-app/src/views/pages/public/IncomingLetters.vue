@@ -9,6 +9,21 @@ const store = authStore();
 const toast = useToast();
 
 const canManage = computed(() => store.can('letters.manage'));
+const canAssign = computed(() => store.can('letters.manage') && store.can('employees.view'));
+
+const dispositionLabels = {
+    pending: 'Pending',
+    in_progress: 'In Progress',
+    completed: 'Completed',
+    cancelled: 'Cancelled'
+};
+
+const dispositionSeverity = {
+    pending: 'warn',
+    in_progress: 'info',
+    completed: 'success',
+    cancelled: 'danger'
+};
 
 const statusOptions = [
     { label: 'Active', value: 'active' },
@@ -31,7 +46,11 @@ const eventLabels = {
     updated: 'Updated',
     voided: 'Voided',
     attachment_added: 'Attachment added',
-    attachment_removed: 'Attachment removed'
+    attachment_removed: 'Attachment removed',
+    disposition_created: 'Disposition created',
+    disposition_updated: 'Disposition updated',
+    disposition_completed: 'Disposition completed',
+    disposition_cancelled: 'Disposition cancelled'
 };
 
 const eventIcons = {
@@ -39,7 +58,11 @@ const eventIcons = {
     updated: 'pi pi-pencil',
     voided: 'pi pi-ban',
     attachment_added: 'pi pi-paperclip',
-    attachment_removed: 'pi pi-trash'
+    attachment_removed: 'pi pi-trash',
+    disposition_created: 'pi pi-user-plus',
+    disposition_updated: 'pi pi-pencil',
+    disposition_completed: 'pi pi-check-circle',
+    disposition_cancelled: 'pi pi-ban'
 };
 
 const options = ref(null);
@@ -620,6 +643,116 @@ const confirmRemoveAttachment = async () => {
     }
 };
 
+const assignVisible = ref(false);
+const assignSaving = ref(false);
+const assignTarget = ref(null);
+const assignErrors = ref({});
+const assignError = ref('');
+const recipientOptions = ref([]);
+const recipientLoading = ref(false);
+const assignForm = reactive({ recipients: [], dueDate: null, note: '' });
+let recipientTimer = null;
+
+const recipientFieldErrors = computed(() =>
+    Object.entries(assignErrors.value)
+        .filter(([key]) => String(key).startsWith('recipients.'))
+        .map(([key, messages]) => ({
+            key,
+            message: Array.isArray(messages) ? messages[0] : String(messages)
+        }))
+);
+
+const searchRecipients = async (query = '') => {
+    if (!canAssign.value) return;
+
+    recipientLoading.value = true;
+    try {
+        const params = { per_page: 100 };
+        if (query.trim()) params.search = query.trim();
+        const response = await apiLogin.get('/api/letters/dispositions/recipients', { params });
+        recipientOptions.value = response.data?.data?.items ?? [];
+    } catch (error) {
+        recipientOptions.value = [];
+        assignError.value = errorMessage(error, 'Failed to load active employees.');
+    } finally {
+        recipientLoading.value = false;
+    }
+};
+
+const onRecipientFilter = (event) => {
+    if (recipientTimer) clearTimeout(recipientTimer);
+    const query = event?.value ?? '';
+    recipientTimer = setTimeout(() => searchRecipients(query), 250);
+};
+
+const openAssign = (source) => {
+    if (!canAssign.value || !source || source.status !== 'active') return;
+
+    assignTarget.value = { id: source.id, reference: source.reference, subject: source.subject };
+    assignForm.recipients = [];
+    assignForm.dueDate = null;
+    assignForm.note = '';
+    assignErrors.value = {};
+    assignError.value = '';
+    assignSaving.value = false;
+    recipientOptions.value = [];
+    detailVisible.value = false;
+    assignVisible.value = true;
+    searchRecipients();
+};
+
+const submitAssign = async () => {
+    if (assignSaving.value || !assignTarget.value) return;
+
+    assignErrors.value = {};
+    assignError.value = '';
+
+    const errors = {};
+    if (!Array.isArray(assignForm.recipients) || assignForm.recipients.length === 0) {
+        errors.recipients = ['Select at least one recipient.'];
+    }
+    if (!dateToIso(assignForm.dueDate)) {
+        errors.due_date = ['The due date is required.'];
+    }
+    if (assignForm.note.trim().length > 2000) {
+        errors.note = ['The note may not exceed 2000 characters.'];
+    }
+
+    if (Object.keys(errors).length > 0) {
+        assignErrors.value = errors;
+        return;
+    }
+
+    assignSaving.value = true;
+    try {
+        const response = await apiLogin.post(`/api/letters/incoming/${assignTarget.value.id}/dispositions`, {
+            recipients: assignForm.recipients.map((recipient) => Number(recipient)),
+            due_date: dateToIso(assignForm.dueDate),
+            note: assignForm.note.trim() || null
+        });
+        assignVisible.value = false;
+        detail.value = response.data?.data ?? detail.value;
+        detailVisible.value = true;
+        notify('success', response.data?.message ?? 'Dispositions created.');
+        await loadLetters();
+    } catch (error) {
+        const status = error.response?.status;
+        if (status === 422) {
+            assignErrors.value = validationErrors(error);
+            if (Object.keys(assignErrors.value).length === 0) {
+                assignError.value = errorMessage(error, 'The disposition could not be created.');
+            }
+        } else if (status === 409) {
+            assignVisible.value = false;
+            openConflict(error, assignTarget.value.id);
+        } else {
+            assignError.value = errorMessage(error, 'Failed to create the disposition.');
+        }
+    } finally {
+        assignSaving.value = false;
+    }
+};
+
 const changedFieldLabels = (fields) => {
     if (!Array.isArray(fields) || fields.length === 0) return '-';
     return fields.map((field) => fieldLabels[field] ?? field).join(', ');
@@ -737,6 +870,14 @@ onMounted(async () => {
                     </Column>
                     <Column header="Files" style="min-width: 5rem">
                         <template #body="{ data }">{{ data.attachments_count ?? 0 }}</template>
+                    </Column>
+                    <Column header="Dispositions" style="min-width: 8rem">
+                        <template #body="{ data }">
+                            <div class="flex flex-wrap items-center gap-1">
+                                <Tag :value="`${data.dispositions_open_count ?? 0} open`" :severity="(data.dispositions_open_count ?? 0) > 0 ? 'info' : 'secondary'" />
+                                <Tag v-if="(data.dispositions_overdue_count ?? 0) > 0" :value="`${data.dispositions_overdue_count} overdue`" severity="danger" />
+                            </div>
+                        </template>
                     </Column>
                     <Column header="Status" style="min-width: 6rem">
                         <template #body="{ data }">
@@ -892,6 +1033,36 @@ onMounted(async () => {
 
             <div class="border border-surface-200 dark:border-surface-700 rounded p-4 flex flex-col gap-3">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                        <div class="font-semibold">
+                            Dispositions ({{ detail.dispositions_open_count ?? 0 }} open<template v-if="(detail.dispositions_overdue_count ?? 0) > 0">, {{ detail.dispositions_overdue_count }} overdue</template>)
+                        </div>
+                        <small class="text-surface-500">Follow-up updates are managed on the Dispositions page.</small>
+                    </div>
+                    <Button v-if="canAssign && detail.status === 'active'" label="Assign" icon="pi pi-user-plus" size="small" variant="outlined" @click="openAssign(detail)" />
+                </div>
+
+                <div v-if="!detail.dispositions || detail.dispositions.length === 0" class="text-sm text-surface-500">No dispositions yet.</div>
+                <ul v-else class="divide-y divide-surface-200 dark:divide-surface-700">
+                    <li v-for="disposition in detail.dispositions" :key="disposition.id" class="py-3 text-sm flex flex-col gap-2">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="font-medium">{{ disposition.recipient?.name ?? '-' }}</span>
+                            <span v-if="disposition.recipient?.employee_type" class="text-xs text-surface-500">{{ disposition.recipient.employee_type }}</span>
+                            <Tag :value="dispositionLabels[disposition.status] ?? disposition.status" :severity="dispositionSeverity[disposition.status] ?? 'secondary'" />
+                            <Tag v-if="disposition.overdue" value="Overdue" severity="danger" />
+                            <span class="text-xs text-surface-500">Due {{ formatDate(disposition.due_date) }} · Version {{ disposition.version }}</span>
+                        </div>
+                        <div v-if="disposition.note" class="whitespace-pre-line break-words"><span class="text-surface-500">Note: </span>{{ disposition.note }}</div>
+                        <div v-if="disposition.follow_up_note" class="whitespace-pre-line break-words"><span class="text-surface-500">Follow-up: </span>{{ disposition.follow_up_note }}</div>
+                        <div v-if="disposition.cancel_reason" class="whitespace-pre-line break-words"><span class="text-surface-500">Cancel reason: </span>{{ disposition.cancel_reason }}</div>
+                        <div v-if="disposition.completed_by" class="text-xs text-surface-500">Completed by {{ disposition.completed_by.name ?? '-' }} · {{ formatDateTime(disposition.completed_at) }}</div>
+                        <div v-if="disposition.cancelled_by" class="text-xs text-surface-500">Cancelled by {{ disposition.cancelled_by.name ?? '-' }} · {{ formatDateTime(disposition.cancelled_at) }}</div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="border border-surface-200 dark:border-surface-700 rounded p-4 flex flex-col gap-3">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div class="font-semibold">Attachments ({{ detail.attachments.length }}/{{ maxFiles }})</div>
                     <div v-if="canManage && detail.status === 'active' && detail.attachments.length < maxFiles" class="flex flex-col sm:flex-row sm:items-center gap-2">
                         <input ref="fileInput" type="file" :accept="acceptAttr" class="block w-full sm:w-64 text-sm" aria-label="Choose an attachment file" @change="onFileSelected" />
@@ -959,6 +1130,55 @@ onMounted(async () => {
         <template #footer>
             <Button label="Cancel" severity="secondary" variant="text" :disabled="removeSaving" @click="removeVisible = false" />
             <Button label="Remove" icon="pi pi-trash" severity="danger" :loading="removeSaving" @click="confirmRemoveAttachment" />
+        </template>
+    </Dialog>
+
+    <Dialog v-model:visible="assignVisible" modal :draggable="false" :style="{ width: 'min(94vw, 40rem)' }" :header="assignTarget ? `Assign Disposition ${assignTarget.reference}` : 'Assign Disposition'">
+        <div class="flex flex-col gap-4">
+            <div v-if="assignTarget" class="text-sm text-surface-500">
+                <span class="font-medium text-surface-900 dark:text-surface-0">{{ assignTarget.reference }}</span>
+                — {{ assignTarget.subject }}
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <label for="dispositionRecipients" class="font-medium">Recipients <span class="text-red-500">*</span></label>
+                <MultiSelect
+                    inputId="dispositionRecipients"
+                    v-model="assignForm.recipients"
+                    :options="recipientOptions"
+                    optionLabel="name"
+                    optionValue="id"
+                    :loading="recipientLoading"
+                    filter
+                    display="chip"
+                    placeholder="Select active employees"
+                    emptyMessage="No active employees found."
+                    aria-label="Disposition recipients"
+                    @filter="onRecipientFilter"
+                />
+                <small class="text-surface-500">Only active employees are available. Each recipient receives one disposition row.</small>
+                <small v-if="fieldError(assignErrors, 'recipients')" class="text-red-500">{{ fieldError(assignErrors, 'recipients') }}</small>
+                <small v-for="error in recipientFieldErrors" :key="error.key" class="text-red-500">{{ error.message }}</small>
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <label for="dispositionDueDate" class="font-medium">Due Date <span class="text-red-500">*</span></label>
+                <DatePicker inputId="dispositionDueDate" v-model="assignForm.dueDate" dateFormat="yy-mm-dd" showIcon manualInput fluid />
+                <small v-if="fieldError(assignErrors, 'due_date')" class="text-red-500">{{ fieldError(assignErrors, 'due_date') }}</small>
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <label for="dispositionNote" class="font-medium">Note</label>
+                <Textarea id="dispositionNote" v-model="assignForm.note" rows="3" maxlength="2000" autoResize placeholder="Optional instruction for the recipients" />
+                <small class="text-surface-500">{{ assignForm.note.length }}/2000</small>
+                <small v-if="fieldError(assignErrors, 'note')" class="text-red-500">{{ fieldError(assignErrors, 'note') }}</small>
+                <small v-if="assignError" class="text-red-500">{{ assignError }}</small>
+            </div>
+        </div>
+
+        <template #footer>
+            <Button label="Cancel" severity="secondary" variant="text" :disabled="assignSaving" @click="assignVisible = false" />
+            <Button label="Assign" icon="pi pi-user-plus" :loading="assignSaving" @click="submitAssign" />
         </template>
     </Dialog>
 

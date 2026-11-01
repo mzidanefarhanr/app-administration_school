@@ -83,6 +83,18 @@ const router = createRouter({
                     component: () => import('@/views/pages/public/IncomingLetters.vue')
                 },
                 {
+                    path: '/public/letters/outgoing',
+                    name: 'outgoingLetters',
+                    meta: { breadcrumb: 'Outgoing Letters', requiresAbility: 'letters.view' },
+                    component: () => import('@/views/pages/public/OutgoingLetters.vue')
+                },
+                {
+                    path: '/public/letters/dispositions',
+                    name: 'letterDispositions',
+                    meta: { breadcrumb: 'Letter Dispositions', requiresAbility: 'letters.view' },
+                    component: () => import('@/views/pages/public/LetterDispositions.vue')
+                },
+                {
                     path: '/public/data-quality',
                     name: 'dataquality',
                     meta: { breadcrumb: 'Data Quality', requiresAbility: ['students.view', 'employees.view'] },

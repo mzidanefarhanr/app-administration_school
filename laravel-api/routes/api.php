@@ -21,7 +21,9 @@ use App\Http\Controllers\FirstLoginController;
 use App\Http\Controllers\GenderController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\IncomingLetterController;
+use App\Http\Controllers\LetterDispositionController;
 use App\Http\Controllers\MaritalStatusController;
+use App\Http\Controllers\OutgoingLetterController;
 use App\Http\Controllers\PhaseStatusController;
 use App\Http\Controllers\ProfessionController;
 use App\Http\Controllers\ProvinceController;
@@ -199,11 +201,57 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
             ->whereNumber('letter')->middleware('can:letters.manage');
         Route::post('/{letter}/void', [IncomingLetterController::class, 'void'])
             ->whereNumber('letter')->middleware('can:letters.manage');
+        Route::post('/{letter}/dispositions', [LetterDispositionController::class, 'store'])
+            ->whereNumber('letter')->middleware('can:letters.manage');
+        Route::match(['put', 'patch'], '/{letter}/dispositions/{disposition}', [LetterDispositionController::class, 'update'])
+            ->whereNumber(['letter', 'disposition'])->middleware('can:letters.manage');
+        Route::post('/{letter}/dispositions/{disposition}/cancel', [LetterDispositionController::class, 'cancel'])
+            ->whereNumber(['letter', 'disposition'])->middleware('can:letters.manage');
         Route::post('/{letter}/attachments', [IncomingLetterController::class, 'storeAttachment'])
             ->whereNumber('letter')->middleware('can:letters.manage');
         Route::get('/{letter}/attachments/{attachment}/download', [IncomingLetterController::class, 'downloadAttachment'])
             ->whereNumber(['letter', 'attachment'])->middleware('can:letters.view');
         Route::delete('/{letter}/attachments/{attachment}', [IncomingLetterController::class, 'destroyAttachment'])
+            ->whereNumber(['letter', 'attachment'])->middleware('can:letters.manage');
+    });
+
+    // Fase 07b (DEC-33) — worklist disposisi surat masuk dan opsi penerima pegawai.
+    Route::prefix('letters/dispositions')->group(function () {
+        Route::get('/options', [LetterDispositionController::class, 'options'])
+            ->middleware('can:letters.view');
+        Route::get('/recipients', [LetterDispositionController::class, 'recipients'])
+            ->middleware(['can:letters.manage', 'can:employees.view']);
+        Route::get('/', [LetterDispositionController::class, 'index'])
+            ->middleware('can:letters.view');
+    });
+
+    // Fase 07b (DEC-33) — surat keluar: draft, approval/sign, nomor resmi, lampiran.
+    Route::prefix('letters/outgoing')->group(function () {
+        Route::get('/options', [OutgoingLetterController::class, 'options'])
+            ->middleware('can:letters.view');
+        Route::get('/', [OutgoingLetterController::class, 'index'])
+            ->middleware('can:letters.view');
+        Route::get('/{letter}', [OutgoingLetterController::class, 'show'])
+            ->whereNumber('letter')->middleware('can:letters.view');
+        Route::post('/', [OutgoingLetterController::class, 'store'])
+            ->middleware('can:letters.manage');
+        Route::match(['put', 'patch'], '/{letter}', [OutgoingLetterController::class, 'update'])
+            ->whereNumber('letter')->middleware('can:letters.manage');
+        Route::post('/{letter}/submit', [OutgoingLetterController::class, 'submit'])
+            ->whereNumber('letter')->middleware('can:letters.manage');
+        Route::post('/{letter}/approve', [OutgoingLetterController::class, 'approve'])
+            ->whereNumber('letter')->middleware('can:letters.approve');
+        Route::post('/{letter}/reject', [OutgoingLetterController::class, 'reject'])
+            ->whereNumber('letter')->middleware('can:letters.approve');
+        Route::post('/{letter}/issue', [OutgoingLetterController::class, 'issue'])
+            ->whereNumber('letter')->middleware('can:letters.sign');
+        Route::post('/{letter}/cancel', [OutgoingLetterController::class, 'cancel'])
+            ->whereNumber('letter')->middleware('can:letters.view');
+        Route::post('/{letter}/attachments', [OutgoingLetterController::class, 'storeAttachment'])
+            ->whereNumber('letter')->middleware('can:letters.manage');
+        Route::get('/{letter}/attachments/{attachment}/download', [OutgoingLetterController::class, 'downloadAttachment'])
+            ->whereNumber(['letter', 'attachment'])->middleware('can:letters.view');
+        Route::delete('/{letter}/attachments/{attachment}', [OutgoingLetterController::class, 'destroyAttachment'])
             ->whereNumber(['letter', 'attachment'])->middleware('can:letters.manage');
     });
 

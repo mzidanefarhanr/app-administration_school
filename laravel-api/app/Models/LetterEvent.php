@@ -26,12 +26,39 @@ class LetterEvent extends Model
 
     public const EVENT_ATTACHMENT_REMOVED = 'attachment_removed';
 
+    public const EVENT_SUBMITTED = 'submitted';
+
+    public const EVENT_APPROVED = 'approved';
+
+    public const EVENT_REJECTED = 'rejected';
+
+    public const EVENT_ISSUED = 'issued';
+
+    public const EVENT_CANCELLED = 'cancelled';
+
+    public const EVENT_DISPOSITION_CREATED = 'disposition_created';
+
+    public const EVENT_DISPOSITION_UPDATED = 'disposition_updated';
+
+    public const EVENT_DISPOSITION_COMPLETED = 'disposition_completed';
+
+    public const EVENT_DISPOSITION_CANCELLED = 'disposition_cancelled';
+
     public const EVENTS = [
         self::EVENT_CREATED,
         self::EVENT_UPDATED,
         self::EVENT_VOIDED,
         self::EVENT_ATTACHMENT_ADDED,
         self::EVENT_ATTACHMENT_REMOVED,
+        self::EVENT_SUBMITTED,
+        self::EVENT_APPROVED,
+        self::EVENT_REJECTED,
+        self::EVENT_ISSUED,
+        self::EVENT_CANCELLED,
+        self::EVENT_DISPOSITION_CREATED,
+        self::EVENT_DISPOSITION_UPDATED,
+        self::EVENT_DISPOSITION_COMPLETED,
+        self::EVENT_DISPOSITION_CANCELLED,
     ];
 
     public const UPDATED_AT = null;

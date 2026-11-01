@@ -683,7 +683,7 @@ it('rolls back and removes files when events fail', function () {
 });
 
 // T18 — isolasi path dan route.
-it('keeps attachments under the backup path and exposes nine routes', function () {
+it('keeps attachments under the backup path and exposes twelve routes', function () {
     Sanctum::actingAs($this->operator);
     $letter = p07Letter(['created_by' => $this->operator->id]);
 
@@ -703,7 +703,7 @@ it('keeps attachments under the backup path and exposes nine routes', function (
     $routes = collect(Route::getRoutes())
         ->filter(fn ($route) => str_starts_with($route->uri(), 'api/letters/incoming'));
 
-    expect($routes)->toHaveCount(9);
+    expect($routes)->toHaveCount(12);
 
     foreach ($routes as $route) {
         $middleware = $route->gatherMiddleware();

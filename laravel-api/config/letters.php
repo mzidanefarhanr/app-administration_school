@@ -21,4 +21,27 @@ return [
     'per_page_options' => [10, 20, 50, 100],
     'default_per_page' => 20,
     'events_limit' => 100,
+
+    // Fase 07b (DEC-33): surat keluar, approval/sign, disposisi, dan nomor resmi.
+    'outgoing_workflow_statuses' => ['draft', 'review', 'approved', 'issued', 'cancelled'],
+    'outgoing_default_status' => 'draft',
+    'outgoing_search_max_length' => 100,
+    'approval_notes_max_length' => 500,
+    'cancel_reason_min_length' => 10,
+    'cancel_reason_max_length' => 255,
+    'disposition_statuses' => ['pending', 'in_progress', 'completed', 'cancelled'],
+    'disposition_open_statuses' => ['pending', 'in_progress'],
+    'disposition_note_max_length' => 2000,
+    'disposition_follow_up_min_length' => 10,
+    'disposition_follow_up_max_length' => 2000,
+    'disposition_cancel_reason_min_length' => 10,
+    'disposition_cancel_reason_max_length' => 255,
+    'disposition_per_page_options' => [10, 20, 50, 100],
+    'disposition_default_per_page' => 20,
+    'numbering' => [
+        'scope' => 'outgoing',
+        'period' => 'calendar_year',
+        'format' => '{seq:03d}/{school_code}/{year}',
+        'school_code' => env('LETTERS_NUMBER_SCHOOL_CODE'),
+    ],
 ];
