@@ -25,7 +25,7 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 - Why: penerimaan pemilik adalah bukti acceptance yang terpisah dari bukti otomatis; DEC-27 mengharuskan server fase yang sudah lulus dihentikan agar tidak berjalan tanpa dipakai.
 - Validation: pernyataan pemilik; command line PID 19280 (`node ... vite --host 127.0.0.1 --port 14024 --strictPort`) dan PID 9436 (`php.exe -S 127.0.0.1:18024 -t public scripts/phase06-uat.php`) diverifikasi sebelum penghentian; `netstat` menunjukkan port 14024/18024 bebas; Apache (PID 1304, port 80/443) dan MariaDB (PID 18244, port 3306) tetap berjalan. NOT RUN: skenario manual tidak diulang agen; item MariaDB/race/benchmark/visual regression tetap NOT RUN.
 - Notes / risks: penerimaan tidak mengotorisasi merge/deploy, migrasi database operasional/MariaDB, rekap semester/sekolah, atau fase berikutnya.
-- Evidence: `reports/feature-update/PHASE-06C-MANUAL-REVIEW.md`, `reports/feature-update/PHASE-06C-REPORT.md`; SHA commit dokumentasi penerimaan dicatat pada checkpoint berikutnya.
+- Evidence: `reports/feature-update/PHASE-06C-MANUAL-REVIEW.md`, `reports/feature-update/PHASE-06C-REPORT.md`; commit dokumentasi penerimaan `41ec7b5` (di-push ke `origin/main`).
 
 ## [2026-11-01] Fase 06c — Mutasi, pembatalan, rekap, dan koreksi periode locked
 - Type: Feature

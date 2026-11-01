@@ -143,7 +143,7 @@ Untuk setiap nomor, tulis: **PASS/FAIL/SKIP**, langkah yang dilakukan, hasil akt
 
 ## Penutupan setelah penerimaan
 
-- Penerimaan dicatat pada commit dokumentasi tersendiri, bukan pada commit implementasi `9927d8e`; SHA commit dokumentasi penerimaan dicatat pada checkpoint berikutnya.
+- Penerimaan dicatat pada commit dokumentasi tersendiri `41ec7b5` (`2026-11-01`), bukan pada commit implementasi `9927d8e`.
 - Server UAT dihentikan 2026-11-01 setelah penerimaan; data dan password runtime dipertahankan di `.uat-phase06`; perintah restart tetap tercantum di atas.
 - Apache/MariaDB/service/dependency tidak diubah; data tidak dimigrasikan ke DB operasional.
 - Merge/deploy tetap memerlukan instruksi pemilik terpisah; rekap semester dan rekap sekolah (DEC-12) tetap di luar scope.
