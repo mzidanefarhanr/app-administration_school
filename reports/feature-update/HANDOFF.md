@@ -1,6 +1,15 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-01 (Rencana Subfase 06c disiapkan; menunggu keputusan pemilik)
+## Current checkpoint — 2026-11-01 (DEC-31 approved; implementasi 06c dimulai)
+
+- **Approval:** pemilik menyatakan **"Saya setuju D1-D10."** pada 2026-11-01 WIB, menyetujui sepuluh keputusan rencana 06c di `PHASE-06C-PLAN.md` sebagai **DEC-31 APPROVED**. Otorisasi mencakup implementasi **06c** saja; tidak mencakup merge/deploy, migrasi DB operasional/MariaDB, perubahan dependency/service, rekap semester, atau rekap sekolah (DEC-12).
+- **Status:** `PHASE-06C-PLAN.md` menjadi **PLAN APPROVED**; implementasi 06c sedang dikerjakan. 06a/06b tetap owner-accepted.
+- **Scope implementasi:** `student_mutations` immutable; mutasi masuk/keluar; pembatalan kompensatif; rekap per tahun; ability `students.correct-locked` + `student_locked_corrections`; sepuluh endpoint; UI Students → Mutations; tes; UAT `prepare-mutations` pada `.uat-phase06`.
+- **Batas:** tidak ada merge/deploy/force-push/rewrite; tidak menyentuh database operasional/MariaDB, `.env`, dependency/service, atau `.uat-phase05`; UAT hanya `.uat-phase06`.
+- **Git:** branch `main`; HEAD `feca98a` (paket rencana 06c); commit dokumentasi persetujuan dibuat terpisah; SHA aktual dilaporkan setelah commit.
+- **Next:** selesaikan implementasi 06c, jalankan tes/build/UAT, lalu berhenti untuk review manual pemilik.
+
+## Previous checkpoint — 2026-11-01 (Rencana Subfase 06c disiapkan; menunggu keputusan pemilik)
 
 - **Status:** rencana rinci **06c (mutasi masuk/keluar, pembatalan, rekap per tahun, koreksi periode terkunci)** tersedia di `PHASE-06C-PLAN.md` (baseline `953e6f7`) dengan status **PLAN PREPARED — PROPOSED, NOT AUTHORIZED** (D1–D10). **Implementasi 06c belum diotorisasi**; menunggu keputusan pemilik dan pencatatan **DEC-31**. 06a dan 06b tetap owner-accepted.
 - **Isi rencana:** `student_mutations` immutable (masuk/keluar, tanggal efektif, NPSN sekolah asal/tujuan, alasan, status active/cancelled, aktor/versi); pembatalan kompensatif dengan `expected_*_version` dan `409` itemized tanpa mutasi; rekap per tahun (mutation_in, mutation_out, graduated, retained; cancelled dikecualikan; semester ditunda karena `semesters` tanpa tanggal); koreksi locked via ability baru `students.correct-locked` + tabel immutable `student_locked_corrections` dengan lima tindakan; sepuluh endpoint; UI section Students → Mutations; matriks 20 tes; fixture UAT idempotent `prepare-mutations`.
