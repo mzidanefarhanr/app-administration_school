@@ -2,13 +2,13 @@
 
 Subfase: 06c — mutasi masuk/keluar bertanggal, pembatalan kompensatif, rekap per tahun, dan koreksi periode locked yang ter-audit.
 Keputusan: **DEC-31 APPROVED** (D1–D10, 2026-11-01 WIB; "Saya setuju D1-D10."). Laporan teknis: `reports/feature-update/PHASE-06C-REPORT.md`.
-Baseline induk: `main` pada `da94195` (pencatatan DEC-31); implementasi `9927d8e`. Status: **IMPLEMENTED — agent-verified; OWNER REVIEW PENDING**.
+Baseline induk: `main` pada `da94195` (pencatatan DEC-31); implementasi `9927d8e`. Status: **IMPLEMENTED — agent-verified; OWNER APPROVED 2026-11-01 WIB — checklist #1–#16**.
 
 ## Status penerimaan pemilik
 
-- Belum ada pernyataan penerimaan untuk 06c. Checklist #1–#16 di bawah menunggu hasil review pemilik.
-- Cakupan review: implementasi 06c pada lingkungan UAT terisolasi `.uat-phase06` saja.
-- Batas: review/penerimaan nanti tidak mengotorisasi merge, deploy, migrasi data operasional/MariaDB, perubahan dependency/service, rekap semester, atau rekap sekolah (DEC-12 PROPOSED).
+- Pernyataan pemilik 2026-11-01 WIB: **"Pengujian nomor 1-16 sudah berhasil dan saya approved."**
+- Cakupan: seluruh skenario #1–#16 pada lingkungan UAT terisolasi `.uat-phase06`. Pernyataan pemilik adalah satu-satunya bukti penerimaan; agen tidak mengulang skenario.
+- Batas: penerimaan tidak mengotorisasi merge, deploy, migrasi data operasional/MariaDB, perubahan dependency/service, rekap semester, atau rekap sekolah (DEC-12).
 
 ## Lingkungan UAT (terisolasi)
 
@@ -17,8 +17,8 @@ Baseline induk: `main` pada `da94195` (pencatatan DEC-31); implementasi `9927d8e
 - Data: `.uat-phase06` SQLite; cookie `school_phase06_session`
 - Launcher: `laravel-api/scripts/phase06-uat.php`
 - Akun: **`uat.operator`** (mutasi/pembatalan), **`uat.kepsek`** (view-only), **`uat.admin`** (koreksi periode locked). Password hanya ada di runtime privat `.uat-phase06/account-password.txt`; tidak dicetak di dokumen.
-- Server saat ini **berjalan untuk review**: API PID 9436 (`php.exe -S 127.0.0.1:18024 -t public scripts/phase06-uat.php`) dan SPA PID 19280 (`node vite --host 127.0.0.1 --port 14024 --strictPort`). Port 14024/18024 terverifikasi listening; Apache 80/443 dan MariaDB 3306 tidak disentuh.
-- Sesuai DEC-27, server dihentikan **setelah** pemilik menyatakan penerimaan; data `.uat-phase06` dipertahankan.
+- Server UAT **dihentikan 2026-11-01 setelah penerimaan**: API PID 9436 (`php.exe -S 127.0.0.1:18024 -t public scripts/phase06-uat.php`) dan SPA PID 19280 (`node vite --host 127.0.0.1 --port 14024 --strictPort`) diverifikasi command line sebelum penghentian; port 14024/18024 bebas; Apache 80/443 (PID 1304) dan MariaDB 3306 (PID 18244) tidak disentuh; data `.uat-phase06` dipertahankan.
+- Sesuai DEC-27, server dihentikan **setelah** pemilik menyatakan penerimaan; perintah restart di bawah hanya digunakan bila pemilik meminta sesi verifikasi tambahan.
 
 Perintah restart bila server sudah berhenti:
 
@@ -133,8 +133,8 @@ Jangan menguji pada database operasional, `.uat-phase05`, atau MariaDB. Jangan m
 - Harapkan tidak ada error console/network selain `409`/`403`/`422` yang disengaja saat menguji konflik/akses.
 
 ### 16. Lifecycle server
-- Server UAT 14024/18024 tetap berjalan sampai pemilik menyatakan penerimaan (DEC-27).
-- Setelah penerimaan, server dihentikan dengan verifikasi PID/command line, port dibebaskan, data `.uat-phase06` dipertahankan, dan Apache/MariaDB tidak disentuh.
+- Server UAT 14024/18024 tersedia sampai pemilik menyatakan penerimaan (DEC-27).
+- Setelah penerimaan, server dihentikan 2026-11-01 dengan verifikasi PID/command line (SPA 19280, API 9436), port 14024/18024 dibebaskan, data `.uat-phase06` dipertahankan, dan Apache (PID 1304, port 80/443)/MariaDB (PID 18244, port 3306) tidak disentuh.
 - Jangan merge/deploy atau memigrasikan data ke database operasional.
 
 ## Cara melaporkan hasil
@@ -143,7 +143,7 @@ Untuk setiap nomor, tulis: **PASS/FAIL/SKIP**, langkah yang dilakukan, hasil akt
 
 ## Penutupan setelah penerimaan
 
-- Penerimaan dicatat pada commit dokumentasi tersendiri, bukan pada commit implementasi 06c.
-- Server UAT dihentikan setelah penerimaan; data dan password runtime dipertahankan di `.uat-phase06`; perintah restart tetap tercantum di atas.
+- Penerimaan dicatat pada commit dokumentasi tersendiri, bukan pada commit implementasi `9927d8e`; SHA commit dokumentasi penerimaan dicatat pada checkpoint berikutnya.
+- Server UAT dihentikan 2026-11-01 setelah penerimaan; data dan password runtime dipertahankan di `.uat-phase06`; perintah restart tetap tercantum di atas.
 - Apache/MariaDB/service/dependency tidak diubah; data tidak dimigrasikan ke DB operasional.
 - Merge/deploy tetap memerlukan instruksi pemilik terpisah; rekap semester dan rekap sekolah (DEC-12) tetap di luar scope.

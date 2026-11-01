@@ -2,7 +2,7 @@
 
 Tanggal: implementasi dan verifikasi agen 2026-11-01 WIB. Branch: `main`. Baseline induk: `da94195` (pencatatan DEC-31 APPROVED). Implementasi dan dokumentasi 06c dikomit dan di-push sebagai `9927d8e` (`main...origin/main` sinkron).
 Keputusan pemilik: **DEC-31** (APPROVED 2026-11-01 WIB; D1–D10, pernyataan "Saya setuju D1-D10.").
-Status teknis: **IMPLEMENTED — agent-verified (2026-11-01)**. Status review pemilik: **PENDING** (`PHASE-06C-MANUAL-REVIEW.md` #1–#16).
+Status teknis: **IMPLEMENTED — agent-verified (2026-11-01)**. Status review pemilik: **APPROVED 2026-11-01 WIB (#1–#16)** berdasarkan pernyataan **"Pengujian nomor 1-16 sudah berhasil dan saya approved."**; agen tidak mengulang skenario.
 Rencana: `reports/feature-update/PHASE-06C-PLAN.md`. Checklist manual: `reports/feature-update/PHASE-06C-MANUAL-REVIEW.md`.
 
 ## 1. Outcome dan cakupan
@@ -89,12 +89,12 @@ Kontrak endpoint (detail di `docs/API-CONTRACTS.md`):
 - Race multi-proses/dua tab nyata untuk `409` mutasi/pembatalan/koreksi; konflik diuji lewat tes otomatis dan versi yang diubah di database UAT.
 - Benchmark 94 log/120 siswa pada volume besar; pagination dan pencarian diuji dengan fixture sintetis.
 - Screenshot/visual regression berbasis file gambar; bukti browser berupa snapshot DOM/API (tidak dikomit).
-- Penerimaan manual pemilik: **PENDING**; checklist #1–#16 harus dijalankan pemilik pada `.uat-phase06`.
-- Pemberhentian server UAT setelah penerimaan (DEC-27): **belum**; server masih berjalan untuk review.
+- Penerimaan manual pemilik: **APPROVED 2026-11-01 WIB (#1–#16)** berdasarkan pernyataan **"Pengujian nomor 1-16 sudah berhasil dan saya approved."**; agen tidak mengulang skenario dan item NOT RUN di atas tetap NOT RUN.
+- Pemberhentian server UAT setelah penerimaan (DEC-27): **selesai 2026-11-01**; PID/command line diverifikasi (SPA 19280, API 9436), port 14024/18024 bebas, data `.uat-phase06` dipertahankan, Apache/MariaDB tidak disentuh.
 
 ## 4. UAT manual
 
-Environment: `.uat-phase06` SQLite terisolasi, SPA `http://127.0.0.1:14024`, API `http://127.0.0.1:18024`, cookie `school_phase06_session`, launcher `laravel-api/scripts/phase06-uat.php`. Server API (PID 9436) dan SPA (PID 19280) berjalan untuk review; data 06a/06b tidak di-reset dan perintah restart ada di `PHASE-06C-MANUAL-REVIEW.md`.
+Environment: `.uat-phase06` SQLite terisolasi, SPA `http://127.0.0.1:14024`, API `http://127.0.0.1:18024`, cookie `school_phase06_session`, launcher `laravel-api/scripts/phase06-uat.php`. Server API (PID 9436) dan SPA (PID 19280) dihentikan 2026-11-01 setelah penerimaan (DEC-27); data 06a/06b tidak di-reset dan perintah restart ada di `PHASE-06C-MANUAL-REVIEW.md`.
 
 Akun review: `uat.operator` (mutasi/pembatalan), `uat.kepsek` (view-only), `uat.admin` (koreksi locked). Password hanya berada di runtime `.uat-phase06/account-password.txt` yang diabaikan; tidak dicetak di dokumen.
 
@@ -132,7 +132,7 @@ Hasil UAT yang dijalankan agen:
 - **Rekap**: `retained` bergantung pada batch progresi committed; batch preview tidak dihitung. Rekap semester ditunda karena `semesters` tanpa tanggal.
 - **Batas bukti**: seluruh UAT memakai SQLite; MariaDB, race multi-proses, dan dua tab nyata tetap NOT RUN. Migrasi belum dijalankan pada database operasional.
 - **Data UAT**: demo mutation-in/out/cancel dan koreksi locked sengaja dipertahankan agar pemilik dapat memeriksa timeline/rekap; tidak ada reset data 06a/06b.
-- **UAT lifecycle**: server 14024/18024 tetap berjalan sampai penerimaan pemilik (DEC-27); setelah penerimaan dihentikan dengan verifikasi PID/command line, data `.uat-phase06` dipertahankan.
+- **UAT lifecycle**: server 14024/18024 dihentikan 2026-11-01 setelah penerimaan pemilik sesuai DEC-27 (PID/command line diverifikasi, port bebas, data `.uat-phase06` dipertahankan, Apache/MariaDB tidak disentuh).
 
 ## 6. Sinkronisasi dokumen
 
@@ -142,7 +142,7 @@ Commit/push dilakukan agar pemilik dapat meninjau implementasi di GitHub; commit
 
 ## 7. Langkah berikutnya
 
-1. Pemilik menjalankan checklist `PHASE-06C-MANUAL-REVIEW.md` **#1–#16** pada `.uat-phase06`; status review **PENDING** sampai ada pernyataan penerimaan.
-2. Setelah penerimaan, catat approval pada commit dokumentasi tersendiri, hentikan server UAT sesuai DEC-27, dan pertahankan data `.uat-phase06`.
+1. Checklist `PHASE-06C-MANUAL-REVIEW.md` **#1–#16 telah dijalankan pemilik dan APPROVED 2026-11-01 WIB** berdasarkan pernyataan **"Pengujian nomor 1-16 sudah berhasil dan saya approved."**; agen tidak mengulang skenario.
+2. Penerimaan dicatat pada commit dokumentasi tersendiri; server UAT dihentikan 2026-11-01 sesuai DEC-27 (PID/command line diverifikasi, port bebas, data `.uat-phase06` dipertahankan).
 3. Merge/deploy, migrasi database operasional/MariaDB, rekap semester, dan rekap sekolah (DEC-12) tetap tidak diotorisasi.
 4. Fase berikutnya memerlukan rencana dan keputusan pemilik terpisah; jangan mulai otomatis.

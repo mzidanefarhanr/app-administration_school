@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-01] Fase 06c — Pemilik menyetujui hasil implementasi (checklist #1–#16)
+- Type: Docs
+- Scope / fase: Penerimaan manual Subfase 06c; tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `docs/TESTING.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-06-ACADEMIC-YEAR.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `reports/feature-update/PHASE-06C-PLAN.md`, laporan dan checklist manual 06c.
+- What changed: mencatat pernyataan pemilik **"Pengujian nomor 1-16 sudah berhasil dan saya approved."** (2026-11-01 WIB) sebagai penerimaan checklist #1–#16; server UAT 14024/18024 dihentikan setelah verifikasi PID/command line; data `.uat-phase06` dipertahankan.
+- Why: penerimaan pemilik adalah bukti acceptance yang terpisah dari bukti otomatis; DEC-27 mengharuskan server fase yang sudah lulus dihentikan agar tidak berjalan tanpa dipakai.
+- Validation: pernyataan pemilik; command line PID 19280 (`node ... vite --host 127.0.0.1 --port 14024 --strictPort`) dan PID 9436 (`php.exe -S 127.0.0.1:18024 -t public scripts/phase06-uat.php`) diverifikasi sebelum penghentian; `netstat` menunjukkan port 14024/18024 bebas; Apache (PID 1304, port 80/443) dan MariaDB (PID 18244, port 3306) tetap berjalan. NOT RUN: skenario manual tidak diulang agen; item MariaDB/race/benchmark/visual regression tetap NOT RUN.
+- Notes / risks: penerimaan tidak mengotorisasi merge/deploy, migrasi database operasional/MariaDB, rekap semester/sekolah, atau fase berikutnya.
+- Evidence: `reports/feature-update/PHASE-06C-MANUAL-REVIEW.md`, `reports/feature-update/PHASE-06C-REPORT.md`; SHA commit dokumentasi penerimaan dicatat pada checkpoint berikutnya.
+
 ## [2026-11-01] Fase 06c — Mutasi, pembatalan, rekap, dan koreksi periode locked
 - Type: Feature
 - Scope / fase: **06c saja** di atas `main` @ `da94195` (DEC-31 APPROVED). 06d, merge/deploy, migrasi database operasional/MariaDB, rekap semester/sekolah, dan perubahan dependency/service/`.env` tidak termasuk.
@@ -24,7 +34,7 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 - What changed: mutation-in membuat membership baru (`Aktif`, entry `Mutasi Masuk`, NPSN asal) dan mutation-out menutup satu membership (`Mutasi Keluar`, exit/tujuan, versi+1) dengan log immutable `student_mutations`; pembatalan kompensatif (out membuka kembali, in mengarsipkan) memakai `expected_*_version` + `409` itemized tanpa mutasi; rekap per tahun (`mutation_in`/`mutation_out`/`graduated`/`retained`, cancelled dikecualikan); ability sensitif `students.correct-locked` + tabel immutable `student_locked_corrections` untuk lima tindakan pada tahun locked; sepuluh endpoint; UI Students → Mutations dengan rekap, log, pencarian, dialog In/Out/Cancel/Correct, dan timeline; guard hapus tahun; audit NPSN tanpa alasan/PII.
 - Why: menyelesaikan subfase terakhir Fase 06 — mutasi siswa dapat ditelusuri, status/tanggal konsisten, biodata tidak dihapus untuk mencatat keluar, dan koreksi periode locked ter-audit sesuai DEC-31.
 - Validation: `php artisan test tests/Feature/Academic/StudentMutationTest.php` **19 passed/369 assertions (10,41 s)**; `StudentDirectoryTest` **39/501**; suite penuh **467 passed/13 skipped/4.492 assertions (279,96 s)**; Pint **21 files PASS**; `route:list` **8 mutation + 2 locked-correction**; `npm run build` **PASS 30,56 s**; `npx eslint --quiet` **0 error**; UAT browser/API `.uat-phase06` (operator in/out/cancel/re-entry, kepsek view-only `403`, admin koreksi locked 0072 + approval, rekap In 41/Out 20/Graduated 1/Retained 1, 390 px, 0 console error). **NOT RUN:** MariaDB/InnoDB + trigger MySQL, race multi-proses/dua tab, benchmark volume besar, visual regression, review manual pemilik.
-- Notes / risks: server UAT 14024/18024 berjalan sampai penerimaan pemilik (DEC-27); data 06a/06b tidak di-reset; demo 0021/0081/0111/0072 dipertahankan. Review manual **PENDING (#1–#16)**; merge/deploy dan migrasi operasional tidak diotorisasi.
+- Notes / risks: server UAT 14024/18024 berjalan sampai penerimaan pemilik (DEC-27); data 06a/06b tidak di-reset; demo 0021/0081/0111/0072 dipertahankan. Review manual saat implementasi **PENDING (#1–#16)**; **kemudian APPROVED 2026-11-01 WIB (#1–#16)** (entri penerimaan di atas). Merge/deploy dan migrasi operasional tidak diotorisasi.
 - Evidence: `reports/feature-update/PHASE-06C-REPORT.md`, `reports/feature-update/PHASE-06C-MANUAL-REVIEW.md`; paket implementasi+dokumentasi `9927d8e` (di-push ke `origin/main`).
 
 ## [2026-11-01] Fase 06c — Pemilik menyetujui rencana (DEC-31 APPROVED)
