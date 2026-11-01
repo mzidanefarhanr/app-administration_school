@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-02] Fase 07c — Rencana kop, tanda tangan, stempel, template PDF, dan snapshot
+- Type: Docs
+- Scope / fase: **Rencana 07c saja**; tidak ada perubahan kode, migration, dependency, tes, atau UAT.
+- Files touched: `reports/feature-update/PHASE-07C-PLAN.md` (baru), `docs/DECISIONS.md` (DEC-34 PROPOSED), `docs/REQUIREMENTS.md` (catatan FR-09), `roadmap/phases/PHASE-07-LETTERS.md`, `roadmap/ROADMAP.md`, `PROJECT_CONTEXT.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `CHANGELOG.md`.
+- What changed: menyusun rencana rinci 07c dengan audit source aktual dan usulan D1–D11: tiga jenis surat (`student_active`, `student_mutation`, `employee_duty`; surat izin ditunda Fase 08), `letter_settings` 1:1 per `school_profiles` (kop/logo/penandatangan/signature/stamp privat), template Blade kode berversi, dependency `dompdf/dompdf:^2.0` hanya bila D2 disetujui, PDF + snapshot minimal PII saat `approved → issued` di dalam transaksi, preview watermarked, download issued/cancelled, 9 route baru (37 total), halaman Letter Settings + typed Outgoing, matriks T1–T28, dan UAT additive `prepare-documents`.
+- Why: menyiapkan keputusan pemilik untuk subfase berikutnya tanpa menebak format kop/penandatangan, isi surat, atau dependency PDF; DEC-11 masih OPEN dan 07c belum diotorisasi.
+- Validation: pemeriksaan dokumen/source untuk rencana; `git diff --check`; **NOT RUN:** implementasi, migration, dependency/composer install, tes, build/lint, browser, dan UAT 07c.
+- Notes / risks: rencana diajukan sebagai **DEC-34 PROPOSED**; **DEC-11/DEC-13 tetap OPEN**; merge/deploy, migrasi DB operasional/MariaDB, dependency/service/`.env`, dan Fase 08 tidak diotorisasi. Jika D1–D11 disetujui, keputusan dicatat pada commit dokumentasi terpisah sebelum implementasi.
+- Evidence: `reports/feature-update/PHASE-07C-PLAN.md`; baseline `ff581c6`; SHA paket rencana dicatat setelah commit.
+
 ## [2026-11-02] Fase 07b — Pemilik menyetujui hasil implementasi (checklist #1–#16)
 - Type: Docs
 - Scope / fase: Penerimaan manual Subfase 07b; tidak ada perubahan kode aplikasi pada entri ini.

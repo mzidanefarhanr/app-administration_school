@@ -1,8 +1,8 @@
 # Fase 07 — Persuratan dan generator dokumen
 
-Status teknis: **07a IMPLEMENTED dan diverifikasi agen 2026-11-01**; **07b IMPLEMENTED dan diverifikasi agen 2026-11-01**; 07c NOT STARTED (rencana disiapkan untuk keputusan pemilik). Status review: **07a APPROVED 2026-11-01 WIB (#1–#16)** dan **07b APPROVED 2026-11-02 WIB (#1–#16)**, keduanya berdasarkan "Pengujian nomor 1-16 sudah berhasil dan saya approved."; server UAT 07a dan 07b dihentikan setelah penerimaan (DEC-27) dengan data `.uat-phase07` dipertahankan.
-Status rencana: **PLAN 07a APPROVED — DEC-32 APPROVED 2026-11-01 WIB** ("Saya setuju D1-D10"); implementasi 07a selesai. Rencana 07a di `reports/feature-update/PHASE-07-PLAN.md` (baseline `1101812`); rencana rinci 07b di `reports/feature-update/PHASE-07B-PLAN.md` (baseline `aec356c`) berstatus **PLAN APPROVED — DEC-33 APPROVED 2026-11-01 WIB** ("Saya setuju D1-D11"); laporan `PHASE-07A-REPORT.md` dan `PHASE-07B-REPORT.md`. **DEC-06 CLOSED** melalui D4–D5/DEC-33; DEC-11 dan DEC-13 tetap OPEN; rencana 07c akan diajukan sebagai `PHASE-07C-PLAN.md` (PLAN — AWAITING OWNER APPROVAL) dan belum diotorisasi.
-Dependensi: 01,02; siswa/guru siap untuk auto-fill; DEC-11. Baseline implementasi 07a: `f46f736`; baseline rencana/implementasi 07b: `aec356c`/`d326369`; paket rencana 07b: `c4bd338`; paket implementasi/review 07b: `d736b37`/`7f89264`.
+Status teknis: **07a IMPLEMENTED dan diverifikasi agen 2026-11-01**; **07b IMPLEMENTED dan diverifikasi agen 2026-11-01**; **07c PLAN — AWAITING OWNER APPROVAL (D1–D11), belum diimplementasikan**. Status review: **07a APPROVED 2026-11-01 WIB (#1–#16)** dan **07b APPROVED 2026-11-02 WIB (#1–#16)**, keduanya berdasarkan "Pengujian nomor 1-16 sudah berhasil dan saya approved."; server UAT 07a dan 07b dihentikan setelah penerimaan (DEC-27) dengan data `.uat-phase07` dipertahankan.
+Status rencana: **PLAN 07a APPROVED — DEC-32 APPROVED 2026-11-01 WIB** ("Saya setuju D1-D10"); implementasi 07a selesai. Rencana 07a di `reports/feature-update/PHASE-07-PLAN.md` (baseline `1101812`); rencana rinci 07b di `reports/feature-update/PHASE-07B-PLAN.md` (baseline `aec356c`) berstatus **PLAN APPROVED — DEC-33 APPROVED 2026-11-01 WIB** ("Saya setuju D1-D11"); rencana rinci 07c di `reports/feature-update/PHASE-07C-PLAN.md` (baseline `ff581c6`) berstatus **PLAN — AWAITING OWNER APPROVAL (D1–D11)** dan diajukan sebagai **DEC-34 PROPOSED**; laporan `PHASE-07A-REPORT.md` dan `PHASE-07B-REPORT.md`. **DEC-06 CLOSED** melalui D4–D5/DEC-33; DEC-11 dan DEC-13 tetap OPEN sampai keputusan 07c; 07c belum diotorisasi.
+Dependensi: 01,02; siswa/guru siap untuk auto-fill; DEC-11; dependency PDF (D2). Baseline implementasi 07a: `f46f736`; baseline rencana/implementasi 07b: `aec356c`/`d326369`; paket rencana 07b: `c4bd338`; paket implementasi/review 07b: `d736b37`/`7f89264`; baseline rencana 07c: `ff581c6`.
 
 ## Tujuan dan scope
 Persuratan dan generator dokumen. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Tidak ada pekerjaan implementasi yang telah dilakukan dalam penyusunan dokumen ini.
@@ -56,16 +56,19 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 ```
 
 ### 07c — Template PDF dan snapshot
+Status: **PLAN — AWAITING OWNER APPROVAL (D1–D11)**. Rencana rinci `reports/feature-update/PHASE-07C-PLAN.md` (baseline `ff581c6`) diajukan sebagai **DEC-34 PROPOSED**; **belum ada kode, migration, dependency, tes, atau UAT**. **DEC-11 tetap OPEN** sampai D1–D11 disetujui; **DEC-13 tetap OPEN**. Usulan: tiga jenis surat (Student Active Certificate, Student Mutation Certificate, Employee Duty Letter), `letter_settings` per profil sekolah aktif (kop/logo/penandatangan/signature/stamp privat), template Blade berversi, `dompdf/dompdf:^2.0` (D2), PDF + snapshot immutable saat `approved → issued`, preview watermarked, download berizin untuk issued/cancelled, 9 route baru (37 total), UAT `.uat-phase07` + `prepare-documents`.
 Scope: Mulai jenis surat yang dipilih pemilik: siswa aktif/mutasi/tugas/izin; kop, tanda tangan, data auto-fill; template version, snapshot penandatangan dan biodata saat terbit; download berizin.
 
 Kriteria penerimaan: PDF panjang/halaman kedua dirender dan diperiksa; perubahan master tidak mengubah surat issued; surat draft tidak dianggap final; font/tanda tangan konsisten.
 
 Prompt setelah subfase ini dipilih:
 ```text
-Baca AGENTS.md, ROADMAP, HANDOFF dan PHASE-07-LETTERS.md.
-Kerjakan subfase 07c saja: Template PDF dan snapshot sesuai scope dan kriteria dokumen.
+Baca AGENTS.md, ROADMAP, HANDOFF, PHASE-07-LETTERS.md dan PHASE-07C-PLAN.md.
+Kerjakan subfase 07c saja: kop, tanda tangan, stempel, template PDF, dan snapshot
+sesuai scope, kriteria, dan D1–D11 yang disetujui (DEC-34).
 Audit HEAD dan consumer/kontrak aktual sebelum edit; keputusan terkait belum
-APPROVED jangan ditebak bila menentukan perilaku. Scope ini belum memberi izin
+APPROVED jangan ditebak bila menentukan perilaku. Jangan menambah dependency
+selain yang disetujui D2. Scope ini belum memberi izin
 commit/push/merge/deploy atau mutasi data operasional.
 Gunakan fixture/DB/storage terisolasi; jalankan verifikasi relevan dan catat hasil
 aktual. Jika browser tidak tersedia, jelaskan dan berikan checklist manual.
@@ -95,4 +98,4 @@ Format nomor dan identitas penandatangan tidak ditebak; surat final jangan dibua
 - [x] Checklist manual tersedia (`PHASE-07A-MANUAL-REVIEW.md`, `PHASE-07B-MANUAL-REVIEW.md`); persetujuan pemilik dicatat terpisah (07a 2026-11-01; 07b 2026-11-02).
 - [x] SHA/working tree, known issues dan langkah berikutnya dicatat di INDEX/HANDOFF/ROADMAP, `PHASE-07A-REPORT.md`, dan `PHASE-07B-REPORT.md`.
 - [x] Server UAT 07a dan 07b dihentikan setelah penerimaan (DEC-27); data `.uat-phase07` dipertahankan.
-- [x] 07c belum dijalankan tanpa instruksi/rencana terpisah; rencana 07c berstatus menunggu persetujuan pemilik.
+- [x] 07c belum dijalankan tanpa instruksi/rencana terpisah; rencana 07c `PHASE-07C-PLAN.md` berstatus **PLAN — AWAITING OWNER APPROVAL (D1–D11)** dan belum diotorisasi.
