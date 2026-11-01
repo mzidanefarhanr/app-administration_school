@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-01] Fase 07a — Pemilik menyetujui hasil implementasi (checklist #1–#16)
+- Type: Docs
+- Scope / fase: Penerimaan manual Subfase 07a; tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `docs/TESTING.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-07-LETTERS.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `reports/feature-update/PHASE-07-PLAN.md`, laporan dan checklist manual 07a.
+- What changed: mencatat pernyataan pemilik **"Pengujian nomor 1-16 sudah berhasil dan saya approved."** (2026-11-01 WIB) sebagai penerimaan checklist 07a #1–#16; server UAT 14025/18025 dihentikan setelah verifikasi PID/command line; data `.uat-phase07` dipertahankan.
+- Why: penerimaan pemilik adalah bukti acceptance yang terpisah dari bukti otomatis; DEC-27 mengharuskan server fase yang sudah lulus dihentikan agar tidak berjalan tanpa dipakai.
+- Validation: pernyataan pemilik; command line API PID 19564 (tree 19968) dan rantai npm/vite PID 19228 → 19196 → 20504 → 9060 diverifikasi sebelum `taskkill /T /F`; `netstat` menunjukkan port 14025/18025 bebas; Apache (PID 1304, port 80/443) dan MariaDB (PID 18244, port 3306) tetap berjalan. NOT RUN: skenario manual tidak diulang agen; item PDF-artifact automation, restore drill, MariaDB, race, dan visual regression tetap NOT RUN.
+- Notes / risks: penerimaan tidak mengotorisasi merge/deploy, migrasi database operasional/MariaDB, perubahan dependency/service/`.env`, 07b, atau 07c; DEC-06/DEC-11/DEC-13 tetap OPEN.
+- Evidence: `reports/feature-update/PHASE-07A-MANUAL-REVIEW.md`, `reports/feature-update/PHASE-07A-REPORT.md`; paket implementasi `ae2b75f`, koreksi dokumentasi `b6f0af5`.
+
 ## [2026-11-01] Fase 07a — Surat masuk dan lampiran dasar
 - Type: Feature
 - Scope / fase: **07a saja** di atas `main` @ `f46f736` (DEC-32 APPROVED, "Saya setuju D1-D10"). 07b/07c, merge/deploy, migrasi database operasional/MariaDB, dan perubahan dependency/service/`.env` tidak termasuk.

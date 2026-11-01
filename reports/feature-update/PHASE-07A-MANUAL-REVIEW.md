@@ -2,12 +2,12 @@
 
 Subfase: 07a — agenda surat masuk, lampiran privat, pencarian/filter, edit/void berversi, dan history immutable.
 Keputusan: **DEC-32 APPROVED** (D1–D10, 2026-11-01 WIB; "Saya setuju D1-D10."). Laporan teknis: `reports/feature-update/PHASE-07A-REPORT.md`.
-Baseline induk: `main` pada `f46f736` (pencatatan DEC-32). Status: **IMPLEMENTED — agent-verified**. Status review pemilik: **PENDING**.
+Baseline induk: `main` pada `f46f736` (pencatatan DEC-32); paket implementasi `ae2b75f`, koreksi dokumentasi `b6f0af5`. Status: **IMPLEMENTED — agent-verified**. Status review pemilik: **APPROVED 2026-11-01 WIB (#1–#16)**.
 
 ## Status penerimaan pemilik
 
 - Pemilik menyetujui rencana D1–D10 sebagai **DEC-32** dan mengotorisasi implementasi 07a; persetujuan rencana bukan penerimaan hasil.
-- Penerimaan dicatat hanya setelah pemilik menyatakan hasil checklist ini berhasil. Sebelum itu status review tetap **PENDING**.
+- **Penerimaan hasil (2026-11-01 WIB):** pernyataan pemilik **"Pengujian nomor 1-16 sudah berhasil dan saya approved."** menetapkan seluruh checklist #1–#16 sebagai **APPROVED**. Agen tidak mengulang skenario; item NOT RUN tetap NOT RUN. Penerimaan dicatat pada commit dokumentasi tersendiri, bukan pada paket implementasi.
 - Batas: penerimaan 07a tidak mengotorisasi merge, deploy, migrasi database operasional/MariaDB, perubahan dependency/service/`.env`, subfase 07b, atau 07c. DEC-06 dan DEC-11 tetap OPEN dan hanya mengikat 07b/07c.
 
 ## Lingkungan UAT (terisolasi)
@@ -17,7 +17,7 @@ Baseline induk: `main` pada `f46f736` (pencatatan DEC-32). Status: **IMPLEMENTED
 - Data: `.uat-phase07` SQLite; cookie `school_phase07_session`
 - Launcher: `laravel-api/scripts/phase07-uat.php`
 - Akun: **`uat.operator`** dan **`uat.admin`** (`letters.manage`), **`uat.kepsek`** dan **`uat.waka`** (view-only `letters.view`). Password hanya ada di runtime privat `.uat-phase07/account-password.txt`; tidak dicetak di dokumen.
-- Server UAT **masih berjalan** untuk review ini dan belum dihentikan (DEC-27): API PID 19564 (`php.exe -S 127.0.0.1:18025 -t public scripts/phase07-uat.php`), SPA proses npm/vite port 14025. Server dihentikan setelah pemilik menyatakan penerimaan.
+- Server UAT **dihentikan 2026-11-01 setelah penerimaan** (DEC-27): API PID 19564 (`php.exe -S 127.0.0.1:18025 -t public scripts/phase07-uat.php`, tree 19968) dan rantai npm/vite SPA (PID 19228 → 19196 → 20504 → 9060) diverifikasi command line sebelum `taskkill /T /F`. Port 14025/18025 terverifikasi bebas; Apache/MariaDB tidak disentuh; data `.uat-phase07` dipertahankan.
 - Jangan menguji pada database operasional, `.uat-phase05`, `.uat-phase06`, atau MariaDB. Jangan me-reset `.uat-phase07`; fixture `prepare-letters` idempoten dan mempertahankan baris yang sudah ada.
 
 Perintah restart bila server sudah berhenti:

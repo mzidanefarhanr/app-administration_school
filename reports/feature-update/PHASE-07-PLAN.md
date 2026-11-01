@@ -1,7 +1,7 @@
 # Rencana Fase 07 — Persuratan: Subfase 07a (Surat Masuk dan Lampiran)
 
 - Tanggal: 2026-11-01 (WIB). Branch: `main`. Baseline dokumen: `1101812` (HEAD; penerimaan 06c tercatat).
-- Status dokumen: **PLAN APPROVED — DEC-32 APPROVED 2026-11-01 WIB** berdasarkan pernyataan pemilik **"Saya setuju D1-D10"**. Implementasi 07a **selesai dan agent-verified 2026-11-01**; 07b/07c tetap memerlukan rencana dan keputusan terpisah. Bukti: `PHASE-07A-REPORT.md`; checklist pemilik `PHASE-07A-MANUAL-REVIEW.md` (review PENDING).
+- Status dokumen: **PLAN APPROVED — DEC-32 APPROVED 2026-11-01 WIB** berdasarkan pernyataan pemilik **"Saya setuju D1-D10"**. Implementasi 07a **selesai, agent-verified, dan OWNER APPROVED (#1–#16, 2026-11-01 WIB)**; 07b/07c tetap memerlukan rencana dan keputusan terpisah. Bukti: `PHASE-07A-REPORT.md`; checklist pemilik `PHASE-07A-MANUAL-REVIEW.md`.
 - Cakupan: **07a saja** — agenda surat masuk (tanggal terima/tanggal surat, nomor sumber, pengirim, perihal, kategori, catatan), lampiran privat, pencarian/filter, edit/void berversi, dan history. Layanan file minimal dibuat di sini dan diperluas pada Fase 09.
 - Di luar cakupan: **07b** (disposisi, surat keluar, penomoran, approval/sign), **07c** (template PDF, snapshot, kop/tanda tangan/stempel), OCR, e-sign provider, pengiriman email/WhatsApp otomatis, arsip terpusat/versioning Fase 09, retensi/pemusnahan data pribadi (DEC-13), merge/deploy, migrasi database operasional/MariaDB, perubahan dependency/lockfile/`.env`/service.
 - Dokumen acuan: `roadmap/phases/PHASE-07-LETTERS.md`, `roadmap/ROADMAP.md`, `docs/DECISIONS.md` (DEC-06, DEC-11, DEC-13, DEC-27), `docs/DATABASE.md`, `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `docs/OPERATIONS.md`, `docs/TESTING.md`, `reports/feature-update/PHASE-06C-PLAN.md`.
@@ -562,9 +562,9 @@ HANDOFF dan ROADMAP. Berhenti setelah hasil subfase siap review; jangan lanjut
 - [x] Scope 07a selesai atau partial/blocker dijelaskan.
 - [x] Kontrak request/response/schema/permission yang berubah didokumentasikan di DATABASE/API-CONTRACTS/ACCESS-CONTROL/OPERATIONS.
 - [x] Tes relevan benar-benar dijalankan atau NOT RUN dengan alasan; hasil aktual dicatat.
-- [x] UAT `.uat-phase07` dan checklist manual tersedia; persetujuan pemilik dicatat terpisah (saat ini **PENDING**).
+- [x] UAT `.uat-phase07` dan checklist manual tersedia; persetujuan pemilik **APPROVED 2026-11-01 WIB (#1–#16)** dicatat terpisah.
 - [x] SHA/working tree, known issues, dan langkah berikutnya dicatat di INDEX/HANDOFF/ROADMAP.
-- [ ] Server UAT dihentikan setelah penerimaan (DEC-27); data dipertahankan. Saat ini 18025/14025 masih berjalan untuk review pemilik.
+- [x] Server UAT dihentikan setelah penerimaan (DEC-27); data dipertahankan.
 - [x] 07b/07c belum dijalankan tanpa instruksi/rencana terpisah.
 
-Implementasi 07a selesai dan diverifikasi agen 2026-11-01: 20 tes surat/294 assertions, suite 487 passed/13 skipped/4.786 assertions, Pint 18 file, build 26,18 s, ESLint 0, UAT `.uat-phase07` (126 surat/64 baris lampiran/221 event). Bukti: `PHASE-07A-REPORT.md`; checklist pemilik `PHASE-07A-MANUAL-REVIEW.md` (#1–#16).
+Implementasi 07a selesai dan diverifikasi agen 2026-11-01: 20 tes surat/294 assertions, suite 487 passed/13 skipped/4.786 assertions, Pint 18 file, build 26,18 s, ESLint 0, UAT `.uat-phase07` (126 surat/64 baris lampiran/221 event). Paket implementasi `ae2b75f`, koreksi dokumentasi `b6f0af5`. **Penerimaan pemilik 2026-11-01 WIB (#1–#16)**; server UAT 14025/18025 dihentikan setelah penerimaan. Bukti: `PHASE-07A-REPORT.md`; checklist pemilik `PHASE-07A-MANUAL-REVIEW.md`.

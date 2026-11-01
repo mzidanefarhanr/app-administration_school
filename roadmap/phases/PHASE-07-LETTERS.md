@@ -1,6 +1,6 @@
 # Fase 07 — Persuratan dan generator dokumen
 
-Status teknis: **07a IMPLEMENTED dan diverifikasi agen 2026-11-01**; 07b/07c NOT STARTED. Status review: **PENDING** (checklist `PHASE-07A-MANUAL-REVIEW.md` #1–#16).
+Status teknis: **07a IMPLEMENTED dan diverifikasi agen 2026-11-01**; 07b/07c NOT STARTED. Status review: **07a APPROVED 2026-11-01 WIB (#1–#16)** berdasarkan "Pengujian nomor 1-16 sudah berhasil dan saya approved."; server UAT dihentikan setelah penerimaan (DEC-27).
 Status rencana: **PLAN 07a APPROVED — DEC-32 APPROVED 2026-11-01 WIB** ("Saya setuju D1-D10"); implementasi 07a selesai. Rencana di `reports/feature-update/PHASE-07-PLAN.md` (baseline `1101812`); laporan `PHASE-07A-REPORT.md`. DEC-06 dan DEC-11 tetap OPEN dan hanya mengikat 07b/07c.
 Dependensi: 01,02; siswa/guru siap untuk auto-fill; DEC-06,11. Baseline implementasi 07a: `f46f736`.
 
@@ -10,7 +10,7 @@ Persuratan dan generator dokumen. Kerjakan satu subfase per instruksi pemilik; j
 ## Subfase
 
 ### 07a — Surat masuk dan lampiran dasar
-Status: **IMPLEMENTED + agent-verified 2026-11-01; review pemilik PENDING.**
+Status: **IMPLEMENTED + agent-verified; OWNER APPROVED 2026-11-01 WIB (#1–#16).**
 
 Scope: Agenda surat masuk dengan tanggal terima/surat, nomor sumber, pengirim/perihal/kategori, lampiran privat, search/filter. Layanan file minimal dibuat di sini dan diperluas Fase09.
 
@@ -85,7 +85,7 @@ Format nomor dan identitas penandatangan tidak ditebak; surat final jangan dibua
 - [x] Scope 07a selesai (07a); 07b/07c belum dijalankan.
 - [x] Kontrak request/response/schema/permission yang berubah didokumentasikan di DATABASE/API-CONTRACTS/ACCESS-CONTROL/OPERATIONS.
 - [x] Uji relevan benar-benar dijalankan (20 tes surat/294 assertions; suite 487/4.786; build 26,18 s; ESLint 0); NOT RUN dicatat.
-- [x] Checklist manual tersedia (`PHASE-07A-MANUAL-REVIEW.md`); persetujuan pemilik **PENDING** dan dicatat terpisah saat diterima.
+- [x] Checklist manual tersedia (`PHASE-07A-MANUAL-REVIEW.md`); persetujuan pemilik **APPROVED 2026-11-01 WIB (#1–#16)** dan dicatat terpisah.
 - [x] SHA/working tree, known issues dan langkah berikutnya dicatat di INDEX/HANDOFF/ROADMAP dan `PHASE-07A-REPORT.md`.
-- [ ] Server UAT dihentikan setelah penerimaan (DEC-27); saat ini masih berjalan (18025/14025) untuk review pemilik.
+- [x] Server UAT dihentikan setelah penerimaan (DEC-27); data `.uat-phase07` dipertahankan.
 - [x] 07b/07c belum dijalankan tanpa instruksi/rencana terpisah.

@@ -1,8 +1,8 @@
 # Laporan Subfase 07a — Surat Masuk dan Lampiran Dasar
 
-Tanggal: implementasi dan verifikasi agen 2026-11-01 WIB. Branch: `main`. Baseline induk: `f46f736` (pencatatan DEC-32 APPROVED). Paket implementasi+dokumentasi 07a dikomit dan di-push agar pemilik dapat meninjau di GitHub; SHA aktual paket dicatat pada checkpoint berikutnya (tidak ditulis lebih dulu).
+Tanggal: implementasi dan verifikasi agen 2026-11-01 WIB. Branch: `main`. Baseline induk: `f46f736` (pencatatan DEC-32 APPROVED). Paket implementasi+dokumentasi 07a: `ae2b75f` (di-push); koreksi dokumentasi PID UAT: `b6f0af5` (di-push). **Penerimaan pemilik 2026-11-01 WIB (#1–#16)** dicatat pada commit dokumentasi tersendiri setelah paket review.
 Keputusan pemilik: **DEC-32** (APPROVED 2026-11-01 WIB; D1–D10, pernyataan "Saya setuju D1-D10.").
-Status teknis: **IMPLEMENTED — agent-verified (2026-11-01)**. Status review pemilik: **PENDING**.
+Status teknis: **IMPLEMENTED — agent-verified (2026-11-01)**. Status review pemilik: **APPROVED 2026-11-01 WIB (#1–#16)** berdasarkan pernyataan "Pengujian nomor 1-16 sudah berhasil dan saya approved."; agen tidak mengulang skenario.
 Rencana: `reports/feature-update/PHASE-07-PLAN.md`. Checklist manual: `reports/feature-update/PHASE-07A-MANUAL-REVIEW.md`.
 
 ## 1. Outcome dan cakupan
@@ -96,7 +96,7 @@ Tidak ada route delete surat (`DELETE /api/letters/incoming/{id}` → `405`), ti
 
 ## 4. UAT manual
 
-Environment: `.uat-phase07` SQLite terisolasi, SPA `http://127.0.0.1:14025`, API `http://127.0.0.1:18025`, cookie `school_phase07_session`, launcher `laravel-api/scripts/phase07-uat.php`. Server masih berjalan untuk review pemilik dan akan dihentikan setelah penerimaan (DEC-27); data 07a tidak di-reset dan perintah restart ada di `PHASE-07A-MANUAL-REVIEW.md`.
+Environment: `.uat-phase07` SQLite terisolasi, SPA `http://127.0.0.1:14025`, API `http://127.0.0.1:18025`, cookie `school_phase07_session`, launcher `laravel-api/scripts/phase07-uat.php`. Server berjalan selama review dan **dihentikan 2026-11-01 setelah penerimaan pemilik** (DEC-27); data `.uat-phase07` tidak di-reset dan perintah restart ada di `PHASE-07A-MANUAL-REVIEW.md`.
 
 Akun review: `uat.operator`/`uat.admin` (`letters.manage`) dan `uat.kepsek`/`uat.waka` (view-only). Password hanya berada di runtime `.uat-phase07/account-password.txt` yang diabaikan; tidak dicetak di dokumen.
 
@@ -134,16 +134,16 @@ Hasil UAT yang dijalankan agen:
 - **Audit/history** (D9): `activities` memakai allowlist minimal; `letter_events` immutable. Event tidak memiliki endpoint tulis langsung dari klien.
 - **Batas bukti**: seluruh UAT memakai SQLite; MariaDB/InnoDB, trigger, dan restore drill dengan lampiran surat belum dijalankan. Migrasi belum diterapkan pada database operasional.
 - **Backup**: manifest kini menyebut lampiran surat dan menandai restore drill NOT RUN; tidak mengubah mekanisme backup.
-- **UAT lifecycle**: server 14025/18025 masih berjalan untuk review; dihentikan setelah pemilik menyatakan penerimaan sesuai DEC-27, data `.uat-phase07` dipertahankan.
+- **UAT lifecycle**: server 14025/18025 dihentikan pada 2026-11-01 setelah penerimaan pemilik sesuai DEC-27. Proses diverifikasi melalui command line sebelum `taskkill /T /F`: API `php.exe -S 127.0.0.1:18025 -t public scripts/phase07-uat.php` (PID 19564, tree 19968) dan rantai npm/vite SPA (PID 19228 → 19196 → 20504 → 9060). Port 14025/18025 terverifikasi bebas; Apache (PID 1304, port 80/443) dan MariaDB (PID 18244, port 3306) tidak disentuh; data `.uat-phase07` dipertahankan.
 
 ## 6. Sinkronisasi dokumen
 
 Diperbarui: `docs/API-CONTRACTS.md` (sembilan endpoint dan aturan 07a), `docs/DATABASE.md` (tiga tabel dan catatan implementasi), `docs/ACCESS-CONTROL.md` (matriks route/ability 07a), `docs/OPERATIONS.md` (lampiran privat dan backup), `docs/REQUIREMENTS.md` (FR-08 07a partial), `docs/TESTING.md` (bukti dan NOT RUN 07a), `docs/DECISIONS.md` (catatan implementasi DEC-32), `CHANGELOG.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-07-LETTERS.md`, `reports/feature-update/PHASE-07-PLAN.md` (status implementasi), `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, laporan ini, dan checklist manual.
 
-Commit/push dilakukan agar pemilik dapat meninjau implementasi di GitHub; commit/push bukan penerimaan manual. Tidak ada merge/deploy/force-push, perubahan `.env` utama, dependency/lockfile, service, DB terlarang, atau migrasi database operasional/MariaDB.
+Commit/push dilakukan agar pemilik dapat meninjau implementasi di GitHub; commit/push bukan penerimaan manual. Penerimaan pemilik 2026-11-01 WIB (#1–#16) dicatat pada commit dokumentasi tersendiri. Tidak ada merge/deploy/force-push, perubahan `.env` utama, dependency/lockfile, service, DB terlarang, atau migrasi database operasional/MariaDB.
 
 ## 7. Langkah berikutnya
 
-1. Pemilik menjalankan `PHASE-07A-MANUAL-REVIEW.md` #1–#15 pada `.uat-phase07`; konfirmasi manual unduhan PDF ada di langkah 7.
-2. Bila pemilik menyatakan hasil berhasil, penerimaan dicatat pada commit dokumentasi tersendiri; server 14025/18025 dihentikan sesuai DEC-27 dan data `.uat-phase07` dipertahankan.
-3. Merge/deploy, migrasi database operasional/MariaDB, perubahan dependency/service/`.env`, 07b, dan 07c tetap tidak diotorisasi. 07c memerlukan keputusan dependency PDF terpisah; DEC-06/DEC-11 tetap OPEN.
+1. **Penerimaan pemilik tercatat:** pernyataan **"Pengujian nomor 1-16 sudah berhasil dan saya approved."** (2026-11-01 WIB) menetapkan checklist 07a #1–#16 **APPROVED**; agen tidak mengulang skenario dan item NOT RUN tetap NOT RUN. Server 14025/18025 dihentikan sesuai DEC-27 dan data `.uat-phase07` dipertahankan.
+2. 07b dan 07c belum dimulai; keduanya memerlukan rencana dan keputusan terpisah. DEC-06/DEC-11 tetap OPEN; 07c memerlukan keputusan dependency PDF.
+3. Merge/deploy, migrasi database operasional/MariaDB, perubahan dependency/service/`.env` tetap tidak diotorisasi.
