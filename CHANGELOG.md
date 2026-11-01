@@ -25,7 +25,7 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 - Why: menyelesaikan subfase terakhir Fase 06 — mutasi siswa dapat ditelusuri, status/tanggal konsisten, biodata tidak dihapus untuk mencatat keluar, dan koreksi periode locked ter-audit sesuai DEC-31.
 - Validation: `php artisan test tests/Feature/Academic/StudentMutationTest.php` **19 passed/369 assertions (10,41 s)**; `StudentDirectoryTest` **39/501**; suite penuh **467 passed/13 skipped/4.492 assertions (279,96 s)**; Pint **21 files PASS**; `route:list` **8 mutation + 2 locked-correction**; `npm run build` **PASS 30,56 s**; `npx eslint --quiet` **0 error**; UAT browser/API `.uat-phase06` (operator in/out/cancel/re-entry, kepsek view-only `403`, admin koreksi locked 0072 + approval, rekap In 41/Out 20/Graduated 1/Retained 1, 390 px, 0 console error). **NOT RUN:** MariaDB/InnoDB + trigger MySQL, race multi-proses/dua tab, benchmark volume besar, visual regression, review manual pemilik.
 - Notes / risks: server UAT 14024/18024 berjalan sampai penerimaan pemilik (DEC-27); data 06a/06b tidak di-reset; demo 0021/0081/0111/0072 dipertahankan. Review manual **PENDING (#1–#16)**; merge/deploy dan migrasi operasional tidak diotorisasi.
-- Evidence: `reports/feature-update/PHASE-06C-REPORT.md`, `reports/feature-update/PHASE-06C-MANUAL-REVIEW.md`; SHA paket review dilaporkan pada checkpoint berikutnya.
+- Evidence: `reports/feature-update/PHASE-06C-REPORT.md`, `reports/feature-update/PHASE-06C-MANUAL-REVIEW.md`; paket implementasi+dokumentasi `9927d8e` (di-push ke `origin/main`).
 
 ## [2026-11-01] Fase 06c — Pemilik menyetujui rencana (DEC-31 APPROVED)
 - Type: Docs

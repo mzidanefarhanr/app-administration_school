@@ -8,7 +8,7 @@
 - **Fixes during UAT:** directory now returns `membership_id`/`membership_version` for mutation dialogs; `StudentRombel` audit allowlist adds `mutation_education_school_id`/`latest_student_exit_school_id`; icon-only action buttons got `aria-label`. Background-tab dialog leave transitions are browser throttling, not a product bug.
 - **UAT state:** `.uat-phase06` running for review — SPA 14024 (PID 19280), API 18024 (PID 9436); 263 active students (260 `UAT-P06`, incl. 120 `UAT-P06C`, 10 archived), 20 synthetic schools, 94 mutation logs (21 cancelled), 1 locked correction, 2 progression batches; 2025/2026 locked, 2026/2027 active/unlocked. Data 06a/06b not reset. Stop servers after acceptance per DEC-27.
 - **NOT RUN:** MariaDB/InnoDB and MySQL triggers; multi-process/two-tab races for `409`; large-volume benchmark; screenshot-based visual regression. These remain NOT RUN until executed.
-- **Git:** branch `main`; baseline `da94195`; 06c review package committed and pushed separately; `main...origin/main` synced after push. No `.github/workflows`. Selective staging excludes `.uat-phase06/`, `console.txt`, `vue-app/test-results/`, runtime DB/logs/credentials, and `.env`.
+- **Git:** branch `main`; baseline `da94195`; 06c implementation package `9927d8e` pushed; `main...origin/main` synced after push. No `.github/workflows`. Selective staging excludes `.uat-phase06/`, `console.txt`, `vue-app/test-results/`, runtime DB/logs/credentials, and `.env`.
 - **Next:** owner runs `PHASE-06C-MANUAL-REVIEW.md` #1–#16. After acceptance, record approval in a separate documentation commit and stop UAT servers per DEC-27. Do not merge/deploy or start the next phase automatically.
 
 ## Previous checkpoint — 2026-11-01 (DEC-31 approved; implementasi 06c dimulai)

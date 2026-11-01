@@ -1,6 +1,6 @@
 # Laporan Subfase 06c — Mutasi, Pembatalan, Rekap, dan Koreksi Periode Terkunci
 
-Tanggal: implementasi dan verifikasi agen 2026-11-01 WIB. Branch: `main`. Baseline induk: `da94195` (pencatatan DEC-31 APPROVED).
+Tanggal: implementasi dan verifikasi agen 2026-11-01 WIB. Branch: `main`. Baseline induk: `da94195` (pencatatan DEC-31 APPROVED). Implementasi dan dokumentasi 06c dikomit dan di-push sebagai `9927d8e` (`main...origin/main` sinkron).
 Keputusan pemilik: **DEC-31** (APPROVED 2026-11-01 WIB; D1–D10, pernyataan "Saya setuju D1-D10.").
 Status teknis: **IMPLEMENTED — agent-verified (2026-11-01)**. Status review pemilik: **PENDING** (`PHASE-06C-MANUAL-REVIEW.md` #1–#16).
 Rencana: `reports/feature-update/PHASE-06C-PLAN.md`. Checklist manual: `reports/feature-update/PHASE-06C-MANUAL-REVIEW.md`.

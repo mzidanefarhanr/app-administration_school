@@ -2,7 +2,7 @@
 
 Subfase: 06c — mutasi masuk/keluar bertanggal, pembatalan kompensatif, rekap per tahun, dan koreksi periode locked yang ter-audit.
 Keputusan: **DEC-31 APPROVED** (D1–D10, 2026-11-01 WIB; "Saya setuju D1-D10."). Laporan teknis: `reports/feature-update/PHASE-06C-REPORT.md`.
-Baseline induk: `main` pada `da94195` (pencatatan DEC-31). Status: **IMPLEMENTED — agent-verified; OWNER REVIEW PENDING**.
+Baseline induk: `main` pada `da94195` (pencatatan DEC-31); implementasi `9927d8e`. Status: **IMPLEMENTED — agent-verified; OWNER REVIEW PENDING**.
 
 ## Status penerimaan pemilik
 
