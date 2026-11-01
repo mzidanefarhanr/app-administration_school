@@ -1,6 +1,16 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-01 (Subfase 06c accepted; owner approved #1–#16)
+## Current checkpoint — 2026-11-01 (Fase 07 — rencana 07a menunggu persetujuan D1–D10)
+
+- **Status:** the **Fase 07 plan (subphase 07a only — incoming letters and base attachments)** is **PREPARED 2026-11-01 and AWAITING OWNER APPROVAL (D1–D10)** on `main` @ `1101812`. The plan is `reports/feature-update/PHASE-07-PLAN.md`. No implementation has started: no code, migration, test, UAT, or documentation contract change.
+- **Scope proposed:** three additive tables (`letters` with `direction`, `letter_attachments`, `letter_events`); incoming-letter agenda with received/letter date, optional non-unique source number, sender, subject, category from config, notes; private PDF/JPG/JPEG/PNG attachments (10 MB/file, 5 per letter) under `storage/app/attachments/letters` so the existing backup scan covers them; versioned update/void with itemized `409`; immutable history; nine `/api/letters/incoming` endpoints; Incoming Letters page replacing the dummy `Letters Form` menu; `letters.view`/`letters.manage` only (no new ability); `.uat-phase07` with ≥120 letters and ≥40 attachments.
+- **Audit facts:** no letter routes/model/migration/controller/page exists; `letters.*` abilities are already seeded and mapped; `BackupService.php:122` manifest text is stale and must be updated during 07a; `school_profiles` has no letterhead/signatory/stamp fields; no PDF library exists in `laravel-api/composer.json`; `AppMenu.vue:48` dummy item is the only UI reference.
+- **Open gates:** implementation waits for **DEC-32** (D1–D10). **DEC-06** (number format/approval) and **DEC-11** (letterhead/signature/stamp) remain OPEN and bind 07b/07c only, so they are not guessed. 07c also requires an explicit PDF-dependency decision.
+- **Validation:** document/source inspection only. **NOT RUN:** no application test, build, lint, browser, or UAT was executed for this plan package.
+- **Git:** branch `main`; baseline `1101812`; `main...origin/main` synced before this package. Plan package commit SHA is recorded in the next checkpoint. No `.github/workflows`. Selective staging excludes `.uat-phase06/`, `console.txt`, `vue-app/test-results/`, runtime DB/logs/credentials, and `.env`.
+- **Next:** owner reviews D1–D10 in `PHASE-07-PLAN.md` on GitHub; only after approval is DEC-32 recorded and 07a implemented. Merge/deploy, operational/MariaDB migration, dependency/service changes, and 07b/07c remain unauthorized.
+
+## Previous checkpoint — 2026-11-01 (Subfase 06c accepted; owner approved #1–#16)
 
 - **Status:** 06c (mutasi masuk/keluar, pembatalan kompensatif, rekap per tahun, koreksi periode locked) is **IMPLEMENTED, agent-verified 2026-11-01, and OWNER APPROVED 2026-11-01 WIB (#1–#16)** above `main` @ `da94195` (implementation package `9927d8e`), under **DEC-31 APPROVED** (owner statement **"Saya setuju D1-D10."**). The acceptance statement is **"Pengujian nomor 1-16 sudah berhasil dan saya approved."**; it covers all 16 scenarios in `PHASE-06C-MANUAL-REVIEW.md`, and the agent did not rerun them.
 - **Acceptance and lifecycle:** approval is recorded in documentation commit `41ec7b5` (pushed), not in implementation commit `9927d8e`. UAT servers were stopped 2026-11-01 per DEC-27: SPA 14024 (PID 19280) and API 18024 (PID 9436) command lines were verified, both ports are free, `.uat-phase06` data and runtime password are preserved, and Apache (PID 1304) and MariaDB (PID 18244) were untouched.

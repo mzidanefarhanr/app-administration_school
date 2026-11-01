@@ -1,6 +1,7 @@
 # Fase 07 — Persuratan dan generator dokumen
 
 Status teknis: NOT STARTED. Status review: PENDING. Semua tes/browser/manual: NOT RUN.
+Status rencana: **PLAN 07a DISUSUN — AWAITING OWNER APPROVAL (D1–D10)** di `reports/feature-update/PHASE-07-PLAN.md` (baseline `1101812`, 2026-11-01). Tidak ada implementasi; 07a menunggu **DEC-32**. DEC-06 dan DEC-11 tetap OPEN dan hanya mengikat 07b/07c.
 Dependensi: 01,02; siswa/guru siap untuk auto-fill; DEC-06,11. Baseline rencana: b02a87f; audit ulang HEAD saat pelaksanaan.
 
 ## Tujuan dan scope

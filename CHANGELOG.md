@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-01] Fase 07 — Rencana surat masuk dan lampiran dasar disiapkan (PLAN 07a, D1–D10 PROPOSED)
+- Type: Docs
+- Scope / fase: Rencana Subfase **07a** saja; tidak ada perubahan kode, migration, tes, atau UAT. Implementasi 07a belum diotorisasi.
+- Files touched: `reports/feature-update/PHASE-07-PLAN.md` (baru), `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-07-LETTERS.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: menambahkan rencana rinci 07a — tiga tabel additive (`letters`, `letter_attachments`, `letter_events`), agenda surat masuk dengan tanggal terima/surat, nomor sumber opsional dan tidak unik, kategori dari config, lampiran privat PDF/JPG/PNG di `storage/app/attachments/letters`, update/void berversi dengan `409` itemized, history immutable, sembilan endpoint `/api/letters/incoming`, halaman Incoming Letters, matriks 20 tes, fixture UAT `prepare-letters`, dan D1–D10 berstatus PROPOSED.
+- Why: menyelesaikan audit dan desain subfase pertama Fase 07 agar pemilik dapat memutuskan sebelum implementasi; lampiran ditempatkan di bawah `backup.attachments_path` agar tercakup backup 02, dan DEC-06/DEC-11 tidak ditebak karena hanya mengikat 07b/07c.
+- Validation: pemeriksaan dokumen, kode, route, migration, config, dan tautan. **NOT RUN:** tidak ada tes/build/browser pada entri dokumentasi ini; implementasi 07a belum dimulai.
+- Notes / risks: implementasi 07a menunggu **DEC-32** atas D1–D10; DEC-06 (format nomor/approval) dan DEC-11 (kop/penandatangan) tetap OPEN untuk 07b/07c; 07c memerlukan keputusan dependency PDF karena belum ada library di `composer.json`. Tidak ada merge/deploy, migrasi DB operasional/MariaDB, atau perubahan dependency/service/`.env`.
+- Evidence: `reports/feature-update/PHASE-07-PLAN.md`; SHA commit paket dokumen dilaporkan pada checkpoint berikutnya.
+
 ## [2026-11-01] Fase 06c — Pemilik menyetujui hasil implementasi (checklist #1–#16)
 - Type: Docs
 - Scope / fase: Penerimaan manual Subfase 06c; tidak ada perubahan kode aplikasi pada entri ini.
