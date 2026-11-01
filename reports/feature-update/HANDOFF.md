@@ -1,6 +1,16 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-01 (Subfase 06b owner-accepted)
+## Current checkpoint — 2026-11-01 (Rencana Subfase 06c disiapkan; menunggu keputusan pemilik)
+
+- **Status:** rencana rinci **06c (mutasi masuk/keluar, pembatalan, rekap per tahun, koreksi periode terkunci)** tersedia di `PHASE-06C-PLAN.md` (baseline `953e6f7`) dengan status **PLAN PREPARED — PROPOSED, NOT AUTHORIZED** (D1–D10). **Implementasi 06c belum diotorisasi**; menunggu keputusan pemilik dan pencatatan **DEC-31**. 06a dan 06b tetap owner-accepted.
+- **Isi rencana:** `student_mutations` immutable (masuk/keluar, tanggal efektif, NPSN sekolah asal/tujuan, alasan, status active/cancelled, aktor/versi); pembatalan kompensatif dengan `expected_*_version` dan `409` itemized tanpa mutasi; rekap per tahun (mutation_in, mutation_out, graduated, retained; cancelled dikecualikan; semester ditunda karena `semesters` tanpa tanggal); koreksi locked via ability baru `students.correct-locked` + tabel immutable `student_locked_corrections` dengan lima tindakan; sepuluh endpoint; UI section Students → Mutations; matriks 20 tes; fixture UAT idempotent `prepare-mutations`.
+- **Keputusan yang menunggu pemilik (D1–D10):** D1 semantik masuk (membership baru); D2 semantik keluar (tutup satu membership, bukan hapus biodata); D3 log immutable + pembatalan; D4 tanggal/NPSN; D5 rekap per tahun; D6 ability + tindakan koreksi locked; D7 transaksi/lock/versi; D8 endpoint/UI; D9 audit/guard; D10 UAT/non-goals.
+- **Temuan audit utama:** belum ada tabel/endpoint/tes mutasi; transfer 03d bukan mutasi keluar; arsip administratif tidak boleh dipakai sebagai mutasi; allowlist audit `StudentRombel` belum memuat `mutation_education_school_id`/`latest_student_exit_school_id`; `semesters` hanya nama tanpa tanggal; placeholder `Student Transfers` masih kosong di `Student.vue`.
+- **Batas:** tidak ada kode/migration/tes/UAT 06c pada paket ini. Tidak ada merge/deploy/force-push/rewrite, migrasi DB operasional/MariaDB, perubahan `.env`/dependency/service, atau akses DB terlarang. Rekap sekolah (DEC-12) dan rekap semester tetap di luar scope.
+- **Git:** branch `main`; HEAD `953e6f7`; paket dokumen rencana 06c dikomit dan di-push terpisah (SHA aktual dilaporkan setelah commit, tidak diklaim di sini). Repository tanpa `.github/workflows`.
+- **Next:** pemilik meninjau `PHASE-06C-PLAN.md` dan menyetujui/mengubah D1–D10. Bila disetujui, catat sebagai DEC-31, lalu implementasikan 06c saja. Jangan mulai implementasi, merge, atau deploy sebelum keputusan.
+
+## Previous checkpoint — 2026-11-01 (Subfase 06b owner-accepted)
 
 - **Status:** 06b (naik/tinggal/lulus: preview tanpa mutasi + commit atomik ber-token) is **IMPLEMENTED, agent-verified (2026-10-31), and OWNER APPROVED 2026-11-01 WIB (#1–#14)** on `main` above `6dcd432` (implementation package `c1dde67`, pushed; DEC-30 APPROVED).
 - **Acceptance:** owner statement 2026-11-01 WIB **"Pengujian nomor 1-14 sudah berhasil dan saya approved."** covers checklist #1–#14 in `PHASE-06B-MANUAL-REVIEW.md`. That statement is the sole acceptance evidence; the agent did not rerun scenarios, and agent NOT RUN items remain NOT RUN. Acceptance does not authorize merge, deploy, operational/MariaDB migration, dependency/service changes, or 06c.

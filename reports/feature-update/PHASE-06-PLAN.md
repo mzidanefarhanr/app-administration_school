@@ -304,7 +304,7 @@ Diimplementasikan melalui rencana terpisah `PHASE-06B-PLAN.md` (DEC-30 APPROVED)
 
 ## 7. Garis besar Subfase 06c — Mutasi dan koreksi
 
-Belum diimplementasikan. Rencana rinci akan diajukan setelah 06b.
+Belum diimplementasikan. Rencana rinci tersedia di [`PHASE-06C-PLAN.md`](PHASE-06C-PLAN.md) (2026-11-01, baseline `953e6f7`) dengan status **PLAN PREPARED — PROPOSED, NOT AUTHORIZED** (D1–D10); implementasi menunggu **DEC-31**.
 
 - **Mutasi masuk/keluar bertanggal**: tanggal efektif, alasan, sekolah asal/tujuan (NPSN dari `education_schools`), entry type `Mutasi Masuk`/status `Mutasi Keluar`; tidak menghapus biodata.
 - **Riwayat dan pembatalan**: tabel log mutasi terpisah (mis. `student_mutations`) dengan status aktif/dibatalkan, alasan, pelaku, dan relasi ke membership; pembatalan memerlukan izin + alasan + audit, tidak menghapus baris log.

@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-01] Fase 06c — Rencana mutasi & koreksi disiapkan (PLAN PREPARED, D1–D10 PROPOSED)
+- Type: Docs
+- Scope / fase: Rencana Subfase **06c** saja; tidak ada perubahan kode, migration, tes, atau UAT. Implementasi 06c belum diotorisasi.
+- Files touched: `reports/feature-update/PHASE-06C-PLAN.md` (baru), `reports/feature-update/PHASE-06-PLAN.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-06-ACADEMIC-YEAR.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: menambahkan rencana rinci 06c — log immutable `student_mutations`, mutasi masuk/keluar bertanggal dengan NPSN sekolah asal/tujuan, pembatalan kompensatif, rekap per tahun (mutation_in/mutation_out/graduated/retained), koreksi periode locked melalui ability `students.correct-locked` + tabel `student_locked_corrections`, sepuluh endpoint, UI Students → Mutations, matriks 20 tes, fixture UAT `prepare-mutations`, dan D1–D10 berstatus PROPOSED.
+- Why: menyelesaikan audit dan desain subfase terakhir Fase 06 agar pemilik dapat mengambil keputusan sebelum implementasi; memisahkan rencana dari otorisasi.
+- Validation: pemeriksaan dokumen dan tautan. **NOT RUN:** tidak ada tes/build/browser 06c pada entri dokumentasi ini.
+- Notes / risks: implementasi 06c menunggu **DEC-31**. Rekap semester ditunda karena `semesters` tanpa tanggal; transfer 03d bukan mutasi keluar. Rekap sekolah (DEC-12) tetap PROPOSED. Tidak ada merge/deploy, migrasi DB operasional/MariaDB, atau perubahan dependency/service/`.env`.
+- Evidence: `reports/feature-update/PHASE-06C-PLAN.md`; SHA commit paket dokumen dilaporkan pada checkpoint berikutnya.
+
 ## [2026-11-01] Fase 06b — Penerimaan pemilik (#1–#14) dan penghentian UAT
 - Type: Docs
 - Scope / fase: **06b saja**; tidak ada perubahan kode aplikasi pada entri ini. Merge/deploy, migrasi database operasional/MariaDB, perubahan dependency/service/`.env`, dan 06c tidak termasuk.
