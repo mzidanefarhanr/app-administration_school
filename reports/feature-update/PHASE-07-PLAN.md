@@ -1,11 +1,11 @@
 # Rencana Fase 07 — Persuratan: Subfase 07a (Surat Masuk dan Lampiran)
 
 - Tanggal: 2026-11-01 (WIB). Branch: `main`. Baseline dokumen: `1101812` (HEAD; penerimaan 06c tercatat).
-- Status dokumen: **PLAN — AWAITING OWNER APPROVAL (D1–D10)**. Implementasi 07a **belum dimulai**. Setelah D1–D10 disetujui, keputusan dicatat sebagai **DEC-32** dan implementasi 07a diotorisasi.
+- Status dokumen: **PLAN APPROVED — DEC-32 APPROVED 2026-11-01 WIB** berdasarkan pernyataan pemilik **"Saya setuju D1-D10"**. Implementasi 07a diotorisasi dan dikerjakan sebagai subfase ini saja; 07b/07c tetap memerlukan rencana dan keputusan terpisah.
 - Cakupan: **07a saja** — agenda surat masuk (tanggal terima/tanggal surat, nomor sumber, pengirim, perihal, kategori, catatan), lampiran privat, pencarian/filter, edit/void berversi, dan history. Layanan file minimal dibuat di sini dan diperluas pada Fase 09.
 - Di luar cakupan: **07b** (disposisi, surat keluar, penomoran, approval/sign), **07c** (template PDF, snapshot, kop/tanda tangan/stempel), OCR, e-sign provider, pengiriman email/WhatsApp otomatis, arsip terpusat/versioning Fase 09, retensi/pemusnahan data pribadi (DEC-13), merge/deploy, migrasi database operasional/MariaDB, perubahan dependency/lockfile/`.env`/service.
 - Dokumen acuan: `roadmap/phases/PHASE-07-LETTERS.md`, `roadmap/ROADMAP.md`, `docs/DECISIONS.md` (DEC-06, DEC-11, DEC-13, DEC-27), `docs/DATABASE.md`, `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `docs/OPERATIONS.md`, `docs/TESTING.md`, `reports/feature-update/PHASE-06C-PLAN.md`.
-- Gate: 06c **OWNER APPROVED 2026-11-01 WIB (#1–#16)**; **DEC-06 dan DEC-11 tetap OPEN** dan hanya menjadi gate untuk 07b/07c, bukan untuk 07a. Tidak ada PDF library terpasang; 07c memerlukan keputusan dependency terpisah. **D1–D10 di bawah belum disetujui**; jangan mengimplementasikan 07a sebelum persetujuan.
+- Gate: 06c **OWNER APPROVED 2026-11-01 WIB (#1–#16)**; **DEC-06 dan DEC-11 tetap OPEN** dan hanya menjadi gate untuk 07b/07c, bukan untuk 07a. Tidak ada PDF library terpasang; 07c memerlukan keputusan dependency terpisah. **D1–D10 APPROVED 2026-11-01 WIB sebagai DEC-32**; implementasi 07a berjalan sesuai rencana ini.
 
 ---
 
@@ -558,7 +558,7 @@ HANDOFF dan ROADMAP. Berhenti setelah hasil subfase siap review; jangan lanjut
 
 ## 13. Syarat keluar 07a
 
-- [ ] D1–D10 disetujui dan dicatat sebagai DEC-32.
+- [x] D1–D10 disetujui dan dicatat sebagai DEC-32.
 - [ ] Scope 07a selesai atau partial/blocker dijelaskan.
 - [ ] Kontrak request/response/schema/permission yang berubah didokumentasikan di DATABASE/API-CONTRACTS/ACCESS-CONTROL/OPERATIONS.
 - [ ] Tes relevan benar-benar dijalankan atau NOT RUN dengan alasan; hasil aktual dicatat.

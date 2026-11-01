@@ -1,6 +1,14 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-01 (Fase 07 — rencana 07a menunggu persetujuan D1–D10)
+## Current checkpoint — 2026-11-01 (Fase 07a — rencana approved; implementasi berjalan)
+
+- **Status:** the **Fase 07 plan (subphase 07a — incoming letters and base attachments)** is **PLAN APPROVED — DEC-32 APPROVED 2026-11-01 WIB** based on **"Saya setuju D1-D10"**. Implementation is authorized and in progress; no implementation evidence exists yet. Plan: `reports/feature-update/PHASE-07-PLAN.md`; baseline `1101812`.
+- **Approved scope:** `letters`/`letter_attachments`/`letter_events`; incoming-letter agenda; private PDF/JPG/JPEG/PNG attachments (10 MB/file, 5 per letter) under `storage/app/attachments/letters`; versioned update/void with itemized `409`; immutable history; `letters.view`/`letters.manage`; nine `/api/letters/incoming` endpoints; Incoming Letters page replacing the dummy menu; `.uat-phase07` (18025/14025) with ≥120 letters/≥40 attachments.
+- **Open gates:** DEC-06 and DEC-11 remain OPEN and bind 07b/07c only; 07c also needs an explicit PDF-dependency decision. Merge/deploy, operational/MariaDB migration, dependency/service/`.env` changes remain unauthorized.
+- **Git:** branch `main`; baseline `1101812`; plan package `3c3d0a5` (pushed); approval documentation commit SHA is recorded in the next checkpoint. `main...origin/main` synced before the implementation package. No `.github/workflows`. Selective staging excludes `.uat-phase06/`, `console.txt`, `vue-app/test-results/`, runtime DB/logs/credentials, and `.env`.
+- **Next:** finish 07a implementation, verification, UAT, and the review package; stop before 07b/07c.
+
+## Previous checkpoint — 2026-11-01 (Fase 07 — rencana 07a menunggu persetujuan D1–D10)
 
 - **Status:** the **Fase 07 plan (subphase 07a only — incoming letters and base attachments)** is **PREPARED 2026-11-01 and AWAITING OWNER APPROVAL (D1–D10)** on `main` @ `1101812`. The plan is `reports/feature-update/PHASE-07-PLAN.md`. No implementation has started: no code, migration, test, UAT, or documentation contract change.
 - **Scope proposed:** three additive tables (`letters` with `direction`, `letter_attachments`, `letter_events`); incoming-letter agenda with received/letter date, optional non-unique source number, sender, subject, category from config, notes; private PDF/JPG/JPEG/PNG attachments (10 MB/file, 5 per letter) under `storage/app/attachments/letters` so the existing backup scan covers them; versioned update/void with itemized `409`; immutable history; nine `/api/letters/incoming` endpoints; Incoming Letters page replacing the dummy `Letters Form` menu; `letters.view`/`letters.manage` only (no new ability); `.uat-phase07` with ≥120 letters and ≥40 attachments.
