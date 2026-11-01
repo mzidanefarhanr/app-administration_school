@@ -1,8 +1,8 @@
 # Fase 07 — Persuratan dan generator dokumen
 
-Status teknis: **07a IMPLEMENTED dan diverifikasi agen 2026-11-01**; **07b IMPLEMENTED dan diverifikasi agen 2026-11-01**; 07c NOT STARTED. Status review: **07a APPROVED 2026-11-01 WIB (#1–#16)** berdasarkan "Pengujian nomor 1-16 sudah berhasil dan saya approved."; **07b PENDING review pemilik** (`PHASE-07B-MANUAL-REVIEW.md`); server UAT 07a dihentikan setelah penerimaan (DEC-27), server 07b tetap berjalan sampai penerimaan.
-Status rencana: **PLAN 07a APPROVED — DEC-32 APPROVED 2026-11-01 WIB** ("Saya setuju D1-D10"); implementasi 07a selesai. Rencana 07a di `reports/feature-update/PHASE-07-PLAN.md` (baseline `1101812`); rencana rinci 07b di `reports/feature-update/PHASE-07B-PLAN.md` (baseline `aec356c`) berstatus **PLAN APPROVED — DEC-33 APPROVED 2026-11-01 WIB** ("Saya setuju D1-D11"); laporan `PHASE-07A-REPORT.md` dan `PHASE-07B-REPORT.md`. **DEC-06 CLOSED** melalui D4–D5/DEC-33; DEC-11 dan DEC-13 tetap OPEN.
-Dependensi: 01,02; siswa/guru siap untuk auto-fill; DEC-11. Baseline implementasi 07a: `f46f736`; baseline rencana/implementasi 07b: `aec356c`/`d326369`; paket rencana 07b: `c4bd338`.
+Status teknis: **07a IMPLEMENTED dan diverifikasi agen 2026-11-01**; **07b IMPLEMENTED dan diverifikasi agen 2026-11-01**; 07c NOT STARTED (rencana disiapkan untuk keputusan pemilik). Status review: **07a APPROVED 2026-11-01 WIB (#1–#16)** dan **07b APPROVED 2026-11-02 WIB (#1–#16)**, keduanya berdasarkan "Pengujian nomor 1-16 sudah berhasil dan saya approved."; server UAT 07a dan 07b dihentikan setelah penerimaan (DEC-27) dengan data `.uat-phase07` dipertahankan.
+Status rencana: **PLAN 07a APPROVED — DEC-32 APPROVED 2026-11-01 WIB** ("Saya setuju D1-D10"); implementasi 07a selesai. Rencana 07a di `reports/feature-update/PHASE-07-PLAN.md` (baseline `1101812`); rencana rinci 07b di `reports/feature-update/PHASE-07B-PLAN.md` (baseline `aec356c`) berstatus **PLAN APPROVED — DEC-33 APPROVED 2026-11-01 WIB** ("Saya setuju D1-D11"); laporan `PHASE-07A-REPORT.md` dan `PHASE-07B-REPORT.md`. **DEC-06 CLOSED** melalui D4–D5/DEC-33; DEC-11 dan DEC-13 tetap OPEN; rencana 07c akan diajukan sebagai `PHASE-07C-PLAN.md` (PLAN — AWAITING OWNER APPROVAL) dan belum diotorisasi.
+Dependensi: 01,02; siswa/guru siap untuk auto-fill; DEC-11. Baseline implementasi 07a: `f46f736`; baseline rencana/implementasi 07b: `aec356c`/`d326369`; paket rencana 07b: `c4bd338`; paket implementasi/review 07b: `d736b37`/`7f89264`.
 
 ## Tujuan dan scope
 Persuratan dan generator dokumen. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Tidak ada pekerjaan implementasi yang telah dilakukan dalam penyusunan dokumen ini.
@@ -32,7 +32,7 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 ```
 
 ### 07b — Disposisi, surat keluar dan nomor
-Status: **IMPLEMENTED + agent-verified 2026-11-01; review pemilik PENDING**. **DEC-33 APPROVED 2026-11-01 WIB** ("Saya setuju D1-D11"); rencana rinci `reports/feature-update/PHASE-07B-PLAN.md` (baseline `aec356c`; paket rencana `c4bd338`); laporan `PHASE-07B-REPORT.md`; checklist `PHASE-07B-MANUAL-REVIEW.md`. **DEC-06 CLOSED** melalui D4–D5 (format nomor `{seq:03d}/{school_code}/{year}`, counter global tahunan, nomor saat issue, approver/signatory terpisah). DEC-11/DEC-13 tetap OPEN.
+Status: **IMPLEMENTED + agent-verified 2026-11-01; OWNER APPROVED 2026-11-02 WIB (#1–#16)**. **DEC-33 APPROVED 2026-11-01 WIB** ("Saya setuju D1-D11"); rencana rinci `reports/feature-update/PHASE-07B-PLAN.md` (baseline `aec356c`; paket rencana `c4bd338`); laporan `PHASE-07B-REPORT.md`; checklist `PHASE-07B-MANUAL-REVIEW.md`. **DEC-06 CLOSED** melalui D4–D5 (format nomor `{seq:03d}/{school_code}/{year}`, counter global tahunan, nomor saat issue, approver/signatory terpisah). DEC-11/DEC-13 tetap OPEN. Setelah penerimaan, server UAT 14025/18025 dihentikan 2026-11-02 (DEC-27; PID 21876/3132 diverifikasi, port bebas, `.uat-phase07` dipertahankan).
 
 Scope: Disposisi penerima/tenggat/status dan tindak lanjut; draft→review→approved→issued/cancelled sesuai keputusan; nomor unik atomik dan replay safe; approver/signatory terpisah dari admin teknis.
 
@@ -88,10 +88,11 @@ DATABASE; API-CONTRACTS; REQUIREMENTS; ACCESS-CONTROL; DECISIONS; OPERATIONS; CH
 Format nomor dan identitas penandatangan tidak ditebak; surat final jangan dibuat ulang dari biodata yang berubah.
 
 ## Syarat keluar subfase
-- [x] Scope 07a selesai (07a); 07b/07c belum dijalankan.
+- [x] Scope 07a selesai (07a) dan **OWNER APPROVED #1–#16 (2026-11-01 WIB)**; 07c belum dijalankan.
+- [x] Scope 07b selesai (07b) dan **OWNER APPROVED #1–#16 (2026-11-02 WIB)**; rencana/implementasi terpisah (`PHASE-07B-PLAN.md`, `PHASE-07B-REPORT.md`).
 - [x] Kontrak request/response/schema/permission yang berubah didokumentasikan di DATABASE/API-CONTRACTS/ACCESS-CONTROL/OPERATIONS.
-- [x] Uji relevan benar-benar dijalankan (20 tes surat/294 assertions; suite 487/4.786; build 26,18 s; ESLint 0); NOT RUN dicatat.
-- [x] Checklist manual tersedia (`PHASE-07A-MANUAL-REVIEW.md`); persetujuan pemilik **APPROVED 2026-11-01 WIB (#1–#16)** dan dicatat terpisah.
-- [x] SHA/working tree, known issues dan langkah berikutnya dicatat di INDEX/HANDOFF/ROADMAP dan `PHASE-07A-REPORT.md`.
-- [x] Server UAT dihentikan setelah penerimaan (DEC-27); data `.uat-phase07` dipertahankan.
-- [x] 07b/07c belum dijalankan tanpa instruksi/rencana terpisah.
+- [x] Uji relevan benar-benar dijalankan (20 tes 07a/294 assertions; 35 tes 07b/531 assertions; suite 522/5.320; build 41,94 s; ESLint 0); NOT RUN dicatat.
+- [x] Checklist manual tersedia (`PHASE-07A-MANUAL-REVIEW.md`, `PHASE-07B-MANUAL-REVIEW.md`); persetujuan pemilik dicatat terpisah (07a 2026-11-01; 07b 2026-11-02).
+- [x] SHA/working tree, known issues dan langkah berikutnya dicatat di INDEX/HANDOFF/ROADMAP, `PHASE-07A-REPORT.md`, dan `PHASE-07B-REPORT.md`.
+- [x] Server UAT 07a dan 07b dihentikan setelah penerimaan (DEC-27); data `.uat-phase07` dipertahankan.
+- [x] 07c belum dijalankan tanpa instruksi/rencana terpisah; rencana 07c berstatus menunggu persetujuan pemilik.

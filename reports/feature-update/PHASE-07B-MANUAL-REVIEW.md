@@ -2,13 +2,13 @@
 
 Subfase: 07b — disposisi surat masuk, surat keluar, nomor resmi, dan approval/sign.
 Keputusan: **DEC-33 APPROVED** (D1–D11, 2026-11-01 WIB; pernyataan **"Saya setuju D1-D11"**); **DEC-06 CLOSED** melalui D4–D5. Laporan teknis: `reports/feature-update/PHASE-07B-REPORT.md`.
-Baseline induk: `main` pada `d326369` (pencatatan DEC-33); paket implementasi 07b: `d736b37`. Status: **IMPLEMENTED — agent-verified**. Status review pemilik: **PENDING**.
+Baseline induk: `main` pada `d326369` (pencatatan DEC-33); paket implementasi 07b: `d736b37`. Status: **IMPLEMENTED — agent-verified**. Status review pemilik: **APPROVED 2026-11-02 WIB (#1–#16)**.
 
 ## Status penerimaan pemilik
 
 - Pemilik menyetujui rencana D1–D11 sebagai **DEC-33** dan mengotorisasi implementasi 07b; persetujuan rencana bukan penerimaan hasil.
-- **Penerimaan hasil belum ada.** Seluruh checklist #1–#16 berstatus **PENDING** sampai pemilik menyatakan hasil review berhasil. Setelah itu, penerimaan dicatat pada commit dokumentasi tersendiri dan server UAT dihentikan sesuai DEC-27.
-- Batas: penerimaan 07b tidak mengotorisasi merge, deploy, force-push, migrasi database operasional/MariaDB, perubahan dependency/service/`.env`, atau 07c. DEC-11 (PDF/kop/tanda tangan/stempel) dan DEC-13 (retensi) tetap OPEN.
+- **Penerimaan hasil: APPROVED 2026-11-02 WIB (#1–#16)** berdasarkan pernyataan pemilik **"Pengujian nomor 1-16 sudah berhasil dan saya approved."**; agen tidak mengulang skenario dan item NOT RUN tetap NOT RUN. Penerimaan dicatat pada commit dokumentasi tersendiri; server UAT dihentikan sesuai DEC-27.
+- Batas: penerimaan 07b tidak mengotorisasi merge, deploy, force-push, migrasi database operasional/MariaDB, perubahan dependency/service/`.env`, atau implementasi 07c. DEC-11 (PDF/kop/tanda tangan/stempel) dan DEC-13 (retensi) tetap OPEN; 07c memerlukan rencana dan keputusan terpisah.
 
 ## Lingkungan UAT (terisolasi)
 
@@ -17,7 +17,7 @@ Baseline induk: `main` pada `d326369` (pencatatan DEC-33); paket implementasi 07
 - Data: `.uat-phase07` SQLite; cookie `school_phase07_session`; storage `.uat-phase07/storage`
 - Launcher: `laravel-api/scripts/phase07-uat.php`
 - Akun: **`uat.operator`** dan **`uat.admin`** (`letters.view`/`letters.manage`), **`uat.kepsek`** (`letters.view`/`letters.approve`/`letters.sign`), **`uat.waka`** (`letters.view`). Password hanya ada di runtime privat `.uat-phase07/account-password.txt`; tidak dicetak di dokumen.
-- Server UAT **berjalan sampai penerimaan** (DEC-27): API PID 3132 (`php.exe -S 127.0.0.1:18025 -t public scripts/phase07-uat.php`) dan SPA PID 21876 (Vite `--host 127.0.0.1 --port 14025 --strictPort`). Command line diverifikasi 2026-11-02 WIB. Setelah penerimaan, keduanya dihentikan dengan verifikasi PID/command line; data `.uat-phase07` dipertahankan.
+- Server UAT **dihentikan 2026-11-02 setelah penerimaan** (DEC-27): API PID 3132 (`php.exe -S 127.0.0.1:18025 -t public scripts/phase07-uat.php`) dan SPA PID 21876 (Vite `--host 127.0.0.1 --port 14025 --strictPort`) diverifikasi command line sebelum `taskkill /T /F`; port 14025/18025 bebas; data `.uat-phase07` dipertahankan; Apache (PID 1304) dan MariaDB (PID 18244) tidak disentuh.
 - Jangan menguji pada database operasional, `.uat-phase05`, `.uat-phase06`, atau MariaDB. Jangan me-reset `.uat-phase07`; fixture 07b idempoten dan mempertahankan baris 07a.
 
 Perintah restart bila server sudah berhenti:
@@ -146,8 +146,8 @@ Daftar surat keluar untuk memudahkan review:
 ### 16. Route, batas REST, dan batas penerimaan
 - `php artisan route:list --path=letters` → **28 route** (9 incoming + 6 disposisi + 13 outgoing). Tidak ada `DELETE /api/letters/outgoing/{id}`, tidak ada endpoint un-cancel, tidak ada endpoint edit nomor, dan tidak ada approve/sign massal.
 - Lampiran hanya dapat diunduh lewat endpoint berizin dengan header privat (attachment/nosniff/CSP sandbox/no-store); URL storage publik tidak tersedia.
-- Penerimaan hanya mencakup checklist #1–#16 pada lingkungan `.uat-phase07`. Setelah pemilik menyatakan hasil berhasil, server 14025/18025 dihentikan sesuai DEC-27 dan penerimaan dicatat pada commit dokumentasi tersendiri.
-- Merge/deploy/force-push, migrasi database operasional/MariaDB, perubahan dependency/service/`.env`, dan 07c tetap tidak diotorisasi; 07c memerlukan keputusan dependency PDF (DEC-11) dan retensi (DEC-13).
+- Penerimaan hanya mencakup checklist #1–#16 pada lingkungan `.uat-phase07`. Pemilik menyatakan hasil berhasil pada 2026-11-02 WIB (**"Pengujian nomor 1-16 sudah berhasil dan saya approved."**); server 14025/18025 dihentikan sesuai DEC-27 dan penerimaan dicatat pada commit dokumentasi tersendiri.
+- Merge/deploy/force-push, migrasi database operasional/MariaDB, perubahan dependency/service/`.env`, dan implementasi 07c tetap tidak diotorisasi; 07c memerlukan keputusan dependency PDF (DEC-11) dan retensi (DEC-13).
 
 ## Cara melaporkan hasil
 

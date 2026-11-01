@@ -2,7 +2,7 @@
 
 Tanggal: implementasi dan verifikasi agen 2026-11-01 WIB; verifikasi ulang dan paket dokumentasi 2026-11-02 WIB. Branch: `main`. Baseline induk: `d326369` (pencatatan DEC-33 APPROVED). Paket implementasi 07b: `d736b37` (di-push). Paket dokumentasi dicatat pada checkpoint setelah commit dokumentasi.
 Keputusan pemilik: **DEC-33 APPROVED** (D1–D11, 2026-11-01 WIB; pernyataan **"Saya setuju D1-D11"**); **DEC-06 CLOSED** melalui D4–D5.
-Status teknis: **IMPLEMENTED — agent-verified (2026-11-01; verifikasi ulang 2026-11-02)**. Status review pemilik: **PENDING**.
+Status teknis: **IMPLEMENTED — agent-verified (2026-11-01; verifikasi ulang 2026-11-02)**. Status review pemilik: **APPROVED 2026-11-02 WIB (#1–#16)** berdasarkan pernyataan **"Pengujian nomor 1-16 sudah berhasil dan saya approved."**; agen tidak mengulang skenario dan item NOT RUN tetap NOT RUN.
 Rencana: `reports/feature-update/PHASE-07B-PLAN.md`. Checklist manual: `reports/feature-update/PHASE-07B-MANUAL-REVIEW.md`.
 
 ## 1. Outcome dan cakupan
@@ -112,7 +112,7 @@ Sembilan route incoming 07a tidak berubah; `GET /api/letters/incoming` dan detai
 
 ## 4. UAT manual
 
-Environment: `.uat-phase07` SQLite terisolasi, SPA `http://127.0.0.1:14025`, API `http://127.0.0.1:18025`, cookie `school_phase07_session`, launcher `laravel-api/scripts/phase07-uat.php`. Server berjalan selama review dan **dihentikan setelah penerimaan pemilik** (DEC-27); data `.uat-phase07` tidak di-reset.
+Environment: `.uat-phase07` SQLite terisolasi, SPA `http://127.0.0.1:14025`, API `http://127.0.0.1:18025`, cookie `school_phase07_session`, launcher `laravel-api/scripts/phase07-uat.php`. **Penerimaan pemilik (2026-11-02 WIB):** checklist #1–#16 **APPROVED** berdasarkan pernyataan **"Pengujian nomor 1-16 sudah berhasil dan saya approved."**; server 14025/18025 dihentikan setelah penerimaan (DEC-27; PID/command line diverifikasi, port bebas, data `.uat-phase07` dipertahankan, Apache/MariaDB tidak disentuh). Data `.uat-phase07` tidak di-reset.
 
 Akun review: `uat.operator`/`uat.admin` (`letters.manage`), `uat.kepsek` (`letters.view`/`approve`/`sign`), `uat.waka` (`letters.view`). Password hanya berada di runtime `.uat-phase07/account-password.txt` yang diabaikan; tidak dicetak di dokumen.
 
@@ -162,7 +162,7 @@ Commit/push dilakukan agar pemilik dapat meninjau implementasi di GitHub; commit
 
 ## 7. Langkah berikutnya
 
-1. **Review pemilik:** jalankan `PHASE-07B-MANUAL-REVIEW.md` #1–#16 pada `.uat-phase07`; status review **PENDING**. Bila ada kegagalan, catat nomor dan pesan; jangan mengubah data operasional.
-2. **Setelah penerimaan:** catat pernyataan pemilik pada commit dokumentasi tersendiri, hentikan server UAT 14025/18025 sesuai DEC-27 dengan verifikasi PID/command line, dan pertahankan data `.uat-phase07`. Jangan mengulang skenario atas nama pemilik.
-3. **Berhenti sebelum 07c.** Template PDF, kop, tanda tangan gambar, stempel, dan snapshot memerlukan rencana serta keputusan dependency terpisah (DEC-11); retensi lampiran menunggu DEC-13.
+1. **Review pemilik:** **APPROVED 2026-11-02 WIB (#1–#16)** berdasarkan "Pengujian nomor 1-16 sudah berhasil dan saya approved."; agen tidak mengulang skenario.
+2. **Setelah penerimaan:** penerimaan dicatat pada commit dokumentasi tersendiri; server UAT 14025/18025 dihentikan 2026-11-02 sesuai DEC-27 dengan verifikasi PID/command line; data `.uat-phase07` dipertahankan.
+3. **Berhenti sebelum 07c.** Rencana 07c disusun terpisah dan menunggu keputusan pemilik (DEC-11 dan dependency PDF); implementasi belum diotorisasi. Retensi lampiran menunggu DEC-13.
 4. Merge/deploy, force-push, migrasi database operasional/MariaDB, dan perubahan dependency/service/`.env` tetap tidak diotorisasi.

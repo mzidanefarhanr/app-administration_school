@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-02] Fase 07b — Pemilik menyetujui hasil implementasi (checklist #1–#16)
+- Type: Docs
+- Scope / fase: Penerimaan manual Subfase 07b; tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `reports/feature-update/PHASE-07B-MANUAL-REVIEW.md`, `reports/feature-update/PHASE-07B-REPORT.md`, `docs/DECISIONS.md`, `docs/TESTING.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-07-LETTERS.md`, `CHANGELOG.md`.
+- What changed: mencatat pernyataan pemilik **"Pengujian nomor 1-16 sudah berhasil dan saya approved."** (2026-11-02 WIB) sebagai penerimaan checklist 07b **#1–#16 APPROVED**; status review pada laporan/checklist/DEC-33/roadmap berubah dari PENDING menjadi APPROVED. Server UAT 14025/18025 dihentikan setelah penerimaan (DEC-27).
+- Why: penerimaan pemilik adalah bukti acceptance yang terpisah dari bukti otomatis dan paket review `7f89264`; DEC-27 mengharuskan server fase yang sudah lulus dihentikan agar tidak berjalan tanpa dipakai.
+- Validation: pernyataan pemilik; command line API PID 3132 (`php.exe -S 127.0.0.1:18025 -t public scripts/phase07-uat.php`) dan SPA PID 21876 (Vite `--host 127.0.0.1 --port 14025 --strictPort`) diverifikasi sebelum `taskkill /T /F`; `netstat` menunjukkan port 14025/18025 bebas; Apache (PID 1304, port 80/443) dan MariaDB (PID 18244, port 3306) tetap berjalan; data `.uat-phase07` dipertahankan. **NOT RUN:** skenario manual tidak diulang agen; item NOT RUN 07b tetap NOT RUN.
+- Notes / risks: penerimaan tidak mengotorisasi merge/deploy, migrasi database operasional/MariaDB, perubahan dependency/service/`.env`, atau implementasi 07c. DEC-11 (07c) dan DEC-13 (retensi) tetap OPEN; 07c memerlukan rencana dan keputusan dependency PDF terpisah.
+- Evidence: `reports/feature-update/PHASE-07B-REPORT.md`, `reports/feature-update/PHASE-07B-MANUAL-REVIEW.md`; paket implementasi `d736b37`, paket review `7f89264`.
+
 ## [2026-11-02] Fase 07b — Disposisi surat masuk, surat keluar, dan nomor resmi
 - Type: Feature
 - Scope / fase: **07b saja** di atas `main` @ `d326369` (DEC-33 APPROVED, "Saya setuju D1-D11"). Implementasi/UAT 2026-11-01 WIB; paket dokumentasi 2026-11-02. 07c (template/PDF/kop/tanda tangan/stempel), merge/deploy, migrasi database operasional/MariaDB, dan perubahan dependency/service/`.env` tidak termasuk.
