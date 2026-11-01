@@ -1,6 +1,17 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-10-31 (Subfase 06b implemented, review pending)
+## Current checkpoint — 2026-11-01 (Subfase 06b owner-accepted)
+
+- **Status:** 06b (naik/tinggal/lulus: preview tanpa mutasi + commit atomik ber-token) is **IMPLEMENTED, agent-verified (2026-10-31), and OWNER APPROVED 2026-11-01 WIB (#1–#14)** on `main` above `6dcd432` (implementation package `c1dde67`, pushed; DEC-30 APPROVED).
+- **Acceptance:** owner statement 2026-11-01 WIB **"Pengujian nomor 1-14 sudah berhasil dan saya approved."** covers checklist #1–#14 in `PHASE-06B-MANUAL-REVIEW.md`. That statement is the sole acceptance evidence; the agent did not rerun scenarios, and agent NOT RUN items remain NOT RUN. Acceptance does not authorize merge, deploy, operational/MariaDB migration, dependency/service changes, or 06c.
+- **UAT lifecycle:** SPA (PID 18664) and API (PID 11604) were stopped on 2026-11-01 after acceptance per DEC-27; command lines verified, ports 14024/18024 free, `.uat-phase06` data/storage/password preserved, Apache 80/443 and MariaDB 3306 untouched. Restart commands remain in `PHASE-06B-MANUAL-REVIEW.md`.
+- **Agent evidence (actual, 2026-10-31):** progression 11 tests/150 assertions; full suite **448 passed/13 skipped/4,121 assertions (250.68 s)**; Pint 10 files; 6 progression routes; build 26.36 s; ESLint 0 errors; browser/API UAT `.uat-phase06` — batch #1 committed (2 promote, 1 graduate, 1 retain; memberships 126/127), replay `200 replayed:true`, itemized `409` without mutation, principal sees only committed history with preview/commit/detail-preview `403`, audit without token/decisions, Graduated card counts status 6.
+- **Fixes during UAT:** `prepare-progression` seeds all six statuses and requires `Lulus` id 6; decisions persist across roster filters; previews hidden from non-creators; `student_nik` removed from `StudentRombel` audit allowlist.
+- **NOT RUN (agent):** MariaDB/InnoDB and MySQL trigger behavior for graduate; multi-process/two-tab race for `409`; source-year lock in browser (covered by automated T12); 500-decision benchmark; screenshot-based visual regression. These remain NOT RUN regardless of owner acceptance.
+- **Git:** branch `main`; implementation package `c1dde67` (pushed); SHA checkpoint `faccb81`; acceptance documentation is this separate commit (actual SHA reported at the next checkpoint). No `.github/workflows`. Selective staging excludes `.uat-phase06/`, `console.txt`, `vue-app/test-results/`, runtime DB/logs/credentials, and `.env`.
+- **Next:** 06c (mutations/corrections for locked periods) requires a separate plan and owner decision; merge/deploy and operational DB migration remain unauthorized. Do not start 06c automatically.
+
+## Previous checkpoint — 2026-10-31 (Subfase 06b implemented, review pending)
 
 - **Status:** 06b (naik/tinggal/lulus: preview tanpa mutasi + commit atomik ber-token) is **IMPLEMENTED and agent-verified 2026-10-31** on `main` above `6dcd432` (implementation package `c1dde67`, pushed; DEC-30 APPROVED; owner statement **"Saya setuju dieksekusi."**). Owner manual review is **PENDING** (`PHASE-06B-MANUAL-REVIEW.md` #1–#14).
 - **Evidence:** progression 11 tests/150 assertions; full suite **448 passed/13 skipped/4,121 assertions (250.68 s)**; Pint 10 files; `route:list` 6 progression routes; build 26.36 s; ESLint 0 errors; browser/API UAT in `.uat-phase06` — batch #1 committed (2 promote, 1 graduate, 1 retain; target memberships 126/127), replay `200 replayed:true`, itemized `409` with zero mutation, principal sees only committed history with preview/commit/detail-preview `403`, audit without token/decisions, Graduated card counts status 6.

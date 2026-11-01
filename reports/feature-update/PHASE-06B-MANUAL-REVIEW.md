@@ -2,13 +2,13 @@
 
 Subfase: 06b — preview tanpa mutasi, commit atomik ber-token, riwayat batch, dan wizard Academic → Progression.
 Keputusan: **DEC-30 APPROVED** (D1–D9, 2026-10-31 WIB). Laporan teknis: `reports/feature-update/PHASE-06B-REPORT.md`.
-Baseline induk: `main` pada `6dcd432` (pencatatan DEC-30); implementasi `c1dde67`. Status: **IMPLEMENTED — agent-verified; OWNER REVIEW PENDING**.
+Baseline induk: `main` pada `6dcd432` (pencatatan DEC-30); implementasi `c1dde67`. Status: **IMPLEMENTED — agent-verified; OWNER APPROVED 2026-11-01 WIB — checklist #1–#14**.
 
 ## Status penerimaan pemilik
 
-- Belum ada pernyataan penerimaan untuk 06b. Checklist #1–#14 di bawah menunggu hasil review pemilik.
-- Setelah pemilik menyatakan penerimaan, hasil dicatat pada commit dokumentasi tersendiri; commit/push implementasi bukan penerimaan.
-- Penerimaan tidak mengotorisasi merge, deploy, migrasi data operasional/MariaDB, perubahan dependency/service, atau 06c.
+- Pernyataan pemilik 2026-11-01 WIB: **"Pengujian nomor 1-14 sudah berhasil dan saya approved."**
+- Cakupan: seluruh skenario #1–#14 pada lingkungan UAT terisolasi `.uat-phase06`. Pernyataan pemilik adalah satu-satunya bukti penerimaan; agen tidak mengulang skenario.
+- Batas: penerimaan tidak mengotorisasi merge, deploy, migrasi data operasional/MariaDB, perubahan dependency/service, atau 06c. 06c memerlukan rencana dan keputusan terpisah.
 
 ## Lingkungan UAT (terisolasi)
 
@@ -18,7 +18,7 @@ Baseline induk: `main` pada `6dcd432` (pencatatan DEC-30); implementasi `c1dde67
 - Launcher: `laravel-api/scripts/phase06-uat.php`
 - Akun: **`uat.operator`** (dapat preview/commit) dan **`uat.kepsek`** (view-only). Password hanya ada di runtime privat `.uat-phase06/account-password.txt`; tidak dicetak di dokumen.
 
-Status server: SPA dan API **tetap berjalan** untuk review 06b. Setelah penerimaan, server dihentikan sesuai DEC-27; data `.uat-phase06` dipertahankan.
+Status server: SPA (PID 18664) dan API (PID 11604) **dihentikan 2026-11-01** setelah penerimaan, sesuai DEC-27. Command line kedua proses diverifikasi sebelum penghentian (`taskkill /T /F` untuk SPA, TaskStop untuk API); port 14024/18024 terverifikasi bebas; Apache 80/443 (PID 1304) dan MariaDB 3306 (PID 18244) tidak disentuh; data `.uat-phase06` dipertahankan.
 
 Perintah restart bila server sudah berhenti:
 
@@ -46,6 +46,8 @@ Keadaan setelah pengujian agen:
 - Tidak ada reset data 06a. Jangan menguji pada database operasional, `.uat-phase05`, atau MariaDB.
 
 ## Checklist
+
+Status pemilik 2026-11-01 WIB: **#1–#14 APPROVED**. Uraian di bawah dipertahankan sebagai catatan skenario.
 
 ### 1. Isolasi, login, dan keadaan awal
 - Login sebagai `uat.operator`, buka **Academic → Progression**.
@@ -121,7 +123,7 @@ Keadaan setelah pengujian agen:
 - Periksa seluruh label/pesan 06b (Years, Students & Decisions, Preview, Result, riwayat, dialog commit/konflik): English.
 - Emulasikan lebar 390 px: wizard, tabel (scroll horizontal), dan dialog tidak melebar keluar viewport.
 - Harapkan tidak ada error console/network selain respons `409`/`403` yang disengaja saat menguji konflik/akses.
-- Setelah checklist selesai dan pemilik menyatakan penerimaan, server UAT 14024/18024 dihentikan sesuai DEC-27; data `.uat-phase06` dipertahankan.
+- Server UAT 14024/18024 telah dihentikan 2026-11-01 setelah penerimaan sesuai DEC-27; data `.uat-phase06` dipertahankan.
 
 ## Cara melaporkan hasil
 
@@ -129,7 +131,7 @@ Untuk setiap nomor, tulis: **PASS/FAIL/SKIP**, langkah yang dilakukan, hasil akt
 
 ## Penutupan setelah penerimaan
 
-- Penerimaan dicatat pada commit dokumentasi tersendiri, bukan pada commit implementasi.
-- Server UAT dihentikan setelah penerimaan; data dan password runtime dipertahankan di `.uat-phase06`.
-- Jangan mengubah Apache/MariaDB/service/dependency; jangan migrasikan data ke DB operasional.
+- Penerimaan dicatat pada commit dokumentasi tersendiri (`2026-11-01`), bukan pada commit implementasi `c1dde67`.
+- Server UAT dihentikan 2026-11-01 setelah penerimaan; data dan password runtime dipertahankan di `.uat-phase06`; perintah restart tetap tercantum di atas.
+- Apache/MariaDB/service/dependency tidak diubah; data tidak dimigrasikan ke DB operasional.
 - 06c tidak dimulai tanpa rencana dan keputusan pemilik terpisah.

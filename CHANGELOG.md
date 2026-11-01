@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-01] Fase 06b — Penerimaan pemilik (#1–#14) dan penghentian UAT
+- Type: Docs
+- Scope / fase: **06b saja**; tidak ada perubahan kode aplikasi pada entri ini. Merge/deploy, migrasi database operasional/MariaDB, perubahan dependency/service/`.env`, dan 06c tidak termasuk.
+- Files touched: `reports/feature-update/PHASE-06B-MANUAL-REVIEW.md`, `reports/feature-update/PHASE-06B-REPORT.md`, `reports/feature-update/PHASE-06B-PLAN.md`, `reports/feature-update/PHASE-06-PLAN.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-06-ACADEMIC-YEAR.md`, `PROJECT_CONTEXT.md`, `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `docs/TESTING.md`, `CHANGELOG.md`.
+- What changed: mencatat pernyataan pemilik **"Pengujian nomor 1-14 sudah berhasil dan saya approved."** (2026-11-01 WIB) sebagai penerimaan checklist 06b #1–#14; menghentikan server UAT 14024/18024 setelah verifikasi PID/command line dan mempertahankan data `.uat-phase06`; memperbarui status DEC-30, roadmap, handoff, indeks, laporan, dan requirement.
+- Why: penerimaan pemilik dicatat pada commit dokumentasi tersendiri, terpisah dari commit implementasi `c1dde67`; server fase yang sudah lulus dihentikan agar tidak berjalan tanpa dipakai (DEC-27).
+- Validation: command line PID 18664 (SPA Vite 14024) dan 11604 (API PHP 18024) diverifikasi sebelum penghentian; `netstat` memastikan port 14024/18024 bebas; `.uat-phase06` (database/storage/password runtime) tetap ada; Apache 80/443 (PID 1304) dan MariaDB 3306 (PID 18244) tetap berjalan dan tidak disentuh. **NOT RUN:** agen tidak mengulang skenario #1–#14; item MariaDB/konkurensi/dua-tab/screenshot tetap NOT RUN.
+- Notes / risks: penerimaan tidak mengotorisasi merge, deploy, migrasi data operasional/MariaDB, perubahan dependency/service, atau 06c. Baris audit lama #22/#24 memuat NIK sintetis sebelum perbaikan allowlist; audit append-only tidak diubah.
+- Evidence: `reports/feature-update/PHASE-06B-MANUAL-REVIEW.md`; `reports/feature-update/PHASE-06B-REPORT.md`; implementasi `c1dde67`; commit dokumentasi penerimaan dicatat pada checkpoint berikutnya.
+
 ## [2026-10-31] Fase 06b — Naik kelas, tinggal kelas, dan lulus
 - Type: Feature
 - Scope / fase: **06b saja** di atas `main` @ `6dcd432` (DEC-30 APPROVED). 06c, merge/deploy, migrasi database operasional/MariaDB, dan perubahan dependency/service/`.env` tidak termasuk.
