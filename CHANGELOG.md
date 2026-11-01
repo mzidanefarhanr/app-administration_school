@@ -25,7 +25,7 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 - Why: penerimaan pemilik dicatat pada commit dokumentasi tersendiri, terpisah dari commit implementasi `c1dde67`; server fase yang sudah lulus dihentikan agar tidak berjalan tanpa dipakai (DEC-27).
 - Validation: command line PID 18664 (SPA Vite 14024) dan 11604 (API PHP 18024) diverifikasi sebelum penghentian; `netstat` memastikan port 14024/18024 bebas; `.uat-phase06` (database/storage/password runtime) tetap ada; Apache 80/443 (PID 1304) dan MariaDB 3306 (PID 18244) tetap berjalan dan tidak disentuh. **NOT RUN:** agen tidak mengulang skenario #1–#14; item MariaDB/konkurensi/dua-tab/screenshot tetap NOT RUN.
 - Notes / risks: penerimaan tidak mengotorisasi merge, deploy, migrasi data operasional/MariaDB, perubahan dependency/service, atau 06c. Baris audit lama #22/#24 memuat NIK sintetis sebelum perbaikan allowlist; audit append-only tidak diubah.
-- Evidence: `reports/feature-update/PHASE-06B-MANUAL-REVIEW.md`; `reports/feature-update/PHASE-06B-REPORT.md`; implementasi `c1dde67`; commit dokumentasi penerimaan dicatat pada checkpoint berikutnya.
+- Evidence: `reports/feature-update/PHASE-06B-MANUAL-REVIEW.md`; `reports/feature-update/PHASE-06B-REPORT.md`; implementasi `c1dde67`; commit dokumentasi penerimaan `1b34455` (di-push ke `origin/main`).
 
 ## [2026-10-31] Fase 06b — Naik kelas, tinggal kelas, dan lulus
 - Type: Feature

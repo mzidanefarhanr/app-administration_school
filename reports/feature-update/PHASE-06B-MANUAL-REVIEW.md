@@ -131,7 +131,7 @@ Untuk setiap nomor, tulis: **PASS/FAIL/SKIP**, langkah yang dilakukan, hasil akt
 
 ## Penutupan setelah penerimaan
 
-- Penerimaan dicatat pada commit dokumentasi tersendiri (`2026-11-01`), bukan pada commit implementasi `c1dde67`.
+- Penerimaan dicatat pada commit dokumentasi tersendiri `1b34455` (`2026-11-01`), bukan pada commit implementasi `c1dde67`.
 - Server UAT dihentikan 2026-11-01 setelah penerimaan; data dan password runtime dipertahankan di `.uat-phase06`; perintah restart tetap tercantum di atas.
 - Apache/MariaDB/service/dependency tidak diubah; data tidak dimigrasikan ke DB operasional.
 - 06c tidak dimulai tanpa rencana dan keputusan pemilik terpisah.
