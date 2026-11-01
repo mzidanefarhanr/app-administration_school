@@ -77,6 +77,12 @@ const router = createRouter({
                     component: () => import('@/views/pages/public/Student.vue')
                 },
                 {
+                    path: '/public/letters/incoming',
+                    name: 'incomingLetters',
+                    meta: { breadcrumb: 'Incoming Letters', requiresAbility: 'letters.view' },
+                    component: () => import('@/views/pages/public/IncomingLetters.vue')
+                },
+                {
                     path: '/public/data-quality',
                     name: 'dataquality',
                     meta: { breadcrumb: 'Data Quality', requiresAbility: ['students.view', 'employees.view'] },

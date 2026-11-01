@@ -49,6 +49,13 @@ Retensi, jadwal, enkripsi, lokasi salinan, RPO (kehilangan data maksimal) dan RT
   - *Linux*: `* * * * * cd /path/to/laravel-api && php artisan schedule:run >> /dev/null 2>&1`.
   - *Lock Stale Recovery*: Jika proses server terhenti mendadak (mati lampu) saat backup berjalan, file lock `storage/app/backups/.backup.lock` dapat dibuka kembali secara otomatis setelah proses OS mati karena lock berbasis handle file OS (`flock`).
 
+## Lampiran surat privat (Fase 07a — DEC-32)
+- Lampiran surat masuk disimpan di disk `local` pada `storage/app/attachments/letters/{letter_id}/{uuid}.{ext}` (config `letters.disk`, `letters.attachments_path`), di luar web root; tidak ada URL publik. Unduhan hanya lewat endpoint berizin `GET /api/letters/incoming/{letter}/attachments/{attachment}/download` dengan `Content-Disposition: attachment`, `nosniff`, CSP sandbox, dan `Cache-Control: no-store, private`.
+- Batas operasional default: PDF/JPG/JPEG/PNG, 10 MB/file, 5 lampiran aktif per surat (dapat diubah via `LETTERS_MAX_FILE_KB`/`LETTERS_MAX_FILES_PER_LETTER`; tidak ada perubahan `.env` pada 07a). MIME dideteksi server; nama file disimpan acak, `sha256` dicatat.
+- Hapus lampiran = **soft delete baris**; file fisik tetap disimpan sampai keputusan retensi/pemusnahan **DEC-13**. Tidak ada pembersihan otomatis atau antivirus pada 07a; pemantauan kapasitas disk tetap tanggung jawab operasional.
+- Backup sudah memindai `config('backup.attachments_path')` (`storage/app/attachments`), sehingga lampiran surat ikut dalam pemindaian filesystem. Manifest `BackupService` kini menyebut lampiran surat operasional dan menandai **restore drill dengan lampiran surat NOT RUN**. Restore drill belum dijalankan pada 07a; jangan mengklaim recoverability lampiran sebelum drill dilakukan pada target disposable.
+- Surat void tetap menyimpan lampiran dan tetap dapat diunduh oleh `letters.view`; tidak ada hard delete surat atau file pada 07a.
+
 ## Restore drill
 1. Pilih backup fixture sintetis dan target terisolasi; verifikasi target bukan DB/storage aktif.
 2. Periksa manifest/checksum dan kompatibilitas schema; dokumentasikan app commit yang diperlukan.

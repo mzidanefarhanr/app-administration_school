@@ -119,7 +119,7 @@ class BackupService
                     'type' => $dbDriver === 'mysql' ? 'innodb_single_transaction_with_attachment_drift_detection' : 'sqlite_read_transaction_with_attachment_drift_detection',
                     'database_engine_verified' => $dbDriver === 'mysql' ? 'InnoDB' : 'SQLite',
                     'attachment_drift_detected' => false,
-                    'operational_attachments_consistency' => 'N/A (operational attachment modules not yet implemented; verified via synthetic fixtures)',
+                    'operational_attachments_consistency' => 'Operational letter attachments are stored under the private attachments path and included in the filesystem scan; restore drill with letter attachments is NOT RUN.',
                     'prerequisites_for_production' => 'Application write quiescence (freeze writes) or filesystem-level snapshot required before operational attachments backup.',
                 ],
             ];

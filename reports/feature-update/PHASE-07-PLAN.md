@@ -1,11 +1,11 @@
 # Rencana Fase 07 — Persuratan: Subfase 07a (Surat Masuk dan Lampiran)
 
 - Tanggal: 2026-11-01 (WIB). Branch: `main`. Baseline dokumen: `1101812` (HEAD; penerimaan 06c tercatat).
-- Status dokumen: **PLAN APPROVED — DEC-32 APPROVED 2026-11-01 WIB** berdasarkan pernyataan pemilik **"Saya setuju D1-D10"**. Implementasi 07a diotorisasi dan dikerjakan sebagai subfase ini saja; 07b/07c tetap memerlukan rencana dan keputusan terpisah.
+- Status dokumen: **PLAN APPROVED — DEC-32 APPROVED 2026-11-01 WIB** berdasarkan pernyataan pemilik **"Saya setuju D1-D10"**. Implementasi 07a **selesai dan agent-verified 2026-11-01**; 07b/07c tetap memerlukan rencana dan keputusan terpisah. Bukti: `PHASE-07A-REPORT.md`; checklist pemilik `PHASE-07A-MANUAL-REVIEW.md` (review PENDING).
 - Cakupan: **07a saja** — agenda surat masuk (tanggal terima/tanggal surat, nomor sumber, pengirim, perihal, kategori, catatan), lampiran privat, pencarian/filter, edit/void berversi, dan history. Layanan file minimal dibuat di sini dan diperluas pada Fase 09.
 - Di luar cakupan: **07b** (disposisi, surat keluar, penomoran, approval/sign), **07c** (template PDF, snapshot, kop/tanda tangan/stempel), OCR, e-sign provider, pengiriman email/WhatsApp otomatis, arsip terpusat/versioning Fase 09, retensi/pemusnahan data pribadi (DEC-13), merge/deploy, migrasi database operasional/MariaDB, perubahan dependency/lockfile/`.env`/service.
 - Dokumen acuan: `roadmap/phases/PHASE-07-LETTERS.md`, `roadmap/ROADMAP.md`, `docs/DECISIONS.md` (DEC-06, DEC-11, DEC-13, DEC-27), `docs/DATABASE.md`, `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `docs/OPERATIONS.md`, `docs/TESTING.md`, `reports/feature-update/PHASE-06C-PLAN.md`.
-- Gate: 06c **OWNER APPROVED 2026-11-01 WIB (#1–#16)**; **DEC-06 dan DEC-11 tetap OPEN** dan hanya menjadi gate untuk 07b/07c, bukan untuk 07a. Tidak ada PDF library terpasang; 07c memerlukan keputusan dependency terpisah. **D1–D10 APPROVED 2026-11-01 WIB sebagai DEC-32**; implementasi 07a berjalan sesuai rencana ini.
+- Gate: 06c **OWNER APPROVED 2026-11-01 WIB (#1–#16)**; **DEC-06 dan DEC-11 tetap OPEN** dan hanya menjadi gate untuk 07b/07c, bukan untuk 07a. Tidak ada PDF library terpasang; 07c memerlukan keputusan dependency terpisah. **D1–D10 APPROVED 2026-11-01 WIB sebagai DEC-32**; implementasi 07a selesai sesuai rencana ini.
 
 ---
 
@@ -559,10 +559,12 @@ HANDOFF dan ROADMAP. Berhenti setelah hasil subfase siap review; jangan lanjut
 ## 13. Syarat keluar 07a
 
 - [x] D1–D10 disetujui dan dicatat sebagai DEC-32.
-- [ ] Scope 07a selesai atau partial/blocker dijelaskan.
-- [ ] Kontrak request/response/schema/permission yang berubah didokumentasikan di DATABASE/API-CONTRACTS/ACCESS-CONTROL/OPERATIONS.
-- [ ] Tes relevan benar-benar dijalankan atau NOT RUN dengan alasan; hasil aktual dicatat.
-- [ ] UAT `.uat-phase07` dan checklist manual tersedia; persetujuan pemilik dicatat terpisah.
-- [ ] SHA/working tree, known issues, dan langkah berikutnya dicatat di INDEX/HANDOFF/ROADMAP.
-- [ ] Server UAT dihentikan setelah penerimaan (DEC-27); data dipertahankan.
-- [ ] 07b/07c belum dijalankan tanpa instruksi/rencana terpisah.
+- [x] Scope 07a selesai atau partial/blocker dijelaskan.
+- [x] Kontrak request/response/schema/permission yang berubah didokumentasikan di DATABASE/API-CONTRACTS/ACCESS-CONTROL/OPERATIONS.
+- [x] Tes relevan benar-benar dijalankan atau NOT RUN dengan alasan; hasil aktual dicatat.
+- [x] UAT `.uat-phase07` dan checklist manual tersedia; persetujuan pemilik dicatat terpisah (saat ini **PENDING**).
+- [x] SHA/working tree, known issues, dan langkah berikutnya dicatat di INDEX/HANDOFF/ROADMAP.
+- [ ] Server UAT dihentikan setelah penerimaan (DEC-27); data dipertahankan. Saat ini 18025/14025 masih berjalan untuk review pemilik.
+- [x] 07b/07c belum dijalankan tanpa instruksi/rencana terpisah.
+
+Implementasi 07a selesai dan diverifikasi agen 2026-11-01: 20 tes surat/294 assertions, suite 487 passed/13 skipped/4.786 assertions, Pint 18 file, build 26,18 s, ESLint 0, UAT `.uat-phase07` (126 surat/64 baris lampiran/221 event). Bukti: `PHASE-07A-REPORT.md`; checklist pemilik `PHASE-07A-MANUAL-REVIEW.md` (#1–#16).

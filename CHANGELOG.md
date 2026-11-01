@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-01] Fase 07a — Surat masuk dan lampiran dasar
+- Type: Feature
+- Scope / fase: **07a saja** di atas `main` @ `f46f736` (DEC-32 APPROVED, "Saya setuju D1-D10"). 07b/07c, merge/deploy, migrasi database operasional/MariaDB, dan perubahan dependency/service/`.env` tidak termasuk.
+- Files touched: migration `letters`, `letter_attachments`, `letter_events` (`2029_08_02_000001..000003`); model `Letter`/`LetterAttachment`/`LetterEvent`; `config/letters.php`; service `LetterService`/`LetterAttachmentService`; empat FormRequest (store/update/void/attachment); `IncomingLetterController`; sembilan route `/api/letters/incoming`; `IncomingLetters.vue` + router/menu Letters; `.gitignore` (`.uat-phase07/`); catatan manifest `BackupService.php`; launcher `scripts/phase07-uat.php`; tes `IncomingLetterTest`; dokumentasi fase.
+- What changed: agenda surat masuk dengan referensi internal `#` dan nomor sumber opsional/tidak unik; pengirim/perihal/kategori/tanggal terima/tanggal surat dengan aturan tanggal server Asia/Jakarta; kategori dari config; lampiran privat PDF/JPG/JPEG/PNG (10 MB/file, 5/surat, nama UUID, sha256, MIME dideteksi server, path `attachments/letters/{letter_id}/`); daftar server-side search/filter/paginasi; detail dengan lampiran + maksimum 100 event; edit/void berversi dengan `expected_version` dan `409` itemized; surat void read-only; lampiran soft delete (file disimpan sampai DEC-13); `letter_events` immutable; audit allowlist tanpa pengirim/perihal/catatan/nama file/path/checksum; ability `letters.view`/`letters.manage` tanpa ability/role baru; UI English responsif 390 px.
+- Why: memulai Fase 07 dengan modul surat masuk yang dapat dicari, ditelusuri, dan aman untuk lampiran privat, tanpa menebak format nomor resmi (DEC-06) atau kop/penandatangan (DEC-11) yang menjadi scope 07b/07c.
+- Validation: `php artisan test tests/Feature/Letters/IncomingLetterTest.php` **20 passed/294 assertions (15,13 s)**; suite penuh **487 passed/13 skipped/4.786 assertions (374,84 s)**; Pint **18 files PASS**; `route:list --path=letters` **9 routes** tanpa delete surat; `npm run build` **PASS 26,18 s**; `npx eslint --quiet` **0 error**; UAT `.uat-phase07` (126 surat/115 aktif/11 void, 64 baris lampiran/64 file, 221 event) dengan browser/API operator, kepsek, waka; download headers diverifikasi via curl. **NOT RUN:** artefak PDF via otomasi Chrome, restore drill dengan lampiran surat, MariaDB/InnoDB, race multi-proses/dua tab, visual regression, review manual pemilik.
+- Notes / risks: server UAT 14025/18025 berjalan sampai penerimaan pemilik (DEC-27); data `.uat-phase07` dipertahankan; bug library PrimeVue 4.3.1 `Select.alignOverlay` (resize/orientasi) dicatat sebagai known issue tanpa perubahan dependency; commit/push paket review bukan penerimaan manual.
+- Evidence: `reports/feature-update/PHASE-07A-REPORT.md`, `reports/feature-update/PHASE-07A-MANUAL-REVIEW.md`; SHA paket dilaporkan pada checkpoint berikutnya.
+
 ## [2026-11-01] Fase 07a — Pemilik menyetujui rencana (DEC-32 APPROVED)
 - Type: Docs
 - Scope / fase: Rencana Subfase **07a**; implementasi 07a diotorisasi. Tidak ada perubahan kode aplikasi pada entri ini.

@@ -20,6 +20,7 @@ use App\Http\Controllers\FamilyStatusController;
 use App\Http\Controllers\FirstLoginController;
 use App\Http\Controllers\GenderController;
 use App\Http\Controllers\ImportController;
+use App\Http\Controllers\IncomingLetterController;
 use App\Http\Controllers\MaritalStatusController;
 use App\Http\Controllers\PhaseStatusController;
 use App\Http\Controllers\ProfessionController;
@@ -183,6 +184,28 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         ->middleware('can:students.view');
     Route::post('/students/{id}/locked-corrections', [StudentLockedCorrectionController::class, 'store'])
         ->middleware(['can:students.manage', 'can:students.correct-locked']);
+
+    // Fase 07a (DEC-32) — agenda surat masuk, lampiran privat, edit/void berversi, dan history.
+    Route::prefix('letters/incoming')->group(function () {
+        Route::get('/options', [IncomingLetterController::class, 'options'])
+            ->middleware('can:letters.view');
+        Route::get('/', [IncomingLetterController::class, 'index'])
+            ->middleware('can:letters.view');
+        Route::get('/{letter}', [IncomingLetterController::class, 'show'])
+            ->whereNumber('letter')->middleware('can:letters.view');
+        Route::post('/', [IncomingLetterController::class, 'store'])
+            ->middleware('can:letters.manage');
+        Route::match(['put', 'patch'], '/{letter}', [IncomingLetterController::class, 'update'])
+            ->whereNumber('letter')->middleware('can:letters.manage');
+        Route::post('/{letter}/void', [IncomingLetterController::class, 'void'])
+            ->whereNumber('letter')->middleware('can:letters.manage');
+        Route::post('/{letter}/attachments', [IncomingLetterController::class, 'storeAttachment'])
+            ->whereNumber('letter')->middleware('can:letters.manage');
+        Route::get('/{letter}/attachments/{attachment}/download', [IncomingLetterController::class, 'downloadAttachment'])
+            ->whereNumber(['letter', 'attachment'])->middleware('can:letters.view');
+        Route::delete('/{letter}/attachments/{attachment}', [IncomingLetterController::class, 'destroyAttachment'])
+            ->whereNumber(['letter', 'attachment'])->middleware('can:letters.manage');
+    });
 
     // Fase 01a — penegakan kemampuan pada endpoint master/referensi.
     // Read = master.view, Write = master.manage.

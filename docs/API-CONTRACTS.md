@@ -320,10 +320,36 @@ Sepuluh endpoint baru; **satu ability baru** `students.correct-locked` (sensitif
 
 Frontend: `StudentMutations.vue` (section + dialog) dan `StudentMutationTimelineDialog.vue` di `Student.vue`.
 
+## Perubahan Subfase 07a (DEC-32) — surat masuk dan lampiran dasar
+
+Sembilan endpoint baru di `/api/letters/incoming`; **tanpa ability baru**. Baca (options/list/detail/download) memakai `letters.view`; tulis (create/update/void/upload/remove) memakai `letters.manage`; guest `401`, tanpa ability `403`. Surat void bersifat read-only (`409`), tidak ada endpoint delete surat atau unvoid.
+
+| Method | Endpoint | Izin | Ringkas |
+|---|---|---|---|
+| GET | `/api/letters/incoming/options` | `letters.view` | `categories` (7), `statuses` (`active`/`void`), `per_page_options` (10/20/50/100), `default_per_page=20`, `max_file_kb=10240`, `max_files_per_letter=5`, `allowed_extensions` |
+| GET | `/api/letters/incoming?search=&category=&status=&received_from=&received_to=&per_page=&page=` | `letters.view` | Daftar 20/halaman default; urut `received_date` desc lalu `id` desc; `status` default `active`, menerima `void`/`all`; `search` maks. 100 pada nomor sumber/pengirim/perihal (wildcard di-escape) |
+| GET | `/api/letters/incoming/{letter}` | `letters.view` | Detail + `attachments` (id, nama asli, MIME, ukuran, waktu) + `events` terbaru (maks. 100; aktor, metadata minimal); tanpa path/checksum |
+| POST | `/api/letters/incoming` | `letters.manage` | `received_date`/`letter_date` (`Y-m-d`; terima ≤ hari ini, surat ≤ terima), `source_number` opsional ≤100 (tidak unik), `sender` ≤150, `subject` ≤200, `category` ∈ config, `notes` ≤2000 opsional; `422` validasi |
+| PUT/PATCH | `/api/letters/incoming/{letter}` | `letters.manage` | Field create + `expected_version` wajib; sukses menaikkan versi dan menulis event Updated; versi basi `409` + `current_versions`; surat void `409` |
+| POST | `/api/letters/incoming/{letter}/void` | `letters.manage` | `reason` 10–255 + `expected_version`; status `void`, `voided_at`/`voided_by`, versi+1, event Voided; void ulang `409` |
+| POST | `/api/letters/incoming/{letter}/attachments` | `letters.manage` | Multipart `file`; PDF/JPG/JPEG/PNG; maks. 10 MB; maks. 5 lampiran aktif per surat; MIME dideteksi server; `422` tipe/ukuran/limit; surat void `409` |
+| GET | `/api/letters/incoming/{letter}/attachments/{attachment}/download` | `letters.view` | Streamed privat; `Content-Disposition: attachment`, `nosniff`, CSP sandbox, `Cache-Control: no-store, private`; lampiran milik surat lain `404` |
+| DELETE | `/api/letters/incoming/{letter}/attachments/{attachment}` | `letters.manage` | Soft delete baris + event Attachment removed; file fisik dipertahankan; surat void `409`; `404` bila bukan milik surat |
+
+- **Envelope dan status**: seluruh respons JSON memakai `StatusResource` (`success`, `message`, `data`). Create/update/void/upload/remove mengembalikan **`200`** dengan envelope (mengikuti pola controller aplikasi), bukan `201`.
+- **Bentuk item surat**: `id`, `reference` (`#` + id 6 digit), `direction`, `received_date`, `letter_date`, `source_number`, `sender`, `subject`, `category`, `notes`, `status`, `version`, `attachments_count`, `voided_at`/`void_reason`/`voided_by`, `created_by`, timestamps. Daftar memuat `items`/`meta`/`filters`.
+- **Konflik**: versi basi atau surat void → `409` dengan `message`, `errors` per field, dan `current_versions` (`letter_version`, `status`). Tidak ada mutasi saat konflik.
+- **Lampiran privat**: disimpan di disk `local` (config `letters.disk`) pada `attachments/letters/{letter_id}/{uuid}.{ext}`; nama asli hanya metadata; `checksum_sha256` tidak diekspos di payload; file tidak dapat diakses lewat URL publik. Unduhan lintas surat `404`; route delete surat tidak terdaftar (`405`).
+- **Audit/history**: `activities` memakai allowlist `Letter` (direction/tanggal/nomor sumber/kategori/status/versi/void/aktor) dan `LetterAttachment` (letter_id/MIME/ukuran/deleted_at) tanpa notes/sender/subject/alasan void/nama asli/path/checksum; `letter_events` immutable dan tidak memakai `Loggable`.
+- **UI**: `/public/letters/incoming` (name `incomingLetters`, breadcrumb `Incoming Letters`) dengan filter, tabel, dialog detail/create/edit/void, upload/remove/download lampiran, history, dan panel konflik **Reload Latest**. Grup menu **Letters** menggantikan item dummy **Letters Form**; route memakai `letters.view`, tombol tulis `letters.manage`.
+- **Batas**: 07a tidak menyediakan disposisi, penomoran resmi, approval/sign, template/PDF, ekspor, atau pembersihan file retensi (DEC-13). 07b/07c memerlukan rencana dan keputusan terpisah; 07c memerlukan keputusan dependency PDF.
+
+Frontend: `IncomingLetters.vue`, route `/public/letters/incoming`, dan grup menu **Letters**; dummy **Letters Form** dihapus.
+
 ## Aktual
 
 Resource di `/api`, dilindungi auth:sanctum: users, status-users, type-users, firstlogin; provinces/regencies/districts/villages; school-years/semesters/education-levels; genders/religions/blood-types/professions/family-status; education-schools/student-statuses/student-entries/student-majors/phase-statuses; students/school-levels/school-rombels/student-rombels; employees (alias deprecated: employee)/employee-statuses/employee-types/employments/marital-statuses; school-profile/subjects/activities.
-`/api/user` mengambil actor. `/api/check-auth` mengembalikan authenticated + user atau null. Route auth web mencakup login/logout/register/forgot-password/reset-password dan email verification. Sejak 05c tersedia `/api/data-quality/students/*` dan `/api/data-quality/employees/*` (enam route). Sejak 06a tersedia `/api/academic/period`, `/api/school-years/{id}/lock`, `/api/school-years/{id}/unlock`, dan `/api/employees/teacher-options`. Sejak 06b tersedia enam route `/api/academic/progression/*` (options, roster, preview, commit, batches, batches/{id}). Sejak 06c tersedia empat route `/api/academic/mutations/*` (options, schools, recap, index), empat route `/api/students/{id}/mutations*` (timeline, in, out, cancel), dan dua route `/api/students/{id}/locked-corrections` (index, store). Daftar route bukan bukti semua handler lengkap.
+`/api/user` mengambil actor. `/api/check-auth` mengembalikan authenticated + user atau null. Route auth web mencakup login/logout/register/forgot-password/reset-password dan email verification. Sejak 05c tersedia `/api/data-quality/students/*` dan `/api/data-quality/employees/*` (enam route). Sejak 06a tersedia `/api/academic/period`, `/api/school-years/{id}/lock`, `/api/school-years/{id}/unlock`, dan `/api/employees/teacher-options`. Sejak 06b tersedia enam route `/api/academic/progression/*` (options, roster, preview, commit, batches, batches/{id}). Sejak 06c tersedia empat route `/api/academic/mutations/*` (options, schools, recap, index), empat route `/api/students/{id}/mutations*` (timeline, in, out, cancel), dan dua route `/api/students/{id}/locked-corrections` (index, store). Sejak 07a tersedia sembilan route `/api/letters/incoming*` (options, list, detail, create, update, void, upload, download, remove lampiran). Daftar route bukan bukti semua handler lengkap.
 `GET /api/student-rombels/{id}` baseline memakai ID tahun ajaran untuk mengembalikan daftar keanggotaan, bukan ID membership. Pertahankan consumer atau migrasikan bersama; jangan mengubah makna `{id}` diam-diam.
 Frontend reusable memakai POST dengan `_method` untuk update/delete. Audit method/payload sebenarnya sebelum memigrasi menjadi PUT/DELETE.
 

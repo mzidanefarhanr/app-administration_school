@@ -9,6 +9,8 @@ Catatan Subfase 05b (2026-10-30, DEC-26): FR-06 bagian **impor pegawai** dan **p
 
 Catatan Subfase 05c (2026-10-31, DEC-28): FR-06 bagian **pemeriksaan kelengkapan data** tercapai — denominator eksplisit (placed students / active employees), daftar `missing`/`invalid`/`duplicate`/`blocked`, kandidat duplikat tanpa auto-merge, status review `open`/`acknowledged`/`ignored` berversi dan teraudit, serta deep link ke form koreksi yang sudah ada. Status: **IMPLEMENTED, agent-verified 2026-10-31; owner APPROVED 2026-10-31 WIB (checklist #1–#14)**. Rekap sekolah tetap **OPEN** dan menunggu contoh format (DEC-12 PROPOSED), di luar scope 05c.
 
+Catatan Subfase 07a (2026-11-01, DEC-32): FR-08 bagian **surat masuk** tercapai sebagian — agenda dengan referensi internal `#id`, tanggal terima/surat, nomor sumber opsional/tidak unik, pengirim, perihal, kategori config, catatan, lampiran privat PDF/JPG/PNG (10 MB/5 per surat), pencarian/filter, edit/void berversi, dan history immutable. Status: **IMPLEMENTED, agent-verified 2026-11-01; review pemilik PENDING**. FR-08 **belum lengkap**: disposisi, deadline, status tindak lanjut, penomoran resmi, approval/sign, dan template PDF berada di 07b/07c dan memerlukan rencana serta keputusan terpisah (DEC-06/DEC-11 tetap OPEN).
+
 ## Pengguna dan batas produk
 Pengguna utama operator; admin mengatur akses; guru/wali kelas dan kepala sekolah merupakan peran target yang perlu dipetakan ke akun aktual. Default scope satu sekolah, beberapa tahun ajaran. Multi-sekolah, portal orang tua/siswa, pembayaran, LMS lengkap, aplikasi mobile native dan integrasi otomatis pemerintah di luar roadmap awal.
 

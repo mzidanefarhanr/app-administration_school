@@ -45,7 +45,13 @@ const model = ref([
             { label: 'Teachers', icon: 'pi pi-fw pi-slack', to: '/public/teachers', requires: 'employees.view' },
             { label: 'Employees', icon: 'pi pi-fw pi-address-book', to: '/public/employees', requires: 'employees.view' },
             { label: 'Data Quality', icon: 'pi pi-fw pi-check-circle', to: '/public/data-quality', requires: ['students.view', 'employees.view'] },
-            { label: 'Letters Form', icon: 'pi pi-fw pi-book', to: '#' },
+        ]
+    },
+    {
+        label: 'Letters',
+        requires: 'letters.view',
+        items: [
+            { label: 'Incoming Letters', icon: 'pi pi-fw pi-inbox', to: '/public/letters/incoming', requires: 'letters.view' },
         ]
     },
     {
