@@ -131,7 +131,12 @@ class StudentController extends Controller
                 'nisn' => $student->nisn,
                 'gender' => $student->gender?->name,
                 'rombel' => $membership?->schoolRombel
-                    ? ['id' => $membership->schoolRombel->id, 'name' => $membership->schoolRombel->name]
+                    ? [
+                        'id' => $membership->schoolRombel->id,
+                        'name' => $membership->schoolRombel->name,
+                        'membership_id' => (int) $membership->id,
+                        'membership_version' => (int) $membership->version,
+                    ]
                     : null,
                 'placement' => $membership ? 'placed' : 'unplaced',
             ];

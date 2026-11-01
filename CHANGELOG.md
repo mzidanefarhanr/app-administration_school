@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-01] Fase 06c — Mutasi, pembatalan, rekap, dan koreksi periode locked
+- Type: Feature
+- Scope / fase: **06c saja** di atas `main` @ `da94195` (DEC-31 APPROVED). 06d, merge/deploy, migrasi database operasional/MariaDB, rekap semester/sekolah, dan perubahan dependency/service/`.env` tidak termasuk.
+- Files touched: migration `student_mutations`, `student_locked_corrections`, ability `students.correct-locked`; model `StudentMutation`/`StudentLockedCorrection`; service `StudentMutationService`/`StudentLockedCorrectionService`; empat request + dua controller; sepuluh route; guard hapus tahun; `membership_id`/`membership_version` di direktori siswa; allowlist audit `StudentRombel`; `AbilityCatalog`; fixture UAT `prepare-mutations`; tes `StudentMutationTest`; `StudentMutations.vue` + `StudentMutationTimelineDialog.vue`; dokumentasi fase.
+- What changed: mutation-in membuat membership baru (`Aktif`, entry `Mutasi Masuk`, NPSN asal) dan mutation-out menutup satu membership (`Mutasi Keluar`, exit/tujuan, versi+1) dengan log immutable `student_mutations`; pembatalan kompensatif (out membuka kembali, in mengarsipkan) memakai `expected_*_version` + `409` itemized tanpa mutasi; rekap per tahun (`mutation_in`/`mutation_out`/`graduated`/`retained`, cancelled dikecualikan); ability sensitif `students.correct-locked` + tabel immutable `student_locked_corrections` untuk lima tindakan pada tahun locked; sepuluh endpoint; UI Students → Mutations dengan rekap, log, pencarian, dialog In/Out/Cancel/Correct, dan timeline; guard hapus tahun; audit NPSN tanpa alasan/PII.
+- Why: menyelesaikan subfase terakhir Fase 06 — mutasi siswa dapat ditelusuri, status/tanggal konsisten, biodata tidak dihapus untuk mencatat keluar, dan koreksi periode locked ter-audit sesuai DEC-31.
+- Validation: `php artisan test tests/Feature/Academic/StudentMutationTest.php` **19 passed/369 assertions (10,41 s)**; `StudentDirectoryTest` **39/501**; suite penuh **467 passed/13 skipped/4.492 assertions (279,96 s)**; Pint **21 files PASS**; `route:list` **8 mutation + 2 locked-correction**; `npm run build` **PASS 30,56 s**; `npx eslint --quiet` **0 error**; UAT browser/API `.uat-phase06` (operator in/out/cancel/re-entry, kepsek view-only `403`, admin koreksi locked 0072 + approval, rekap In 41/Out 20/Graduated 1/Retained 1, 390 px, 0 console error). **NOT RUN:** MariaDB/InnoDB + trigger MySQL, race multi-proses/dua tab, benchmark volume besar, visual regression, review manual pemilik.
+- Notes / risks: server UAT 14024/18024 berjalan sampai penerimaan pemilik (DEC-27); data 06a/06b tidak di-reset; demo 0021/0081/0111/0072 dipertahankan. Review manual **PENDING (#1–#16)**; merge/deploy dan migrasi operasional tidak diotorisasi.
+- Evidence: `reports/feature-update/PHASE-06C-REPORT.md`, `reports/feature-update/PHASE-06C-MANUAL-REVIEW.md`; SHA paket review dilaporkan pada checkpoint berikutnya.
+
 ## [2026-11-01] Fase 06c — Pemilik menyetujui rencana (DEC-31 APPROVED)
 - Type: Docs
 - Scope / fase: Rencana Subfase **06c**; implementasi 06c diotorisasi. Tidak ada perubahan kode aplikasi pada entri ini.

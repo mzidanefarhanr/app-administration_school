@@ -37,7 +37,9 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\StudentDataQualityController;
 use App\Http\Controllers\StudentEntryController;
 use App\Http\Controllers\StudentExportController;
+use App\Http\Controllers\StudentLockedCorrectionController;
 use App\Http\Controllers\StudentMajorController;
+use App\Http\Controllers\StudentMutationController;
 use App\Http\Controllers\StudentProgressionController;
 use App\Http\Controllers\StudentRombelController;
 use App\Http\Controllers\StudentStatusController;
@@ -155,6 +157,32 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::get('/batches/{id}', [StudentProgressionController::class, 'showBatch'])
             ->middleware('can:students.view');
     });
+
+    // Fase 06c (DEC-31) — mutasi masuk/keluar, pembatalan, rekap, dan koreksi periode terkunci.
+    Route::prefix('academic/mutations')->group(function () {
+        Route::get('/options', [StudentMutationController::class, 'options'])
+            ->middleware('can:students.view');
+        Route::get('/schools', [StudentMutationController::class, 'schools'])
+            ->middleware('can:students.view');
+        Route::get('/recap', [StudentMutationController::class, 'recap'])
+            ->middleware('can:students.view');
+        Route::get('/', [StudentMutationController::class, 'index'])
+            ->middleware('can:students.view');
+    });
+
+    Route::get('/students/{id}/mutations', [StudentMutationController::class, 'timeline'])
+        ->middleware('can:students.view');
+    Route::post('/students/{id}/mutations/in', [StudentMutationController::class, 'mutationIn'])
+        ->middleware('can:students.manage');
+    Route::post('/students/{id}/mutations/out', [StudentMutationController::class, 'mutationOut'])
+        ->middleware('can:students.manage');
+    Route::post('/students/{id}/mutations/{mutation}/cancel', [StudentMutationController::class, 'cancel'])
+        ->middleware('can:students.manage');
+
+    Route::get('/students/{id}/locked-corrections', [StudentLockedCorrectionController::class, 'index'])
+        ->middleware('can:students.view');
+    Route::post('/students/{id}/locked-corrections', [StudentLockedCorrectionController::class, 'store'])
+        ->middleware(['can:students.manage', 'can:students.correct-locked']);
 
     // Fase 01a — penegakan kemampuan pada endpoint master/referensi.
     // Read = master.view, Write = master.manage.

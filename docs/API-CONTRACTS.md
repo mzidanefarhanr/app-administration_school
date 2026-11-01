@@ -296,9 +296,34 @@ Enam endpoint baru di `/api/academic/progression`; tanpa ability baru. Baca opsi
 
 Frontend: `StudentProgression.vue` (wizard Years → Students & Decisions → Preview → Result, keputusan persisten lintas filter, dialog `409` + **Reload & Preview Again**, riwayat/detail), route/menu Academic, dan perbaikan kartu Graduated di `Student.vue`.
 
+## Perubahan Subfase 06c (DEC-31) — mutasi, pembatalan, rekap, dan koreksi periode locked
+
+Sepuluh endpoint baru; **satu ability baru** `students.correct-locked` (sensitif, default Admin Sistem) yang wajib bersama `students.manage` hanya untuk koreksi. Baca memakai `students.view`; mutasi/pembatalan memakai `students.manage`. Tidak ada token pada 06c: setiap operasi tunggal divalidasi ulang dan diterapkan dalam satu transaksi.
+
+| Method | Endpoint | Izin | Ringkas |
+|---|---|---|---|
+| GET | `/api/academic/mutations/options?school_year_id=` | `students.view` | Tahun (tanggal, `is_locked`, `is_active`), kelas per tahun, referensi `entry_mutation_in_id=2`/`status_mutation_out_id=2`/`status_graduated_id=6`, `max_search_results=20`; tahun tidak tersedia `422` |
+| GET | `/api/academic/mutations/schools?search=` | `students.view` | Cari sekolah non-deleted berdasarkan NPSN/nama; `items` (`npsn`, `name`, tingkat) maksimum 20 |
+| GET | `/api/academic/mutations/recap?school_year_id=` | `students.view` | `year`, `period`, `mutation_in`, `mutation_out`, `graduated`, `retained`, catatan rekap semester tidak tersedia; tahun tanpa tanggal `422` |
+| GET | `/api/academic/mutations?school_year_id=&type=&status=&search=&page=` | `students.view` | Riwayat log 20/halaman; filter `in`/`out`, `active`/`cancelled`, pencarian siswa/kelas/NPSN; item memuat versi siswa/membership/mutasi |
+| GET | `/api/students/{id}/mutations` | `students.view` | Timeline siswa: ringkasan siswa, daftar mutasi kronologis, daftar koreksi locked, versi terkini |
+| POST | `/api/students/{id}/mutations/in` | `students.manage` | `school_rombel_id`, `effective_date` (`Y-m-d`), `school_npsn`, `reason` 10–255, `expected_student_version`; membuat membership baru (`Aktif`, entry `Mutasi Masuk`, NPSN asal); siswa archived/aktif membership/tahun locked/di luar rentang `422`/`409` |
+| POST | `/api/students/{id}/mutations/out` | `students.manage` | `student_rombel_id`, `effective_date`, `school_npsn`, `reason`, `expected_student_version`, `expected_membership_version`; menutup satu membership (`Mutasi Keluar`, exit date/tujuan, versi+1), biodata dan tahun lain tidak berubah |
+| POST | `/api/students/{id}/mutations/{mutation}/cancel` | `students.manage` | `reason`, `expected_student_version`, `expected_membership_version`, `expected_mutation_version`; pembatalan kompensatif: keluar memulihkan membership, masuk mengarsipkan membership (tidak menghapus); status log `cancelled` |
+| GET | `/api/students/{id}/locked-corrections` | `students.view` | Riwayat koreksi immutable siswa (aksi, before/after, aktor, alasan, approval) |
+| POST | `/api/students/{id}/locked-corrections` | `students.manage` + `students.correct-locked` | `action` (`mutation_in`/`mutation_out`/`mutation_cancel`/`membership_exit`/`membership_reopen`), `school_year_id`, target (`mutation_id`/`student_rombel_id`/`effective_date`/`school_npsn`/`target_status_id`), `reason` 10–255, `approval_reference` opsional, `expected_student_version`/`expected_membership_version`/`expected_mutation_version`; hanya tahun locked; tahun unlocked `422`; tanpa ability `403` |
+
+- **Konflik versi**: seluruh mutasi/koreksi memakai `expected_*_version`; ketidaksesuaian menghasilkan `409` dengan `errors` itemized dan `current_versions`, tanpa mutasi. Tidak ada endpoint update/delete untuk log mutasi maupun koreksi.
+- **Audit**: `StudentMutation` memakai allowlist tanpa `reason`, NIK, nama, atau alamat; `StudentRombel` menambah `mutation_education_school_id`/`latest_student_exit_school_id`; kegagalan audit me-rollback transaksi. Koreksi locked menyimpan snapshot `before`/`after` (id/status/tanggal/versi) di tabel immutable.
+- **Rekap**: `mutation_in`/`mutation_out` menghitung log `active` bertanggal dalam rentang tahun; `cancelled` dikecualikan; `graduated` menghitung siswa unik status `Lulus` dengan tanggal lulus dalam rentang; `retained` diambil dari keputusan `retain` pada batch progresi committed terbaru per siswa. Rekap semester ditunda karena `semesters` belum memiliki tanggal.
+- **UI**: section **Students → Mutations** dengan pemilih tahun sendiri (default periode aktif), kartu rekap, tabel log, pencarian siswa/sekolah, dialog In/Out/Cancel/Correct, dan dialog timeline. Tombol tulis/Correct mengikuti ability dan status lock; server tetap menegakkan `403`/`422`/`409`.
+
+Frontend: `StudentMutations.vue` (section + dialog) dan `StudentMutationTimelineDialog.vue` di `Student.vue`.
+
 ## Aktual
+
 Resource di `/api`, dilindungi auth:sanctum: users, status-users, type-users, firstlogin; provinces/regencies/districts/villages; school-years/semesters/education-levels; genders/religions/blood-types/professions/family-status; education-schools/student-statuses/student-entries/student-majors/phase-statuses; students/school-levels/school-rombels/student-rombels; employees (alias deprecated: employee)/employee-statuses/employee-types/employments/marital-statuses; school-profile/subjects/activities.
-`/api/user` mengambil actor. `/api/check-auth` mengembalikan authenticated + user atau null. Route auth web mencakup login/logout/register/forgot-password/reset-password dan email verification. Sejak 05c tersedia `/api/data-quality/students/*` dan `/api/data-quality/employees/*` (enam route). Sejak 06a tersedia `/api/academic/period`, `/api/school-years/{id}/lock`, `/api/school-years/{id}/unlock`, dan `/api/employees/teacher-options`. Sejak 06b tersedia enam route `/api/academic/progression/*` (options, roster, preview, commit, batches, batches/{id}). Daftar route bukan bukti semua handler lengkap.
+`/api/user` mengambil actor. `/api/check-auth` mengembalikan authenticated + user atau null. Route auth web mencakup login/logout/register/forgot-password/reset-password dan email verification. Sejak 05c tersedia `/api/data-quality/students/*` dan `/api/data-quality/employees/*` (enam route). Sejak 06a tersedia `/api/academic/period`, `/api/school-years/{id}/lock`, `/api/school-years/{id}/unlock`, dan `/api/employees/teacher-options`. Sejak 06b tersedia enam route `/api/academic/progression/*` (options, roster, preview, commit, batches, batches/{id}). Sejak 06c tersedia empat route `/api/academic/mutations/*` (options, schools, recap, index), empat route `/api/students/{id}/mutations*` (timeline, in, out, cancel), dan dua route `/api/students/{id}/locked-corrections` (index, store). Daftar route bukan bukti semua handler lengkap.
 `GET /api/student-rombels/{id}` baseline memakai ID tahun ajaran untuk mengembalikan daftar keanggotaan, bukan ID membership. Pertahankan consumer atau migrasikan bersama; jangan mengubah makna `{id}` diam-diam.
 Frontend reusable memakai POST dengan `_method` untuk update/delete. Audit method/payload sebenarnya sebelum memigrasi menjadi PUT/DELETE.
 

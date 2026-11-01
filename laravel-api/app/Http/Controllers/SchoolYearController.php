@@ -6,6 +6,8 @@ use App\Http\Resources\StatusResource;
 use App\Models\AcademicSetting;
 use App\Models\SchoolRombel;
 use App\Models\SchoolYear;
+use App\Models\StudentLockedCorrection;
+use App\Models\StudentMutation;
 use App\Models\StudentProgressionBatch;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -216,6 +218,26 @@ class SchoolYearController extends Controller
                 if ($batchCount > 0) {
                     abort(response()->json([
                         'message' => "This record is still being referenced by {$batchCount} progression batch(es).",
+                    ], 422));
+                }
+
+                $mutationCount = StudentMutation::query()
+                    ->where('school_year_id', $schoolYear->id)
+                    ->count();
+
+                if ($mutationCount > 0) {
+                    abort(response()->json([
+                        'message' => "This record is still being referenced by {$mutationCount} mutation log(s).",
+                    ], 422));
+                }
+
+                $correctionCount = StudentLockedCorrection::query()
+                    ->where('school_year_id', $schoolYear->id)
+                    ->count();
+
+                if ($correctionCount > 0) {
+                    abort(response()->json([
+                        'message' => "This record is still being referenced by {$correctionCount} locked correction(s).",
                     ], 422));
                 }
 

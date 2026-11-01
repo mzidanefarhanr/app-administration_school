@@ -226,7 +226,7 @@ test('cross-year history, inactive membership and legacy rows do not double coun
     $student = ($this->makeStudent)(['name' => 'History Student']);
 
     // Legacy aktif tahun terpilih (student_id null, cocok via NIK).
-    StudentRombel::create([
+    $legacy = StudentRombel::create([
         'student_nik' => $student->nik,
         'school_rombel' => $this->rombel->id,
         'student_status_id' => $this->activeStatus->id,
@@ -250,6 +250,8 @@ test('cross-year history, inactive membership and legacy rows do not double coun
 
     expect($json['data'])->toHaveCount(1)
         ->and($json['data'][0]['rombel']['name'])->toBe('UAT-10A')
+        ->and($json['data'][0]['rombel']['membership_id'])->toBe($legacy->id)
+        ->and($json['data'][0]['rombel']['membership_version'])->toBe((int) $legacy->fresh()->version)
         ->and($json['recap']['placed_count'])->toBe(1)
         ->and($json['recap']['unplaced_count'])->toBe(0)
         ->and($json['recap']['by_rombel'])->toHaveCount(1)

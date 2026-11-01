@@ -424,6 +424,363 @@ if ($command === 'prepare-progression') {
     exit(0);
 }
 
+if ($command === 'prepare-mutations') {
+    $exit = $kernel->call('migrate', ['--force' => true]);
+    fwrite(STDOUT, $kernel->output());
+    if ($exit !== 0) {
+        exit($exit);
+    }
+
+    $sourceYear = App\Models\SchoolYear::where('name', '2026/2027')->first();
+    $targetYear = App\Models\SchoolYear::where('name', '2027/2028')->first();
+    $operatorId = App\Models\User::where('username', 'uat.operator')->value('id');
+    $adminId = App\Models\User::where('username', 'uat.admin')->value('id');
+    if (! $sourceYear || ! $targetYear || ! $operatorId || ! $adminId) {
+        throw new RuntimeException('Run the prepare command first (years, classes, and UAT accounts are required).');
+    }
+
+    foreach (['Aktif', 'Mutasi Keluar', 'Drop Out', 'Mengundurkan Diri', 'Meninggal Dunia', 'Lulus'] as $statusName) {
+        App\Models\StudentStatus::firstOrCreate(['name' => $statusName]);
+    }
+    $statusActive = App\Models\StudentStatus::where('name', 'Aktif')->first();
+    $statusOut = App\Models\StudentStatus::where('name', 'Mutasi Keluar')->first();
+    $statusGraduated = App\Models\StudentStatus::where('name', 'Lulus')->first();
+    if (! $statusActive || ! $statusOut || ! $statusGraduated) {
+        throw new RuntimeException('The baseline student statuses are incomplete.');
+    }
+    if ((int) $statusGraduated->id !== App\Services\Academic\StudentMutationService::STATUS_GRADUATED
+        || (int) $statusActive->id !== App\Services\Academic\StudentMutationService::STATUS_ACTIVE
+        || (int) $statusOut->id !== App\Services\Academic\StudentMutationService::STATUS_MUTATION_OUT) {
+        throw new RuntimeException('The baseline student status IDs do not match the mutation service constants.');
+    }
+
+    $entryNew = App\Models\StudentEntry::where('name', 'Siswa Baru')->first();
+    if (! $entryNew) {
+        throw new RuntimeException('Run the prepare command first (the Siswa Baru entry is required).');
+    }
+    if (! App\Models\StudentEntry::whereKey(App\Services\Academic\StudentMutationService::ENTRY_MUTATION_IN)->exists()) {
+        Illuminate\Support\Facades\DB::table('student_entries')->insert([
+            'id' => App\Services\Academic\StudentMutationService::ENTRY_MUTATION_IN,
+            'name' => 'Mutasi Masuk',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    $province = App\Models\Province::firstOrCreate(['name' => 'Synthetic Province']);
+    $regency = App\Models\Regency::firstOrCreate(['province_id' => $province->id, 'name' => 'Synthetic Regency']);
+    $district = App\Models\District::firstOrCreate(['regency_id' => $regency->id, 'name' => 'Synthetic District']);
+    $educationLevel = App\Models\EducationLevel::firstOrCreate(['name' => 'SMA']);
+
+    // 20 sekolah sintetis dengan NPSN 8 digit unik (91xxxxxx).
+    $schools = [];
+    for ($i = 1; $i <= 20; $i++) {
+        $serial = str_pad((string) $i, 2, '0', STR_PAD_LEFT);
+        $npsn = '91'.str_pad((string) $i, 6, '0', STR_PAD_LEFT);
+        $school = App\Models\EducationSchool::withTrashed()->firstOrNew(['npsn' => $npsn]);
+        if (! $school->exists) {
+            $school->fill([
+                'name' => 'UAT-P06C School '.$serial,
+                'education_level_id' => $educationLevel->id,
+                'status_education' => 'Negeri',
+                'address' => 'Synthetic UAT school address '.$serial,
+                'district_id' => $district->id,
+            ]);
+            $school->deleted_at = null;
+            $school->save();
+        }
+        $schools[$i] = $school;
+    }
+
+    // Tahun locked non-aktif (2025/2026) untuk skenario koreksi periode terkunci.
+    $lockedYear = App\Models\SchoolYear::firstOrNew(['name' => '2025/2026']);
+    if (! $lockedYear->exists) {
+        $lockedYear->fill(['start_date' => '2025-07-01', 'end_date' => '2026-06-30']);
+    }
+    $lockedYear->deleted_at = null;
+    if ($lockedYear->locked_at === null) {
+        $lockedYear->locked_at = now();
+    }
+    $lockedYear->save();
+
+    $settings = App\Models\AcademicSetting::find(1);
+    if ($settings && (int) $settings->active_school_year_id === (int) $lockedYear->id) {
+        $settings->active_school_year_id = $sourceYear->id;
+        $settings->save();
+        fwrite(STDOUT, 'Active period moved back to 2026/2027 because the locked fixture year must not be active.'."\n");
+    }
+
+    $levels = App\Models\SchoolLevel::whereIn('name', ['X', 'XI', 'XII'])->get()->keyBy('name');
+    foreach (['X', 'XI', 'XII'] as $levelName) {
+        if (! $levels->has($levelName)) {
+            throw new RuntimeException('Run the prepare command first (school levels are required).');
+        }
+    }
+
+    $lockedClasses = [];
+    foreach ([['UAT-P06C Locked X-1', 'X'], ['UAT-P06C Locked XI-1', 'XI'], ['UAT-P06C Locked XII-1', 'XII']] as [$name, $levelName]) {
+        $class = App\Models\SchoolRombel::withTrashed()->firstOrNew(['school_year_id' => $lockedYear->id, 'name' => $name]);
+        if (! $class->exists) {
+            $class->fill(['school_level_id' => $levels[$levelName]->id]);
+            $class->deleted_at = null;
+            $class->save();
+        }
+        $lockedClasses[$name] = $class;
+    }
+
+    $classFor = function (App\Models\SchoolYear $year, string $name): App\Models\SchoolRombel {
+        $class = App\Models\SchoolRombel::where('school_year_id', $year->id)->where('name', $name)->first();
+        if (! $class) {
+            throw new RuntimeException('Missing class '.$name.' for year '.$year->name.'; run prepare first.');
+        }
+
+        return $class;
+    };
+    $sourceX1 = $classFor($sourceYear, 'X-1');
+    $sourceX2 = $classFor($sourceYear, 'X-2');
+    $sourceXI1 = $classFor($sourceYear, 'XI-1');
+    $sourceXI2 = $classFor($sourceYear, 'XI-2');
+    $targetXI1 = $classFor($targetYear, 'XI-1');
+
+    $male = App\Models\Gender::firstOrCreate(['name' => 'Laki-Laki']);
+    $female = App\Models\Gender::firstOrCreate(['name' => 'Perempuan']);
+    $religion = App\Models\Religion::firstOrCreate(['name' => 'Islam']);
+
+    $students = [];
+    for ($i = 1; $i <= 120; $i++) {
+        $serial = str_pad((string) $i, 4, '0', STR_PAD_LEFT);
+        $students[$i] = App\Models\Student::withTrashed()->firstOrCreate(
+            ['nik' => '98'.str_pad((string) $i, 14, '0', STR_PAD_LEFT)],
+            [
+                'name' => 'UAT-P06C Student '.$serial,
+                'birthplace' => 'Synthetic City',
+                'birthdate' => '2010-09-'.str_pad((string) (($i % 28) + 1), 2, '0', STR_PAD_LEFT),
+                'gender_id' => ($i % 2 === 0 ? $female : $male)->id,
+                'religion_id' => $religion->id,
+                'nis' => 'P06C-'.$serial,
+                'nisn' => '98'.str_pad((string) $i, 8, '0', STR_PAD_LEFT),
+            ]
+        );
+    }
+
+    $place = function (int $index, App\Models\SchoolRombel $class, array $attributes) use (&$students, $entryNew, $statusActive): App\Models\StudentRombel {
+        $student = $students[$index];
+        $membership = App\Models\StudentRombel::withTrashed()->firstOrNew([
+            'student_id' => $student->id,
+            'school_rombel' => $class->id,
+        ]);
+        if (! $membership->exists) {
+            $membership->fill(array_merge([
+                'student_nik' => $student->nik,
+                'student_status_id' => $statusActive->id,
+                'student_entry_id' => $entryNew->id,
+                'latest_student_entry_date' => '2026-07-01',
+                'version' => 1,
+            ], $attributes));
+            $membership->deleted_at = null;
+            $membership->save();
+        }
+
+        return $membership;
+    };
+
+    $raiseVersion = function (int $index, int $version) use (&$students): void {
+        $student = $students[$index];
+        if ((int) $student->version < $version) {
+            $student->version = $version;
+            $student->save();
+        }
+    };
+
+    $log = function (int $index, App\Models\SchoolYear $year, string $type, App\Models\SchoolRombel $class, App\Models\StudentRombel $membership, string $date, string $npsn, string $reason, array $overrides = []) use (&$students, $operatorId): App\Models\StudentMutation {
+        return App\Models\StudentMutation::firstOrCreate(
+            [
+                'student_id' => $students[$index]->id,
+                'school_year_id' => $year->id,
+                'type' => $type,
+                'effective_date' => $date,
+            ],
+            array_merge([
+                'student_rombel_id' => $membership->id,
+                'school_rombel_id' => $class->id,
+                'school_npsn' => $npsn,
+                'reason' => $reason,
+                'status' => App\Models\StudentMutation::STATUS_ACTIVE,
+                'version' => 1,
+                'created_by' => $operatorId,
+            ], $overrides)
+        );
+    };
+
+    $reasonIn = 'UAT-P06C synthetic mutation-in for a family relocation.';
+    $reasonOut = 'UAT-P06C synthetic mutation-out to the destination school.';
+    $cancelAttrs = [
+        'status' => App\Models\StudentMutation::STATUS_CANCELLED,
+        'version' => 2,
+        'cancelled_at' => now(),
+        'cancelled_by' => $adminId,
+        'cancel_reason' => 'UAT-P06C synthetic cancellation for the review scenario.',
+    ];
+
+    // 0001-0020: mutasi masuk aktif di 2026/2027 (membership baru, entry Mutasi Masuk).
+    for ($i = 1; $i <= 20; $i++) {
+        $school = $schools[(($i - 1) % 20) + 1];
+        $membership = $place($i, $sourceX1, [
+            'student_entry_id' => App\Services\Academic\StudentMutationService::ENTRY_MUTATION_IN,
+            'latest_student_entry_date' => '2026-07-15',
+            'mutation_education_school_id' => $school->npsn,
+        ]);
+        $log($i, $sourceYear, 'in', $sourceX1, $membership, '2026-07-15', $school->npsn, $reasonIn);
+        $raiseVersion($i, 2);
+    }
+
+    // 0021-0030: sudah keluar dari 2026/2027 (membership tertutup + log keluar aktif).
+    for ($i = 21; $i <= 30; $i++) {
+        $school = $schools[(($i - 1) % 20) + 1];
+        $membership = $place($i, $sourceX2, [
+            'student_status_id' => $statusOut->id,
+            'latest_student_entry_date' => '2026-07-01',
+            'latest_student_exit_date' => '2027-03-10',
+            'latest_student_exit_school_id' => $school->npsn,
+            'version' => 2,
+        ]);
+        $log($i, $sourceYear, 'out', $sourceX2, $membership, '2027-03-10', $school->npsn, $reasonOut);
+        $raiseVersion($i, 2);
+    }
+
+    // 0031-0040: keluar lalu masuk kembali (dua membership, masuk/keluar/masuk).
+    for ($i = 31; $i <= 40; $i++) {
+        $origin = $schools[(($i - 1) % 20) + 1];
+        $destination = $schools[(($i + 4) % 20) + 1];
+        $first = $place($i, $sourceX1, [
+            'student_status_id' => $statusOut->id,
+            'student_entry_id' => App\Services\Academic\StudentMutationService::ENTRY_MUTATION_IN,
+            'latest_student_entry_date' => '2026-07-20',
+            'mutation_education_school_id' => $origin->npsn,
+            'latest_student_exit_date' => '2027-01-10',
+            'latest_student_exit_school_id' => $destination->npsn,
+            'version' => 2,
+        ]);
+        $log($i, $sourceYear, 'in', $sourceX1, $first, '2026-07-20', $origin->npsn, $reasonIn);
+        $log($i, $sourceYear, 'out', $sourceX1, $first, '2027-01-10', $destination->npsn, $reasonOut);
+
+        $second = $place($i, $sourceX2, [
+            'student_entry_id' => App\Services\Academic\StudentMutationService::ENTRY_MUTATION_IN,
+            'latest_student_entry_date' => '2027-01-15',
+            'mutation_education_school_id' => $destination->npsn,
+        ]);
+        $log($i, $sourceYear, 'in', $sourceX2, $second, '2027-01-15', $destination->npsn, $reasonIn);
+        $raiseVersion($i, 4);
+    }
+
+    // 0041-0050: mutasi masuk dibatalkan (membership diarsipkan, log cancelled).
+    for ($i = 41; $i <= 50; $i++) {
+        $school = $schools[(($i - 1) % 20) + 1];
+        $membership = $place($i, $sourceXI1, [
+            'student_entry_id' => App\Services\Academic\StudentMutationService::ENTRY_MUTATION_IN,
+            'latest_student_entry_date' => '2026-08-05',
+            'mutation_education_school_id' => $school->npsn,
+            'archived_at' => now(),
+            'archive_reason' => App\Services\Academic\StudentMutationService::CANCEL_IN_ARCHIVE_REASON,
+            'version' => 2,
+        ]);
+        $log($i, $sourceYear, 'in', $sourceXI1, $membership, '2026-08-05', $school->npsn, $reasonIn, $cancelAttrs);
+        $raiseVersion($i, 3);
+    }
+
+    // 0051-0060: mutasi keluar dibatalkan (membership kembali aktif, log cancelled).
+    for ($i = 51; $i <= 60; $i++) {
+        $school = $schools[(($i - 1) % 20) + 1];
+        $membership = $place($i, $sourceXI1, [
+            'latest_student_entry_date' => '2026-07-01',
+            'version' => 3,
+        ]);
+        $log($i, $sourceYear, 'out', $sourceXI1, $membership, '2027-02-20', $school->npsn, $reasonOut, $cancelAttrs);
+        $raiseVersion($i, 3);
+    }
+
+    // 0061-0070: mutasi masuk aktif di 2027/2028 (tahun tujuan).
+    for ($i = 61; $i <= 70; $i++) {
+        $school = $schools[(($i - 1) % 20) + 1];
+        $membership = $place($i, $targetXI1, [
+            'student_entry_id' => App\Services\Academic\StudentMutationService::ENTRY_MUTATION_IN,
+            'latest_student_entry_date' => '2027-07-15',
+            'mutation_education_school_id' => $school->npsn,
+        ]);
+        $log($i, $targetYear, 'in', $targetXI1, $membership, '2027-07-15', $school->npsn, $reasonIn);
+        $raiseVersion($i, 2);
+    }
+
+    // 0071-0080: tahun locked 2025/2026 untuk koreksi periode terkunci.
+    $lockedX1 = $lockedClasses['UAT-P06C Locked X-1'];
+    $lockedXI1 = $lockedClasses['UAT-P06C Locked XI-1'];
+    $lockedXII1 = $lockedClasses['UAT-P06C Locked XII-1'];
+    $lockedSchoolA = $schools[1];
+    $lockedSchoolB = $schools[2];
+
+    // 0071: mutasi masuk aktif yang dapat dikoreksi tanggal/sekolahnya.
+    $membership = $place(71, $lockedX1, [
+        'student_entry_id' => App\Services\Academic\StudentMutationService::ENTRY_MUTATION_IN,
+        'latest_student_entry_date' => '2025-07-15',
+        'mutation_education_school_id' => $lockedSchoolA->npsn,
+    ]);
+    $log(71, $lockedYear, 'in', $lockedX1, $membership, '2025-07-15', $lockedSchoolA->npsn, $reasonIn);
+    $raiseVersion(71, 2);
+
+    // 0072: mutasi keluar aktif yang dapat dikoreksi.
+    $membership = $place(72, $lockedX1, [
+        'student_status_id' => $statusOut->id,
+        'latest_student_entry_date' => '2025-07-01',
+        'latest_student_exit_date' => '2026-03-10',
+        'latest_student_exit_school_id' => $lockedSchoolB->npsn,
+        'version' => 2,
+    ]);
+    $log(72, $lockedYear, 'out', $lockedX1, $membership, '2026-03-10', $lockedSchoolB->npsn, $reasonOut);
+    $raiseVersion(72, 2);
+
+    // 0073: membership aktif untuk koreksi exit; 0074: sudah lulus untuk reopen.
+    $place(73, $lockedXI1, ['latest_student_entry_date' => '2025-07-01']);
+    $place(74, $lockedXII1, [
+        'student_status_id' => $statusGraduated->id,
+        'latest_student_entry_date' => '2025-07-01',
+        'latest_student_graduation_date' => '2026-05-20',
+        'version' => 2,
+    ]);
+    $raiseVersion(74, 2);
+    for ($i = 75; $i <= 80; $i++) {
+        $place($i, ($i % 2 === 0 ? $lockedXI1 : $lockedX1), ['latest_student_entry_date' => '2025-07-01']);
+    }
+
+    // 0081-0100 tetap tanpa membership (kandidat mutasi masuk).
+    // 0101-0110 siswa terarsip dengan riwayat membership.
+    for ($i = 101; $i <= 110; $i++) {
+        $place($i, $sourceX2, ['latest_student_entry_date' => '2026-07-01']);
+        if (! $students[$i]->trashed()) {
+            $students[$i]->delete();
+        }
+    }
+
+    // 0111-0120 siswa aktif tanpa mutasi (kandidat mutasi keluar baru).
+    for ($i = 111; $i <= 120; $i++) {
+        $place($i, $sourceXI2, ['latest_student_entry_date' => '2026-07-01']);
+    }
+
+    $p06cStudents = App\Models\Student::withTrashed()->where('name', 'like', 'UAT-P06C Student %')->count();
+    $archivedStudents = App\Models\Student::onlyTrashed()->where('name', 'like', 'UAT-P06C Student %')->count();
+    $mutationTotal = App\Models\StudentMutation::count();
+    $mutationCancelled = App\Models\StudentMutation::where('status', App\Models\StudentMutation::STATUS_CANCELLED)->count();
+    $mutationIn = App\Models\StudentMutation::where('type', App\Models\StudentMutation::TYPE_IN)->count();
+    $mutationOut = App\Models\StudentMutation::where('type', App\Models\StudentMutation::TYPE_OUT)->count();
+    $lockedMutations = App\Models\StudentMutation::where('school_year_id', $lockedYear->id)->count();
+
+    fwrite(STDOUT, 'UAT-P06C students: '.$p06cStudents.' (120 expected; '.$archivedStudents.' archived), synthetic schools: '.count($schools).'.'."\n");
+    fwrite(STDOUT, 'Mutation logs: '.$mutationTotal.' total (active '.($mutationTotal - $mutationCancelled).', cancelled '.$mutationCancelled.'; in '.$mutationIn.', out '.$mutationOut.'; locked-year logs '.$lockedMutations.').'."\n");
+    fwrite(STDOUT, 'Locked year: 2025/2026 (non-active, locked_at set) with classes UAT-P06C Locked X-1/XI-1/XII-1, one active mutation, one closed membership, one graduation.'."\n");
+    fwrite(STDOUT, "Scenario map: 0001-0020 in; 0021-0030 out; 0031-0040 re-entry in/out/in; 0041-0050 cancelled in; 0051-0060 cancelled out; 0061-0070 target-year in; 0071-0080 locked year; 0081-0100 unplaced; 0101-0110 archived; 0111-0120 active for new mutation-out.\n");
+    fwrite(STDOUT, 'No 06a/06b data was reset.'."\n");
+    exit(0);
+}
+
 if ($command === 'status') {
     fwrite(STDOUT, "[ISOLATION GUARD PASS] Dedicated phase-06 SQLite UAT; no MariaDB connection.\n");
     $sourceYear = App\Models\SchoolYear::where('name', '2026/2027')->first();
@@ -447,7 +804,15 @@ if ($command === 'status') {
         ? (string) App\Models\StudentProgressionBatch::count()
         : 'not migrated';
     fwrite(STDOUT, 'UAT-P06B: '.App\Models\Student::where('name', 'like', 'UAT-P06B%')->count().' students; progression batches: '.$progressionBatches."\n");
+    $lockedYear = App\Models\SchoolYear::where('name', '2025/2026')->first();
+    $mutationTotal = Illuminate\Support\Facades\Schema::hasTable('student_mutations') ? App\Models\StudentMutation::count() : 'not migrated';
+    fwrite(STDOUT, 'UAT-P06C: '.App\Models\Student::withTrashed()->where('name', 'like', 'UAT-P06C Student %')->count().' students; synthetic schools: '
+        .App\Models\EducationSchool::where('name', 'like', 'UAT-P06C School %')->count().'; mutation logs: '.$mutationTotal."\n");
+    if ($lockedYear) {
+        fwrite(STDOUT, '  Locked fixture year 2025/2026: locked '.($lockedYear->locked_at ? 'yes' : 'no')
+            .', active '.((int) ($settings?->active_school_year_id ?? 0) === (int) $lockedYear->id ? 'yes' : 'no')."\n");
+    }
     exit(0);
 }
 
-throw new RuntimeException('Allowed commands: init, prepare, prepare-progression, status. Serve using PHP -S 127.0.0.1:18024 with this router.');
+throw new RuntimeException('Allowed commands: init, prepare, prepare-progression, prepare-mutations, status. Serve using PHP -S 127.0.0.1:18024 with this router.');

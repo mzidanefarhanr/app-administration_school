@@ -8,6 +8,8 @@ import apiLogin from '@/apiLogin';
 import gifSuccess from '@/assets/gif/success.gif';
 import { buildStudentExportParams } from './studentExportParams.mjs';
 import StudentImportDialog from './StudentImportDialog.vue';
+import StudentMutations from './StudentMutations.vue';
+import StudentMutationTimelineDialog from './StudentMutationTimelineDialog.vue';
 import { referenceLabel, displayReferenceOptions } from '@/utils/referenceLabels.mjs';
 
 const toast = useToast();
@@ -655,7 +657,7 @@ const groupItems = [
             { label: 'KJP',             icon: 'pi pi-wallet',                id: 'section-kjp' },
             { label: 'PPDB',            icon: 'pi pi-file-plus',             id: 'section-ppdb' },
             { label: 'Dapodik Status',  icon: 'pi pi-check-circle',          id: 'section-dapodik' },
-            { label: 'Transfer',        icon: 'pi pi-arrow-right-arrow-left',id: 'section-mutation' },
+            { label: 'Mutations',       icon: 'pi pi-arrow-right-arrow-left',id: 'section-mutation' },
         ],
     },
     {
@@ -810,6 +812,8 @@ const studentDetailDialog = ref(false);
 const archiveDialog       = ref(false);
 const archivedListDialog  = ref(false);
 const importDialog        = ref(false);
+const mutationTimelineDialog = ref(false);
+const mutationTimelineStudent = ref(null);
 const conflictDialog      = ref(false);
 const conflictMessage     = ref('');
 const conflictReloadAction = ref(null);
@@ -926,6 +930,13 @@ const viewStudentDetail = async (row) => {
     } catch (error) {
         toast.add({ severity: 'error', summary: 'Student Detail', detail: error.response?.data?.message ?? 'Failed to load student details.', life: 4000 });
     }
+};
+
+const openMutationTimeline = (row) => {
+    const id = rowStudentId(row);
+    if (!id) return;
+    mutationTimelineStudent.value = { id, name: row.name, nis: row.nis };
+    mutationTimelineDialog.value = true;
 };
 
 // Tautan dari halaman Data Quality membuka dialog detail yang sudah ada.
@@ -1475,8 +1486,9 @@ onMounted(async () => {
                             <Tag :value="data.placement === 'placed' ? 'Placed' : 'Unplaced'" :severity="data.placement === 'placed' ? 'success' : 'warn'" />
                         </template>
                     </Column>
-                    <Column header="Action" :exportable="false" style="min-width: 12rem">
+                    <Column header="Action" :exportable="false" style="min-width: 14rem">
                         <template #body="{ data }">
+                            <Button icon="pi pi-history" variant="outlined" rounded class="mr-2" v-tooltip.top="'Mutation Timeline'" @click="openMutationTimeline(data)" />
                             <Button icon="pi pi-eye" variant="outlined" rounded class="mr-2" v-tooltip.top="'View Detail'" @click="viewStudentDetail(data)" />
                             <Button v-if="canManage" icon="pi pi-pencil" variant="outlined" rounded class="mr-2" v-tooltip.top="'Edit Student'" @click="openEditStudent(data)" />
                             <Button v-if="canManage && data.placement === 'unplaced'" icon="pi pi-user-plus" variant="outlined" rounded severity="info" class="mr-2"
@@ -2194,17 +2206,7 @@ onMounted(async () => {
 
         <div class="grid grid-cols-12 mt-8 gap-8" v-show="activeGroup === 'administration' && activeSub === 'section-mutation'">
             <div id="section-mutation" class="col-span-12">
-                <div v-if="loading == true" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Student Transfers</div>
-                    <Skeleton width="100%" height="150px"></Skeleton>
-                </div>
-                <div v-else-if="school_years_pick.length == 0" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Student Transfers</div>
-                    <span>No Student Transfers found.</span>
-                </div>
-                <div v-else class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Student Transfers</div>
-                </div>
+                <StudentMutations v-if="activeSub === 'section-mutation'" @mutated="fetchDataSelected" />
             </div>
         </div>
 
@@ -2937,6 +2939,9 @@ onMounted(async () => {
             <Button label="Reload Latest" icon="pi pi-refresh" :loading="reloadingConflict" :disabled="reloadingConflict" @click="reloadAfterConflict" />
         </template>
     </Dialog>
+
+    <!-- ── 06c: Mutation timeline (read-only) ─────────────────────────────────── -->
+    <StudentMutationTimelineDialog v-model:visible="mutationTimelineDialog" :student="mutationTimelineStudent" />
 
     <!-- ── 05a: Import Students (DEC-25) ──────────────────────────────────────── -->
     <StudentImportDialog v-model:visible="importDialog" @imported="onStudentsImported" />
