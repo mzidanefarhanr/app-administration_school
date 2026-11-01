@@ -1,11 +1,11 @@
 # Rencana Fase 07 — Persuratan: Subfase 07a (Surat Masuk dan Lampiran)
 
 - Tanggal: 2026-11-01 (WIB). Branch: `main`. Baseline dokumen: `1101812` (HEAD; penerimaan 06c tercatat).
-- Status dokumen: **PLAN APPROVED — DEC-32 APPROVED 2026-11-01 WIB** berdasarkan pernyataan pemilik **"Saya setuju D1-D10"**. Implementasi 07a **selesai, agent-verified, dan OWNER APPROVED (#1–#16, 2026-11-01 WIB)**. Rencana rinci **07b** kini tersedia di `PHASE-07B-PLAN.md` dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D11)**; implementasi 07b belum diotorisasi. 07c tetap memerlukan rencana dan keputusan terpisah. Bukti: `PHASE-07A-REPORT.md`; checklist pemilik `PHASE-07A-MANUAL-REVIEW.md`.
+- Status dokumen: **PLAN APPROVED — DEC-32 APPROVED 2026-11-01 WIB** berdasarkan pernyataan pemilik **"Saya setuju D1-D10"**. Implementasi 07a **selesai, agent-verified, dan OWNER APPROVED (#1–#16, 2026-11-01 WIB)**. Rencana rinci **07b** tersedia di `PHASE-07B-PLAN.md` dan **APPROVED 2026-11-01 WIB sebagai DEC-33** ("Saya setuju D1-D11"); implementasi 07b diotorisasi dan **DEC-06 ditutup**. 07c tetap memerlukan rencana dan keputusan terpisah. Bukti: `PHASE-07A-REPORT.md`; checklist pemilik `PHASE-07A-MANUAL-REVIEW.md`.
 - Cakupan: **07a saja** — agenda surat masuk (tanggal terima/tanggal surat, nomor sumber, pengirim, perihal, kategori, catatan), lampiran privat, pencarian/filter, edit/void berversi, dan history. Layanan file minimal dibuat di sini dan diperluas pada Fase 09.
 - Di luar cakupan: **07b** (disposisi, surat keluar, penomoran, approval/sign), **07c** (template PDF, snapshot, kop/tanda tangan/stempel), OCR, e-sign provider, pengiriman email/WhatsApp otomatis, arsip terpusat/versioning Fase 09, retensi/pemusnahan data pribadi (DEC-13), merge/deploy, migrasi database operasional/MariaDB, perubahan dependency/lockfile/`.env`/service.
 - Dokumen acuan: `roadmap/phases/PHASE-07-LETTERS.md`, `roadmap/ROADMAP.md`, `docs/DECISIONS.md` (DEC-06, DEC-11, DEC-13, DEC-27), `docs/DATABASE.md`, `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `docs/OPERATIONS.md`, `docs/TESTING.md`, `reports/feature-update/PHASE-06C-PLAN.md`.
-- Gate: 06c **OWNER APPROVED 2026-11-01 WIB (#1–#16)**; **DEC-06 dan DEC-11 tetap OPEN** dan hanya menjadi gate untuk 07b/07c, bukan untuk 07a. Tidak ada PDF library terpasang; 07c memerlukan keputusan dependency terpisah. **D1–D10 APPROVED 2026-11-01 WIB sebagai DEC-32**; implementasi 07a selesai sesuai rencana ini.
+- Gate: 06c **OWNER APPROVED 2026-11-01 WIB (#1–#16)**; **DEC-11 tetap OPEN** dan hanya menjadi gate 07c; **DEC-06 CLOSED** melalui DEC-33 (D4–D5) untuk 07b. Tidak ada PDF library terpasang; 07c memerlukan keputusan dependency terpisah. **D1–D10 APPROVED 2026-11-01 WIB sebagai DEC-32**; implementasi 07a selesai sesuai rencana ini.
 
 ---
 
@@ -22,7 +22,7 @@
 | Data untuk 07c | Siswa dan pegawai sudah tersedia untuk auto-fill; letterhead/signatory/stempel belum ada di `school_profiles` | Gap 07c, bukan 07a |
 | PDF | Tidak ada library PDF di `composer.json`/`composer.lock` | Gate dependency 07c |
 | UAT | `.uat-phase06` dipertahankan; server 14024/18024 berhenti; belum ada `.uat-phase07` | Perlu lingkungan baru |
-| Keputusan | DEC-06 (format/approval/signatory surat) dan DEC-11 (kop/tanda tangan/stempel/jenis surat pertama) **OPEN** | Gate 07b/07c, bukan 07a |
+| Keputusan | DEC-06 **CLOSED** melalui DEC-33/D4–D5 (07b); DEC-11 (kop/tanda tangan/stempel/jenis surat pertama) **OPEN** | DEC-11 gate 07c |
 
 Catatan: seluruh kondisi di atas diverifikasi dari source, migration, konfigurasi, dan dokumen aktual, bukan dari data operasional.
 
@@ -542,8 +542,8 @@ HANDOFF dan ROADMAP. Berhenti setelah hasil subfase siap review; jangan lanjut
 
 ### 07b — Disposisi, surat keluar, dan nomor
 
-- **Rencana rinci:** `reports/feature-update/PHASE-07B-PLAN.md` (baseline `aec356c`; **PLAN — AWAITING OWNER APPROVAL (D1–D11)**). Rencana ini menggantikan gambaran singkat di bawah setelah disetujui.
-- Gate: **DEC-06** (format nomor, reset counter, pejabat penandatangan, kapan nomor diterbitkan) dan bagian DEC-11 yang menyangkut alur approval/signatory. D4–D5 pada rencana 07b mengajukan penyelesaian DEC-06; keputusan dicatat sebagai **DEC-33** setelah disetujui.
+- **Rencana rinci:** `reports/feature-update/PHASE-07B-PLAN.md` (baseline `aec356c`; **PLAN APPROVED — DEC-33 APPROVED 2026-11-01 WIB**, "Saya setuju D1-D11"; implementasi dikerjakan). Rencana ini menggantikan gambaran singkat di bawah.
+- Gate: **DEC-06 CLOSED** melalui D4–D5/DEC-33 (format nomor `{seq:03d}/{school_code}/{year}`, counter global tahunan, nomor saat issue, approver/signatory terpisah). Bagian DEC-11 yang menyangkut kop/tanda tangan/stempel tetap menjadi gate 07c.
 - Rencana: `letter_dispositions` (penerima/tenggat/status/tindak lanjut), surat keluar pada `letters` (`direction='outgoing'`) dengan status `draft → review → approved → issued/cancelled`, `letter_approvals`, dan `letter_number_counters` atomik per tahun; approver/signatory memakai `letters.approve`/`letters.sign`, terpisah dari admin teknis.
 - Verifikasi minimum: dua penerbitan paralel tidak menghasilkan nomor ganda; transisi status tidak meloncat; pengguna tanpa mandat tidak dapat approve/issue; pembatalan dan audit utuh; replay-safe.
 - Tidak ada implementasi 07b pada paket rencana; jangan menebak format nomor atau identitas penandatangan.

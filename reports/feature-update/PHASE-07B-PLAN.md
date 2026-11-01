@@ -1,11 +1,11 @@
 # Rencana Fase 07 — Subfase 07b (Disposisi, Surat Keluar, dan Nomor)
 
-- Tanggal: 2026-11-01 (WIB). Branch: `main`. Baseline dokumen: `aec356c` (HEAD; penerimaan 07a tercatat dan UAT 07a dihentikan).
-- Status dokumen: **PLAN — AWAITING OWNER APPROVAL (D1–D11)**. Belum ada implementasi, migration, tes, atau UAT pada paket ini.
+- Tanggal: 2026-11-01 (WIB). Branch: `main`. Baseline dokumen: `c4bd338` (paket rencana 07b; audit baseline `aec356c`).
+- Status dokumen: **PLAN APPROVED — DEC-33 APPROVED 2026-11-01 WIB** berdasarkan pernyataan pemilik **"Saya setuju D1-D11"**. Implementasi **07b diotorisasi**; bukti implementasi dicatat pada laporan 07b setelah verifikasi. D4–D5 menutup **DEC-06**.
 - Cakupan: **07b saja** — disposisi surat masuk (penerima, tenggat, status, tindak lanjut), surat keluar dengan alur draft → review → approved → issued/cancelled, penomoran resmi yang unik dan atomik, serta approval/sign yang terpisah dari admin teknis.
 - Di luar cakupan: **07c** (template PDF, kop, tanda tangan gambar, stempel, snapshot dokumen), OCR, e-sign provider, email/WhatsApp otomatis, arsip/versioning Fase 09, retensi DEC-13, merge/deploy, migrasi database operasional/MariaDB, perubahan dependency/lockfile/`.env`/service.
-- Dokumen acuan: `roadmap/phases/PHASE-07-LETTERS.md` (07b), `roadmap/ROADMAP.md`, `docs/DECISIONS.md` (DEC-06, DEC-11, DEC-13, DEC-27, DEC-32), `docs/REQUIREMENTS.md` (FR-08, FR-09, aturan nomor/approval), `docs/DATABASE.md`, `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `reports/feature-update/PHASE-07A-REPORT.md`, `reports/feature-update/PHASE-07A-MANUAL-REVIEW.md`.
-- Gate: 07a **IMPLEMENTED + agent-verified + OWNER APPROVED 2026-11-01 WIB (#1–#16)**. **DEC-06 tetap OPEN** dan keputusannya diajukan melalui D4–D5; **DEC-11 tetap OPEN** dan hanya mengikat 07c; **DEC-13 tetap OPEN**. Paket ini tidak menebak format nomor, pejabat penandatangan, atau kapan nomor diterbitkan.
+- Dokumen acuan: `roadmap/phases/PHASE-07-LETTERS.md` (07b), `roadmap/ROADMAP.md`, `docs/DECISIONS.md` (DEC-06, DEC-11, DEC-13, DEC-27, DEC-32, DEC-33), `docs/REQUIREMENTS.md` (FR-08, FR-09, aturan nomor/approval), `docs/DATABASE.md`, `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `reports/feature-update/PHASE-07A-REPORT.md`, `reports/feature-update/PHASE-07A-MANUAL-REVIEW.md`.
+- Gate: 07a **IMPLEMENTED + agent-verified + OWNER APPROVED 2026-11-01 WIB (#1–#16)**. **DEC-06 CLOSED** melalui D4–D5/DEC-33; **DEC-11 tetap OPEN** dan hanya mengikat 07c; **DEC-13 tetap OPEN**.
 
 ---
 
@@ -136,7 +136,7 @@ Setelah S9, berhenti untuk review pemilik. Tidak ada merge, deploy, atau lanjuta
 
 ## 4. Keputusan yang perlu pemilik (D1–D11)
 
-Rekomendasi ditulis sebagai default. Setelah disetujui, keputusan dicatat sebagai **DEC-33** sebelum implementasi; D4–D5 sekaligus menyelesaikan **DEC-06**.
+Rekomendasi ditulis sebagai default. **D1–D11 APPROVED 2026-11-01 WIB** berdasarkan pernyataan pemilik **"Saya setuju D1-D11"** dan dicatat sebagai **DEC-33**; **DEC-06 CLOSED** melalui D4–D5. Implementasi 07b mengikuti keputusan ini tanpa menebak format/penandatangan di luar D4–D5.
 
 | # | Pertanyaan | Rekomendasi | Alternatif / dampak |
 |---|---|---|---|
@@ -563,7 +563,7 @@ Frontend/UX: browser checks untuk outgoing draft/edit/submit/approve/reject/issu
 
 ## 9. Non-goals dan batas otorisasi
 
-- Tidak ada implementasi 07b sebelum **D1–D11 disetujui** dan dicatat sebagai **DEC-33**; D4–D5 juga harus disetujui agar **DEC-06** dapat ditutup.
+- Implementasi 07b diotorisasi oleh **DEC-33 APPROVED 2026-11-01 WIB** ("Saya setuju D1-D11"); **DEC-06 CLOSED** melalui D4–D5. Otorisasi ini tidak mencakup 07c, merge/deploy, migrasi DB operasional/MariaDB, atau perubahan dependency/service/`.env`.
 - Tidak ada 07c: template PDF, kop surat, tanda tangan gambar, stempel, snapshot biodata/penandatangan, render PDF, atau dependency PDF.
 - Tidak ada OCR, e-sign provider, email/WhatsApp otomatis, notifikasi, delegasi approval, multi-level approval, atau akun otomatis untuk penerima disposisi.
 - Tidak ada nomor manual, edit nomor setelah terbit, pemakaian ulang nomor, atau reset counter manual lewat UI.
@@ -590,7 +590,7 @@ Frontend/UX: browser checks untuk outgoing draft/edit/submit/approve/reject/issu
 | D10 | Event/approval ledger immutable; audit allowlist tanpa catatan/nama penerima; metadata minimal |
 | D11 | UAT `.uat-phase07` + fixture additive; server dihentikan setelah penerimaan; non-goals 07c/merge/deploy/dependency |
 
-Bila pemilik menyetujui seluruhnya, implementasi **07b** diotorisasi dan akan dikerjakan setelah keputusan dicatat sebagai **DEC-33**; D4–D5 sekaligus menutup **DEC-06**. Bila ada yang diubah, rencana dan matriks tes disesuaikan sebelum implementasi.
+Pemilik menyetujui seluruhnya pada 2026-11-01 WIB (**"Saya setuju D1-D11"**); keputusan dicatat sebagai **DEC-33 APPROVED** dan **DEC-06 ditutup** melalui D4–D5. Implementasi 07b dikerjakan sesuai D1–D11; bukti verifikasi dicatat di `PHASE-07B-REPORT.md` setelah selesai.
 
 ---
 
@@ -613,7 +613,7 @@ subfase siap review; jangan lanjut 07c atau merge/deploy.
 
 ## 12. Syarat keluar 07b
 
-- [ ] D1–D11 disetujui dan dicatat sebagai DEC-33; DEC-06 ditutup dengan format/reset/issue timing/signatory yang eksplisit.
+- [x] D1–D11 disetujui dan dicatat sebagai **DEC-33 APPROVED 2026-11-01 WIB**; **DEC-06 ditutup** dengan format/reset/issue timing/signatory eksplisit (D4–D5).
 - [ ] Scope 07b selesai atau partial/blocker dijelaskan.
 - [ ] Kontrak request/response/schema/permission yang berubah didokumentasikan di DATABASE/API-CONTRACTS/ACCESS-CONTROL/OPERATIONS/REQUIREMENTS.
 - [ ] Tes relevan benar-benar dijalankan atau NOT RUN dengan alasan; hasil aktual dicatat (termasuk jumlah tes/assertions).
