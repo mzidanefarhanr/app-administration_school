@@ -542,7 +542,7 @@ HANDOFF dan ROADMAP. Berhenti setelah hasil subfase siap review; jangan lanjut
 
 ### 07b — Disposisi, surat keluar, dan nomor
 
-- **Rencana rinci:** `reports/feature-update/PHASE-07B-PLAN.md` (baseline `aec356c`; **PLAN APPROVED — DEC-33 APPROVED 2026-11-01 WIB**, "Saya setuju D1-D11"; implementasi dikerjakan). Rencana ini menggantikan gambaran singkat di bawah.
+- **Rencana rinci:** `reports/feature-update/PHASE-07B-PLAN.md` (baseline `aec356c`; **PLAN APPROVED — DEC-33 APPROVED 2026-11-01 WIB**, "Saya setuju D1-D11"). **Status implementasi: IMPLEMENTED — agent-verified 2026-11-01; review manual pemilik PENDING.** Bukti di `PHASE-07B-REPORT.md`; checklist di `PHASE-07B-MANUAL-REVIEW.md`. Rencana ini menggantikan gambaran singkat di bawah.
 - Gate: **DEC-06 CLOSED** melalui D4–D5/DEC-33 (format nomor `{seq:03d}/{school_code}/{year}`, counter global tahunan, nomor saat issue, approver/signatory terpisah). Bagian DEC-11 yang menyangkut kop/tanda tangan/stempel tetap menjadi gate 07c.
 - Rencana: `letter_dispositions` (penerima/tenggat/status/tindak lanjut), surat keluar pada `letters` (`direction='outgoing'`) dengan status `draft → review → approved → issued/cancelled`, `letter_approvals`, dan `letter_number_counters` atomik per tahun; approver/signatory memakai `letters.approve`/`letters.sign`, terpisah dari admin teknis.
 - Verifikasi minimum: dua penerbitan paralel tidak menghasilkan nomor ganda; transisi status tidak meloncat; pengguna tanpa mandat tidak dapat approve/issue; pembatalan dan audit utuh; replay-safe.

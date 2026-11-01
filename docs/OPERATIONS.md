@@ -56,6 +56,15 @@ Retensi, jadwal, enkripsi, lokasi salinan, RPO (kehilangan data maksimal) dan RT
 - Backup sudah memindai `config('backup.attachments_path')` (`storage/app/attachments`), sehingga lampiran surat ikut dalam pemindaian filesystem. Manifest `BackupService` kini menyebut lampiran surat operasional dan menandai **restore drill dengan lampiran surat NOT RUN**. Restore drill belum dijalankan pada 07a; jangan mengklaim recoverability lampiran sebelum drill dilakukan pada target disposable.
 - Surat void tetap menyimpan lampiran dan tetap dapat diunduh oleh `letters.view`; tidak ada hard delete surat atau file pada 07a.
 
+## Surat keluar, nomor resmi, approval/sign, dan disposisi (Fase 07b — DEC-33)
+- **Nomor resmi** dibuat server saat transisi `approved→issued`; format default `{seq:03d}/{school_code}/{year}` (contoh `001/20512345/2026`). `school_code` dibaca dari `LETTERS_NUMBER_SCHOOL_CODE` (config `letters.numbering.school_code`) atau NPSN sekolah aktif; bila kosong, issue ditolak `422` sampai konfigurasi diisi. **Tidak ada perubahan `.env` operasional pada 07b**; nilai pada UAT terisolasi bersifat sintetis.
+- Counter disimpan di `letter_number_counters` per `(scope=outgoing, period=YYYY)`, dikunci `lockForUpdate` dalam transaksi issue; `official_number` juga unique di database. Nomor tidak dipakai ulang setelah cancel, counter tidak mundur, dan issue ulang/replay ditolak `409` tanpa nomor baru.
+- **Pemisahan tugas**: approve/reject membutuhkan `letters.approve`, issue/sign membutuhkan `letters.sign`; pembuat tidak dapat menyetujui/menandatangani suratnya sendiri (`403`). Admin teknis tidak otomatis berwenang; pemberian ability dilakukan lewat pengaturan peran, bukan perubahan kode.
+- **Lifecycle**: `draft→review→approved→issued`; reject kembali ke `draft`; `cancelled` final dengan `status=void`. Tidak ada un-cancel, edit nomor, issue massal, atau delete surat. Nomor yang sudah terbit tetap tercatat pada surat cancelled.
+- **Disposisi**: hanya surat masuk dan pegawai aktif; penerima tanpa akun tetap dapat didisposisi dan status dicatat operator. Disposisi terbuka (`pending`/`in_progress`) memblokir void surat (`409`); overdue dihitung saat baca. Tidak ada notifikasi email/WhatsApp pada 07b.
+- **Lampiran** outgoing memakai mekanisme privat 07a dan hanya dapat diubah pada status draft; file tetap disimpan setelah soft delete sampai DEC-13. Tidak ada PDF/template/snapshot (07c/DEC-11).
+- **UAT**: server 14025/18025 tetap berjalan sampai penerimaan pemilik; setelah diterima dihentikan sesuai DEC-27 (data `.uat-phase07` dipertahankan, perintah restart ada di `PHASE-07B-MANUAL-REVIEW.md`). Backup/restore drill dengan tabel dan nomor 07b belum dijalankan; jangan mengklaim recoverability sebelum drill pada target disposable.
+
 ## Restore drill
 1. Pilih backup fixture sintetis dan target terisolasi; verifikasi target bukan DB/storage aktif.
 2. Periksa manifest/checksum dan kompatibilitas schema; dokumentasikan app commit yang diperlukan.

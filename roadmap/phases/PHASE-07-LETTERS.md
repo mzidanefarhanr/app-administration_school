@@ -1,8 +1,8 @@
 # Fase 07 — Persuratan dan generator dokumen
 
-Status teknis: **07a IMPLEMENTED dan diverifikasi agen 2026-11-01**; **07b PLAN APPROVED (DEC-33, 2026-11-01) — implementasi dikerjakan**; 07c NOT STARTED. Status review: **07a APPROVED 2026-11-01 WIB (#1–#16)** berdasarkan "Pengujian nomor 1-16 sudah berhasil dan saya approved."; server UAT dihentikan setelah penerimaan (DEC-27).
-Status rencana: **PLAN 07a APPROVED — DEC-32 APPROVED 2026-11-01 WIB** ("Saya setuju D1-D10"); implementasi 07a selesai. Rencana 07a di `reports/feature-update/PHASE-07-PLAN.md` (baseline `1101812`); rencana rinci 07b di `reports/feature-update/PHASE-07B-PLAN.md` (baseline `aec356c`) berstatus **PLAN APPROVED — DEC-33 APPROVED 2026-11-01 WIB** ("Saya setuju D1-D11"); laporan `PHASE-07A-REPORT.md`. **DEC-06 CLOSED** melalui D4–D5/DEC-33; DEC-11 dan DEC-13 tetap OPEN.
-Dependensi: 01,02; siswa/guru siap untuk auto-fill; DEC-11. Baseline implementasi 07a: `f46f736`; baseline rencana 07b: `aec356c`; paket rencana 07b: `c4bd338`.
+Status teknis: **07a IMPLEMENTED dan diverifikasi agen 2026-11-01**; **07b IMPLEMENTED dan diverifikasi agen 2026-11-01**; 07c NOT STARTED. Status review: **07a APPROVED 2026-11-01 WIB (#1–#16)** berdasarkan "Pengujian nomor 1-16 sudah berhasil dan saya approved."; **07b PENDING review pemilik** (`PHASE-07B-MANUAL-REVIEW.md`); server UAT 07a dihentikan setelah penerimaan (DEC-27), server 07b tetap berjalan sampai penerimaan.
+Status rencana: **PLAN 07a APPROVED — DEC-32 APPROVED 2026-11-01 WIB** ("Saya setuju D1-D10"); implementasi 07a selesai. Rencana 07a di `reports/feature-update/PHASE-07-PLAN.md` (baseline `1101812`); rencana rinci 07b di `reports/feature-update/PHASE-07B-PLAN.md` (baseline `aec356c`) berstatus **PLAN APPROVED — DEC-33 APPROVED 2026-11-01 WIB** ("Saya setuju D1-D11"); laporan `PHASE-07A-REPORT.md` dan `PHASE-07B-REPORT.md`. **DEC-06 CLOSED** melalui D4–D5/DEC-33; DEC-11 dan DEC-13 tetap OPEN.
+Dependensi: 01,02; siswa/guru siap untuk auto-fill; DEC-11. Baseline implementasi 07a: `f46f736`; baseline rencana/implementasi 07b: `aec356c`/`d326369`; paket rencana 07b: `c4bd338`.
 
 ## Tujuan dan scope
 Persuratan dan generator dokumen. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Tidak ada pekerjaan implementasi yang telah dilakukan dalam penyusunan dokumen ini.
@@ -32,13 +32,15 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 ```
 
 ### 07b — Disposisi, surat keluar dan nomor
-Status: **PLAN APPROVED — DEC-33 APPROVED 2026-11-01 WIB** ("Saya setuju D1-D11"); implementasi 07b dikerjakan. Rencana rinci tersedia di `reports/feature-update/PHASE-07B-PLAN.md` (baseline `aec356c`; paket rencana `c4bd338`); **DEC-06 CLOSED** melalui D4–D5 (format nomor `{seq:03d}/{school_code}/{year}`, counter global tahunan, nomor saat issue, approver/signatory terpisah). DEC-11/DEC-13 tetap OPEN.
+Status: **IMPLEMENTED + agent-verified 2026-11-01; review pemilik PENDING**. **DEC-33 APPROVED 2026-11-01 WIB** ("Saya setuju D1-D11"); rencana rinci `reports/feature-update/PHASE-07B-PLAN.md` (baseline `aec356c`; paket rencana `c4bd338`); laporan `PHASE-07B-REPORT.md`; checklist `PHASE-07B-MANUAL-REVIEW.md`. **DEC-06 CLOSED** melalui D4–D5 (format nomor `{seq:03d}/{school_code}/{year}`, counter global tahunan, nomor saat issue, approver/signatory terpisah). DEC-11/DEC-13 tetap OPEN.
 
 Scope: Disposisi penerima/tenggat/status dan tindak lanjut; draft→review→approved→issued/cancelled sesuai keputusan; nomor unik atomik dan replay safe; approver/signatory terpisah dari admin teknis.
 
 Desain disetujui: kolom additive `recipient`/`official_number`/`workflow_status`/`approved_*`/`issued_*` pada `letters` tanpa mengubah kolom lama; tabel `letter_dispositions` (penerima pegawai, tenggat, status, tindak lanjut, versi, pembatalan), `letter_approvals` immutable, `letter_number_counters` unik per `(scope, period)`; nomor diberikan saat issue; `letters.approve` untuk approve/reject dan `letters.sign` untuk issue/sign, drafter tidak dapat menyetujui/menandatangani sendiri; disposisi hanya surat masuk dan disposisi terbuka memblokir void (`409`); enam endpoint disposisi + 13 endpoint outgoing; audit allowlist; fixture UAT additive `.uat-phase07`.
 
 Kriteria penerimaan: Pengguna tanpa mandat tidak approve/issue; dua penerbitan paralel tidak duplikat; pembatalan/audit utuh; status tidak meloncat.
+
+Bukti implementasi: empat migration additive (`letters` fields, `letter_dispositions`, `letter_approvals`, `letter_number_counters`); service outgoing/penomoran/disposisi; 28 route surat total; halaman Outgoing Letters + Dispositions + panel Incoming; **35 tes 07b/531 assertions**, suite **522 passed/13 skipped/5.320 assertions**, Pint 31 file, build 41,94 s, ESLint 0; UAT `.uat-phase07` 46 outgoing/32 disposisi dengan browser/API operator, kepsek, waka. Detail dan NOT RUN: `PHASE-07B-REPORT.md`.
 
 Prompt setelah subfase ini dipilih:
 ```text
