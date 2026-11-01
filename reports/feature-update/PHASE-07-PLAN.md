@@ -1,7 +1,7 @@
 # Rencana Fase 07 — Persuratan: Subfase 07a (Surat Masuk dan Lampiran)
 
 - Tanggal: 2026-11-01 (WIB). Branch: `main`. Baseline dokumen: `1101812` (HEAD; penerimaan 06c tercatat).
-- Status dokumen: **PLAN APPROVED — DEC-32 APPROVED 2026-11-01 WIB** berdasarkan pernyataan pemilik **"Saya setuju D1-D10"**. Implementasi 07a **selesai, agent-verified, dan OWNER APPROVED (#1–#16, 2026-11-01 WIB)**; 07b/07c tetap memerlukan rencana dan keputusan terpisah. Bukti: `PHASE-07A-REPORT.md`; checklist pemilik `PHASE-07A-MANUAL-REVIEW.md`.
+- Status dokumen: **PLAN APPROVED — DEC-32 APPROVED 2026-11-01 WIB** berdasarkan pernyataan pemilik **"Saya setuju D1-D10"**. Implementasi 07a **selesai, agent-verified, dan OWNER APPROVED (#1–#16, 2026-11-01 WIB)**. Rencana rinci **07b** kini tersedia di `PHASE-07B-PLAN.md` dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D11)**; implementasi 07b belum diotorisasi. 07c tetap memerlukan rencana dan keputusan terpisah. Bukti: `PHASE-07A-REPORT.md`; checklist pemilik `PHASE-07A-MANUAL-REVIEW.md`.
 - Cakupan: **07a saja** — agenda surat masuk (tanggal terima/tanggal surat, nomor sumber, pengirim, perihal, kategori, catatan), lampiran privat, pencarian/filter, edit/void berversi, dan history. Layanan file minimal dibuat di sini dan diperluas pada Fase 09.
 - Di luar cakupan: **07b** (disposisi, surat keluar, penomoran, approval/sign), **07c** (template PDF, snapshot, kop/tanda tangan/stempel), OCR, e-sign provider, pengiriman email/WhatsApp otomatis, arsip terpusat/versioning Fase 09, retensi/pemusnahan data pribadi (DEC-13), merge/deploy, migrasi database operasional/MariaDB, perubahan dependency/lockfile/`.env`/service.
 - Dokumen acuan: `roadmap/phases/PHASE-07-LETTERS.md`, `roadmap/ROADMAP.md`, `docs/DECISIONS.md` (DEC-06, DEC-11, DEC-13, DEC-27), `docs/DATABASE.md`, `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `docs/OPERATIONS.md`, `docs/TESTING.md`, `reports/feature-update/PHASE-06C-PLAN.md`.
@@ -542,10 +542,11 @@ HANDOFF dan ROADMAP. Berhenti setelah hasil subfase siap review; jangan lanjut
 
 ### 07b — Disposisi, surat keluar, dan nomor
 
-- Gate: **DEC-06** (format nomor, reset counter, pejabat penandatangan, kapan nomor diterbitkan) dan bagian DEC-11 yang menyangkut alur approval/signatory.
-- Rencana yang akan disusun: `letter_dispositions` (penerima/tenggat/status/tindak lanjut), surat keluar pada `letters` (`direction='outgoing'`) dengan status `draft → review → approved → issued/cancelled`, `letter_approvals`, dan `letter_number_counters` atomik per tahun; approver/signatory memakai `letters.approve`/`letters.sign`, terpisah dari admin teknis.
+- **Rencana rinci:** `reports/feature-update/PHASE-07B-PLAN.md` (baseline `aec356c`; **PLAN — AWAITING OWNER APPROVAL (D1–D11)**). Rencana ini menggantikan gambaran singkat di bawah setelah disetujui.
+- Gate: **DEC-06** (format nomor, reset counter, pejabat penandatangan, kapan nomor diterbitkan) dan bagian DEC-11 yang menyangkut alur approval/signatory. D4–D5 pada rencana 07b mengajukan penyelesaian DEC-06; keputusan dicatat sebagai **DEC-33** setelah disetujui.
+- Rencana: `letter_dispositions` (penerima/tenggat/status/tindak lanjut), surat keluar pada `letters` (`direction='outgoing'`) dengan status `draft → review → approved → issued/cancelled`, `letter_approvals`, dan `letter_number_counters` atomik per tahun; approver/signatory memakai `letters.approve`/`letters.sign`, terpisah dari admin teknis.
 - Verifikasi minimum: dua penerbitan paralel tidak menghasilkan nomor ganda; transisi status tidak meloncat; pengguna tanpa mandat tidak dapat approve/issue; pembatalan dan audit utuh; replay-safe.
-- Tidak ada implementasi pada paket ini; jangan menebak format nomor atau identitas penandatangan.
+- Tidak ada implementasi 07b pada paket rencana; jangan menebak format nomor atau identitas penandatangan.
 
 ### 07c — Template PDF dan snapshot
 

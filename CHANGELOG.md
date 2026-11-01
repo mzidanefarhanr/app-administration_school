@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-01] Fase 07 — Rencana disposisi, surat keluar, dan nomor disiapkan (PLAN 07b, D1–D11 PROPOSED)
+- Type: Docs
+- Scope / fase: Rencana Subfase **07b** saja; tidak ada perubahan kode, migration, tes, atau UAT. Implementasi 07b belum diotorisasi.
+- Files touched: `reports/feature-update/PHASE-07B-PLAN.md` (baru), `reports/feature-update/PHASE-07-PLAN.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-07-LETTERS.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: menambahkan rencana rinci 07b — kolom additive pada `letters`, tabel `letter_dispositions`/`letter_approvals`/`letter_number_counters`, transisi `draft → review → approved → issued/cancelled`, disposisi ke pegawai dengan tenggat/status/tindak lanjut, penomoran atomik tahunan `{seq:03d}/{school_code}/{year}` saat issue, approval/sign terpisah dari admin teknis, enam endpoint disposisi + 13 endpoint outgoing, tiga halaman UI, matriks tes T1–T26, dan UAT additive `.uat-phase07`.
+- Why: menyiapkan subfase kedua Fase 07 agar pemilik dapat memutuskan format nomor, mandat approval/sign, semantik disposisi, dan pembekuan edit sebelum implementasi; DEC-06 tidak ditebak.
+- Validation: pemeriksaan dokumen, kode, route, migration, config, dan tautan. **NOT RUN:** tidak ada tes/build/browser/UAT pada entri dokumentasi ini; implementasi 07b belum dimulai.
+- Notes / risks: implementasi 07b menunggu persetujuan **D1–D11** dan pencatatan **DEC-33**; **DEC-06 tetap OPEN** sampai D4–D5 disetujui; DEC-11 (07c) dan DEC-13 (retensi) tetap OPEN. Tidak ada merge/deploy, migrasi DB operasional/MariaDB, atau perubahan dependency/service/`.env`.
+- Evidence: `reports/feature-update/PHASE-07B-PLAN.md`; SHA commit paket dokumen dilaporkan pada checkpoint berikutnya.
+
 ## [2026-11-01] Fase 07a — Pemilik menyetujui hasil implementasi (checklist #1–#16)
 - Type: Docs
 - Scope / fase: Penerimaan manual Subfase 07a; tidak ada perubahan kode aplikasi pada entri ini.
