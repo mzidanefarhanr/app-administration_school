@@ -4,9 +4,11 @@ namespace App\Services\Leaves;
 
 use App\Models\AcademicSetting;
 use App\Models\Employee;
+use App\Models\EmployeeType;
 use App\Models\LeaveAttachment;
 use App\Models\LeaveDecision;
 use App\Models\LeaveRequest;
+use App\Models\SchoolRombel;
 use App\Models\SchoolYear;
 use App\Models\Student;
 use App\Models\StudentRombel;
@@ -54,6 +56,8 @@ class LeaveRequestService
 
         $activeYear = $this->activeSchoolYear();
         $selfEmployee = $actor->hasAbility('leaves.request') ? $this->selfEmployee($actor) : null;
+        $canView = $actor->hasAbility('leaves.view');
+        $canDecide = $actor->hasAbility('leaves.approve') && $canView;
 
         return [
             'types' => $types,
@@ -68,6 +72,7 @@ class LeaveRequestService
             'max_range_days' => (int) config('leaves.max_range_days'),
             'reason' => config('leaves.reason'),
             'cancel_reason' => config('leaves.cancel_reason'),
+            'decision_reason' => $actor->hasAbility('leaves.approve') ? config('leaves.decision_reason') : null,
             'per_page_options' => config('leaves.per_page_options'),
             'default_per_page' => (int) config('leaves.default_per_page'),
             'attachment' => [
@@ -87,12 +92,56 @@ class LeaveRequestService
                 'nuptk' => $selfEmployee->nuptk,
                 'employee_type' => $selfEmployee->employeeType?->name,
             ],
+            'recap' => $canView ? $this->recapOptions() : null,
             'can' => [
-                'view' => $actor->hasAbility('leaves.view'),
+                'view' => $canView,
                 'request' => $actor->hasAbility('leaves.request'),
                 'manage' => $actor->hasAbility('leaves.manage'),
-                'approve' => $actor->hasAbility('leaves.approve'),
+                'approve' => $canDecide,
             ],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function recapOptions(): array
+    {
+        return [
+            'max_range_days' => LeaveRequest::RECAP_MAX_RANGE_DAYS,
+            'school_years' => SchoolYear::withTrashed()
+                ->orderByDesc('start_date')
+                ->orderByDesc('id')
+                ->get(['id', 'name', 'start_date', 'end_date'])
+                ->map(fn (SchoolYear $year) => [
+                    'id' => $year->id,
+                    'name' => $year->name,
+                    'start_date' => $year->start_date?->format('Y-m-d'),
+                    'end_date' => $year->end_date?->format('Y-m-d'),
+                ])
+                ->values()
+                ->all(),
+            'rombels' => SchoolRombel::withTrashed()
+                ->with('schoolYear:id,name')
+                ->orderBy('name')
+                ->orderBy('id')
+                ->get(['id', 'name', 'school_year_id'])
+                ->map(fn (SchoolRombel $rombel) => [
+                    'id' => $rombel->id,
+                    'name' => $rombel->name,
+                    'school_year' => $rombel->schoolYear?->name,
+                ])
+                ->values()
+                ->all(),
+            'employee_types' => EmployeeType::query()
+                ->orderBy('name')
+                ->get(['id', 'name'])
+                ->map(fn (EmployeeType $type) => [
+                    'id' => $type->id,
+                    'name' => $type->name,
+                ])
+                ->values()
+                ->all(),
         ];
     }
 
@@ -241,6 +290,90 @@ class LeaveRequestService
     /**
      * @return array<string, mixed>
      */
+    public function approve(int $leaveId, ?string $reason, int $expectedVersion, User $actor): array
+    {
+        DB::transaction(function () use ($leaveId, $reason, $expectedVersion, $actor) {
+            $leave = $this->lockVisibleOrFail($leaveId, $actor);
+
+            Gate::forUser($actor)->authorize('approve', $leave);
+            $this->assertSubmitted($leave, 'Only submitted leave requests can be approved.');
+            $this->assertVersion($leave, $expectedVersion);
+
+            $reason = $reason === null ? null : trim($reason);
+
+            if ($reason === '') {
+                $reason = null;
+            }
+
+            if ($reason !== null) {
+                $this->assertTextLength('reason', $reason, config('leaves.decision_reason'), 'decision note');
+            }
+
+            $this->assertNoOverlap($leave);
+
+            $leave->status = LeaveRequest::STATUS_APPROVED;
+            $leave->decided_at = Carbon::now('Asia/Jakarta');
+            $leave->decided_by = $actor->id;
+            $leave->version = $leave->version + 1;
+            $leave->save();
+
+            LeaveDecision::create([
+                'leave_request_id' => $leave->id,
+                'action' => LeaveDecision::ACTION_APPROVED,
+                'from_status' => LeaveRequest::STATUS_SUBMITTED,
+                'to_status' => LeaveRequest::STATUS_APPROVED,
+                'actor_id' => $actor->id,
+                'reason' => $reason,
+            ]);
+        });
+
+        return $this->show($leaveId, $actor);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function reject(int $leaveId, string $reason, int $expectedVersion, User $actor): array
+    {
+        DB::transaction(function () use ($leaveId, $reason, $expectedVersion, $actor) {
+            $leave = $this->lockVisibleOrFail($leaveId, $actor);
+
+            Gate::forUser($actor)->authorize('reject', $leave);
+            $this->assertSubmitted($leave, 'Only submitted leave requests can be rejected.');
+            $this->assertVersion($leave, $expectedVersion);
+
+            $reason = trim($reason);
+
+            if ($reason === '') {
+                throw ValidationException::withMessages([
+                    'reason' => ['A rejection reason is required.'],
+                ]);
+            }
+
+            $this->assertTextLength('reason', $reason, config('leaves.decision_reason'), 'rejection reason');
+
+            $leave->status = LeaveRequest::STATUS_REJECTED;
+            $leave->decided_at = Carbon::now('Asia/Jakarta');
+            $leave->decided_by = $actor->id;
+            $leave->version = $leave->version + 1;
+            $leave->save();
+
+            LeaveDecision::create([
+                'leave_request_id' => $leave->id,
+                'action' => LeaveDecision::ACTION_REJECTED,
+                'from_status' => LeaveRequest::STATUS_SUBMITTED,
+                'to_status' => LeaveRequest::STATUS_REJECTED,
+                'actor_id' => $actor->id,
+                'reason' => $reason,
+            ]);
+        });
+
+        return $this->show($leaveId, $actor);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     public function cancel(int $leaveId, ?string $reason, int $expectedVersion, User $actor): array
     {
         DB::transaction(function () use ($leaveId, $reason, $expectedVersion, $actor) {
@@ -248,21 +381,22 @@ class LeaveRequestService
 
             Gate::forUser($actor)->authorize('cancel', $leave);
 
-            if (! in_array($leave->status, [LeaveRequest::STATUS_DRAFT, LeaveRequest::STATUS_SUBMITTED], true)) {
-                $this->conflict(
-                    'status',
-                    $leave->status === LeaveRequest::STATUS_APPROVED
-                        ? 'Approved leave requests can only be cancelled by an approver in a later phase.'
-                        : 'This leave request can no longer be cancelled.',
-                    $leave,
-                );
+            if (! in_array($leave->status, [LeaveRequest::STATUS_DRAFT, LeaveRequest::STATUS_SUBMITTED, LeaveRequest::STATUS_APPROVED], true)) {
+                $this->conflict('status', 'This leave request can no longer be cancelled.', $leave);
             }
 
             $this->assertVersion($leave, $expectedVersion);
 
             $reason = $reason === null ? null : trim($reason);
+            $cancellingApproved = $leave->isApproved();
 
-            if ($leave->isSubmitted() && ($reason === null || $reason === '')) {
+            if ($cancellingApproved && ($reason === null || $reason === '')) {
+                throw ValidationException::withMessages([
+                    'reason' => ['A cancellation reason is required to cancel an approved leave request.'],
+                ]);
+            }
+
+            if (! $cancellingApproved && $leave->isSubmitted() && ($reason === null || $reason === '')) {
                 throw ValidationException::withMessages([
                     'reason' => ['A cancellation reason is required for submitted leave requests.'],
                 ]);
@@ -456,6 +590,228 @@ class LeaveRequestService
                 ])
                 ->values()
                 ->all(),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return array<string, mixed>
+     */
+    public function recap(array $filters): array
+    {
+        $from = Carbon::createFromFormat('Y-m-d', (string) $filters['from'], 'Asia/Jakarta')->startOfDay();
+        $to = Carbon::createFromFormat('Y-m-d', (string) $filters['to'], 'Asia/Jakarta')->startOfDay();
+
+        $status = $filters['status'] ?? null;
+        $type = $filters['type'] ?? null;
+        $subjectType = $filters['subject_type'] ?? null;
+        $schoolYearId = $filters['school_year_id'] ?? null;
+        $rombelId = $filters['rombel_id'] ?? null;
+        $employeeTypeId = $filters['employee_type_id'] ?? null;
+
+        if ($schoolYearId !== null || $rombelId !== null) {
+            $subjectType = LeaveRequest::SUBJECT_STUDENT;
+        }
+
+        if ($employeeTypeId !== null) {
+            $subjectType = LeaveRequest::SUBJECT_EMPLOYEE;
+        }
+
+        $query = LeaveRequest::query()
+            ->whereDate('start_date', '<=', $to->toDateString())
+            ->whereDate('end_date', '>=', $from->toDateString());
+
+        if ($status !== null && $status !== '') {
+            $query->where('status', $status);
+        }
+
+        if ($type !== null && $type !== '') {
+            $query->where('type', $type);
+        }
+
+        if ($subjectType !== null && $subjectType !== '') {
+            $query->where('subject_type', $subjectType);
+        }
+
+        if ($schoolYearId !== null) {
+            $query->where('school_year_id', (int) $schoolYearId);
+        }
+
+        if ($rombelId !== null) {
+            $query->whereIn(
+                'student_rombel_id',
+                StudentRombel::withTrashed()->where('school_rombel', (int) $rombelId)->select('id'),
+            );
+        }
+
+        if ($employeeTypeId !== null) {
+            $query->whereIn(
+                'employee_id',
+                Employee::withTrashed()->where('employee_type_id', (int) $employeeTypeId)->select('id'),
+            );
+        }
+
+        $leaves = $query
+            ->with([
+                'studentRombel' => fn ($relation) => $relation->withTrashed()->select(['id', 'school_rombel']),
+                'employee:id,name,nuptk,employee_type_id',
+                'employee.employeeType:id,name',
+            ])
+            ->orderBy('start_date')
+            ->orderBy('id')
+            ->get([
+                'id',
+                'subject_type',
+                'student_id',
+                'employee_id',
+                'school_year_id',
+                'student_rombel_id',
+                'type',
+                'start_date',
+                'end_date',
+                'status',
+            ]);
+
+        $classNames = SchoolRombel::withTrashed()
+            ->whereIn(
+                'id',
+                $leaves->pluck('studentRombel.school_rombel')->filter()->unique()->values(),
+            )
+            ->pluck('name', 'id');
+
+        $totals = ['requests' => 0, 'days' => 0, 'students' => 0, 'employees' => 0];
+        $statusTotals = [];
+        $typeTotals = [];
+        $classTotals = [];
+        $employeeTotals = [];
+        $studentIds = [];
+        $employeeIds = [];
+
+        foreach ((array) config('leaves.statuses') as $code => $label) {
+            $statusTotals[$code] = ['status' => $code, 'label' => $label, 'requests' => 0, 'days' => 0];
+        }
+
+        foreach ((array) config('leaves.types') as $typeSubject => $types) {
+            if ($subjectType !== null && $subjectType !== '' && $typeSubject !== $subjectType) {
+                continue;
+            }
+
+            foreach ((array) $types as $code => $definition) {
+                if ($type !== null && $type !== '' && $code !== $type) {
+                    continue;
+                }
+
+                $typeTotals[$typeSubject.'|'.$code] = [
+                    'subject_type' => $typeSubject,
+                    'type' => $code,
+                    'label' => $definition['label'],
+                    'requests' => 0,
+                    'days' => 0,
+                ];
+            }
+        }
+
+        foreach ($leaves as $leave) {
+            $start = Carbon::parse($leave->start_date)->startOfDay();
+            $end = Carbon::parse($leave->end_date)->startOfDay();
+            $clipStart = $start->greaterThan($from) ? $start : $from;
+            $clipEnd = $end->lessThan($to) ? $end : $to;
+            $days = max(0, (int) $clipStart->diffInDays($clipEnd) + 1);
+
+            $totals['requests']++;
+            $totals['days'] += $days;
+
+            if (isset($statusTotals[$leave->status])) {
+                $statusTotals[$leave->status]['requests']++;
+                $statusTotals[$leave->status]['days'] += $days;
+            }
+
+            $typeKey = $leave->subject_type.'|'.$leave->type;
+
+            if (isset($typeTotals[$typeKey])) {
+                $typeTotals[$typeKey]['requests']++;
+                $typeTotals[$typeKey]['days'] += $days;
+            }
+
+            if ($leave->subject_type === LeaveRequest::SUBJECT_STUDENT) {
+                if ($leave->student_id !== null) {
+                    $studentIds[$leave->student_id] = true;
+                }
+
+                $rombelIdKey = $leave->studentRombel?->school_rombel;
+                $classKey = $rombelIdKey === null ? 'unplaced' : (string) $rombelIdKey;
+
+                if (! isset($classTotals[$classKey])) {
+                    $classTotals[$classKey] = [
+                        'rombel_id' => $rombelIdKey === null ? null : (int) $rombelIdKey,
+                        'class' => $rombelIdKey === null
+                            ? 'Unplaced'
+                            : (string) ($classNames[$rombelIdKey] ?? 'Unplaced'),
+                        'requests' => 0,
+                        'days' => 0,
+                    ];
+                }
+
+                $classTotals[$classKey]['requests']++;
+                $classTotals[$classKey]['days'] += $days;
+
+                continue;
+            }
+
+            if ($leave->employee_id === null) {
+                continue;
+            }
+
+            $employeeIds[$leave->employee_id] = true;
+            $employeeKey = (string) $leave->employee_id;
+
+            if (! isset($employeeTotals[$employeeKey])) {
+                $employeeTotals[$employeeKey] = [
+                    'employee_id' => (int) $leave->employee_id,
+                    'name' => $leave->employee?->name,
+                    'nuptk' => $leave->employee?->nuptk,
+                    'employee_type' => $leave->employee?->employeeType?->name,
+                    'requests' => 0,
+                    'days' => 0,
+                ];
+            }
+
+            $employeeTotals[$employeeKey]['requests']++;
+            $employeeTotals[$employeeKey]['days'] += $days;
+        }
+
+        $totals['students'] = count($studentIds);
+        $totals['employees'] = count($employeeIds);
+
+        $byClass = collect($classTotals)
+            ->sortBy(fn (array $row) => mb_strtolower((string) $row['class']).'|'.$row['rombel_id'])
+            ->values()
+            ->all();
+
+        $byEmployee = collect($employeeTotals)
+            ->sortBy(fn (array $row) => mb_strtolower((string) $row['name']).'|'.$row['employee_id'])
+            ->values()
+            ->all();
+
+        return [
+            'period' => [
+                'from' => $from->toDateString(),
+                'to' => $to->toDateString(),
+                'days' => (int) $from->diffInDays($to) + 1,
+            ],
+            'filters' => [
+                'status' => $status === null || $status === '' ? null : $status,
+                'type' => $type === null || $type === '' ? null : $type,
+                'subject_type' => $subjectType === null || $subjectType === '' ? null : $subjectType,
+                'school_year_id' => $schoolYearId === null ? null : (int) $schoolYearId,
+                'rombel_id' => $rombelId === null ? null : (int) $rombelId,
+                'employee_type_id' => $employeeTypeId === null ? null : (int) $employeeTypeId,
+            ],
+            'totals' => $totals,
+            'by_status' => array_values($statusTotals),
+            'by_type' => array_values($typeTotals),
+            'by_class' => $byClass,
+            'by_employee' => $byEmployee,
         ];
     }
 
@@ -870,6 +1226,13 @@ class LeaveRequestService
         }
     }
 
+    private function assertSubmitted(LeaveRequest $leave, string $message): void
+    {
+        if (! $leave->isSubmitted()) {
+            $this->conflict('status', $message, $leave);
+        }
+    }
+
     private function assertVersion(LeaveRequest $leave, int $expectedVersion): void
     {
         if ((int) $leave->version !== $expectedVersion) {
@@ -1199,14 +1562,15 @@ class LeaveRequestService
         $manages = $actor->hasAbility('leaves.manage');
         $modifiable = $requester || $manages;
         $open = in_array($leave->status, [LeaveRequest::STATUS_DRAFT, LeaveRequest::STATUS_SUBMITTED], true);
+        $decides = Gate::forUser($actor)->allows('approve', $leave);
 
         return [
             'view' => true,
             'edit' => $modifiable && $leave->isDraft(),
             'submit' => $modifiable && $leave->isDraft(),
-            'cancel' => $modifiable && $open,
-            'approve' => false,
-            'reject' => false,
+            'cancel' => ($modifiable && $open) || ($leave->isApproved() && $decides),
+            'approve' => $leave->isSubmitted() && $decides,
+            'reject' => $leave->isSubmitted() && $decides,
             'upload' => $modifiable && $open,
             'delete_attachment' => $modifiable && $open,
         ];

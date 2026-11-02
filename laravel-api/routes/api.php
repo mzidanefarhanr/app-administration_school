@@ -291,6 +291,8 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
             ->middleware(['can:leaves.manage', 'can:employees.view']);
         Route::get('/', [LeaveController::class, 'index'])
             ->middleware('can:leaves.view');
+        Route::get('/recap', [LeaveController::class, 'recap'])
+            ->middleware('can:leaves.view');
         Route::get('/{leave}', [LeaveController::class, 'show'])
             ->whereNumber('leave');
         Route::post('/', [LeaveController::class, 'store']);
@@ -300,6 +302,10 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
             ->whereNumber('leave');
         Route::post('/{leave}/cancel', [LeaveController::class, 'cancel'])
             ->whereNumber('leave');
+        Route::post('/{leave}/approve', [LeaveController::class, 'approve'])
+            ->whereNumber('leave')->middleware('can:leaves.approve');
+        Route::post('/{leave}/reject', [LeaveController::class, 'reject'])
+            ->whereNumber('leave')->middleware('can:leaves.approve');
         Route::post('/{leave}/attachments', [LeaveController::class, 'storeAttachment'])
             ->whereNumber('leave');
         Route::get('/{leave}/attachments/{attachment}/download', [LeaveController::class, 'downloadAttachment'])

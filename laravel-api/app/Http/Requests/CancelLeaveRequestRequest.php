@@ -8,7 +8,7 @@ class CancelLeaveRequestRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->canAny(['leaves.manage', 'leaves.request']) ?? false;
+        return $this->user()?->canAny(['leaves.manage', 'leaves.request', 'leaves.approve']) ?? false;
     }
 
     protected function prepareForValidation(): void

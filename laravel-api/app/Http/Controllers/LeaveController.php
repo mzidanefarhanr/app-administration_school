@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ApproveLeaveRequestRequest;
 use App\Http\Requests\CancelLeaveRequestRequest;
+use App\Http\Requests\RecapLeaveRequestRequest;
+use App\Http\Requests\RejectLeaveRequestRequest;
 use App\Http\Requests\StoreLeaveAttachmentRequest;
 use App\Http\Requests\StoreLeaveRequestRequest;
 use App\Http\Requests\SubmitLeaveRequestRequest;
@@ -92,6 +95,41 @@ class LeaveController extends Controller
         );
 
         return new StatusResource(true, 'Leave request cancelled successfully.', $data);
+    }
+
+    public function approve(ApproveLeaveRequestRequest $request, int $leave): StatusResource
+    {
+        $validated = $request->validated();
+
+        $data = $this->leaves->approve(
+            $leave,
+            $validated['reason'] ?? null,
+            (int) $validated['expected_version'],
+            $request->user(),
+        );
+
+        return new StatusResource(true, 'Leave request approved successfully.', $data);
+    }
+
+    public function reject(RejectLeaveRequestRequest $request, int $leave): StatusResource
+    {
+        $validated = $request->validated();
+
+        $data = $this->leaves->reject(
+            $leave,
+            (string) $validated['reason'],
+            (int) $validated['expected_version'],
+            $request->user(),
+        );
+
+        return new StatusResource(true, 'Leave request rejected successfully.', $data);
+    }
+
+    public function recap(RecapLeaveRequestRequest $request): StatusResource
+    {
+        $this->authorize('leaves.view');
+
+        return new StatusResource(true, 'Leave recap retrieved successfully.', $this->leaves->recap($request->validated()));
     }
 
     public function storeAttachment(StoreLeaveAttachmentRequest $request, int $leave): StatusResource

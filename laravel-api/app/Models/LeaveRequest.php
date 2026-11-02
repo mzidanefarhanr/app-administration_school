@@ -35,6 +35,8 @@ class LeaveRequest extends Model
         self::STATUS_CANCELLED,
     ];
 
+    public const RECAP_MAX_RANGE_DAYS = 366;
+
     protected $guarded = ['id'];
 
     protected $table = 'leave_requests';

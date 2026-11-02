@@ -3,6 +3,7 @@
 use App\Models\AcademicSetting;
 use App\Models\Activity;
 use App\Models\Employee;
+use App\Models\EmployeeType;
 use App\Models\LeaveAttachment;
 use App\Models\LeaveDecision;
 use App\Models\LeaveRequest;
@@ -211,6 +212,31 @@ function p08aPdf(string $name = 'leave.pdf'): UploadedFile
     $content = "%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n";
 
     return UploadedFile::fake()->createWithContent($name, $content);
+}
+
+function p08bCreateEmployee(\Tests\TestCase $test, int $employeeId, array $overrides = []): LeaveRequest
+{
+    Sanctum::actingAs($test->operator);
+
+    $id = $test->postJson('/api/leaves', p08aEmployeePayload($employeeId, $overrides))
+        ->assertOk()
+        ->json('data.id');
+
+    return LeaveRequest::findOrFail($id);
+}
+
+/**
+ * @return array<string, mixed>
+ */
+function p08bDecisionPayload(LeaveRequest $leave, ?string $reason = null): array
+{
+    $payload = ['expected_version' => $leave->version];
+
+    if ($reason !== null) {
+        $payload['reason'] = $reason;
+    }
+
+    return $payload;
 }
 
 // T1 — guest dan akun nonaktif.
@@ -617,6 +643,20 @@ it('keeps leave decision history immutable', function () {
 
     expect(fn () => $decision->delete())
         ->toThrow(DomainException::class);
+
+    $approved = p08aSubmit($this, p08aCreateStudent($this, [
+        'start_date' => '2026-11-25',
+        'end_date' => '2026-11-25',
+    ]));
+
+    Sanctum::actingAs($this->principal);
+    $this->postJson("/api/leaves/{$approved->id}/approve", ['expected_version' => 2])->assertOk();
+
+    $approvedDecision = LeaveDecision::where('leave_request_id', $approved->id)->firstOrFail();
+
+    expect(fn () => $approvedDecision->update(['reason' => 'Changed']))
+        ->toThrow(DomainException::class)
+        ->and(fn () => $approvedDecision->delete())->toThrow(DomainException::class);
 });
 
 // T22/T23/T24 — lampiran.
@@ -749,4 +789,508 @@ it('registers static leave routes before the id route and hides invisible object
     ]))->assertStatus(404);
 
     expect($leave->fresh()->reason)->toBe('Synthetic medical leave for the operator test.');
+});
+
+// T17 — approve/reject oleh approver sah, pembuat/subjek, dan peran tanpa approve.
+it('lets only a non-requester approver decide submitted student and employee leave', function () {
+    $studentLeave = p08aSubmit($this, p08aCreateStudent($this, [
+        'start_date' => '2026-11-10',
+        'end_date' => '2026-11-12',
+    ]));
+
+    $employeeLeave = p08aSubmit($this, p08bCreateEmployee($this, $this->otherEmployee->id, [
+        'start_date' => '2026-11-10',
+        'end_date' => '2026-11-12',
+    ]));
+
+    Sanctum::actingAs($this->principal);
+    $this->getJson('/api/leaves/options')->assertOk()
+        ->assertJsonPath('data.can.approve', true)
+        ->assertJsonPath('data.decision_reason.min', 10)
+        ->assertJsonPath('data.decision_reason.max', 500);
+
+    $this->getJson("/api/leaves/{$studentLeave->id}")->assertOk()
+        ->assertJsonPath('data.can.approve', true)
+        ->assertJsonPath('data.can.reject', true);
+
+    $this->postJson("/api/leaves/{$studentLeave->id}/approve", p08bDecisionPayload($studentLeave))
+        ->assertOk()
+        ->assertJsonPath('data.status', 'approved')
+        ->assertJsonPath('data.decided_by.id', $this->principal->id)
+        ->assertJsonPath('data.can.approve', false);
+
+    $this->postJson("/api/leaves/{$employeeLeave->id}/reject", p08bDecisionPayload($employeeLeave, 'Synthetic rejection reason.'))
+        ->assertOk()
+        ->assertJsonPath('data.status', 'rejected')
+        ->assertJsonPath('data.decided_by.id', $this->principal->id);
+
+    $principalEmployee = Employee::factory()->create([
+        'user_id' => $this->principal->id,
+        'exit_date' => null,
+    ]);
+
+    Sanctum::actingAs($this->principal);
+    $selfId = $this->postJson('/api/leaves', p08aEmployeePayload($principalEmployee->id, [
+        'start_date' => '2026-11-16',
+        'end_date' => '2026-11-16',
+    ]))->assertOk()->json('data.id');
+
+    $selfLeave = LeaveRequest::findOrFail($selfId);
+    $this->postJson("/api/leaves/{$selfLeave->id}/submit", ['expected_version' => 1])->assertOk();
+
+    $this->postJson("/api/leaves/{$selfLeave->id}/approve", ['expected_version' => 2])
+        ->assertStatus(403);
+    $this->postJson("/api/leaves/{$selfLeave->id}/reject", [
+        'reason' => 'Synthetic self rejection attempt.',
+        'expected_version' => 2,
+    ])->assertStatus(403);
+
+    $subjectLeave = p08aSubmit($this, p08bCreateEmployee($this, $principalEmployee->id, [
+        'start_date' => '2026-11-17',
+        'end_date' => '2026-11-17',
+    ]));
+
+    Sanctum::actingAs($this->principal);
+    $this->getJson("/api/leaves/{$subjectLeave->id}")->assertOk()
+        ->assertJsonPath('data.can.approve', false);
+
+    $this->postJson("/api/leaves/{$subjectLeave->id}/approve", ['expected_version' => 2])
+        ->assertStatus(403);
+
+    $matrixLeave = p08aSubmit($this, p08aCreateStudent($this, [
+        'start_date' => '2026-11-20',
+        'end_date' => '2026-11-20',
+    ]));
+
+    foreach ([$this->admin, $this->operator, $this->wakil, $this->teacher] as $user) {
+        Sanctum::actingAs($user);
+        $this->postJson("/api/leaves/{$matrixLeave->id}/approve", ['expected_version' => 2])
+            ->assertStatus(403);
+        $this->postJson("/api/leaves/{$matrixLeave->id}/reject", [
+            'reason' => 'Synthetic unauthorized rejection.',
+            'expected_version' => 2,
+        ])->assertStatus(403);
+    }
+
+    expect($selfLeave->fresh()->status)->toBe(LeaveRequest::STATUS_SUBMITTED)
+        ->and($subjectLeave->fresh()->status)->toBe(LeaveRequest::STATUS_SUBMITTED)
+        ->and($matrixLeave->fresh()->status)->toBe(LeaveRequest::STATUS_SUBMITTED)
+        ->and(LeaveDecision::count())->toBe(2)
+        ->and(LeaveDecision::where('action', LeaveDecision::ACTION_APPROVED)->count())->toBe(1)
+        ->and(LeaveDecision::where('action', LeaveDecision::ACTION_REJECTED)->count())->toBe(1);
+
+    Sanctum::actingAs($this->operator);
+    $this->getJson('/api/leaves/options')->assertOk()
+        ->assertJsonPath('data.can.approve', false)
+        ->assertJsonPath('data.decision_reason', null)
+        ->assertJsonPath('data.recap.max_range_days', 366);
+});
+
+// T18 — keputusan ganda, versi basi, dan keputusan paralel.
+it('allows exactly one decision per submitted leave and rejects stale versions', function () {
+    $leave = p08aSubmit($this, p08aCreateStudent($this));
+
+    Sanctum::actingAs($this->principal);
+    $this->postJson("/api/leaves/{$leave->id}/approve", ['expected_version' => 2])
+        ->assertOk()
+        ->assertJsonPath('data.status', 'approved')
+        ->assertJsonPath('data.version', 3);
+
+    $this->postJson("/api/leaves/{$leave->id}/approve", ['expected_version' => 2])
+        ->assertStatus(409)
+        ->assertJsonPath('latest.status', 'approved')
+        ->assertJsonPath('latest.version', 3);
+
+    $this->postJson("/api/leaves/{$leave->id}/reject", [
+        'reason' => 'Synthetic late rejection attempt.',
+        'expected_version' => 3,
+    ])->assertStatus(409);
+
+    $second = p08aSubmit($this, p08aCreateStudent($this, [
+        'start_date' => '2026-11-20',
+        'end_date' => '2026-11-21',
+    ]));
+
+    Sanctum::actingAs($this->principal);
+    $this->postJson("/api/leaves/{$second->id}/reject", [
+        'reason' => 'Synthetic rejection reason.',
+        'expected_version' => 2,
+    ])->assertOk()->assertJsonPath('data.status', 'rejected');
+
+    $this->postJson("/api/leaves/{$second->id}/approve", ['expected_version' => 2])
+        ->assertStatus(409)
+        ->assertJsonPath('latest.status', 'rejected')
+        ->assertJsonPath('latest.version', 3);
+
+    expect(LeaveDecision::count())->toBe(2)
+        ->and($leave->fresh()->version)->toBe(3)
+        ->and($second->fresh()->version)->toBe(3)
+        ->and(LeaveRequest::whereIn('status', [LeaveRequest::STATUS_APPROVED, LeaveRequest::STATUS_REJECTED])->count())->toBe(2);
+});
+
+// T19 — aturan alasan keputusan dan audit.
+it('enforces decision reason boundaries and keeps decision reasons out of audit', function () {
+    $noReason = p08aSubmit($this, p08aCreateStudent($this));
+
+    Sanctum::actingAs($this->principal);
+    $this->postJson("/api/leaves/{$noReason->id}/approve", ['expected_version' => 2])
+        ->assertOk()
+        ->assertJsonPath('data.decisions.0.reason', null);
+
+    $leave = p08aSubmit($this, p08aCreateStudent($this, [
+        'start_date' => '2026-11-14',
+        'end_date' => '2026-11-14',
+    ]));
+
+    Sanctum::actingAs($this->principal);
+    $this->postJson("/api/leaves/{$leave->id}/approve", [
+        'reason' => 'Too short',
+        'expected_version' => 2,
+    ])->assertStatus(422)->assertJsonValidationErrors(['reason']);
+
+    $this->postJson("/api/leaves/{$leave->id}/approve", [
+        'reason' => str_repeat('a', 501),
+        'expected_version' => 2,
+    ])->assertStatus(422)->assertJsonValidationErrors(['reason']);
+
+    $validReason = 'Synthetic approval note for the principal.';
+    $this->postJson("/api/leaves/{$leave->id}/approve", [
+        'reason' => $validReason,
+        'expected_version' => 2,
+    ])->assertOk()->assertJsonPath('data.decisions.0.reason', $validReason);
+
+    $this->postJson("/api/leaves/{$leave->id}/approve", [
+        'reason' => $validReason,
+        'expected_version' => 2,
+    ])->assertStatus(409);
+
+    $rejectLeave = p08aSubmit($this, p08aCreateStudent($this, [
+        'start_date' => '2026-11-18',
+        'end_date' => '2026-11-18',
+    ]));
+
+    Sanctum::actingAs($this->principal);
+    $this->postJson("/api/leaves/{$rejectLeave->id}/reject", ['expected_version' => 2])
+        ->assertStatus(422)->assertJsonValidationErrors(['reason']);
+    $this->postJson("/api/leaves/{$rejectLeave->id}/reject", [
+        'reason' => 'Too short',
+        'expected_version' => 2,
+    ])->assertStatus(422)->assertJsonValidationErrors(['reason']);
+    $this->postJson("/api/leaves/{$rejectLeave->id}/reject", [
+        'reason' => str_repeat('b', 501),
+        'expected_version' => 2,
+    ])->assertStatus(422)->assertJsonValidationErrors(['reason']);
+    $this->postJson("/api/leaves/{$rejectLeave->id}/reject", [
+        'reason' => 'Synthetic rejection reason.',
+        'expected_version' => 2,
+    ])->assertOk()->assertJsonPath('data.status', 'rejected');
+
+    $activities = Activity::where('table_name', 'leave_requests')
+        ->where('record_id', $leave->id)
+        ->get()
+        ->map(fn (Activity $activity) => json_encode([$activity->before, $activity->after, $activity->new]))
+        ->implode(' ');
+
+    expect($activities)->not->toContain($validReason)
+        ->and(LeaveDecision::where('leave_request_id', $leave->id)->value('reason'))->toBe($validReason);
+});
+
+// T20 — cancel approved/rejected/cancelled.
+it('lets an approver cancel approved leave while preserving the decision trail', function () {
+    $approved = p08aSubmit($this, p08aCreateStudent($this, [
+        'start_date' => '2026-11-10',
+        'end_date' => '2026-11-11',
+    ]));
+
+    Sanctum::actingAs($this->principal);
+    $this->postJson("/api/leaves/{$approved->id}/approve", [
+        'reason' => 'Synthetic approval note.',
+        'expected_version' => 2,
+    ])->assertOk();
+
+    $approved->refresh();
+    $decidedAt = $approved->decided_at?->toIso8601String();
+    $decidedBy = $approved->decided_by;
+
+    foreach ([$this->operator, $this->admin] as $user) {
+        Sanctum::actingAs($user);
+        $this->postJson("/api/leaves/{$approved->id}/cancel", [
+            'reason' => 'Synthetic cancellation attempt.',
+            'expected_version' => $approved->version,
+        ])->assertStatus(403);
+    }
+
+    Sanctum::actingAs($this->principal);
+    $this->postJson("/api/leaves/{$approved->id}/cancel", ['expected_version' => $approved->version])
+        ->assertStatus(422)->assertJsonValidationErrors(['reason']);
+    $this->postJson("/api/leaves/{$approved->id}/cancel", [
+        'reason' => 'Too short',
+        'expected_version' => $approved->version,
+    ])->assertStatus(422)->assertJsonValidationErrors(['reason']);
+    $this->postJson("/api/leaves/{$approved->id}/cancel", [
+        'reason' => str_repeat('c', 256),
+        'expected_version' => $approved->version,
+    ])->assertStatus(422)->assertJsonValidationErrors(['reason']);
+    $this->postJson("/api/leaves/{$approved->id}/cancel", [
+        'reason' => 'Synthetic approved cancellation.',
+        'expected_version' => 2,
+    ])->assertStatus(409);
+
+    $this->postJson("/api/leaves/{$approved->id}/cancel", [
+        'reason' => 'Synthetic approved cancellation.',
+        'expected_version' => 3,
+    ])->assertOk()->assertJsonPath('data.status', 'cancelled');
+
+    $approved->refresh();
+
+    expect($approved->decided_by)->toBe($decidedBy)
+        ->and($approved->decided_at?->toIso8601String())->toBe($decidedAt)
+        ->and($approved->cancelled_by)->toBe($this->principal->id)
+        ->and($approved->version)->toBe(4);
+
+    $decisions = LeaveDecision::where('leave_request_id', $approved->id)->orderBy('id')->get();
+
+    expect($decisions->pluck('action')->all())->toBe(['approved', 'cancelled'])
+        ->and($decisions[1]->from_status)->toBe(LeaveRequest::STATUS_APPROVED)
+        ->and($decisions[1]->reason)->toBe('Synthetic approved cancellation.');
+
+    $rejected = p08aSubmit($this, p08aCreateStudent($this, [
+        'start_date' => '2026-11-20',
+        'end_date' => '2026-11-20',
+    ]));
+
+    Sanctum::actingAs($this->principal);
+    $this->postJson("/api/leaves/{$rejected->id}/reject", [
+        'reason' => 'Synthetic rejection reason.',
+        'expected_version' => 2,
+    ])->assertOk();
+
+    $this->postJson("/api/leaves/{$rejected->id}/cancel", [
+        'reason' => 'Synthetic cancellation reason.',
+        'expected_version' => 3,
+    ])->assertStatus(409);
+
+    $cancelled = p08aSubmit($this, p08aCreateStudent($this, [
+        'start_date' => '2026-11-22',
+        'end_date' => '2026-11-22',
+    ]));
+
+    Sanctum::actingAs($this->operator);
+    $this->postJson("/api/leaves/{$cancelled->id}/cancel", [
+        'reason' => 'Synthetic cancellation reason.',
+        'expected_version' => 2,
+    ])->assertOk();
+
+    $this->postJson("/api/leaves/{$cancelled->id}/cancel", [
+        'reason' => 'Synthetic cancellation reason.',
+        'expected_version' => 3,
+    ])->assertStatus(409);
+});
+
+// T26 — rekap: periode inklusif, clipping, dan filter.
+it('recalculates recap totals with clipped inclusive periods and filters', function () {
+    $studentApproved = p08aSubmit($this, p08aCreateStudent($this, [
+        'start_date' => '2026-11-09',
+        'end_date' => '2026-11-12',
+    ]));
+
+    $studentSubmitted = p08aSubmit($this, p08aCreateStudent($this, [
+        'start_date' => '2026-12-01',
+        'end_date' => '2026-12-01',
+    ]));
+
+    $employeeAnnual = p08aSubmit($this, p08bCreateEmployee($this, $this->employee->id, [
+        'start_date' => '2026-11-10',
+        'end_date' => '2026-11-11',
+    ]));
+
+    $supportType = EmployeeType::firstOrCreate(['name' => 'Tenaga Kependidikan']);
+    $supportEmployee = Employee::factory()->create([
+        'employee_type_id' => $supportType->id,
+        'user_id' => null,
+        'exit_date' => null,
+    ]);
+
+    $employeeSick = p08aSubmit($this, p08bCreateEmployee($this, $supportEmployee->id, [
+        'type' => 'sick',
+        'start_date' => '2026-11-20',
+        'end_date' => '2026-11-20',
+    ]));
+
+    Sanctum::actingAs($this->principal);
+    $this->postJson("/api/leaves/{$studentApproved->id}/approve", ['expected_version' => 2])->assertOk();
+    $this->postJson("/api/leaves/{$employeeAnnual->id}/approve", ['expected_version' => 2])->assertOk();
+
+    Sanctum::actingAs($this->teacher);
+    $this->getJson('/api/leaves/recap?from=2026-11-10&to=2026-11-11')->assertStatus(403);
+
+    Sanctum::actingAs($this->operator);
+    $response = $this->getJson('/api/leaves/recap?from=2026-11-10&to=2026-11-11')
+        ->assertOk()
+        ->assertJsonPath('data.period.from', '2026-11-10')
+        ->assertJsonPath('data.period.to', '2026-11-11')
+        ->assertJsonPath('data.period.days', 2)
+        ->assertJsonPath('data.totals.requests', 2)
+        ->assertJsonPath('data.totals.days', 4)
+        ->assertJsonPath('data.totals.students', 1)
+        ->assertJsonPath('data.totals.employees', 1)
+        ->assertJsonPath('data.by_status.2.status', 'approved')
+        ->assertJsonPath('data.by_status.2.requests', 2)
+        ->assertJsonPath('data.by_status.2.days', 4)
+        ->assertJsonPath('data.by_class.0.rombel_id', $this->rombel->id)
+        ->assertJsonPath('data.by_class.0.class', '10-A')
+        ->assertJsonPath('data.by_class.0.requests', 1)
+        ->assertJsonPath('data.by_class.0.days', 2)
+        ->assertJsonPath('data.by_employee.0.employee_id', $this->employee->id)
+        ->assertJsonPath('data.by_employee.0.requests', 1)
+        ->assertJsonPath('data.by_employee.0.days', 2);
+
+    $payload = json_encode($response->json());
+
+    expect($payload)->not->toContain($studentApproved->reason)
+        ->and($payload)->not->toContain($this->student->nik)
+        ->and($payload)->not->toContain('attachments')
+        ->and($response->json('data.by_employee.0.nik'))->toBeNull();
+
+    $this->getJson('/api/leaves/recap?from=2026-11-10&to=2026-11-11&status=approved')
+        ->assertOk()->assertJsonPath('data.totals.requests', 2);
+    $this->getJson('/api/leaves/recap?from=2026-11-10&to=2026-11-11&status=submitted')
+        ->assertOk()->assertJsonPath('data.totals.requests', 0);
+    $this->getJson('/api/leaves/recap?from=2026-11-10&to=2026-11-11&subject_type=student')
+        ->assertOk()
+        ->assertJsonPath('data.totals.requests', 1)
+        ->assertJsonPath('data.totals.days', 2)
+        ->assertJsonCount(3, 'data.by_type');
+    $this->getJson('/api/leaves/recap?from=2026-11-10&to=2026-11-11&type=annual')
+        ->assertOk()
+        ->assertJsonPath('data.totals.requests', 1)
+        ->assertJsonCount(1, 'data.by_type')
+        ->assertJsonPath('data.by_type.0.type', 'annual');
+    $this->getJson('/api/leaves/recap?from=2026-11-10&to=2026-11-11&school_year_id='.$this->year->id)
+        ->assertOk()->assertJsonPath('data.totals.requests', 1);
+    $this->getJson('/api/leaves/recap?from=2026-11-10&to=2026-11-11&school_year_id='.$this->nextYear->id)
+        ->assertOk()->assertJsonPath('data.totals.requests', 0);
+    $this->getJson('/api/leaves/recap?from=2026-11-10&to=2026-11-11&rombel_id='.$this->rombel->id)
+        ->assertOk()->assertJsonPath('data.totals.requests', 1);
+    $this->getJson('/api/leaves/recap?from=2026-11-10&to=2026-11-11&rombel_id='.$this->nextRombel->id)
+        ->assertOk()->assertJsonPath('data.totals.requests', 0);
+    $this->getJson('/api/leaves/recap?from=2026-11-10&to=2026-11-11&employee_type_id='.$supportType->id)
+        ->assertOk()->assertJsonPath('data.totals.requests', 0);
+    $this->getJson('/api/leaves/recap?from=2026-11-01&to=2026-11-30&employee_type_id='.$supportType->id)
+        ->assertOk()
+        ->assertJsonPath('data.totals.requests', 1)
+        ->assertJsonPath('data.totals.days', 1);
+
+    expect($studentSubmitted->fresh()->status)->toBe(LeaveRequest::STATUS_SUBMITTED)
+        ->and($employeeSick->fresh()->status)->toBe(LeaveRequest::STATUS_SUBMITTED);
+});
+
+// T26 — validasi parameter rekap.
+it('validates recap periods and filter combinations', function () {
+    Sanctum::actingAs($this->operator);
+
+    $this->getJson('/api/leaves/recap')->assertStatus(422)
+        ->assertJsonValidationErrors(['from', 'to']);
+    $this->getJson('/api/leaves/recap?from=2026-11-12&to=2026-11-10')->assertStatus(422)
+        ->assertJsonValidationErrors(['to']);
+    $this->getJson('/api/leaves/recap?from=2025-11-10&to=2026-11-10')->assertOk()
+        ->assertJsonPath('data.period.days', 366);
+    $this->getJson('/api/leaves/recap?from=2025-11-09&to=2026-11-10')->assertStatus(422)
+        ->assertJsonValidationErrors(['to']);
+    $this->getJson('/api/leaves/recap?from=2026-11-10&to=2026-11-11&status=unknown')->assertStatus(422)
+        ->assertJsonValidationErrors(['status']);
+    $this->getJson('/api/leaves/recap?from=2026-11-10&to=2026-11-11&type=unknown')->assertStatus(422)
+        ->assertJsonValidationErrors(['type']);
+    $this->getJson('/api/leaves/recap?from=2026-11-10&to=2026-11-11&subject_type=student&type=annual')->assertStatus(422)
+        ->assertJsonValidationErrors(['type']);
+    $this->getJson('/api/leaves/recap?from=2026-11-10&to=2026-11-11&subject_type=student&employee_type_id=1')->assertStatus(422)
+        ->assertJsonValidationErrors(['employee_type_id']);
+    $this->getJson('/api/leaves/recap?from=2026-11-10&to=2026-11-11&subject_type=employee&school_year_id=1')->assertStatus(422)
+        ->assertJsonValidationErrors(['subject_type']);
+    $this->getJson('/api/leaves/recap?from=2026-11-10&to=2026-11-11&rombel_id=1&employee_type_id=1')->assertStatus(422)
+        ->assertJsonValidationErrors(['rombel_id']);
+});
+
+// T29b — route recap/statis dan IDOR keputusan.
+it('routes recap before the id route and hides decisions from unauthorized callers', function () {
+    $this->getJson('/api/leaves/recap?from=2026-11-10&to=2026-11-11')->assertStatus(401);
+
+    $leave = p08aSubmit($this, p08aCreateStudent($this));
+
+    Sanctum::actingAs($this->teacher);
+    $this->getJson('/api/leaves/recap?from=2026-11-10&to=2026-11-11')->assertStatus(403);
+    $this->getJson("/api/leaves/{$leave->id}")->assertStatus(404);
+    $this->postJson("/api/leaves/{$leave->id}/approve", ['expected_version' => 2])->assertStatus(403);
+
+    Sanctum::actingAs($this->wakil);
+    $this->getJson('/api/leaves/recap?from=2026-11-10&to=2026-11-11')->assertOk()
+        ->assertJsonPath('data.totals.requests', 1);
+    $this->postJson("/api/leaves/{$leave->id}/approve", ['expected_version' => 2])->assertStatus(403);
+    $this->postJson("/api/leaves/{$leave->id}/reject", [
+        'reason' => 'Synthetic unauthorized rejection.',
+        'expected_version' => 2,
+    ])->assertStatus(403);
+
+    Sanctum::actingAs($this->principal);
+    $this->getJson('/api/leaves/recap?from=2026-11-10&to=2026-11-11')->assertOk()
+        ->assertJsonPath('data.period.from', '2026-11-10')
+        ->assertJsonPath('data.period.to', '2026-11-11');
+    $this->getJson('/api/leaves/not-a-number')->assertStatus(404);
+    $this->postJson('/api/leaves/999999/approve', ['expected_version' => 1])->assertStatus(404);
+
+    expect($leave->fresh()->status)->toBe(LeaveRequest::STATUS_SUBMITTED)
+        ->and(LeaveDecision::count())->toBe(0);
+});
+
+// T27b — rekap read-only dan keputusan tidak menyentuh domain lain.
+it('keeps recap read-only and decisions scoped to the target leave', function () {
+    $approved = p08aSubmit($this, p08aCreateStudent($this, [
+        'start_date' => '2026-11-10',
+        'end_date' => '2026-11-10',
+    ]));
+
+    $rejected = p08aSubmit($this, p08aCreateStudent($this, [
+        'start_date' => '2026-11-12',
+        'end_date' => '2026-11-12',
+    ]));
+
+    $cancelled = p08aSubmit($this, p08aCreateStudent($this, [
+        'start_date' => '2026-11-14',
+        'end_date' => '2026-11-14',
+    ]));
+
+    $snapshot = LeaveRequest::orderBy('id')->get(['id', 'status', 'version'])->toArray();
+    $activityCount = Activity::count();
+
+    Sanctum::actingAs($this->principal);
+    $this->getJson('/api/leaves/recap?from=2026-11-01&to=2026-11-30')->assertOk();
+    $this->getJson('/api/leaves/recap?from=2026-11-01&to=2026-11-30')->assertOk();
+
+    expect(LeaveRequest::orderBy('id')->get(['id', 'status', 'version'])->toArray())->toBe($snapshot)
+        ->and(LeaveDecision::count())->toBe(0)
+        ->and(Activity::count())->toBe($activityCount);
+
+    $this->postJson("/api/leaves/{$approved->id}/approve", ['expected_version' => 2])->assertOk();
+    $this->postJson("/api/leaves/{$rejected->id}/reject", [
+        'reason' => 'Synthetic rejection reason.',
+        'expected_version' => 2,
+    ])->assertOk();
+
+    Sanctum::actingAs($this->operator);
+    $this->postJson("/api/leaves/{$cancelled->id}/cancel", [
+        'reason' => 'Synthetic cancellation reason.',
+        'expected_version' => 2,
+    ])->assertOk();
+
+    $fresh = LeaveRequest::orderBy('id')->get(['id', 'status', 'version'])->toArray();
+
+    expect($fresh[0]['status'])->toBe(LeaveRequest::STATUS_APPROVED)
+        ->and($fresh[0]['version'])->toBe(3)
+        ->and($fresh[1]['status'])->toBe(LeaveRequest::STATUS_REJECTED)
+        ->and($fresh[1]['version'])->toBe(3)
+        ->and($fresh[2]['status'])->toBe(LeaveRequest::STATUS_CANCELLED)
+        ->and($fresh[2]['version'])->toBe(3)
+        ->and(LeaveDecision::count())->toBe(3)
+        ->and(LeaveAttachment::count())->toBe(0)
+        ->and(Activity::where('table_name', 'attendance')->count())->toBe(0);
 });

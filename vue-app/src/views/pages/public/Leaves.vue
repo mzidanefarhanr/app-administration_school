@@ -97,10 +97,12 @@ const reasonMin = computed(() => options.value?.reason?.min ?? 5);
 const reasonMax = computed(() => options.value?.reason?.max ?? 1000);
 const cancelMin = computed(() => options.value?.cancel_reason?.min ?? 10);
 const cancelMax = computed(() => options.value?.cancel_reason?.max ?? 255);
+const decisionMin = computed(() => options.value?.decision_reason?.min ?? 10);
+const decisionMax = computed(() => options.value?.decision_reason?.max ?? 500);
 const optionsReady = computed(() => options.value !== null);
 
-const typeFilterOptions = computed(() => {
-    const source = filters.subjectType === 'all' ? Object.values(options.value?.types ?? {}).flat() : (options.value?.types?.[filters.subjectType] ?? []);
+const buildTypeOptions = (subjectType) => {
+    const source = subjectType === 'all' ? Object.values(options.value?.types ?? {}).flat() : (options.value?.types?.[subjectType] ?? []);
     const seen = new Set();
     const unique = [];
 
@@ -111,7 +113,9 @@ const typeFilterOptions = computed(() => {
     }
 
     return [{ label: 'All types', value: 'all' }, ...unique];
-});
+};
+
+const typeFilterOptions = computed(() => buildTypeOptions(filters.subjectType));
 
 const totalLabel = computed(() => `${meta.value.total} ${meta.value.total === 1 ? 'request' : 'requests'}`);
 const emptyMessage = computed(() => (activeTab.value === 'mine' ? 'You have no self-service leave requests matching the current filters.' : 'No leave requests match the current filters.'));
@@ -324,6 +328,12 @@ const resetFilters = () => {
 const onTabChange = (value) => {
     if (value === activeTab.value) return;
     activeTab.value = value;
+
+    if (value === 'recap') {
+        loadRecap();
+        return;
+    }
+
     resetFilters();
 };
 
@@ -332,6 +342,164 @@ const onPage = (event) => {
     page.value = rowsChanged ? 1 : event.page + 1;
     if (rowsChanged) filters.perPage = event.rows;
     loadList();
+};
+
+const jakartaTodayIso = () =>
+    new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Jakarta',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    }).format(new Date());
+
+const recapDefaults = () => {
+    const today = jakartaTodayIso();
+    return { from: `${today.slice(0, 7)}-01`, to: today };
+};
+
+const recapFilters = reactive({
+    from: null,
+    to: null,
+    status: 'all',
+    type: 'all',
+    subjectType: 'all',
+    schoolYearId: null,
+    rombelId: null,
+    employeeTypeId: null
+});
+
+const recapLoading = ref(false);
+const recapError = ref('');
+const recap = ref(null);
+let recapRequestId = 0;
+
+const recapMaxRange = computed(() => options.value?.recap?.max_range_days ?? 366);
+const recapTypeOptions = computed(() => buildTypeOptions(recapFilters.subjectType));
+const recapCards = computed(() => {
+    const totals = recap.value?.totals ?? { requests: 0, days: 0, students: 0, employees: 0 };
+
+    return [
+        { label: 'Total requests', value: totals.requests },
+        { label: 'Total days', value: totals.days },
+        { label: 'Students', value: totals.students },
+        { label: 'Employees', value: totals.employees }
+    ];
+});
+const recapSchoolYearOptions = computed(() => [{ label: 'All school years', value: null }, ...(options.value?.recap?.school_years ?? []).map((year) => ({ label: year.name, value: year.id }))]);
+const recapRombelOptions = computed(() => [
+    { label: 'All classes', value: null },
+    ...(options.value?.recap?.rombels ?? []).map((rombel) => ({
+        label: rombel.school_year ? `${rombel.name} — ${rombel.school_year}` : rombel.name,
+        value: rombel.id
+    }))
+]);
+const recapEmployeeTypeOptions = computed(() => [{ label: 'All employee types', value: null }, ...(options.value?.recap?.employee_types ?? []).map((type) => ({ label: type.name, value: type.id }))]);
+
+const ensureRecapType = () => {
+    if (!recapTypeOptions.value.some((option) => option.value === recapFilters.type)) {
+        recapFilters.type = 'all';
+    }
+};
+
+const onRecapSubjectChange = () => {
+    if (recapFilters.subjectType === 'student') recapFilters.employeeTypeId = null;
+    if (recapFilters.subjectType === 'employee') {
+        recapFilters.rombelId = null;
+        recapFilters.schoolYearId = null;
+    }
+    ensureRecapType();
+};
+
+const onRecapRombelChange = () => {
+    if (recapFilters.rombelId !== null) {
+        recapFilters.subjectType = 'student';
+        recapFilters.employeeTypeId = null;
+    }
+    ensureRecapType();
+};
+
+const onRecapSchoolYearChange = () => {
+    if (recapFilters.schoolYearId !== null) {
+        recapFilters.subjectType = 'student';
+        recapFilters.employeeTypeId = null;
+    }
+    ensureRecapType();
+};
+
+const onRecapEmployeeTypeChange = () => {
+    if (recapFilters.employeeTypeId !== null) {
+        recapFilters.subjectType = 'employee';
+        recapFilters.rombelId = null;
+        recapFilters.schoolYearId = null;
+    }
+    ensureRecapType();
+};
+
+const applyRecapDefaults = () => {
+    const defaults = recapDefaults();
+    recapFilters.from = isoToDate(defaults.from);
+    recapFilters.to = isoToDate(defaults.to);
+    recapFilters.status = 'all';
+    recapFilters.type = 'all';
+    recapFilters.subjectType = 'all';
+    recapFilters.schoolYearId = null;
+    recapFilters.rombelId = null;
+    recapFilters.employeeTypeId = null;
+};
+
+applyRecapDefaults();
+
+const loadRecap = async () => {
+    if (!canView.value) return;
+
+    const from = dateToIso(recapFilters.from);
+    const to = dateToIso(recapFilters.to);
+
+    if (!from || !to) {
+        recapError.value = 'Select both the recap start and end dates.';
+        return;
+    }
+
+    if (to < from) {
+        recapError.value = 'The recap end date may not be before the start date.';
+        return;
+    }
+
+    const range = inclusiveDays(from, to);
+    if (range !== null && range > recapMaxRange.value) {
+        recapError.value = `The recap period may not exceed ${recapMaxRange.value} days.`;
+        return;
+    }
+
+    const requestId = ++recapRequestId;
+    recapLoading.value = true;
+    recapError.value = '';
+
+    const params = { from, to };
+    if (recapFilters.status !== 'all') params.status = recapFilters.status;
+    if (recapFilters.type !== 'all') params.type = recapFilters.type;
+    if (recapFilters.subjectType !== 'all') params.subject_type = recapFilters.subjectType;
+    if (recapFilters.schoolYearId !== null) params.school_year_id = recapFilters.schoolYearId;
+    if (recapFilters.rombelId !== null) params.rombel_id = recapFilters.rombelId;
+    if (recapFilters.employeeTypeId !== null) params.employee_type_id = recapFilters.employeeTypeId;
+
+    try {
+        const response = await apiLogin.get('/api/leaves/recap', { params });
+        if (requestId !== recapRequestId) return;
+        recap.value = response.data?.data ?? null;
+    } catch (error) {
+        if (requestId !== recapRequestId) return;
+        recap.value = null;
+        const messages = errorList(validationErrors(error));
+        recapError.value = messages.length > 0 ? messages.join(' ') : errorMessage(error, 'Failed to load the leave recap.');
+    } finally {
+        if (requestId === recapRequestId) recapLoading.value = false;
+    }
+};
+
+const resetRecapFilters = () => {
+    applyRecapDefaults();
+    loadRecap();
 };
 
 const formVisible = ref(false);
@@ -704,7 +872,19 @@ const cancelReason = ref('');
 const cancelErrors = ref({});
 const cancelError = ref('');
 
-const cancelRequiresReason = computed(() => cancelTarget.value?.status === 'submitted');
+const cancelRequiresReason = computed(() => ['submitted', 'approved'].includes(cancelTarget.value?.status));
+const cancelIsApproved = computed(() => cancelTarget.value?.status === 'approved');
+const cancelMessage = computed(() => {
+    if (cancelIsApproved.value) {
+        return 'Cancelling an approved request requires a reason. The previous approval remains in the decision history and the request becomes read-only.';
+    }
+
+    if (cancelTarget.value?.status === 'submitted') {
+        return 'Cancelling a submitted request requires a reason. The request becomes read-only.';
+    }
+
+    return 'Cancelling this draft keeps the record and audit trail. This cannot be undone.';
+});
 const cancelErrorList = computed(() => errorList(cancelErrors.value));
 
 const openCancel = (source) => {
@@ -733,7 +913,13 @@ const confirmCancel = async () => {
     cancelError.value = '';
 
     if (cancelRequiresReason.value && reason.length < cancelMin.value) {
-        cancelErrors.value = { reason: [`A cancellation reason of at least ${cancelMin.value} characters is required for submitted requests.`] };
+        cancelErrors.value = {
+            reason: [
+                cancelIsApproved.value
+                    ? `A cancellation reason of at least ${cancelMin.value} characters is required to cancel an approved request.`
+                    : `A cancellation reason of at least ${cancelMin.value} characters is required for submitted requests.`
+            ]
+        };
         return;
     }
 
@@ -771,6 +957,90 @@ const confirmCancel = async () => {
         }
     } finally {
         cancelSaving.value = false;
+    }
+};
+
+const decisionVisible = ref(false);
+const decisionMode = ref('approve');
+const decisionTarget = ref(null);
+const decisionReason = ref('');
+const decisionSaving = ref(false);
+const decisionErrors = ref({});
+const decisionError = ref('');
+
+const decisionIsApprove = computed(() => decisionMode.value === 'approve');
+const decisionRequiresReason = computed(() => decisionMode.value === 'reject');
+const decisionErrorList = computed(() => errorList(decisionErrors.value));
+const decisionTitle = computed(() => (decisionIsApprove.value ? 'Approve Leave Request' : 'Reject Leave Request'));
+
+const openDecision = (source, mode) => {
+    if (!source || !['approve', 'reject'].includes(mode)) return;
+
+    decisionMode.value = mode;
+    decisionTarget.value = {
+        id: source.id,
+        version: source.version,
+        subject: subjectLabel(source.subject_type, source.subject),
+        start_date: source.start_date,
+        end_date: source.end_date
+    };
+    decisionReason.value = '';
+    decisionErrors.value = {};
+    decisionError.value = '';
+    decisionSaving.value = false;
+    detailVisible.value = false;
+    decisionVisible.value = true;
+};
+
+const confirmDecision = async () => {
+    if (decisionSaving.value || !decisionTarget.value) return;
+
+    const reason = decisionReason.value.trim();
+    decisionErrors.value = {};
+    decisionError.value = '';
+
+    if (decisionRequiresReason.value && reason.length < decisionMin.value) {
+        decisionErrors.value = { reason: [`A rejection reason of at least ${decisionMin.value} characters is required.`] };
+        return;
+    }
+
+    if (reason !== '' && (reason.length < decisionMin.value || reason.length > decisionMax.value)) {
+        decisionErrors.value = { reason: [`The decision note must be between ${decisionMin.value} and ${decisionMax.value} characters.`] };
+        return;
+    }
+
+    const payload = { expected_version: decisionTarget.value.version };
+    if (reason !== '') payload.reason = reason;
+
+    decisionSaving.value = true;
+    try {
+        const action = decisionIsApprove.value ? 'approve' : 'reject';
+        const response = await apiLogin.post(`/api/leaves/${decisionTarget.value.id}/${action}`, payload);
+        const data = response.data?.data ?? null;
+
+        decisionVisible.value = false;
+        notify('success', response.data?.message ?? (decisionIsApprove.value ? 'Leave request approved.' : 'Leave request rejected.'));
+        await loadList();
+
+        if (data) {
+            detail.value = data;
+            detailVisible.value = true;
+        }
+    } catch (error) {
+        const status = error.response?.status;
+        if (status === 422) {
+            decisionErrors.value = validationErrors(error);
+            if (Object.keys(decisionErrors.value).length === 0) {
+                decisionError.value = errorMessage(error, 'The leave request could not be updated.');
+            }
+        } else if (status === 409) {
+            decisionVisible.value = false;
+            openConflict(error, decisionTarget.value.id);
+        } else {
+            decisionError.value = errorMessage(error, 'The leave request could not be updated.');
+        }
+    } finally {
+        decisionSaving.value = false;
     }
 };
 
@@ -921,6 +1191,7 @@ const reloadLatest = async () => {
             formVisible.value = false;
             submitVisible.value = false;
             cancelVisible.value = false;
+            decisionVisible.value = false;
             await loadList();
             notify('warn', 'The leave request no longer exists. The list has been refreshed.');
         } else {
@@ -949,7 +1220,7 @@ onMounted(async () => {
                     <p class="text-surface-500 dark:text-surface-400">Submit student and employee leave requests, attach supporting files, and track their status.</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
-                    <Tag :value="totalLabel" severity="secondary" />
+                    <Tag v-if="activeTab !== 'recap'" :value="totalLabel" severity="secondary" />
                     <Button v-if="activeTab === 'requests' && canManage" label="New Request" icon="pi pi-plus" :disabled="!optionsReady" @click="openCreate(false)" />
                     <Button v-if="activeTab === 'mine' && canRequest && selfEmployeeOption" label="New Self Request" icon="pi pi-plus" :disabled="!optionsReady" @click="openCreate(true)" />
                 </div>
@@ -967,121 +1238,272 @@ onMounted(async () => {
                     <TabList>
                         <Tab v-if="canView" value="requests">Requests</Tab>
                         <Tab v-if="canRequest" value="mine">My Leaves</Tab>
+                        <Tab v-if="canView" value="recap">Recap</Tab>
                     </TabList>
                 </Tabs>
 
                 <div class="text-sm text-surface-500 dark:text-surface-400 mt-2">
-                    {{ activeTab === 'requests' ? 'All leave requests visible to your role.' : 'Leave requests linked to your employee account.' }}
+                    {{ activeTab === 'requests' ? 'All leave requests visible to your role.' : activeTab === 'recap' ? 'Aggregated leave requests and days for the selected period.' : 'Leave requests linked to your employee account.' }}
                 </div>
 
                 <Message v-if="activeTab === 'mine' && canRequest && !selfEmployeeOption" severity="warn" :closable="false" class="mt-4">
                     Your account is not linked to an employee record. Contact an administrator to link it before requesting leave.
                 </Message>
 
-                <div class="card mt-4 flex flex-col gap-4">
-                    <div class="flex flex-col xl:flex-row xl:items-center xl:flex-wrap gap-3">
-                        <IconField class="w-full xl:max-w-sm">
-                            <InputIcon><i class="pi pi-search" /></InputIcon>
-                            <InputText v-model="filters.search" placeholder="Search name, NIS, NISN, or NUPTK" class="w-full" maxlength="100" aria-label="Search leave requests" @input="onSearchInput" />
-                        </IconField>
-                        <Select v-model="filters.status" :options="statusFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-44" aria-label="Leave status" @change="onFilterChange" />
-                        <Select
-                            v-if="activeTab === 'requests'"
-                            v-model="filters.subjectType"
-                            :options="[{ label: 'All subject types', value: 'all' }, ...subjectTypeOptions]"
-                            optionLabel="label"
-                            optionValue="value"
-                            class="w-full xl:w-44"
-                            aria-label="Subject type"
-                            @change="onSubjectFilterChange"
-                        />
-                        <Select v-model="filters.type" :options="typeFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-48" aria-label="Leave type" @change="onFilterChange" />
-                        <DatePicker
-                            v-model="filters.dateFrom"
-                            placeholder="From date"
-                            dateFormat="yy-mm-dd"
-                            showIcon
-                            manualInput
-                            fluid
-                            class="w-full xl:w-40"
-                            aria-label="Leave date from"
-                            @date-select="onDateFilterChange"
-                            @blur="onDateFilterChange"
-                        />
-                        <DatePicker v-model="filters.dateTo" placeholder="To date" dateFormat="yy-mm-dd" showIcon manualInput fluid class="w-full xl:w-40" aria-label="Leave date to" @date-select="onDateFilterChange" @blur="onDateFilterChange" />
-                        <div class="flex items-center gap-2 xl:ml-auto">
-                            <Select v-model="filters.perPage" :options="perPageOptions" class="w-28" :aria-label="`Rows: ${filters.perPage}`" @change="onFilterChange" />
-                            <Button label="Clear" icon="pi pi-filter-slash" severity="secondary" variant="outlined" @click="resetFilters" />
+                <template v-if="activeTab !== 'recap'">
+                    <div class="card mt-4 flex flex-col gap-4">
+                        <div class="flex flex-col xl:flex-row xl:items-center xl:flex-wrap gap-3">
+                            <IconField class="w-full xl:max-w-sm">
+                                <InputIcon><i class="pi pi-search" /></InputIcon>
+                                <InputText v-model="filters.search" placeholder="Search name, NIS, NISN, or NUPTK" class="w-full" maxlength="100" aria-label="Search leave requests" @input="onSearchInput" />
+                            </IconField>
+                            <Select v-model="filters.status" :options="statusFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-44" aria-label="Leave status" @change="onFilterChange" />
+                            <Select
+                                v-if="activeTab === 'requests'"
+                                v-model="filters.subjectType"
+                                :options="[{ label: 'All subject types', value: 'all' }, ...subjectTypeOptions]"
+                                optionLabel="label"
+                                optionValue="value"
+                                class="w-full xl:w-44"
+                                aria-label="Subject type"
+                                @change="onSubjectFilterChange"
+                            />
+                            <Select v-model="filters.type" :options="typeFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-48" aria-label="Leave type" @change="onFilterChange" />
+                            <DatePicker
+                                v-model="filters.dateFrom"
+                                placeholder="From date"
+                                dateFormat="yy-mm-dd"
+                                showIcon
+                                manualInput
+                                fluid
+                                class="w-full xl:w-40"
+                                aria-label="Leave date from"
+                                @date-select="onDateFilterChange"
+                                @blur="onDateFilterChange"
+                            />
+                            <DatePicker v-model="filters.dateTo" placeholder="To date" dateFormat="yy-mm-dd" showIcon manualInput fluid class="w-full xl:w-40" aria-label="Leave date to" @date-select="onDateFilterChange" @blur="onDateFilterChange" />
+                            <div class="flex items-center gap-2 xl:ml-auto">
+                                <Select v-model="filters.perPage" :options="perPageOptions" class="w-28" :aria-label="`Rows: ${filters.perPage}`" @change="onFilterChange" />
+                                <Button label="Clear" icon="pi pi-filter-slash" severity="secondary" variant="outlined" @click="resetFilters" />
+                            </div>
+                        </div>
+
+                        <DataTable
+                            :value="items"
+                            :lazy="true"
+                            paginator
+                            showGridlines
+                            scrollable
+                            :rows="filters.perPage"
+                            :totalRecords="meta.total"
+                            :first="(meta.current_page - 1) * meta.per_page"
+                            :rowsPerPageOptions="perPageOptions"
+                            dataKey="id"
+                            :loading="listLoading"
+                            tableStyle="min-width: 76rem"
+                            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} requests"
+                            @page="onPage"
+                        >
+                            <template #loading>Loading leave requests. Please wait.</template>
+                            <template #empty>
+                                <div class="flex flex-col items-center gap-3 py-6">
+                                    <span v-if="listError" class="text-red-500">{{ listError }}</span>
+                                    <span v-else>{{ emptyMessage }}</span>
+                                    <Button v-if="listError" icon="pi pi-refresh" label="Retry" @click="loadList" />
+                                </div>
+                            </template>
+                            <Column header="Subject" style="min-width: 16rem">
+                                <template #body="{ data }">
+                                    <div class="font-medium truncate" :title="data.subject?.name ?? ''">{{ data.subject?.name ?? 'Unknown subject' }}</div>
+                                    <div class="text-xs text-surface-500 truncate" :title="subjectMeta(data)">{{ subjectMeta(data) || '-' }}</div>
+                                </template>
+                            </Column>
+                            <Column header="Type" style="min-width: 11rem">
+                                <template #body="{ data }">
+                                    <div class="font-medium">{{ data.type_label ?? data.type }}</div>
+                                    <div class="text-xs text-surface-500">{{ subjectTypeLabel(data.subject_type) }}</div>
+                                </template>
+                            </Column>
+                            <Column header="Dates" style="min-width: 14rem">
+                                <template #body="{ data }">
+                                    <div>{{ formatDate(data.start_date) }} – {{ formatDate(data.end_date) }}</div>
+                                    <div class="text-xs text-surface-500">{{ data.days }} {{ data.days === 1 ? 'day' : 'days' }}</div>
+                                </template>
+                            </Column>
+                            <Column header="Status" style="min-width: 9rem">
+                                <template #body="{ data }">
+                                    <Tag :value="statusLabel(data.status)" :severity="statusTagSeverity(data.status)" />
+                                    <div class="text-xs text-surface-500 mt-1">Version {{ data.version }}</div>
+                                </template>
+                            </Column>
+                            <Column header="Requested by" style="min-width: 12rem">
+                                <template #body="{ data }">
+                                    <span class="block truncate" :title="data.requested_by?.name ?? ''">{{ data.requested_by?.name ?? '-' }}</span>
+                                </template>
+                            </Column>
+                            <Column header="Files" style="min-width: 5rem">
+                                <template #body="{ data }">{{ data.attachments_count ?? 0 }}</template>
+                            </Column>
+                            <Column header="Actions" style="min-width: 12rem">
+                                <template #body="{ data }">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <Button icon="pi pi-eye" aria-label="View leave request" variant="outlined" rounded v-tooltip.top="'View'" @click="openDetail(data)" />
+                                        <Button v-if="data.can?.edit" icon="pi pi-pencil" aria-label="Edit draft leave request" variant="outlined" rounded v-tooltip.top="'Edit'" @click="startEdit(data)" />
+                                        <Button v-if="data.can?.submit" icon="pi pi-send" aria-label="Submit draft leave request" severity="info" variant="outlined" rounded v-tooltip.top="'Submit'" @click="openSubmit(data)" />
+                                        <Button v-if="data.can?.approve" icon="pi pi-check" aria-label="Approve leave request" severity="success" variant="outlined" rounded v-tooltip.top="'Approve'" @click="openDecision(data, 'approve')" />
+                                        <Button v-if="data.can?.reject" icon="pi pi-times" aria-label="Reject leave request" severity="danger" variant="outlined" rounded v-tooltip.top="'Reject'" @click="openDecision(data, 'reject')" />
+                                    </div>
+                                </template>
+                            </Column>
+                        </DataTable>
+                    </div>
+                </template>
+
+                <div v-else class="card mt-4 flex flex-col gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+                        <div class="flex flex-col gap-1">
+                            <label for="recapFrom" class="text-sm font-medium">From</label>
+                            <DatePicker inputId="recapFrom" v-model="recapFilters.from" dateFormat="yy-mm-dd" showIcon manualInput fluid />
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label for="recapTo" class="text-sm font-medium">To</label>
+                            <DatePicker inputId="recapTo" v-model="recapFilters.to" dateFormat="yy-mm-dd" showIcon manualInput fluid />
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label for="recapStatus" class="text-sm font-medium">Status</label>
+                            <Select inputId="recapStatus" v-model="recapFilters.status" :options="statusFilterOptions" optionLabel="label" optionValue="value" fluid />
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label for="recapSubject" class="text-sm font-medium">Subject type</label>
+                            <Select
+                                inputId="recapSubject"
+                                v-model="recapFilters.subjectType"
+                                :options="[{ label: 'All subject types', value: 'all' }, ...subjectTypeOptions]"
+                                optionLabel="label"
+                                optionValue="value"
+                                fluid
+                                @change="onRecapSubjectChange"
+                            />
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label for="recapType" class="text-sm font-medium">Leave type</label>
+                            <Select inputId="recapType" v-model="recapFilters.type" :options="recapTypeOptions" optionLabel="label" optionValue="value" fluid />
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label for="recapSchoolYear" class="text-sm font-medium">School year</label>
+                            <Select
+                                inputId="recapSchoolYear"
+                                v-model="recapFilters.schoolYearId"
+                                :options="recapSchoolYearOptions"
+                                optionLabel="label"
+                                optionValue="value"
+                                :disabled="recapFilters.subjectType === 'employee'"
+                                fluid
+                                @change="onRecapSchoolYearChange"
+                            />
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label for="recapRombel" class="text-sm font-medium">Class</label>
+                            <Select inputId="recapRombel" v-model="recapFilters.rombelId" :options="recapRombelOptions" optionLabel="label" optionValue="value" :disabled="recapFilters.subjectType === 'employee'" fluid @change="onRecapRombelChange" />
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label for="recapEmployeeType" class="text-sm font-medium">Employee type</label>
+                            <Select
+                                inputId="recapEmployeeType"
+                                v-model="recapFilters.employeeTypeId"
+                                :options="recapEmployeeTypeOptions"
+                                optionLabel="label"
+                                optionValue="value"
+                                :disabled="recapFilters.subjectType === 'student'"
+                                fluid
+                                @change="onRecapEmployeeTypeChange"
+                            />
                         </div>
                     </div>
 
-                    <DataTable
-                        :value="items"
-                        :lazy="true"
-                        paginator
-                        showGridlines
-                        scrollable
-                        :rows="filters.perPage"
-                        :totalRecords="meta.total"
-                        :first="(meta.current_page - 1) * meta.per_page"
-                        :rowsPerPageOptions="perPageOptions"
-                        dataKey="id"
-                        :loading="listLoading"
-                        tableStyle="min-width: 76rem"
-                        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} requests"
-                        @page="onPage"
-                    >
-                        <template #loading>Loading leave requests. Please wait.</template>
-                        <template #empty>
-                            <div class="flex flex-col items-center gap-3 py-6">
-                                <span v-if="listError" class="text-red-500">{{ listError }}</span>
-                                <span v-else>{{ emptyMessage }}</span>
-                                <Button v-if="listError" icon="pi pi-refresh" label="Retry" @click="loadList" />
+                    <div class="flex flex-wrap items-center gap-2">
+                        <Button label="Refresh" icon="pi pi-refresh" :loading="recapLoading" @click="loadRecap" />
+                        <Button label="Reset" icon="pi pi-filter-slash" severity="secondary" variant="outlined" :disabled="recapLoading" @click="resetRecapFilters" />
+                        <small class="text-surface-500 sm:ml-auto">Maximum {{ recapMaxRange }} days per recap period.</small>
+                    </div>
+
+                    <Message v-if="recapError" severity="error" :closable="false">{{ recapError }}</Message>
+
+                    <div v-if="recapLoading" class="flex justify-center py-10">
+                        <i class="pi pi-spin pi-spinner text-2xl" aria-hidden="true"></i>
+                    </div>
+
+                    <template v-else-if="recap">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <Tag :value="`${formatDate(recap.period.from)} – ${formatDate(recap.period.to)}`" severity="secondary" />
+                            <Tag :value="`${recap.period.days} ${recap.period.days === 1 ? 'day' : 'days'} in period`" severity="contrast" />
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                            <div v-for="card in recapCards" :key="card.label" class="border border-surface-200 dark:border-surface-700 rounded p-4">
+                                <div class="text-sm text-surface-500">{{ card.label }}</div>
+                                <div class="text-2xl font-semibold">{{ card.value }}</div>
+                            </div>
+                        </div>
+
+                        <Message v-if="recap.totals.requests === 0" severity="info" :closable="false">No leave requests intersect this period.</Message>
+
+                        <template v-else>
+                            <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                                <div class="border border-surface-200 dark:border-surface-700 rounded p-4 flex flex-col gap-3">
+                                    <div class="font-semibold">By status</div>
+                                    <DataTable :value="recap.by_status" size="small" scrollable tableStyle="min-width: 18rem">
+                                        <Column header="Status">
+                                            <template #body="{ data }">{{ data.label }}</template>
+                                        </Column>
+                                        <Column field="requests" header="Requests" />
+                                        <Column field="days" header="Days" />
+                                    </DataTable>
+                                </div>
+
+                                <div class="border border-surface-200 dark:border-surface-700 rounded p-4 flex flex-col gap-3">
+                                    <div class="font-semibold">By type</div>
+                                    <DataTable :value="recap.by_type" size="small" scrollable tableStyle="min-width: 22rem">
+                                        <Column header="Subject">
+                                            <template #body="{ data }">{{ subjectTypeLabel(data.subject_type) }}</template>
+                                        </Column>
+                                        <Column field="label" header="Type" />
+                                        <Column field="requests" header="Requests" />
+                                        <Column field="days" header="Days" />
+                                    </DataTable>
+                                </div>
+
+                                <div class="border border-surface-200 dark:border-surface-700 rounded p-4 flex flex-col gap-3">
+                                    <div class="font-semibold">By class</div>
+                                    <DataTable :value="recap.by_class" size="small" scrollable tableStyle="min-width: 18rem">
+                                        <template #empty>No student leave in this period.</template>
+                                        <Column field="class" header="Class" />
+                                        <Column field="requests" header="Requests" />
+                                        <Column field="days" header="Days" />
+                                    </DataTable>
+                                </div>
+
+                                <div class="border border-surface-200 dark:border-surface-700 rounded p-4 flex flex-col gap-3">
+                                    <div class="font-semibold">By employee</div>
+                                    <DataTable :value="recap.by_employee" size="small" scrollable tableStyle="min-width: 28rem">
+                                        <template #empty>No employee leave in this period.</template>
+                                        <Column header="Employee">
+                                            <template #body="{ data }">{{ data.name ?? '-' }}</template>
+                                        </Column>
+                                        <Column header="NUPTK">
+                                            <template #body="{ data }">{{ data.nuptk ?? '-' }}</template>
+                                        </Column>
+                                        <Column header="Employee type">
+                                            <template #body="{ data }">{{ data.employee_type ?? '-' }}</template>
+                                        </Column>
+                                        <Column field="requests" header="Requests" />
+                                        <Column field="days" header="Days" />
+                                    </DataTable>
+                                </div>
                             </div>
                         </template>
-                        <Column header="Subject" style="min-width: 16rem">
-                            <template #body="{ data }">
-                                <div class="font-medium truncate" :title="data.subject?.name ?? ''">{{ data.subject?.name ?? 'Unknown subject' }}</div>
-                                <div class="text-xs text-surface-500 truncate" :title="subjectMeta(data)">{{ subjectMeta(data) || '-' }}</div>
-                            </template>
-                        </Column>
-                        <Column header="Type" style="min-width: 11rem">
-                            <template #body="{ data }">
-                                <div class="font-medium">{{ data.type_label ?? data.type }}</div>
-                                <div class="text-xs text-surface-500">{{ subjectTypeLabel(data.subject_type) }}</div>
-                            </template>
-                        </Column>
-                        <Column header="Dates" style="min-width: 14rem">
-                            <template #body="{ data }">
-                                <div>{{ formatDate(data.start_date) }} – {{ formatDate(data.end_date) }}</div>
-                                <div class="text-xs text-surface-500">{{ data.days }} {{ data.days === 1 ? 'day' : 'days' }}</div>
-                            </template>
-                        </Column>
-                        <Column header="Status" style="min-width: 9rem">
-                            <template #body="{ data }">
-                                <Tag :value="statusLabel(data.status)" :severity="statusTagSeverity(data.status)" />
-                                <div class="text-xs text-surface-500 mt-1">Version {{ data.version }}</div>
-                            </template>
-                        </Column>
-                        <Column header="Requested by" style="min-width: 12rem">
-                            <template #body="{ data }">
-                                <span class="block truncate" :title="data.requested_by?.name ?? ''">{{ data.requested_by?.name ?? '-' }}</span>
-                            </template>
-                        </Column>
-                        <Column header="Files" style="min-width: 5rem">
-                            <template #body="{ data }">{{ data.attachments_count ?? 0 }}</template>
-                        </Column>
-                        <Column header="Actions" style="min-width: 10rem">
-                            <template #body="{ data }">
-                                <div class="flex flex-wrap items-center gap-2">
-                                    <Button icon="pi pi-eye" aria-label="View leave request" variant="outlined" rounded v-tooltip.top="'View'" @click="openDetail(data)" />
-                                    <Button v-if="data.can?.edit" icon="pi pi-pencil" aria-label="Edit draft leave request" variant="outlined" rounded v-tooltip.top="'Edit'" @click="startEdit(data)" />
-                                    <Button v-if="data.can?.submit" icon="pi pi-send" aria-label="Submit draft leave request" severity="info" variant="outlined" rounded v-tooltip.top="'Submit'" @click="openSubmit(data)" />
-                                </div>
-                            </template>
-                        </Column>
-                    </DataTable>
+                    </template>
                 </div>
             </template>
         </div>
@@ -1173,6 +1595,8 @@ onMounted(async () => {
                 <Tag :value="detail.type_label ?? detail.type" severity="info" />
                 <Tag :value="`Version ${detail.version}`" severity="contrast" />
                 <div class="flex flex-wrap gap-2 sm:ml-auto">
+                    <Button v-if="detail.can?.approve" label="Approve" icon="pi pi-check" size="small" severity="success" variant="outlined" @click="openDecision(detail, 'approve')" />
+                    <Button v-if="detail.can?.reject" label="Reject" icon="pi pi-times" size="small" severity="danger" variant="outlined" @click="openDecision(detail, 'reject')" />
                     <Button v-if="detail.can?.edit" label="Edit" icon="pi pi-pencil" size="small" variant="outlined" @click="startEdit(detail)" />
                     <Button v-if="detail.can?.submit" label="Submit" icon="pi pi-send" size="small" severity="info" variant="outlined" @click="openSubmit(detail)" />
                     <Button v-if="detail.can?.cancel" label="Cancel" icon="pi pi-ban" size="small" severity="danger" variant="outlined" @click="openCancel(detail)" />
@@ -1182,6 +1606,7 @@ onMounted(async () => {
             <Message v-if="detail.status === 'draft'" severity="info" :closable="false"> This draft can be edited, submitted, or cancelled. Attachments can be added before or after submission. </Message>
             <Message v-if="detail.status === 'submitted'" severity="info" :closable="false"> This request has been submitted. It can be cancelled with a reason, but it can no longer be edited. </Message>
             <Message v-if="detail.status === 'cancelled'" severity="warn" :closable="false"> Cancelled by {{ detail.cancelled_by?.name ?? 'a user' }} on {{ formatDateTime(detail.cancelled_at) }}. </Message>
+            <Message v-if="detail.status === 'cancelled' && detail.decided_at" severity="secondary" :closable="false"> Previously approved by {{ detail.decided_by?.name ?? 'a user' }} on {{ formatDateTime(detail.decided_at) }}. </Message>
             <Message v-if="detail.status === 'approved'" severity="success" :closable="false"> Approved by {{ detail.decided_by?.name ?? 'a user' }} on {{ formatDateTime(detail.decided_at) }}. </Message>
             <Message v-if="detail.status === 'rejected'" severity="error" :closable="false"> Rejected by {{ detail.decided_by?.name ?? 'a user' }} on {{ formatDateTime(detail.decided_at) }}. </Message>
 
@@ -1298,14 +1723,54 @@ onMounted(async () => {
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="cancelVisible" modal :draggable="false" :style="{ width: 'min(94vw, 38rem)' }" header="Cancel Leave Request">
+    <Dialog v-model:visible="decisionVisible" modal :draggable="false" :style="{ width: 'min(94vw, 38rem)' }" :header="decisionTitle">
+        <div class="flex flex-col gap-4">
+            <div v-if="decisionTarget" class="text-sm text-surface-500">
+                <span class="font-medium text-surface-900 dark:text-surface-0">{{ decisionTarget.subject || 'Leave request' }}</span>
+                — {{ formatDate(decisionTarget.start_date) }} to {{ formatDate(decisionTarget.end_date) }}
+            </div>
+            <Message :severity="decisionIsApprove ? 'success' : 'warn'" :closable="false">
+                {{
+                    decisionIsApprove
+                        ? 'Approving confirms this leave request. A decision note is optional and is kept in the decision history.'
+                        : 'Rejecting this leave request requires a reason. The request becomes read-only and the dates are released.'
+                }}
+            </Message>
+
+            <div class="flex flex-col gap-2">
+                <label for="leaveDecisionReason" class="font-medium">
+                    {{ decisionIsApprove ? 'Decision Note' : 'Rejection Reason' }}
+                    <span v-if="decisionRequiresReason" class="text-red-500">*</span>
+                </label>
+                <Textarea id="leaveDecisionReason" v-model="decisionReason" rows="3" :maxlength="decisionMax" autoResize :placeholder="decisionIsApprove ? 'Optional note for the decision history' : 'Explain why this request is rejected'" />
+                <small class="text-surface-500">
+                    {{ decisionRequiresReason ? `At least ${decisionMin} characters.` : `Optional. If provided, at least ${decisionMin} characters.` }}
+                    {{ decisionReason.trim().length }}/{{ decisionMax }}
+                </small>
+                <small v-if="fieldError(decisionErrors, 'reason')" class="text-red-500">{{ fieldError(decisionErrors, 'reason') }}</small>
+            </div>
+
+            <Message v-if="decisionErrorList.length > 0" severity="error" :closable="false">
+                <ul class="flex flex-col gap-1">
+                    <li v-for="message in decisionErrorList" :key="message">{{ message }}</li>
+                </ul>
+            </Message>
+            <small v-if="decisionError" class="text-red-500">{{ decisionError }}</small>
+        </div>
+        <template #footer>
+            <Button label="Close" severity="secondary" variant="text" :disabled="decisionSaving" @click="decisionVisible = false" />
+            <Button :label="decisionIsApprove ? 'Approve' : 'Reject'" :icon="decisionIsApprove ? 'pi pi-check' : 'pi pi-times'" :severity="decisionIsApprove ? 'success' : 'danger'" :loading="decisionSaving" @click="confirmDecision" />
+        </template>
+    </Dialog>
+
+    <Dialog v-model:visible="cancelVisible" modal :draggable="false" :style="{ width: 'min(94vw, 38rem)' }" :header="cancelIsApproved ? 'Cancel Approved Leave' : 'Cancel Leave Request'">
         <div class="flex flex-col gap-4">
             <div v-if="cancelTarget" class="text-sm text-surface-500">
                 <span class="font-medium text-surface-900 dark:text-surface-0">{{ cancelTarget.subject || 'Leave request' }}</span>
                 — {{ formatDate(cancelTarget.start_date) }} to {{ formatDate(cancelTarget.end_date) }}
             </div>
             <Message severity="warn" :closable="false">
-                {{ cancelRequiresReason ? 'Cancelling a submitted request requires a reason. The request becomes read-only.' : 'Cancelling this draft keeps the record and audit trail. This cannot be undone.' }}
+                {{ cancelMessage }}
             </Message>
 
             <div class="flex flex-col gap-2">
@@ -1330,7 +1795,7 @@ onMounted(async () => {
         </div>
         <template #footer>
             <Button label="Close" severity="secondary" variant="text" :disabled="cancelSaving" @click="cancelVisible = false" />
-            <Button label="Cancel Request" icon="pi pi-ban" severity="danger" :loading="cancelSaving" @click="confirmCancel" />
+            <Button :label="cancelIsApproved ? 'Cancel Approved Leave' : 'Cancel Request'" icon="pi pi-ban" severity="danger" :loading="cancelSaving" @click="confirmCancel" />
         </template>
     </Dialog>
 

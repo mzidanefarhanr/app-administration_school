@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-02] Fase 08b — Keputusan izin dan rekap (DEC-36)
+- Type: Feature
+- Scope / fase: 08b — approve/reject izin submitted, pembatalan izin approved oleh approver, rekap periode, UI Recap, fixture UAT `prepare-decisions`. Tanpa schema/ability/dependency baru.
+- Files touched: `app/Policies/LeaveRequestPolicy.php`, `app/Services/Leaves/LeaveRequestService.php`, `app/Http/Controllers/LeaveController.php`, `app/Http/Requests/ApproveLeaveRequestRequest.php`, `RejectLeaveRequestRequest.php`, `RecapLeaveRequestRequest.php`, `CancelLeaveRequestRequest.php`, `app/Models/LeaveRequest.php`, `routes/api.php`, `tests/Feature/Leaves/LeaveRequestTest.php`, `scripts/phase08-uat.php`, `vue-app/src/views/pages/public/Leaves.vue`, serta dokumen/laporan 08b.
+- What changed: approve/reject hanya untuk `submitted` oleh aktor `leaves.approve` + `leaves.view`, bukan pembuat/subjek, tanpa self-decision; approve bercatatan opsional 10–500 dan mengecek ulang overlap, reject wajib alasan 10–500; cancel izin approved oleh approver beralasan 10–255 dengan `decided_*` dan riwayat dipertahankan; rejected/cancelled final; `GET /api/leaves/recap` inklusif WIB ≤366 hari dengan irisan tanggal/hari terpotong, filter status/jenis/subjek/tahun ajaran/kelas/tipe pegawai, dan agregat tanpa PII; tab Recap dan aksi keputusan di `/public/leaves` mengikuti `can` server; `permissions` objek dinamis.
+- Why: melaksanakan D1–D8/DEC-36 untuk melengkapi FR-10 (keputusan dan rekap) di atas 08a yang sudah diterima.
+- Validation: Leaves **30 passed / 473 assertions**; regresi Letters **86 passed / 1.744 assertions**; Pint file berubah **PASS**; `route:list --path=leaves` **16 route**; ESLint non-mutasi **0 error**; `npm run build` **PASS**; UAT `.uat-phase08` `prepare-decisions` idempoten — 124 izin/55 keputusan/49 lampiran/123 siswa/21 pegawai; browser/API kepsek approve + `409` Reload Latest, operator/admin/waka/guru `403`, rekap default/filter/clipping/`Unplaced`/kelas terhapus, 390×844, 3 console error hanya probe yang disengaja. **NOT RUN:** suite penuh (batas akses `school_access_uat`), race MariaDB/InnoDB, dua tab nyata, restore drill, visual regression, benchmark, email/WhatsApp, ekspor/PDF rekap.
+- Notes / risks: review manual pemilik **PENDING (#1–#18)**; item #1–#17 diverifikasi agen, item #18 menunggu penerimaan. Server UAT 14026/18026 masih berjalan dan `.uat-phase08` dipertahankan sampai penerimaan (DEC-27). DEC-13 tetap OPEN; merge/deploy/force-push, migrasi DB operasional/MariaDB, dan perubahan dependency/service/`.env` tidak diotorisasi.
+- Evidence: `reports/feature-update/PHASE-08B-REPORT.md`, `reports/feature-update/PHASE-08B-MANUAL-REVIEW.md`; baseline `8dcfb1d`; SHA paket review dilaporkan setelah commit/push (tanpa klaim SHA masa depan).
+
 ## [2026-11-02] Fase 08b — Pemilik menyetujui rencana (DEC-36 APPROVED; implementasi diotorisasi)
 - Type: Docs
 - Scope / fase: Persetujuan rencana 08b D1–D8; implementasi 08b diotorisasi. Tidak ada perubahan kode aplikasi pada entri ini.

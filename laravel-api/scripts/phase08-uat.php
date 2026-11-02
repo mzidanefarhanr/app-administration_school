@@ -400,6 +400,179 @@ if ($command === 'prepare-leaves') {
     exit(0);
 }
 
+if ($command === 'prepare-decisions') {
+    $exit = $kernel->call('migrate', ['--force' => true]);
+    fwrite(STDOUT, $kernel->output());
+    if ($exit !== 0) {
+        exit($exit);
+    }
+
+    $kepsek = App\Models\User::where('username', 'uat.kepsek')->first();
+    $operator = App\Models\User::where('username', 'uat.operator')->first();
+    if (! $kepsek || ! $operator) {
+        throw new RuntimeException('Run prepare first (uat.kepsek and uat.operator are required).');
+    }
+
+    $approver = App\Models\Employee::withTrashed()->firstOrNew(['name' => 'UAT-P08 Approver 01']);
+    if (! $approver->exists) {
+        $approver = App\Models\Employee::factory()->create([
+            'name' => 'UAT-P08 Approver 01',
+            'user_id' => $kepsek->id,
+            'user_nik' => $kepsek->nik,
+            'nuptk' => 'P08APPROVER0001',
+            'exit_date' => null,
+        ]);
+        $approverCreated = true;
+    } else {
+        $approver->user_id = $kepsek->id;
+        $approver->user_nik = $kepsek->nik;
+        $approver->exit_date = null;
+        $approver->deleted_at = null;
+        $approver->save();
+        $approverCreated = false;
+    }
+
+    /** @var App\Services\Leaves\LeaveRequestService $leaves */
+    $leaves = $app->make(App\Services\Leaves\LeaveRequestService::class);
+
+    $selfReason = 'UAT-P08 synthetic self decision leave for manual review.';
+    $selfLeave = App\Models\LeaveRequest::query()->where('reason', $selfReason)->first();
+    $selfCreated = false;
+    if (! $selfLeave) {
+        $selfLeave = App\Models\LeaveRequest::findOrFail((int) $leaves->create([
+            'subject_type' => 'employee',
+            'employee_id' => $approver->id,
+            'type' => 'annual',
+            'start_date' => '2026-12-01',
+            'end_date' => '2026-12-01',
+            'reason' => $selfReason,
+        ], $kepsek)['id']);
+        $leaves->submit($selfLeave->id, (int) $selfLeave->version, $kepsek);
+        $selfLeave = $selfLeave->fresh();
+        $selfCreated = true;
+    }
+
+    $subjectReason = 'UAT-P08 synthetic subject decision leave for manual review.';
+    $subjectLeave = App\Models\LeaveRequest::query()->where('reason', $subjectReason)->first();
+    $subjectCreated = false;
+    if (! $subjectLeave) {
+        $subjectLeave = App\Models\LeaveRequest::findOrFail((int) $leaves->create([
+            'subject_type' => 'employee',
+            'employee_id' => $approver->id,
+            'type' => 'sick',
+            'start_date' => '2026-12-02',
+            'end_date' => '2026-12-02',
+            'reason' => $subjectReason,
+        ], $operator)['id']);
+        $leaves->submit($subjectLeave->id, (int) $subjectLeave->version, $operator);
+        $subjectLeave = $subjectLeave->fresh();
+        $subjectCreated = true;
+    }
+
+    $approvalMarker = 'UAT-P08 decision fixture approval leave ';
+    $rejectionMarker = 'UAT-P08 decision fixture rejection leave ';
+    $cancellationMarker = 'UAT-P08 decision fixture approved cancellation leave ';
+
+    $approvedDone = App\Models\LeaveDecision::where('action', 'approved')
+        ->where('reason', 'like', $approvalMarker.'%')->count();
+    $rejectedDone = App\Models\LeaveDecision::where('action', 'rejected')
+        ->where('reason', 'like', $rejectionMarker.'%')->count();
+    $cancelledDone = App\Models\LeaveDecision::where('action', 'cancelled')
+        ->where('reason', 'like', $cancellationMarker.'%')->count();
+
+    $candidateQuery = fn () => App\Models\LeaveRequest::query()
+        ->where('status', App\Models\LeaveRequest::STATUS_SUBMITTED)
+        ->where('requested_by', '!=', $kepsek->id)
+        ->where(fn ($query) => $query->whereNull('employee_id')->orWhere('employee_id', '!=', $approver->id))
+        ->whereDoesntHave('decisions')
+        ->orderBy('start_date')
+        ->orderBy('id');
+
+    $approvedThisRun = 0;
+    $rejectedThisRun = 0;
+    $cancelledThisRun = 0;
+
+    foreach ($candidateQuery()->limit(max(0, 20 - $approvedDone))->get() as $candidate) {
+        $leaves->approve(
+            $candidate->id,
+            $approvalMarker.$candidate->id.'.',
+            (int) $candidate->version,
+            $kepsek,
+        );
+        $approvedThisRun++;
+    }
+
+    foreach ($candidateQuery()->limit(max(0, 10 - $rejectedDone))->get() as $candidate) {
+        $leaves->reject(
+            $candidate->id,
+            $rejectionMarker.$candidate->id.'.',
+            (int) $candidate->version,
+            $kepsek,
+        );
+        $rejectedThisRun++;
+    }
+
+    $pendingCancellations = App\Models\LeaveRequest::query()
+        ->where('status', App\Models\LeaveRequest::STATUS_APPROVED)
+        ->whereHas('decisions', fn ($query) => $query->where('action', 'approved')->where('reason', 'like', $approvalMarker.'%'))
+        ->whereDoesntHave('decisions', fn ($query) => $query->where('action', 'cancelled'))
+        ->orderBy('start_date')
+        ->orderBy('id')
+        ->limit(max(0, 5 - $cancelledDone))
+        ->get();
+
+    foreach ($pendingCancellations as $candidate) {
+        $leaves->cancel(
+            $candidate->id,
+            $cancellationMarker.$candidate->id.'.',
+            (int) $candidate->version,
+            $kepsek,
+        );
+        $cancelledThisRun++;
+    }
+
+    $stillNeeded = max(0, 5 - $cancelledDone) - $cancelledThisRun;
+
+    if ($stillNeeded > 0) {
+        foreach ($candidateQuery()->limit($stillNeeded)->get() as $candidate) {
+            $leaves->approve(
+                $candidate->id,
+                $approvalMarker.$candidate->id.'.',
+                (int) $candidate->version,
+                $kepsek,
+            );
+            $approvedThisRun++;
+
+            $candidate->refresh();
+            $leaves->cancel(
+                $candidate->id,
+                $cancellationMarker.$candidate->id.'.',
+                (int) $candidate->version,
+                $kepsek,
+            );
+            $cancelledThisRun++;
+        }
+    }
+
+    $byStatus = App\Models\LeaveRequest::query()->pluck('status')->countBy();
+    $byAction = App\Models\LeaveDecision::query()->pluck('action')->countBy();
+
+    fwrite(STDOUT, 'Approver employee: UAT-P08 Approver 01 #'.$approver->id
+        .' ('.($approverCreated ? 'created' : 'reused').'), linked to uat.kepsek.'."\n");
+    fwrite(STDOUT, 'Self leave: #'.$selfLeave->id.' '.$selfLeave->status.' ('.($selfCreated ? 'created' : 'reused').').'."\n");
+    fwrite(STDOUT, 'Subject-self leave: #'.$subjectLeave->id.' '.$subjectLeave->status.' ('.($subjectCreated ? 'created' : 'reused').').'."\n");
+    fwrite(STDOUT, 'Decision fixture: approvals '.($approvedDone + $approvedThisRun).' (target 20), rejections '
+        .($rejectedDone + $rejectedThisRun).' (target 10), approved cancellations '.($cancelledDone + $cancelledThisRun)
+        .' (target 5); this run: '.$approvedThisRun.' approvals, '.$rejectedThisRun.' rejections, '
+        .$cancelledThisRun.' cancellations.'."\n");
+    fwrite(STDOUT, 'Leaves: '.App\Models\LeaveRequest::count().' total; draft '.($byStatus['draft'] ?? 0)
+        .', submitted '.($byStatus['submitted'] ?? 0).', cancelled '.($byStatus['cancelled'] ?? 0)
+        .', approved '.($byStatus['approved'] ?? 0).', rejected '.($byStatus['rejected'] ?? 0).'.'."\n");
+    fwrite(STDOUT, 'Decisions: '.App\Models\LeaveDecision::count().' total; approved '.($byAction['approved'] ?? 0)
+        .', rejected '.($byAction['rejected'] ?? 0).', cancelled '.($byAction['cancelled'] ?? 0).'.'."\n");
+    exit(0);
+}
+
 if ($command === 'status') {
     fwrite(STDOUT, "[ISOLATION GUARD PASS] Dedicated phase-08 SQLite UAT; no MariaDB connection.\n");
     $year = App\Models\AcademicSetting::find(App\Models\AcademicSetting::SINGLETON_ID)?->activeSchoolYear;
@@ -413,7 +586,10 @@ if ($command === 'status') {
         .'; student '.($bySubject['student'] ?? 0).', employee '.($bySubject['employee'] ?? 0).".\n");
     $attachmentFiles = Illuminate\Support\Facades\Storage::disk((string) config('leaves.attachment.disk'))->allFiles((string) config('leaves.attachment.path'));
     fwrite(STDOUT, 'Attachments: '.App\Models\LeaveAttachment::count().' rows, '.count($attachmentFiles)
-        .' private files; decisions '.App\Models\LeaveDecision::count().".\n");
+        .' private files; decisions '.App\Models\LeaveDecision::count().'.'."\n");
+    $byAction = App\Models\LeaveDecision::query()->pluck('action')->countBy();
+    fwrite(STDOUT, 'Decisions by action: approved '.($byAction['approved'] ?? 0).', rejected '.($byAction['rejected'] ?? 0)
+        .', cancelled '.($byAction['cancelled'] ?? 0).'.'."\n");
     fwrite(STDOUT, 'Students: '.App\Models\Student::count().' total; '
         .App\Models\StudentRombel::query()->whereNull('archived_at')->whereNull('latest_student_exit_date')
             ->whereHas('schoolRombel', fn ($query) => $query->where('school_year_id', $year?->id))->count()
@@ -426,4 +602,4 @@ if ($command === 'status') {
     exit(0);
 }
 
-throw new RuntimeException('Allowed commands: init, prepare, prepare-leaves, status. Serve using PHP -S 127.0.0.1:18026 with this router.');
+throw new RuntimeException('Allowed commands: init, prepare, prepare-leaves, prepare-decisions, status. Serve using PHP -S 127.0.0.1:18026 with this router.');

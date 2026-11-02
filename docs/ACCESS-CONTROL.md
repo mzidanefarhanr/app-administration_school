@@ -25,7 +25,7 @@ API mayoritas hanya auth:sanctum. Beberapa controller akun membedakan tipe secar
 - Ekspor siswa: `GET /api/students/export` menegakkan `students.view` + `students.export`, lingkup sama dengan daftar (tahun ajaran + filter), kolom eksplisit, tanpa akses tambahan. Bila hasil filter melebihi batas (10.000 baris), ekspor ditolak `422` (bukan dipotong). Tombol di UI mengikuti izin aktual; pencabutan izin berlaku pada request berikutnya. Ekspor mengendalikan berkas, bukan kerahasiaan data yang sudah boleh dilihat.
 - Keputusan: `docs/DECISIONS.md` DEC-14 (APPROVED 2026-10-14 WIB) — register ditutup, akun nonaktif ditolak, ekspor via `students.export`, pemetaan legacy `Admin`→Admin Sistem (User **tidak** otomatis Operator), UI English. `status_active` tidak disamakan dengan `status_user_id`.
 - Pemetaan legacy: hanya `type_users.name='Admin'` yang dipetakan otomatis ke `admin-sistem`; `User`/tak dikenal/tanpa tipe → tanpa peran (default deny). Peran pengguna lama ditetapkan manual oleh admin; penetapan eksplisit tidak dihapus.
-- Kemampuan modul pembelajaran masih **kemampuan direncanakan**; enforcement end-to-end belum diuji karena fiturnya belum ada. `students.export` punya titik penegakan nyata pada ekspor siswa. Modul surat memiliki penegakan nyata pada 07a (`letters.view`/`letters.manage`), 07b (`letters.approve`/`letters.sign`), dan 07c (settings/dokumen). Modul izin memiliki penegakan nyata pada **08a** (`leaves.view`/`leaves.manage`/`leaves.request`); `leaves.approve` baru ditegakkan pada 08b.
+- Kemampuan modul pembelajaran masih **kemampuan direncanakan**; enforcement end-to-end belum diuji karena fiturnya belum ada. `students.export` punya titik penegakan nyata pada ekspor siswa. Modul surat memiliki penegakan nyata pada 07a (`letters.view`/`letters.manage`), 07b (`letters.approve`/`letters.sign`), dan 07c (settings/dokumen). Modul izin memiliki penegakan nyata pada **08a** (`leaves.view`/`leaves.manage`/`leaves.request`) dan **08b** (`leaves.approve` untuk approve/reject/cancel-approved; rekap memakai `leaves.view`).
 
 ## Implementasi Fase 04a (fondasi personalia)
 - `App\Policies\EmployeePolicy` menegakkan kemampuan bernama: `viewAny`/`view` → `employees.view`; `create`/`update`/`delete`/`restore` → `employees.manage`; `forceDelete` selalu `false`.
@@ -122,10 +122,25 @@ API mayoritas hanya auth:sanctum. Beberapa controller akun membedakan tipe secar
   - `GET /api/leaves/{leave}` → policy view (view/manage, pembuat, atau subjek pegawai tertaut); `POST /api/leaves` → policy create; `PUT/PATCH`, `POST .../submit`, `POST .../cancel`, upload/hapus lampiran → pembuat atau `leaves.manage`; download lampiran → policy view.
   - Guest `401`; akun nonaktif `403`; tanpa ability `403`; objek tidak terlihat `404`; validasi/kelayakan `422`; konflik versi/status `409`.
 - **Subjek dan batas peran**: siswa tidak memiliki akun login, sehingga pengajuan siswa hanya melalui `leaves.manage` (default Admin/Operator). Pegawai self-service memakai `leaves.request` + tepat satu `employees.user_id = actor.id`; fallback NIK tidak dipakai. Guru default tidak dapat membuat izin siswa atau izin pegawai lain. Pemberian `leaves.manage` kepada peran lain adalah delegasi operasional eksplisit melalui Roles & Abilities.
-- **Larangan self-decision (08b)**: approve/reject dan pembatalan izin approved akan menolak aktor yang membuat pengajuan atau yang menjadi subjek pegawai. Pada 08a belum ada endpoint keputusan dan `permissions.approve/reject` selalu false; `cancelled` adalah status final.
+- **Larangan self-decision**: sejak 08b approve/reject dan pembatalan izin approved menolak aktor yang membuat pengajuan atau yang menjadi subjek pegawai. Pada 08a belum ada endpoint keputusan dan `permissions.approve/reject` selalu false; kini nilainya server-driven dan true hanya untuk izin `submitted` + policy `decides()`.
 - **Batas objek/state**: edit hanya draft; submit memvalidasi ulang kelayakan subjek, tanggal, dan overlap; lampiran hanya dapat diubah pada draft/submitted; objek milik orang lain yang tidak terlihat `404`; pembatalan submitted memerlukan alasan 10–255.
 - **UI**: menu **Leaves** dengan `canAny(['leaves.view','leaves.request'])`; tab **Requests** (`leaves.view`) dan **My Leaves** (`leaves.request`); tombol New Request/New Self Request/edit/submit/cancel/upload mengikuti ability dan kepemilikan. Tombol tersembunyi bukan pengganti enforcement server.
 - **UAT**: `.uat-phase08` terisolasi (API 18026/SPA 14026, cookie `school_phase08_session`); fixture sintetis; server dihentikan setelah penerimaan (DEC-27).
+
+## Implementasi Subfase 08b (keputusan dan rekap izin)
+- **Tanpa ability/role baru**: `leaves.approve`, `leaves.view`, `leaves.request`, dan `leaves.manage` dipakai kembali. `leaves.approve` tetap hanya diberikan ke Kepala Sekolah secara default; Admin Sistem/Operator/Wakil/Guru tidak otomatis memperolehnya. Delegasi hanya melalui Roles & Abilities.
+- **Policy `decides()`**: approve/reject/cancel-approved mensyaratkan **`leaves.approve` + `leaves.view`**, aktor bukan `requested_by`, dan bukan subjek pegawai yang tertaut ke akun aktor (`employees.user_id`). Aktor tanpa ability tetap `403`; objek tidak terlihat `404`.
+- **Route matrix**:
+  - `POST /api/leaves/{leave}/approve` → middleware `leaves.approve` + policy approve; hanya `submitted`; `expected_version` wajib; alasan opsional 10–500; cek ulang overlap; `200`/`403`/`404`/`409`/`422`.
+  - `POST /api/leaves/{leave}/reject` → sama; alasan wajib 10–500; `200`/`403`/`404`/`409`/`422`.
+  - `GET /api/leaves/recap` → `leaves.view`; `from`/`to` wajib, rentang ≤366 hari, filter opsional; agregat tanpa PII; `200`/`403`/`422`.
+  - `POST /api/leaves/{leave}/cancel` → tetap route 08a, policy bercabang: draft/submitted = pembuat atau `leaves.manage`; approved = `decides()` dengan alasan wajib 10–255; rejected/cancelled final `409`.
+- **Pemisahan tugas**: pembuat izin dan pegawai subjek tidak dapat menyetujui/menolak/membatalkan izin approved miliknya sendiri; pembuat/`leaves.manage` tanpa ability approve tidak dapat membatalkan izin approved. `decided_*` dipertahankan saat cancel-approved dan riwayat keputusan tetap append-only.
+- **Batas objek/state**: approve/reject hanya `submitted`; approve tidak memvalidasi ulang config/eligibility, hanya overlap; semua transisi memakai transaksi + `lockForUpdate` + `expected_version`; konflik `409` tanpa mutasi.
+- **`permissions` objek**: `view`, `edit`, `submit`, `cancel`, `approve`, `reject`, `upload`, `delete_attachment`; approve/reject true hanya untuk `submitted` + `decides()`, cancel true untuk draft/submitted yang dapat diubah atau approved + `decides()`. UI mengikuti nilai ini; server tetap menegakkan `403`.
+- **Role yang diharapkan**: Kepala Sekolah — Requests + Recap + Approve/Reject/Cancel Approved; Admin/Operator — Requests + Recap tanpa keputusan kecuali didelegasikan; Wakil Kesiswaan — Requests + Recap view-only; Guru — hanya My Leaves (daftar/rekap `403`).
+- **UI**: tombol baris/detail hanya bila `can.approve`/`can.reject`; dialog keputusan dengan validasi alasan; **Cancel Approved**; tab **Recap** hanya untuk `leaves.view`; `409` memakai dialog Reload Latest. Tombol tersembunyi bukan pengganti enforcement server.
+- **UAT**: `.uat-phase08` additive `prepare-decisions` (idempoten); server dihentikan hanya setelah penerimaan (DEC-27).
 
 
 | Kemampuan | Admin | Operator | Kepala sekolah | Guru/wali kelas |
@@ -137,7 +152,7 @@ API mayoritas hanya auth:sanctum. Beberapa controller akun membedakan tipe secar
 | letters.manage / disposition | Sesuai mandat | Ya | Sesuai mandat | Surat ditugaskan saja |
 | letters.approve / issue | Tidak otomatis dari admin teknis | Jika didelegasikan | Ya | Tidak |
 | leaves.request | Untuk diri sendiri | Input administrasi sesuai mandat | Diri sendiri | Diri sendiri |
-| leaves.decide | Sesuai mandat | Jika didelegasikan | Ya | Sesuai scope wali kelas bila disepakati |
+| leaves.approve (`decides()`) | Tidak otomatis dari admin teknis | Jika didelegasikan | Ya (default) | Tidak |
 | teaching.journal.write | Tidak otomatis | Koreksi administrasi berizin | Review | Penugasan sendiri |
 | audit.view / rollback | Eksplisit | Eksplisit terbatas | Review sesuai mandat | Tidak |
 | backups.manage / restore | Eksplisit | Tidak default | Tidak default | Tidak |
