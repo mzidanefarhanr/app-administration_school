@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 09a — Penerimaan pemilik #1–#18 dan verifikasi UAT berhenti
+- Type: Docs
+- Scope / fase: Penerimaan manual subfase 09a. Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `reports/feature-update/PHASE-09A-REPORT.md`, `reports/feature-update/PHASE-09A-MANUAL-REVIEW.md`, `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-09-ARCHIVES.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: mencatat pernyataan pemilik **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** (2026-11-03 WIB) sebagai penerimaan checklist 09a **#1–#18**; status DEC-37 menjadi IMPLEMENTED + OWNER APPROVED; paket review dicatat sebagai **`dfd6f85`** di `origin/main`; 08a/08b tetap OWNER APPROVED; DEC-35/DEC-36 tidak berubah; DEC-13 tetap OPEN.
+- Why: penerimaan manual pemilik dicatat terpisah dari commit implementasi dan menjadi gate subfase berikutnya.
+- Validation: **NOT RUN** — tidak ada tes/build/Pint/ESLint/browser ulang; agen tidak mengulang skenario manual dan item NOT RUN tetap NOT RUN. Verifikasi operasional read-only: port **18027/14027 bebas**, `.uat-phase09` (SQLite/storage/password runtime) dipertahankan, Apache/MariaDB tidak disentuh, `git diff --cached --check` bersih pada paket review.
+- Notes / risks: penerimaan 09a tidak mengotorisasi merge/deploy/force-push, migrasi DB operasional/MariaDB, perubahan dependency/lockfile/service/`.env`, **09b**, atau retensi/pemusnahan **DEC-13**. NOT RUN tetap: viewport 390 px/keyboard, race MariaDB, dua tab nyata, restore drill, visual regression, benchmark, create picker domain di UI, alur waka.
+- Evidence: `reports/feature-update/PHASE-09A-REPORT.md`; `PHASE-09A-MANUAL-REVIEW.md`; paket review `dfd6f85`; baseline `b26fb7f`.
+
 ## [2026-11-02] Fase 09a — Metadata dan versi arsip dokumen (IMPLEMENTED; agent-verified; review pemilik PENDING)
 - Type: Feature
 - Scope / fase: Subfase **09a — metadata dan versi arsip dokumen** (DEC-37 APPROVED). 09b tidak termasuk.

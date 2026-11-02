@@ -2,13 +2,13 @@
 
 Subfase: 09a — metadata arsip, kategori, tautan domain, masa berlaku, versi file immutable, pencarian/filter, dan download berizin.
 Keputusan: **DEC-37 APPROVED** (D1–D10, 2026-11-02 WIB; **"Saya setuju D1-D10"**); **DEC-35/DEC-36 tetap**; **DEC-13 OPEN**. Laporan teknis: `reports/feature-update/PHASE-09A-REPORT.md`; rencana: `reports/feature-update/PHASE-09-PLAN.md`.
-Baseline induk: `main` pada `b26fb7f` (pencatatan DEC-37); SHA paket review dilaporkan setelah commit/push. Status: **IMPLEMENTED — agent-verified (2026-11-02)**. Status review pemilik: **PENDING (#1–#18)**.
+Baseline induk: `main` pada `b26fb7f` (pencatatan DEC-37); paket review **`dfd6f85`** (di-push ke `origin/main`). Status: **IMPLEMENTED — agent-verified (2026-11-02)**. Status review pemilik: **APPROVED (#1–#18, 2026-11-03 WIB)**.
 
 ## Status penerimaan pemilik
 
-- Persetujuan rencana D1–D10 (**DEC-37**) mengotorisasi implementasi; persetujuan rencana bukan penerimaan hasil.
-- Pemilik belum menyatakan penerimaan checklist 09a. Semua status di bawah adalah **bukti agen**, bukan approval.
-- Item **#18** (penghentian server UAT) dijalankan agen setelah verifikasi UAT sesuai instruksi pemilik agar lingkungan uji yang sudah dilewati dihentikan; ini bukan bagian dari penerimaan manual.
+- **APPROVED (#1–#18, 2026-11-03 WIB)** berdasarkan pernyataan pemilik **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** Agen tidak mengulang skenario; semua status di bawah tetap **bukti agen** dan item NOT RUN tetap NOT RUN.
+- Persetujuan rencana D1–D10 (**DEC-37**) mengotorisasi implementasi; penerimaan checklist #1–#18 dicatat pada commit dokumentasi terpisah (commit/push bukan penerimaan).
+- Item **#18** (penghentian server UAT) sudah dijalankan agen setelah verifikasi UAT dan diverifikasi ulang setelah penerimaan: port 18027/14027 bebas, `.uat-phase09` (SQLite/storage/password runtime) dipertahankan, Apache/MariaDB tidak disentuh.
 - Batas: penerimaan 09a tidak mengotorisasi merge/deploy/force-push, migrasi database operasional/MariaDB, perubahan dependency/lockfile, perubahan service/`.env`, **09b**, atau retensi/pemusnahan **DEC-13**. Jangan menyentuh database operasional, `.uat-phase05/06/07/08`, Apache, atau service MariaDB.
 
 ## Lingkungan UAT (terisolasi)

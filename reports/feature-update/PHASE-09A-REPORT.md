@@ -1,6 +1,6 @@
 # Laporan Subfase 09a — Metadata dan Versi Arsip Dokumen
 
-Tanggal: implementasi dan verifikasi agen 2026-11-02 WIB. Branch: `main`. Baseline induk: `b26fb7f` (pencatatan DEC-37 APPROVED); SHA paket review dilaporkan setelah commit/push (tanpa klaim SHA masa depan). Status teknis: **IMPLEMENTED — agent-verified (2026-11-02)**. Status review pemilik: **PENDING (#1–#18)**.
+Tanggal: implementasi dan verifikasi agen 2026-11-02 WIB. Branch: `main`. Baseline induk: `b26fb7f` (pencatatan DEC-37 APPROVED); paket review **`dfd6f85`** (di-push ke `origin/main`). Status teknis: **IMPLEMENTED — agent-verified (2026-11-02)**. Status review pemilik: **APPROVED (#1–#18, 2026-11-03 WIB)** berdasarkan pernyataan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."**; agen tidak mengulang skenario dan item NOT RUN tetap NOT RUN.
 Keputusan pemilik: **DEC-37 APPROVED** (D1–D10, 2026-11-02 WIB; pernyataan **"Saya setuju D1-D10"**); **DEC-35/DEC-36 tidak berubah**; **DEC-13 tetap OPEN**.
 Otorisasi: implementasi **09a** sesuai `reports/feature-update/PHASE-09-PLAN.md`. 08a/08b tetap **OWNER APPROVED** (08b #1–#17; item #18 dijalankan agen).
 
@@ -100,5 +100,6 @@ Kontrak endpoint 09a (detail respons di `docs/API-CONTRACTS.md`):
 
 - Server UAT `.uat-phase09` **telah dihentikan 2026-11-02 WIB setelah verifikasi UAT** sesuai instruksi pemilik agar lingkungan uji yang sudah dilewati tidak terus berjalan: API dihentikan, SPA/Vite dihentikan setelah verifikasi PID, dan port 18027/14027 dipastikan bebas. `.uat-phase09` (SQLite/storage/password runtime) dipertahankan; Apache/MariaDB tidak disentuh. Penghentian ini **bukan** penerimaan manual pemilik.
 - Perintah restart dan status tersedia di `PHASE-09A-MANUAL-REVIEW.md`. Jangan me-reset `.uat-phase09`.
-- **Review manual pemilik PENDING (#1–#18)**. Commit/push paket review bukan penerimaan. Setelah pemilik menyatakan approval, penerimaan dicatat pada commit dokumentasi terpisah.
+- **Review manual pemilik: APPROVED (#1–#18, 2026-11-03 WIB)** berdasarkan pernyataan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."**; agen tidak mengulang skenario dan item NOT RUN tetap NOT RUN. Item #18 (penghentian server UAT) sudah dijalankan agen sebelum review dan diverifikasi ulang setelah penerimaan: port 18027/14027 bebas, `.uat-phase09` dipertahankan, Apache/MariaDB tidak disentuh.
+- Paket review **`dfd6f85`** di-push ke `origin/main`; penerimaan dicatat pada commit dokumentasi terpisah (commit/push bukan penerimaan).
 - **09b tidak diotorisasi**; **DEC-13 tetap OPEN**. Merge/deploy/force-push, migrasi database operasional/MariaDB, perubahan dependency/lockfile, dan perubahan service/`.env` tetap tidak diotorisasi.
