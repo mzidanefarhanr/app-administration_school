@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-02] Fase 09a — Rencana metadata dan versi arsip disusun (proposed DEC-37)
+- Type: Docs
+- Scope / fase: Perencanaan 09a (metadata, kategori, link domain, versi file/checksum, pencarian dan download berizin). Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `reports/feature-update/PHASE-09-PLAN.md`, `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-09-ARCHIVES.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: rencana 09a dengan D1–D10 berstatus **PLAN — AWAITING OWNER APPROVAL** dan usulan **DEC-37 PROPOSED**: dua tabel additive `archive_documents` + `archive_file_versions`; kategori config 6 nilai; link subjek `student`/`employee`/`letter`/`leave` atau null (whitelist, both-or-none, existence termasuk soft-deleted, immutable); nomor dokumen opsional/non-unik; masa berlaku + status validitas dihitung (WIB, ambang 30 hari); versi file immutable + sha256 internal, PDF/JPG/JPEG/PNG 10 MB, disk privat `local`, kompensasi + rollback; download berizin current/versi lama; `archives.view`/`archives.manage` + ability domain untuk dokumen bertaut; 9 route; halaman `/public/archives`; audit allowlist; UAT `.uat-phase09` 18027/14027 + `prepare-archives`.
+- Why: menyiapkan subfase pertama Fase 09 tanpa menebak keputusan bisnis; persetujuan pemilik D1–D10 diperlukan sebelum implementasi.
+- Validation: **NOT RUN** — tidak ada tes/build/Pint/ESLint/route/browser/UAT pada paket rencana; server UAT tidak dinyalakan; tidak ada akses DB operasional.
+- Notes / risks: 09a belum diotorisasi sampai D1–D10 disetujui; **09b** (preview, audit akses, expiry, arsip/restore, retensi/purge) memerlukan rencana terpisah dan **DEC-13 OPEN**; tanpa dependency/service/`.env`/DB baru; suite penuh tetap NOT RUN karena batas akses `school_access_uat`.
+- Evidence: `reports/feature-update/PHASE-09-PLAN.md`; baseline `aeca361`; SHA paket dilaporkan setelah commit/push (tanpa klaim SHA masa depan).
+
 ## [2026-11-02] Fase 08b — Penerimaan pemilik #1–#17 dan penghentian UAT
 - Type: Docs
 - Scope / fase: Penerimaan checklist manual 08b; penghentian server UAT. Tidak ada perubahan kode aplikasi pada entri ini.
