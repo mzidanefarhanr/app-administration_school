@@ -1,16 +1,18 @@
 # Fase 08 — Perizinan siswa dan guru
 
-Status teknis: NOT STARTED. Status review: PENDING. Semua tes/browser/manual: NOT RUN.
+Status teknis: **08a IMPLEMENTED — agent-verified 2026-11-02**; 08b NOT STARTED. Status review: **08a PENDING (#1–#16)**; 08b PENDING. Tes otomatis/browser 08a: lihat `PHASE-08A-REPORT.md`; review manual owner: **PENDING**.
 Dependensi: 01,03,04; file privat Fase07a atau service ekuivalen; DEC-07 (CLOSED via DEC-35). Baseline rencana: b02a87f; audit ulang HEAD saat pelaksanaan.
 
-Rencana rinci: **`reports/feature-update/PHASE-08-PLAN.md`** (baseline audit `2db6475`, 2026-11-02 WIB) — **PLAN APPROVED — DEC-35 APPROVED (2026-11-02 WIB)** berdasarkan **"Saya setuju D1-D12"**. **DEC-07 CLOSED**; **DEC-13 tetap OPEN**. Implementasi **08a diotorisasi dan dikerjakan**; 08b menunggu instruksi terpisah.
+Rencana rinci: **`reports/feature-update/PHASE-08-PLAN.md`** (baseline audit `2db6475`, 2026-11-02 WIB) — **PLAN APPROVED — DEC-35 APPROVED (2026-11-02 WIB)** berdasarkan **"Saya setuju D1-D12"**. **DEC-07 CLOSED**; **DEC-13 tetap OPEN**. Implementasi **08a telah diselesaikan** (lihat `PHASE-08A-REPORT.md`); **08b menunggu instruksi terpisah**.
 
 ## Tujuan dan scope
-Perizinan siswa dan guru. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Tidak ada pekerjaan implementasi yang telah dilakukan dalam penyusunan dokumen ini.
+Perizinan siswa dan guru. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Implementasi 08a dicatat di `reports/feature-update/PHASE-08A-REPORT.md`; 08b belum dimulai.
 
 ## Subfase
 
 ### 08a — Pengajuan izin
+Status: **IMPLEMENTED — agent-verified 2026-11-02**; review pemilik **PENDING (#1–#16)**; UAT `.uat-phase08` 18026/14026 berjalan sampai penerimaan. Evidence: 22 tes/209 assertions, regresi Letters 86/1.744, Pint 23 file, 13 route, build 25,44 s, ESLint 0 error, browser operator/guru/waka/kepsek.
+
 Scope: Jenis, subjek, rentang tanggal, alasan/lampiran, actor pemohon/operator; validasi overlap sesuai kebijakan; draft/diajukan dan pembatalan.
 
 Kriteria penerimaan: Rentang sah; pengajuan atas orang lain memerlukan izin; guru hanya permohonan sendiri; lampiran privat.

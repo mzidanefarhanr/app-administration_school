@@ -58,6 +58,13 @@ const model = ref([
         ]
     },
     {
+        label: 'Leaves',
+        requires: ['leaves.view', 'leaves.request'],
+        items: [
+            { label: 'Leave Requests', icon: 'pi pi-fw pi-calendar-minus', to: '/public/leaves', requires: ['leaves.view', 'leaves.request'] },
+        ]
+    },
+    {
         label: 'Personal',
         requires: null,
         items: [{ label: 'Profile', icon: 'pi pi-fw pi-user', to: '/profile/user' }]

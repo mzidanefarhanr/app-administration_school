@@ -4,6 +4,7 @@ namespace App\Services\Letters;
 
 use App\Models\Letter;
 use App\Models\LetterAttachment;
+use App\Services\Files\PrivateUploadValidator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -18,71 +19,21 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class LetterAttachmentService
 {
+    public function __construct(
+        private readonly PrivateUploadValidator $validator,
+    ) {}
+
     /**
      * Validasi keamanan file dan kembalikan ekstensi simpan berdasarkan MIME server.
      */
     public function validateFile(UploadedFile $file): string
     {
-        if (! $file->isValid()) {
-            throw ValidationException::withMessages([
-                'file' => ['The file upload failed; please try again.'],
-            ]);
-        }
-
-        $clientName = $this->sanitizeName($file->getClientOriginalName());
-
-        if (substr_count($clientName, '.') !== 1) {
-            throw ValidationException::withMessages([
-                'file' => ['The file name must use a single extension.'],
-            ]);
-        }
-
-        $extension = strtolower((string) pathinfo($clientName, PATHINFO_EXTENSION));
-
-        if (! in_array($extension, config('letters.allowed_extensions'), true)) {
-            throw ValidationException::withMessages([
-                'file' => ['Only PDF, JPG, JPEG, or PNG files are allowed.'],
-            ]);
-        }
-
-        $mime = (string) $file->getMimeType();
-
-        if (! in_array($mime, config('letters.allowed_mimetypes'), true)) {
-            throw ValidationException::withMessages([
-                'file' => ['The file content type is not allowed.'],
-            ]);
-        }
-
-        $expectedExtension = [
-            'application/pdf' => 'pdf',
-            'image/jpeg' => 'jpg',
-            'image/png' => 'png',
-        ][$mime];
-
-        $isJpegAlias = $expectedExtension === 'jpg' && in_array($extension, ['jpg', 'jpeg'], true);
-
-        if ($extension !== $expectedExtension && ! $isJpegAlias) {
-            throw ValidationException::withMessages([
-                'file' => ['The file extension does not match its detected content type.'],
-            ]);
-        }
-
-        if (in_array($mime, ['image/jpeg', 'image/png'], true)
-            && @getimagesize($file->getRealPath()) === false) {
-            throw ValidationException::withMessages([
-                'file' => ['The image file is not valid.'],
-            ]);
-        }
-
-        $maxBytes = ((int) config('letters.max_file_kb')) * 1024;
-
-        if (($file->getSize() ?? 0) > $maxBytes) {
-            throw ValidationException::withMessages([
-                'file' => ['The file may not be larger than 10 MB.'],
-            ]);
-        }
-
-        return $expectedExtension;
+        return $this->validator->validate(
+            $file,
+            (array) config('letters.allowed_extensions'),
+            (array) config('letters.allowed_mimetypes'),
+            (int) config('letters.max_file_kb'),
+        );
     }
 
     /**
@@ -167,13 +118,7 @@ class LetterAttachmentService
         $name = $this->sanitizeName($attachment->original_name);
 
         if (pathinfo($name, PATHINFO_EXTENSION) === '') {
-            $extension = [
-                'application/pdf' => 'pdf',
-                'image/jpeg' => 'jpg',
-                'image/png' => 'png',
-            ][$attachment->mime_type] ?? 'bin';
-
-            $name .= '.'.$extension;
+            $name .= '.'.$this->validator->extensionForMime($attachment->mime_type);
         }
 
         return $name;
@@ -181,10 +126,6 @@ class LetterAttachmentService
 
     public function sanitizeName(string $name): string
     {
-        $name = basename(str_replace('\\', '/', $name));
-        $name = preg_replace('/[\x00-\x1F\x7F"]/u', '', $name) ?? '';
-        $name = trim($name);
-
-        return $name !== '' ? Str::limit($name, 255, '') : 'attachment';
+        return $this->validator->sanitizeName($name);
     }
 }

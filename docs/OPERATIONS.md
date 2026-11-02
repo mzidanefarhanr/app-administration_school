@@ -79,6 +79,15 @@ Retensi, jadwal, enkripsi, lokasi salinan, RPO (kehilangan data maksimal) dan RT
 - **UAT**: `.uat-phase07` (API 18025/SPA 14025) berjalan sampai penerimaan pemilik; setelah itu dihentikan sesuai DEC-27 dengan verifikasi PID/command line, data dipertahankan, Apache/MariaDB tidak disentuh. Perintah restart ada di `PHASE-07C-MANUAL-REVIEW.md`.
 - **Retensi**: file/snapshot dipertahankan setelah cancel/void; kebijakan retensi/pemusnahan tetap **DEC-13 OPEN**.
 
+## Lampiran izin privat dan UAT (Fase 08a — DEC-35)
+- **Penyimpanan lampiran izin**: disk `local` pada `storage/app/attachments/leaves/{leave_request_id}/{uuid}.{ext}` (config `leaves.attachment.disk`/`path`), di luar web root; tidak ada URL publik. Unduhan hanya lewat `GET /api/leaves/{leave}/attachments/{attachment}/download` dengan izin policy view, `X-Document-Filename`, `nosniff`, CSP sandbox, dan `Cache-Control: private, no-store`; **tanpa `Content-Disposition`** mengikuti pola PDF 07c.
+- **Batas**: PDF/JPG/JPEG/PNG, maksimum 5 MB per file dan 3 lampiran per pengajuan (config `config/leaves.php`, tanpa perubahan `.env` pada 08a). Validasi memakai `PrivateUploadValidator` bersama dengan surat (nama satu ekstensi, allowlist, MIME server, kecocokan ekstensi–MIME, `getimagesize`). Nama file UUID; nama asli disanitasi; SHA-256 dicatat.
+- **Hapus lampiran** = soft delete baris; file fisik dipertahankan sampai keputusan retensi/pemusnahan **DEC-13**. Tidak ada auto-prune/antivirus pada 08a; pemantauan kapasitas disk tetap tanggung jawab operasional.
+- **Backup**: path berada di bawah `storage/app/attachments`, sehingga pemindaian `config/backup.php`/`BackupService` mencakup lampiran izin tanpa perubahan kode backup. Restore drill dengan tabel/lampiran izin **belum dijalankan**; jangan mengklaim recoverability sebelum drill pada target disposable.
+- **UAT terisolasi**: `.uat-phase08` (SQLite/storage terpisah; launcher `scripts/phase08-uat.php`; API `127.0.0.1:18026`, SPA `127.0.0.1:14026`, cookie `school_phase08_session`). Launcher menolak target non-SQLite/URL dan tidak membuka koneksi MariaDB. Fixture `prepare-leaves` idempoten; jangan me-reset `.uat-phase08`.
+- **Siklus server**: server UAT dipertahankan sampai penerimaan pemilik, lalu dihentikan sesuai DEC-27 setelah verifikasi PID/command line, port 18026/14026 dipastikan bebas, dan `.uat-phase08` dipertahankan; Apache/MariaDB/service tidak disentuh. Perintah restart ada di `PHASE-08A-MANUAL-REVIEW.md`.
+- **Batas 08a**: tidak ada approve/reject/rekap (08b), notifikasi email/WhatsApp, PDF surat izin, absensi otomatis, saldo cuti, impor/ekspor CSV izin, atau perubahan dependency/service/`.env`. Database operasional/MariaDB dan merge/deploy tidak disentuh.
+
 ## Restore drill
 1. Pilih backup fixture sintetis dan target terisolasi; verifikasi target bukan DB/storage aktif.
 2. Periksa manifest/checksum dan kompatibilitas schema; dokumentasikan app commit yang diperlukan.

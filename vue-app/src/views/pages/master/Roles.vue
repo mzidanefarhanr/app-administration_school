@@ -53,6 +53,7 @@ const ABILITY_LABELS = {
     'letters.approve': 'Approve letters',
     'letters.sign': 'Sign documents',
     'leaves.view': 'View leaves',
+    'leaves.request': 'Request own leave',
     'leaves.manage': 'Manage leaves',
     'leaves.approve': 'Approve leaves',
     'teaching.view': 'View teaching',

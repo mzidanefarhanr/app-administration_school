@@ -55,10 +55,11 @@ final class AbilityCatalog
             'letters.approve' => self::def('letters', 'Menyetujui surat.', true),
             'letters.sign' => self::def('letters', 'Menandatangani dokumen surat.', true),
 
-            // Izin (belum tersedia)
+            // Izin (Fase 08)
             'leaves.view' => self::def('leaves', 'Melihat izin.', false),
             'leaves.manage' => self::def('leaves', 'Mengelola izin.', false),
             'leaves.approve' => self::def('leaves', 'Menyetujui izin.', true),
+            'leaves.request' => self::def('leaves', 'Mengajukan izin untuk diri sendiri (pegawai tertaut).', false),
 
             // Pembelajaran (belum tersedia)
             'teaching.view' => self::def('teaching', 'Melihat jadwal/jurnal pembelajaran.', false),
@@ -90,7 +91,7 @@ final class AbilityCatalog
                     'students.view', 'students.manage', 'students.export', 'students.import', 'students.correct-locked',
                     'employees.view', 'employees.manage', 'employees.export', 'employees.import',
                     'letters.view', 'letters.manage',
-                    'leaves.view', 'leaves.manage',
+                    'leaves.view', 'leaves.manage', 'leaves.request',
                     'teaching.view', 'teaching.manage',
                 ],
                 // Perhatikan: admin TIDAK diberi letters.approve, letters.sign,
@@ -105,7 +106,7 @@ final class AbilityCatalog
                     'students.view', 'students.manage', 'students.export', 'students.import',
                     'employees.view', 'employees.manage', 'employees.export', 'employees.import',
                     'letters.view', 'letters.manage',
-                    'leaves.view', 'leaves.manage',
+                    'leaves.view', 'leaves.manage', 'leaves.request',
                     'teaching.view',
                 ],
             ],
@@ -118,7 +119,7 @@ final class AbilityCatalog
                     'students.view', 'students.export',
                     'employees.view', 'employees.export',
                     'letters.view', 'letters.approve', 'letters.sign',
-                    'leaves.view', 'leaves.approve',
+                    'leaves.view', 'leaves.approve', 'leaves.request',
                     'teaching.view',
                     'audit.view',
                 ],
@@ -133,8 +134,16 @@ final class AbilityCatalog
                     'students.view', 'students.manage',
                     'employees.view',
                     'teaching.view', 'teaching.manage',
-                    'leaves.view',
+                    'leaves.view', 'leaves.request',
                     'letters.view',
+                ],
+            ],
+            'guru' => [
+                'name' => 'Teacher',
+                'description' => 'Submits leave requests for their own linked employee profile.',
+                'protected' => false,
+                'abilities' => [
+                    'leaves.request',
                 ],
             ],
         ];

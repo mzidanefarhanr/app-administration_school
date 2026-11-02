@@ -25,7 +25,7 @@ API mayoritas hanya auth:sanctum. Beberapa controller akun membedakan tipe secar
 - Ekspor siswa: `GET /api/students/export` menegakkan `students.view` + `students.export`, lingkup sama dengan daftar (tahun ajaran + filter), kolom eksplisit, tanpa akses tambahan. Bila hasil filter melebihi batas (10.000 baris), ekspor ditolak `422` (bukan dipotong). Tombol di UI mengikuti izin aktual; pencabutan izin berlaku pada request berikutnya. Ekspor mengendalikan berkas, bukan kerahasiaan data yang sudah boleh dilihat.
 - Keputusan: `docs/DECISIONS.md` DEC-14 (APPROVED 2026-10-14 WIB) — register ditutup, akun nonaktif ditolak, ekspor via `students.export`, pemetaan legacy `Admin`→Admin Sistem (User **tidak** otomatis Operator), UI English. `status_active` tidak disamakan dengan `status_user_id`.
 - Pemetaan legacy: hanya `type_users.name='Admin'` yang dipetakan otomatis ke `admin-sistem`; `User`/tak dikenal/tanpa tipe → tanpa peran (default deny). Peran pengguna lama ditetapkan manual oleh admin; penetapan eksplisit tidak dihapus.
-- Kemampuan modul yang belum dibangun (izin/pembelajaran) tercatat sebagai **kemampuan direncanakan**; enforcement end-to-end belum diuji karena fiturnya belum ada. `students.export` kini punya titik penegakan nyata pada ekspor siswa. Modul surat mulai memiliki penegakan nyata pada 07a (`letters.view`/`letters.manage`) dan 07b (`letters.approve`/`letters.sign`).
+- Kemampuan modul pembelajaran masih **kemampuan direncanakan**; enforcement end-to-end belum diuji karena fiturnya belum ada. `students.export` punya titik penegakan nyata pada ekspor siswa. Modul surat memiliki penegakan nyata pada 07a (`letters.view`/`letters.manage`), 07b (`letters.approve`/`letters.sign`), dan 07c (settings/dokumen). Modul izin memiliki penegakan nyata pada **08a** (`leaves.view`/`leaves.manage`/`leaves.request`); `leaves.approve` baru ditegakkan pada 08b.
 
 ## Implementasi Fase 04a (fondasi personalia)
 - `App\Policies\EmployeePolicy` menegakkan kemampuan bernama: `viewAny`/`view` → `employees.view`; `create`/`update`/`delete`/`restore` → `employees.manage`; `forceDelete` selalu `false`.
@@ -112,7 +112,22 @@ API mayoritas hanya auth:sanctum. Beberapa controller akun membedakan tipe secar
 - **UI**: **Letter Settings** (`letters.view`; form header/logo hanya `letters.manage`, form signatory/aset hanya `letters.sign`), perluasan **Outgoing Letters** (typed create/edit `letters.manage`, preview/download `letters.view`). Seluruh tombol disembunyikan sesuai ability; server tetap `403`/`404`.
 - **Header respons dokumen**: PDF memakai `application/pdf`, `X-Document-Filename`, `nosniff`, `Cache-Control: private, no-store`, CSP sandbox; **tanpa `Content-Disposition`** karena browser memblokir `fetch` lintas origin berkredensial untuk respons yang memuat header tersebut. UI memakai `X-Document-Filename` untuk nama file. Ini bukan pelemahan otorisasi: unduhan tetap melalui endpoint berizin.
 
-## Matriks target — usulan, bukan role yang sudah ada
+## Implementasi Subfase 08a (pengajuan izin siswa dan pegawai)
+- **Ability baru `leaves.request`** (bukan sensitif) dan **peran awal baru `guru`** yang hanya memiliki ability tersebut. `leaves.request` juga diberikan ke Admin Sistem, Operator Sekolah, Kepala Sekolah, dan Wakil Kesiswaan. `leaves.view`/`leaves.manage` tetap; `leaves.approve` tetap hanya Kepala Sekolah secara default dan **belum ditegakkan pada 08a** (keputusan 08b). Tidak ada bypass "admin boleh segalanya".
+- **Route matrix**:
+  - `GET /api/leaves/options` → dapat dibaca aktor dengan salah satu `leaves.view`/`leaves.request`/`leaves.manage` (dipakai juga oleh guru untuk metadata self-service).
+  - `GET /api/leaves` → `leaves.view` (seluruh pengajuan).
+  - `GET /api/leaves/mine` → `leaves.request` (hanya pengajuan dengan subjek pegawai tertaut ke aktor).
+  - `GET /api/leaves/subjects/students` → `leaves.manage` + `students.view`; `GET /api/leaves/subjects/employees` → `leaves.manage` + `employees.view`.
+  - `GET /api/leaves/{leave}` → policy view (view/manage, pembuat, atau subjek pegawai tertaut); `POST /api/leaves` → policy create; `PUT/PATCH`, `POST .../submit`, `POST .../cancel`, upload/hapus lampiran → pembuat atau `leaves.manage`; download lampiran → policy view.
+  - Guest `401`; akun nonaktif `403`; tanpa ability `403`; objek tidak terlihat `404`; validasi/kelayakan `422`; konflik versi/status `409`.
+- **Subjek dan batas peran**: siswa tidak memiliki akun login, sehingga pengajuan siswa hanya melalui `leaves.manage` (default Admin/Operator). Pegawai self-service memakai `leaves.request` + tepat satu `employees.user_id = actor.id`; fallback NIK tidak dipakai. Guru default tidak dapat membuat izin siswa atau izin pegawai lain. Pemberian `leaves.manage` kepada peran lain adalah delegasi operasional eksplisit melalui Roles & Abilities.
+- **Larangan self-decision (08b)**: approve/reject dan pembatalan izin approved akan menolak aktor yang membuat pengajuan atau yang menjadi subjek pegawai. Pada 08a belum ada endpoint keputusan dan `permissions.approve/reject` selalu false; `cancelled` adalah status final.
+- **Batas objek/state**: edit hanya draft; submit memvalidasi ulang kelayakan subjek, tanggal, dan overlap; lampiran hanya dapat diubah pada draft/submitted; objek milik orang lain yang tidak terlihat `404`; pembatalan submitted memerlukan alasan 10–255.
+- **UI**: menu **Leaves** dengan `canAny(['leaves.view','leaves.request'])`; tab **Requests** (`leaves.view`) dan **My Leaves** (`leaves.request`); tombol New Request/New Self Request/edit/submit/cancel/upload mengikuti ability dan kepemilikan. Tombol tersembunyi bukan pengganti enforcement server.
+- **UAT**: `.uat-phase08` terisolasi (API 18026/SPA 14026, cookie `school_phase08_session`); fixture sintetis; server dihentikan setelah penerimaan (DEC-27).
+
+
 | Kemampuan | Admin | Operator | Kepala sekolah | Guru/wali kelas |
 |---|---|---|---|---|
 | users.manage / roles.manage | Ya | Tidak | Tidak | Tidak |

@@ -21,6 +21,7 @@ use App\Http\Controllers\FirstLoginController;
 use App\Http\Controllers\GenderController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\IncomingLetterController;
+use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\LetterDispositionController;
 use App\Http\Controllers\LetterSettingsController;
 use App\Http\Controllers\LetterSubjectController;
@@ -277,6 +278,34 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
             ->whereNumber(['letter', 'attachment'])->middleware('can:letters.view');
         Route::delete('/{letter}/attachments/{attachment}', [OutgoingLetterController::class, 'destroyAttachment'])
             ->whereNumber(['letter', 'attachment'])->middleware('can:letters.manage');
+    });
+
+    // Fase 08a (DEC-35) — pengajuan izin siswa dan pegawai.
+    Route::prefix('leaves')->group(function () {
+        Route::get('/options', [LeaveController::class, 'options']);
+        Route::get('/mine', [LeaveController::class, 'mine'])
+            ->middleware('can:leaves.request');
+        Route::get('/subjects/students', [LeaveController::class, 'studentSubjects'])
+            ->middleware(['can:leaves.manage', 'can:students.view']);
+        Route::get('/subjects/employees', [LeaveController::class, 'employeeSubjects'])
+            ->middleware(['can:leaves.manage', 'can:employees.view']);
+        Route::get('/', [LeaveController::class, 'index'])
+            ->middleware('can:leaves.view');
+        Route::get('/{leave}', [LeaveController::class, 'show'])
+            ->whereNumber('leave');
+        Route::post('/', [LeaveController::class, 'store']);
+        Route::match(['put', 'patch'], '/{leave}', [LeaveController::class, 'update'])
+            ->whereNumber('leave');
+        Route::post('/{leave}/submit', [LeaveController::class, 'submit'])
+            ->whereNumber('leave');
+        Route::post('/{leave}/cancel', [LeaveController::class, 'cancel'])
+            ->whereNumber('leave');
+        Route::post('/{leave}/attachments', [LeaveController::class, 'storeAttachment'])
+            ->whereNumber('leave');
+        Route::get('/{leave}/attachments/{attachment}/download', [LeaveController::class, 'downloadAttachment'])
+            ->whereNumber(['leave', 'attachment']);
+        Route::delete('/{leave}/attachments/{attachment}', [LeaveController::class, 'destroyAttachment'])
+            ->whereNumber(['leave', 'attachment']);
     });
 
     // Fase 01a — penegakan kemampuan pada endpoint master/referensi.
