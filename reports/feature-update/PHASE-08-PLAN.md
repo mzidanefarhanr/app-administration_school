@@ -1,8 +1,8 @@
 # Rencana Fase 08 — Perizinan Siswa dan Guru (08a Pengajuan; 08b Keputusan dan Rekap)
 
 - Tanggal: 2026-11-02 (WIB). Branch: `main`. Baseline dokumen/audit: `2db6475` (paket penerimaan 07c).
-- Status dokumen: **PLAN — AWAITING OWNER APPROVAL (D1–D12)**. Diajukan sebagai **DEC-35 PROPOSED**. **DEC-07 tetap OPEN** sampai pemilik menyetujui keputusan di dokumen ini.
-- Cakupan paket ini: **rencana saja** — belum ada implementasi izin, migration, route, model, controller, service, UI, tes, atau UAT. Paket ini hanya menambah dokumen.
+- Status dokumen: **PLAN APPROVED — DEC-35 APPROVED (2026-11-02 WIB)** berdasarkan pernyataan pemilik **"Saya setuju D1-D12"**. Implementasi **08a diotorisasi**; **08b menunggu instruksi terpisah**. **DEC-07 CLOSED** melalui DEC-35; **DEC-13 tetap OPEN**.
+- Cakupan paket ini: **rencana** — belum ada implementasi izin, migration, route, model, controller, service, UI, tes, atau UAT pada paket rencana. Implementasi 08a dikerjakan setelah persetujuan ini.
 - Otorisasi sebelumnya: 07a/07b/07c **OWNER APPROVED** (07c #1–#18, 2026-11-02 WIB). **DEC-11 CLOSED untuk lingkup 07c**; **DEC-13 tetap OPEN**.
 - Di luar cakupan paket ini: implementasi Fase 08, merge/deploy, migrasi database operasional/MariaDB, perubahan dependency/lockfile, perubahan service/`.env`, dan perluasan peran di luar D9.
 
@@ -347,7 +347,7 @@ Semua route berada di grup `auth:sanctum` + `active`. Route statis (`/options`, 
 
 ## 5. Keputusan yang perlu pemilik (D1–D12)
 
-Rekomendasi ditulis sebagai default. **Belum ada yang disetujui.** Persetujuan pemilik akan dicatat sebagai **DEC-35 APPROVED** dan menutup **DEC-07**.
+Rekomendasi ditulis sebagai default. **Pemilik menyetujui seluruh D1–D12 pada 2026-11-02 WIB** berdasarkan pernyataan **"Saya setuju D1-D12"**; dicatat sebagai **DEC-35 APPROVED** dan **menutup DEC-07**.
 
 | # | Pertanyaan | Rekomendasi | Alternatif / dampak |
 |---|---|---|---|
@@ -495,12 +495,12 @@ Tambahkan regresi yang benar-benar terdampak. Untuk tes mutasi, assert target be
 
 ## 11. Kriteria penerimaan paket rencana
 
-- [ ] Pemilik menyetujui D1–D12 (atau memberikan perubahan); dicatat sebagai **DEC-35 APPROVED**.
-- [ ] **DEC-07 CLOSED** setelah persetujuan; **DEC-13 tetap OPEN**.
-- [ ] Tidak ada implementasi/migration/route/UI/UAT izin sebelum persetujuan.
-- [ ] Baseline/HEAD, working tree, dan SHA paket rencana dicatat.
-- [ ] Scope 08a/08b, API, data model, tes, UAT, non-goals, dan risiko dapat direview di GitHub.
-- [ ] Paket rencana di-commit dan di-push ke `origin/main` sebagai dokumen saja.
+- [x] Pemilik menyetujui D1–D12 pada 2026-11-02 WIB; dicatat sebagai **DEC-35 APPROVED**.
+- [x] **DEC-07 CLOSED** melalui DEC-35; **DEC-13 tetap OPEN**.
+- [x] Tidak ada implementasi/migration/route/UI/UAT izin sebelum persetujuan.
+- [x] Baseline/HEAD, working tree, dan SHA paket rencana dicatat.
+- [x] Scope 08a/08b, API, data model, tes, UAT, non-goals, dan risiko dapat direview di GitHub.
+- [x] Paket rencana di-commit dan di-push ke `origin/main` sebagai dokumen saja (`c530429`).
 
 ---
 

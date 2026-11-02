@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-02] Fase 08 — Pemilik menyetujui rencana (DEC-35 APPROVED; DEC-07 CLOSED)
+- Type: Docs
+- Scope / fase: Persetujuan rencana Fase 08; implementasi 08a diotorisasi. Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `reports/feature-update/PHASE-08-PLAN.md`, `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `reports/feature-update/INDEX.md`, `HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-08-LEAVES.md`.
+- What changed: mencatat pernyataan pemilik **"Saya setuju D1-D12"** (2026-11-02 WIB) sebagai **DEC-35 APPROVED**; **DEC-07 CLOSED**; **DEC-13 tetap OPEN**. Rencana `PHASE-08-PLAN.md` berubah dari AWAITING OWNER APPROVAL menjadi PLAN APPROVED; implementasi 08a diotorisasi, 08b menunggu instruksi terpisah; checklist paket rencana ditandai selesai.
+- Why: persetujuan D1–D12 adalah gate DEC-07 dan syarat implementasi izin; persetujuan dicatat terpisah dari paket rencana `c530429`.
+- Validation: pernyataan pemilik; pemeriksaan dokumen; **NOT RUN:** implementasi 08a, migration, tes, build/lint, browser, dan UAT 08.
+- Notes / risks: DEC-13 tetap OPEN; merge/deploy/force-push, migrasi DB operasional/MariaDB, dan perubahan dependency/service/`.env` tidak diotorisasi. Persetujuan rencana bukan penerimaan hasil implementasi.
+- Evidence: `reports/feature-update/PHASE-08-PLAN.md`, `docs/DECISIONS.md` (DEC-35); paket rencana `c530429`; baseline `2db6475`.
+
 ## [2026-11-02] Fase 08 — Rencana perizinan siswa dan guru (DEC-35 PROPOSED)
 - Type: Docs
 - Scope / fase: Rencana Fase 08 (08a pengajuan; 08b keputusan dan rekap); tidak ada perubahan kode aplikasi pada entri ini.
