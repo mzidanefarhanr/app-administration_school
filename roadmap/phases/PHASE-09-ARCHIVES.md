@@ -1,7 +1,15 @@
 # Fase 09 — Arsip dokumen terpusat
 
-Status teknis: 09a **IMPLEMENTED — agent-verified 2026-11-02** (DEC-37 APPROVED); 09b **NOT STARTED**. Status review: **OWNER APPROVED (#1–#18, 2026-11-03 WIB)**. Semua tes/browser/manual implementasi: dicatat di `PHASE-09A-REPORT.md`; checklist di `PHASE-09A-MANUAL-REVIEW.md`.
-Dependensi: File privat Fase07; DEC-13. Baseline rencana 09a: `aeca361` (2026-11-02; paket rencana `1dcf044`); baseline implementasi: `b26fb7f`; paket review: **`dfd6f85`**.
+Status teknis: 09a **IMPLEMENTED — agent-verified 2026-11-02** (DEC-37 APPROVED); 09b **PLAN — AWAITING OWNER APPROVAL (D1–D11; DEC-38 PROPOSED, 2026-11-03)**. Status review: 09a **OWNER APPROVED (#1–#18, 2026-11-03 WIB)**; 09b **PENDING**. Semua tes/browser/manual implementasi: dicatat di `PHASE-09A-REPORT.md`; checklist di `PHASE-09A-MANUAL-REVIEW.md`.
+Dependensi: File privat Fase07; DEC-13. Baseline rencana 09a: `aeca361` (2026-11-02; paket rencana `1dcf044`); baseline implementasi: `b26fb7f`; paket review: **`dfd6f85`**; penerimaan: **`cad8f75`**. Baseline rencana 09b: **`cad8f75`** (2026-11-03).
+
+## Status paket rencana 09b (2026-11-03)
+
+- Rencana rinci ada di [`reports/feature-update/PHASE-09B-PLAN.md`](../../reports/feature-update/PHASE-09B-PLAN.md) (baseline `cad8f75`) dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D11)**; usulan **DEC-38 PROPOSED**. **DEC-13 tetap OPEN** dan menjadi gate item retensi (D6).
+- Paket ini **hanya dokumentasi**: tidak ada kode, migration, route, model, service, request, controller, komponen, tes, fixture, atau UAT yang dibuat/diubah; seluruh verifikasi implementasi **NOT RUN**; implementasi **belum diotorisasi**.
+- Usulan scope 09b: preview inline aman (pola header 07c, tanpa `Content-Disposition`, tanpa URL publik, tanpa watermark/dependency baru); audit akses append-only `archive_access_logs` untuk `download`/`preview` (enum `activities` **tidak** diubah), dibaca dengan `audit.view` + ability domain, fail-closed bila penulisan log gagal; expiry task `GET /api/archives/tasks/expiring` + widget dashboard baru (tanpa tabel/job/notifikasi push); arsip/restore dokumen lewat kolom additive `archived_at`/`archive_reason`/`archived_by` + `expected_version`/`409`, versi file tetap immutable dan tetap dapat diunduh, `delete`/`forceDelete` tetap `false`; **retensi tanpa eksekusi pemusnahan** — laporan read-only + `app:archives-retention --dry-run`, ability `archives.purge` didefinisikan tetapi tidak ditugaskan ke role mana pun, periode retensi per kategori masih usulan.
+- Total **6 route baru (15 route arsip)**; tanpa dependency baru; UAT `.uat-phase09` diperluas additive (`prepare-09b`, 18027/14027) dan dihentikan setelah penerimaan (DEC-27).
+- Eksekusi purge/pemusnahan, merge/deploy/force-push, migrasi DB operasional/MariaDB, perubahan dependency/lockfile, perubahan service/`.env`, dan 09c/Fase 10+ **tidak diotorisasi** oleh paket rencana ini.
 
 ## Status implementasi 09a (2026-11-02)
 
@@ -10,7 +18,7 @@ Dependensi: File privat Fase07; DEC-13. Baseline rencana 09a: `aeca361` (2026-11
 - Bukti: Archives **14 tes/374 assertions (11,81 s)**; suite penuh **597 passed/13 skipped/7.083 assertions (438,24 s)**; Pint **18 file**; **9 route**; build **PASS**; ESLint **0 error** (613 warning Prettier lama); UAT `prepare-archives` idempoten 120 dokumen/160 versi/160 file, status akhir **121 dokumen/162 versi/162 file**, 7 akun; browser/API admin create+versi+edit+search/filter, archivist hanya dokumen umum, kepsek view-only, guru `403`.
 - **NOT RUN:** viewport 390 px/keyboard, race MariaDB/InnoDB, dua tab nyata, restore drill, visual regression, benchmark, create picker domain di UI, alur waka, seluruh 09b.
 - Server UAT dihentikan **sebelum** review (DEC-27) dan diverifikasi ulang setelah penerimaan: PID/command line diverifikasi, port 18027/14027 bebas, `.uat-phase09` dipertahankan; Apache/MariaDB tidak disentuh. Perintah restart ada di `PHASE-09A-MANUAL-REVIEW.md`.
-- **09b** (preview inline, audit akses download, expiry task, arsip/restore, retensi/purge) memerlukan rencana dan persetujuan terpisah; **DEC-13 OPEN** adalah gate retensi/purge. Merge/deploy/force-push, migrasi DB operasional/MariaDB, dependency/lockfile, dan service/`.env` tidak diotorisasi.
+- **09b** (preview inline, audit akses download, expiry task, arsip/restore, retensi/purge) memerlukan rencana dan persetujuan terpisah — **rencananya sudah disusun dan menunggu persetujuan D1–D11** (lihat bagian di atas); **DEC-13 OPEN** adalah gate retensi/purge. Merge/deploy/force-push, migrasi DB operasional/MariaDB, dependency/lockfile, dan service/`.env` tidak diotorisasi.
 
 ## Status paket rencana 09a (2026-11-02)
 
