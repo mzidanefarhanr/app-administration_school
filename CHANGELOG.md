@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-02] Fase 07c — Pemilik menyetujui rencana (DEC-34 APPROVED; DEC-11 CLOSED untuk 07c)
+- Type: Docs
+- Scope / fase: Persetujuan rencana Subfase 07c; implementasi 07c diotorisasi. Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `reports/feature-update/PHASE-07C-PLAN.md`, `roadmap/phases/PHASE-07-LETTERS.md`, `roadmap/ROADMAP.md`, `PROJECT_CONTEXT.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `CHANGELOG.md`.
+- What changed: mencatat pernyataan pemilik **"Saya setuju D1-D11"** (2026-11-02 WIB) sebagai **DEC-34 APPROVED** untuk rencana `PHASE-07C-PLAN.md` (paket `42108dc`; baseline `ff581c6`); status rencana/roadmap berubah dari PLAN — AWAITING OWNER APPROVAL menjadi PLAN APPROVED; **DEC-11 CLOSED untuk lingkup 07c** (rekap tetap DEC-12); implementasi 07c diotorisasi dan dimulai.
+- Why: persetujuan pemilik atas D1–D11 diperlukan sebelum implementasi 07c dan penambahan dependency `dompdf/dompdf:^2.0` (D2); DEC-11 sebelumnya menjadi gate 07c.
+- Validation: pernyataan pemilik; pemeriksaan dokumen; **NOT RUN:** implementasi 07c, composer update/install, migration, tes, build/lint, browser, dan UAT 07c.
+- Notes / risks: DEC-13 (retensi) tetap OPEN; merge/deploy, migrasi DB operasional/MariaDB, perubahan service/`.env`, dependency selain D2, dan Fase 08 tidak diotorisasi. Persetujuan rencana bukan penerimaan hasil implementasi.
+- Evidence: `reports/feature-update/PHASE-07C-PLAN.md`, `docs/DECISIONS.md` (DEC-34); rencana `42108dc`; baseline `ff581c6`.
+
 ## [2026-11-02] Fase 07c — Rencana kop, tanda tangan, stempel, template PDF, dan snapshot
 - Type: Docs
 - Scope / fase: **Rencana 07c saja**; tidak ada perubahan kode, migration, dependency, tes, atau UAT.

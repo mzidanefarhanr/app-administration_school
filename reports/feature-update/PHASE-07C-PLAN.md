@@ -1,11 +1,11 @@
 # Rencana Fase 07 — Subfase 07c (Kop, Tanda Tangan, Stempel, Template PDF, dan Snapshot)
 
-- Tanggal: 2026-11-02 (WIB). Branch: `main`. Baseline dokumen/audit: `ff581c6` (paket penerimaan 07b). Plan package SHA dicatat setelah commit.
-- Status dokumen: **PLAN — AWAITING OWNER APPROVAL (D1–D11)**. **07c belum diotorisasi dan belum diimplementasikan.** Tidak ada kode, migration, dependency, tes, atau UAT pada paket rencana ini.
+- Tanggal: 2026-11-02 (WIB). Branch: `main`. Baseline dokumen/audit: `ff581c6` (paket penerimaan 07b). Paket rencana: `42108dc`.
+- Status dokumen: **PLAN APPROVED — DEC-34 APPROVED 2026-11-02 WIB** berdasarkan pernyataan pemilik **"Saya setuju D1-D11"**. Implementasi **07c diotorisasi**; bukti implementasi dicatat pada `PHASE-07C-REPORT.md` setelah verifikasi. **DEC-11 CLOSED untuk lingkup 07c** (D9); **DEC-13 tetap OPEN**.
 - Cakupan: **07c saja** — pengaturan kop sekolah, logo, penandatangan, gambar tanda tangan, stempel, registry template kode, tiga jenis surat terpilih, render PDF server-side, snapshot immutable saat terbit, serta preview/download berizin.
 - Di luar cakupan: **07d/Fase 08** (surat izin), template CRUD/editor, DOCX, PDF/A, e-sign tersertifikasi, QR/barcode, OCR, email/WhatsApp otomatis, arsip/versioning Fase 09, retensi DEC-13, rekap sekolah (DEC-12), merge/deploy, migrasi database operasional/MariaDB, perubahan service/`.env`, dan dependency selain yang diputuskan di D2.
 - Dokumen acuan: `roadmap/phases/PHASE-07-LETTERS.md` (07c), `roadmap/ROADMAP.md`, `docs/DECISIONS.md` (DEC-07, DEC-11, DEC-12, DEC-13, DEC-27, DEC-32, DEC-33), `docs/REQUIREMENTS.md` (FR-08/FR-09, PDF dan snapshot), `docs/DATABASE.md`, `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `reports/feature-update/PHASE-07A-REPORT.md`, `reports/feature-update/PHASE-07B-REPORT.md`, `reports/feature-update/PHASE-07B-MANUAL-REVIEW.md`.
-- Gate: 07a **OWNER APPROVED 2026-11-01 WIB (#1–#16)**; 07b **IMPLEMENTED + agent-verified + OWNER APPROVED 2026-11-02 WIB (#1–#16)**. **DEC-06 CLOSED**. **DEC-11 tetap OPEN** dan menjadi gate utama 07c; **DEC-13 tetap OPEN**. Rencana ini mengajukan **DEC-34** dan penutupan DEC-11 untuk lingkup 07c bila D1–D11 disetujui.
+- Gate: 07a **OWNER APPROVED 2026-11-01 WIB (#1–#16)**; 07b **IMPLEMENTED + agent-verified + OWNER APPROVED 2026-11-02 WIB (#1–#16)**. **DEC-06 CLOSED**. **DEC-11 CLOSED untuk lingkup 07c** melalui D9/DEC-34 (2026-11-02 WIB); **DEC-13 tetap OPEN**.
 
 ---
 
@@ -23,7 +23,7 @@
 | Template | Belum ada view/template surat; `resources/views` belum memiliki template surat | Perlu registry kode + Blade |
 | Data master | `students`, `student_rombels`, `student_mutations`, `employees`, `school_years`, `academic_settings` tersedia; `school_profiles` unik per tahun ajaran | Dapat dipakai auto-fill |
 | UAT | `.uat-phase07` berisi 07a/07b (126 incoming, 46 outgoing, 32 disposisi, 3 siswa, 14 pegawai, 1 tahun, 1 rombel, 0 profil sekolah, 0 education level, 0 semester); server berhenti | Dipakai ulang dengan fixture additive |
-| Keputusan | **DEC-11 OPEN** (kop/tanda tangan/stempel/jenis surat pertama/format rekap); **DEC-13 OPEN**; DEC-07 (izin) OPEN dan tidak mengikat 07c | D1–D4/D9 mengajukan penutupan DEC-11 untuk lingkup 07c |
+| Keputusan | **DEC-11 CLOSED untuk lingkup 07c** melalui D9/DEC-34 (2026-11-02 WIB); **DEC-13 OPEN**; DEC-07 (izin) OPEN dan tidak mengikat 07c | D1–D11 disetujui; rekap tetap DEC-12 |
 
 Seluruh kondisi di atas diverifikasi dari source, migration, konfigurasi, dan dokumen aktual, bukan dari data operasional.
 
@@ -134,7 +134,7 @@ Setelah S9, berhenti untuk review pemilik. Tidak ada merge, deploy, atau lanjuta
 
 ## 4. Keputusan yang perlu pemilik (D1–D11)
 
-Rekomendasi ditulis sebagai default. **Belum ada keputusan yang disetujui pada paket rencana ini.** Jika pemilik menyetujui D1–D11, keputusan dicatat sebagai **DEC-34** dan **DEC-11 ditutup untuk lingkup 07c**; DEC-13 tetap OPEN. Implementasi 07c baru dimulai setelah pernyataan persetujuan eksplisit.
+Rekomendasi ditulis sebagai default. **D1–D11 APPROVED 2026-11-02 WIB** berdasarkan pernyataan pemilik **"Saya setuju D1-D11"** dan dicatat sebagai **DEC-34 APPROVED**; **DEC-11 CLOSED untuk lingkup 07c**; **DEC-13 tetap OPEN**. Implementasi 07c mengikuti keputusan ini tanpa menebak di luar D1–D11.
 
 | # | Pertanyaan | Rekomendasi | Alternatif / dampak |
 |---|---|---|---|
@@ -595,8 +595,7 @@ Frontend/UX: browser checks untuk settings (readiness/header/signatory/asset per
 
 ## 9. Non-goals dan batas otorisasi
 
-- Paket ini **hanya rencana**. Tidak ada implementasi 07c, migration, dependency, tes, UAT, atau perubahan kontrak sampai pemilik menyetujui D1–D11 secara eksplisit.
-- Otorisasi 07c tidak mencakup 07d/Fase 08, merge/deploy/force-push/rewrite, migrasi database operasional/MariaDB, perubahan service/`.env`, atau dependency selain D2.
+- Paket rencana ini **telah disetujui** sebagai **DEC-34** (2026-11-02 WIB); implementasi 07c diotorisasi dan dikerjakan terpisah. Otorisasi 07c tidak mencakup 07d/Fase 08, merge/deploy/force-push/rewrite, migrasi database operasional/MariaDB, perubahan service/`.env`, atau dependency selain D2.
 - Tidak ada template CRUD/editor, upload HTML, DOCX, PDF/A, e-sign tersertifikasi, QR/barcode, OCR, email/WhatsApp otomatis, notifikasi, bulk generation, print queue, atau integrasi eksternal.
 - Tidak ada arsip/versioning Fase 09, retensi/pemusnahan DEC-13, rekap sekolah DEC-12, atau surat izin DEC-07.
 - Tidak ada backfill PDF untuk surat 07b, nomor manual, edit nomor, reissue, atau regenerate.
@@ -621,7 +620,7 @@ Frontend/UX: browser checks untuk settings (readiness/header/signatory/asset per
 | D10 | 9 route baru (37 total), halaman Letter Settings, typed Outgoing, document card, filter; English/390/409 |
 | D11 | UAT `.uat-phase07` + `prepare-documents` (120 siswa/20 mutasi/20 surat bertipe); server stop setelah penerimaan |
 
-Jika pemilik menyetujui seluruhnya, implementasi 07c diotorisasi sesuai D1–D11; keputusan dicatat sebagai **DEC-34** dan **DEC-11 ditutup untuk lingkup 07c**. **DEC-13 tetap OPEN.** Tanpa persetujuan, tidak ada implementasi.
+D1–D11 **APPROVED 2026-11-02 WIB** ("Saya setuju D1-D11") dan dicatat sebagai **DEC-34 APPROVED**; implementasi 07c diotorisasi; **DEC-11 CLOSED untuk lingkup 07c**; **DEC-13 tetap OPEN**. Bukti implementasi dicatat di `PHASE-07C-REPORT.md` setelah verifikasi.
 
 ---
 
@@ -646,7 +645,7 @@ subfase siap review; jangan lanjut Fase 08 atau merge/deploy.
 
 ## 12. Syarat keluar 07c
 
-- [ ] D1–D11 disetujui dan dicatat sebagai **DEC-34**; **DEC-11 ditutup untuk lingkup 07c**; DEC-13 tetap OPEN.
+- [x] D1–D11 disetujui dan dicatat sebagai **DEC-34 APPROVED** (2026-11-02 WIB); **DEC-11 CLOSED untuk lingkup 07c**; DEC-13 tetap OPEN.
 - [ ] Dependency D2 disetujui dan hanya `dompdf/dompdf:^2.0` + transitive yang ditambahkan; diff lockfile diperiksa.
 - [ ] `letter_settings`, `letter_documents`, dan kolom typed pada `letters` dimigrasikan additive; 07a/07b tetap berjalan.
 - [ ] Tiga jenis surat, kop/logo/penandatangan/signature/stamp, PDF, snapshot, preview, dan download berfungsi.
