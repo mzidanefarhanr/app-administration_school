@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 09b — Persetujuan rencana D1–D11 (DEC-38 APPROVED; DEC-13 partially closed)
+- Type: Docs
+- Scope / fase: Pencatatan persetujuan pemilik atas rencana subfase 09b. Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `reports/feature-update/PHASE-09B-PLAN.md`, `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-09-ARCHIVES.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: mencatat pernyataan pemilik **"Saya setuju D1-D11"** (2026-11-03 WIB) sebagai **DEC-38 APPROVED** dan mengotorisasi implementasi 09b (S0–S8); status DEC-38 di register berubah dari PROPOSED menjadi APPROVED; **D6 dicatat sebagai Opsi A** (laporan retensi read-only + `app:archives-retention --dry-run`, ability `archives.purge` didefinisikan tanpa penugasan role, **tanpa eksekusi purge**) dengan periode retensi 6A sebagai nilai config; **DEC-13 dicatat PARTIALLY CLOSED untuk lingkup modul arsip dokumen** (arsip siswa/alumni di luar modul arsip, lampiran surat/izin hasil soft delete, dan audit `activities` umum tetap OPEN untuk Fase 13); FR-11, ROADMAP, phase file 09, INDEX, HANDOFF, dan PROJECT_CONTEXT disinkronkan.
+- Why: persetujuan pemilik harus dicatat pada commit dokumentasi tersendiri, terpisah dari paket rencana (`e89a682`) dan dari commit implementasi yang akan datang.
+- Validation: **NOT RUN** — tidak ada tes/build/Pint/ESLint/browser/UAT pada entri dokumentasi ini; implementasi 09b belum dimulai pada saat persetujuan dicatat, sehingga seluruh verifikasi fitur **NOT RUN**.
+- Notes / risks: persetujuan ini **bukan** penerimaan manual hasil implementasi dan **bukan** otorisasi eksekusi purge/pemusnahan data, penugasan `archives.purge` ke role, pengaktifan scheduler, merge/deploy/force-push/rewrite, migrasi DB operasional/MariaDB, perubahan dependency/lockfile, perubahan service/`.env`/PHP/Apache, atau 09c/Fase 10+.
+- Evidence: `reports/feature-update/PHASE-09B-PLAN.md` (status PLAN APPROVED); baseline `cad8f75`; paket rencana `e89a682`; SHA commit persetujuan ini dilaporkan setelah push (tanpa klaim SHA masa depan).
+
 ## [2026-11-03] Fase 09b — Rencana retensi, akses aman, dan pengingat arsip (PLAN; DEC-38 PROPOSED)
 - Type: Docs
 - Scope / fase: Paket **rencana** subfase 09b. **Tidak ada kode, migration, route, model, service, request, controller, komponen, tes, fixture, atau UAT** yang dibuat/diubah; seluruh verifikasi implementasi **NOT RUN**.

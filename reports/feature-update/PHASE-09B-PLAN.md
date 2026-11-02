@@ -1,8 +1,9 @@
 # Rencana Fase 09 — Subfase 09b: Retensi, Akses Aman, dan Pengingat
 
 - Tanggal: 2026-11-03 (WIB). Branch: `main`. Baseline audit: **`cad8f75`** (pencatatan penerimaan pemilik 09a #1–#18 dan verifikasi UAT berhenti). Paket rencana: commit dokumentasi setelah file ini (SHA dilaporkan setelah commit, bukan sebelumnya).
-- Status dokumen: **PLAN — AWAITING OWNER APPROVAL (D1–D11)**. Usulan keputusan: **DEC-38 PROPOSED**; **DEC-13** (retensi data pribadi) masih **OPEN** dan menjadi gate item D6.
-- Otorisasi saat ini: **tidak ada implementasi 09b yang diotorisasi**. 09a sudah **IMPLEMENTED + agent-verified + OWNER APPROVED #1–#18** (paket review `dfd6f85`, penerimaan `cad8f75`); 07a/07b/07c dan 08a/08b tetap OWNER APPROVED; DEC-35/DEC-36/DEC-37 tidak berubah.
+- Status dokumen: **PLAN APPROVED — DEC-38 APPROVED (2026-11-03 WIB)** berdasarkan pernyataan pemilik **"Saya setuju D1-D11"**; implementasi 09b diotorisasi sesuai D1–D11. Paket rencana: **`e89a682`**.
+- Keputusan D6 disetujui: **Opsi A** (laporan retensi read-only + `app:archives-retention --dry-run`, tanpa eksekusi purge) dengan periode retensi usulan 6A sebagai nilai config; **DEC-13 dicatat PARTIALLY CLOSED untuk lingkup modul arsip dokumen** (periode retensi arsip, retensi log akses, otoritas pemusnahan `archives.purge` tanpa penugasan role). **Sisa DEC-13 tetap OPEN**: arsip siswa/alumni di luar modul arsip, lampiran surat/izin hasil soft delete, dan audit `activities` umum.
+- Otorisasi saat ini: **implementasi 09b diotorisasi** (S0–S8). 09a sudah **IMPLEMENTED + agent-verified + OWNER APPROVED #1–#18** (paket review `dfd6f85`, penerimaan `cad8f75`); 07a/07b/07c dan 08a/08b tetap OWNER APPROVED; DEC-35/DEC-36/DEC-37 tidak berubah.
 - Cakupan paket ini: rencana **09b — download/preview aman, audit akses, expiry task di dashboard, arsip/restore dokumen, dan retensi/pemusnahan menurut keputusan**. **Tidak ada kode, migration, route, model, service, request, controller, komponen, tes, fixture, atau UAT yang dibuat/diubah oleh paket rencana ini.** Seluruh verifikasi implementasi **NOT RUN**.
 - Gate: **DEC-13 OPEN**. Sesuai kriteria penerimaan fase, **tidak ada auto-purge data sebelum kebijakan disetujui**; 09b mengusulkan kebijakan, bukan mengeksekusi pemusnahan. Merge/deploy/force-push, migrasi database operasional/MariaDB, perubahan dependency/lockfile, dan perubahan service/`.env` tidak diotorisasi.
 - Dokumen acuan: `roadmap/phases/PHASE-09-ARCHIVES.md`, `docs/DECISIONS.md` (DEC-13, DEC-17, DEC-19, DEC-21, DEC-27, DEC-37), `docs/REQUIREMENTS.md` FR-11, `docs/DATABASE.md`, `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `docs/SECURITY-DATA.md`, `docs/OPERATIONS.md`, `reports/feature-update/PHASE-09-PLAN.md`, `PHASE-09A-REPORT.md`, `PHASE-09A-MANUAL-REVIEW.md`, serta source aktual 09a/07c/08a/02c untuk pola file privat, preview PDF, arsip/restore, dan scheduler.
@@ -343,11 +344,11 @@ Aturan objek: dokumen bertaut domain tanpa ability domain → **`404`** untuk sh
 
 ## 7. Kriteria penerimaan paket rencana
 
-- [ ] Pemilik menyetujui D1–D11 (atau menyebut perubahan per nomor); pernyataan dicatat sebagai **DEC-38**.
-- [ ] Keputusan D6 menetapkan opsi retensi (A/B/C) dan, bila diberikan, periode retensi final; **DEC-13** dicatat sesuai hasil (PARTIALLY CLOSED untuk lingkup arsip, atau tetap OPEN).
-- [ ] Implementasi 09b diotorisasi **hanya** setelah persetujuan; 09c/Fase 10+ tetap memerlukan rencana terpisah.
-- [ ] Tidak ada kode/migration/route/model/service/tes/fixture/UAT pada paket rencana ini; seluruh verifikasi implementasi **NOT RUN**.
-- [ ] Dokumen status (`INDEX`, `HANDOFF`, `ROADMAP`, phase file, `CHANGELOG`, `PROJECT_CONTEXT`, `REQUIREMENTS`, `DECISIONS`) menyatakan **09b PLAN — AWAITING OWNER APPROVAL (D1–D11; DEC-38 PROPOSED)**.
+- [x] Pemilik menyetujui D1–D11 (**"Saya setuju D1-D11"**, 2026-11-03 WIB); pernyataan dicatat sebagai **DEC-38 APPROVED**.
+- [x] Keputusan D6 menetapkan **Opsi A** (laporan retensi read-only + dry-run, tanpa purge) dan periode retensi 6A sebagai nilai config; **DEC-13 PARTIALLY CLOSED untuk lingkup modul arsip dokumen**, sisanya tetap OPEN.
+- [x] Implementasi 09b diotorisasi **hanya** setelah persetujuan; 09c/Fase 10+ tetap memerlukan rencana terpisah.
+- [x] Tidak ada kode/migration/route/model/service/tes/fixture/UAT pada paket rencana ini; seluruh verifikasi implementasi **NOT RUN** pada saat paket rencana di-push (`e89a682`).
+- [x] Dokumen status (`INDEX`, `HANDOFF`, `ROADMAP`, phase file, `CHANGELOG`, `PROJECT_CONTEXT`, `REQUIREMENTS`, `DECISIONS`) menyatakan **09b PLAN — AWAITING OWNER APPROVAL (D1–D11; DEC-38 PROPOSED)** pada paket rencana, lalu diperbarui menjadi **DEC-38 APPROVED** pada commit dokumentasi persetujuan.
 - [ ] Setelah persetujuan, implementasi mengikuti S0–S8, berhenti untuk review manual, commit+push paket review, dan penerimaan dicatat pada commit dokumentasi terpisah.
 
-**Pernyataan otorisasi:** paket ini **hanya rencana**. 09b **belum diimplementasikan** dan tidak boleh dimulai, di-commit sebagai kode, atau diuji sebagai fitur sampai pemilik menyetujui D1–D11. Tidak ada pemusnahan data yang diotorisasi oleh dokumen ini. Merge/deploy/force-push/rewrite, migrasi database operasional/MariaDB, perubahan dependency/lockfile, perubahan service/`.env`/PHP/Apache, dan 09c/Fase 10+ tetap tidak diotorisasi.
+**Pernyataan otorisasi:** persetujuan **"Saya setuju D1-D11"** (2026-11-03 WIB) mengotorisasi **implementasi 09b** sesuai D1–D11 (S0–S8), termasuk commit+push paket review setelah verifikasi. Persetujuan ini **bukan** otorisasi: eksekusi purge/pemusnahan data apa pun, merge/deploy/force-push/rewrite, migrasi database operasional/MariaDB, perubahan dependency/lockfile, perubahan service/`.env`/PHP/Apache, penugasan `archives.purge` ke role, pengaktifan scheduler, atau pelaksanaan 09c/Fase 10+. Commit/push bukan penerimaan manual; penerimaan pemilik dicatat pada commit dokumentasi terpisah setelah review.
