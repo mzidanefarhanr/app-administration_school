@@ -1,6 +1,6 @@
 # Laporan Subfase 08b — Keputusan dan Rekap Izin
 
-Tanggal: implementasi dan verifikasi agen 2026-11-02 WIB. Branch: `main`. Baseline induk: `8dcfb1d` (pencatatan DEC-36 APPROVED); paket review dilaporkan setelah commit/push (tanpa klaim SHA masa depan). Status teknis: **IMPLEMENTED — agent-verified (2026-11-02)**. Status review pemilik: **PENDING** (checklist 18 item; agen memverifikasi #1–#17, item #18 menunggu penerimaan).
+Tanggal: implementasi dan verifikasi agen 2026-11-02 WIB. Branch: `main`. Baseline induk: `8dcfb1d` (pencatatan DEC-36 APPROVED); paket review **`23a38d7`**. Status teknis: **IMPLEMENTED — agent-verified (2026-11-02)**. Status review pemilik: **APPROVED (#1–#17, 2026-11-02 WIB)**; item #18 (penghentian server UAT) dijalankan agen setelah penerimaan sesuai DEC-27.
 Keputusan pemilik: **DEC-36 APPROVED** (D1–D8, 2026-11-02 WIB; pernyataan **"Saya setuju D1-D8"**); **DEC-35 tetap**; **DEC-13 tetap OPEN**.
 Otorisasi: implementasi **08b** sesuai `reports/feature-update/PHASE-08B-PLAN.md`. 08a tetap **OWNER APPROVED #1–#16**.
 
@@ -76,6 +76,7 @@ Kontrak endpoint 08b (detail respons di `docs/API-CONTRACTS.md`):
 
 ## 5. Status UAT dan langkah berikutnya
 
-- Server UAT **masih berjalan** (API `127.0.0.1:18026`, SPA `127.0.0.1:14026`) karena penerimaan pemilik belum ada. Sesuai DEC-27, server dihentikan **setelah** penerimaan dengan verifikasi PID/command line/port; `.uat-phase08` dipertahankan; Apache/MariaDB tidak disentuh.
-- Review manual pemilik: checklist **18 item** di `PHASE-08B-MANUAL-REVIEW.md`; item #1–#17 telah diverifikasi agen, item #18 menunggu penerimaan.
-- Setelah penerimaan, hentikan server UAT dan catat penerimaan pada commit dokumentasi terpisah. Merge/deploy/force-push, migrasi database operasional/MariaDB, perubahan dependency/service/`.env`, dan retensi DEC-13 tetap tidak diotorisasi.
+- **Penerimaan 2026-11-02 WIB:** pemilik menyatakan **"Pengujian nomor 1-17 sudah berhasil dan saya approved."** Pernyataan ini dicatat sebagai penerimaan checklist 08b **#1–#17**; agen tidak mengulang skenario dan item NOT RUN tetap NOT RUN.
+- Server UAT **telah dihentikan 2026-11-02 WIB setelah penerimaan** (DEC-27): API PID 21084 (`C:\xampp\php82-operational\php.exe -S 127.0.0.1:18026 scripts/phase08-uat.php`), SPA PID 17108 (`node ...vite.js --mode uat --host 127.0.0.1 --port 14026`) dan anak esbuild PID 14948 diverifikasi command line sebelum `taskkill /T /F`; port 14026/18026 terverifikasi bebas; `.uat-phase08` dipertahankan; Apache PID 1304 (80/443) dan MariaDB PID 18244 (3306) tidak disentuh.
+- Item #18 bukan bagian dari pernyataan approval; penghentian server dijalankan agen setelah penerimaan. Penerimaan dicatat pada commit dokumentasi terpisah setelah paket review `23a38d7`.
+- Merge/deploy/force-push, migrasi database operasional/MariaDB, perubahan dependency/service/`.env`, dan retensi DEC-13 tetap tidak diotorisasi.

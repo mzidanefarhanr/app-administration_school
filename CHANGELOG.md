@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-02] Fase 08b — Penerimaan pemilik #1–#17 dan penghentian UAT
+- Type: Docs
+- Scope / fase: Penerimaan checklist manual 08b; penghentian server UAT. Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `docs/TESTING.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-08-LEAVES.md`, `reports/feature-update/INDEX.md`, `HANDOFF.md`, `PHASE-08B-REPORT.md`, `PHASE-08B-MANUAL-REVIEW.md`.
+- What changed: mencatat pernyataan pemilik **"Pengujian nomor 1-17 sudah berhasil dan saya approved."** (2026-11-02 WIB) sebagai penerimaan checklist 08b **#1–#17**; paket review **`23a38d7`**; status 08b menjadi OWNER APPROVED #1–#17. Setelah penerimaan, server UAT 14026/18026 dihentikan sesuai DEC-27: API PID 21084 dan SPA PID 17108 (anak esbuild PID 14948) diverifikasi command line sebelum `taskkill /T /F`, port dipastikan bebas, `.uat-phase08` dipertahankan, Apache PID 1304 dan MariaDB PID 18244 tidak disentuh. Item #18 dicatat sebagai dijalankan agen setelah penerimaan, bukan bagian dari pernyataan approval.
+- Why: penerimaan pemilik adalah gate review manual; server UAT fase yang sudah lulus dihentikan agar tidak terus berjalan (DEC-27).
+- Validation: pernyataan pemilik; verifikasi proses/port sebelum dan sesudah penghentian; **NOT RUN:** agen tidak mengulang skenario #1–#17, tes, build, atau browser; item NOT RUN tetap NOT RUN.
+- Notes / risks: penerimaan 08b tidak mengotorisasi merge/deploy, migrasi DB operasional/MariaDB, dependency/service/`.env`, atau retensi DEC-13. DEC-13 tetap OPEN; subfase berikutnya memerlukan instruksi terpisah.
+- Evidence: `reports/feature-update/PHASE-08B-MANUAL-REVIEW.md`, `PHASE-08B-REPORT.md`; paket review `23a38d7`; baseline `8dcfb1d`.
+
 ## [2026-11-02] Fase 08b — Keputusan izin dan rekap (DEC-36)
 - Type: Feature
 - Scope / fase: 08b — approve/reject izin submitted, pembatalan izin approved oleh approver, rekap periode, UI Recap, fixture UAT `prepare-decisions`. Tanpa schema/ability/dependency baru.

@@ -2,13 +2,14 @@
 
 Subfase: 08b — approve/reject izin submitted, pembatalan izin approved oleh approver, rekap periode, dan UI Recap.
 Keputusan: **DEC-36 APPROVED** (D1–D8, 2026-11-02 WIB; **"Saya setuju D1-D8"**); **DEC-35 tetap**; **DEC-13 OPEN**. Laporan teknis: `reports/feature-update/PHASE-08B-REPORT.md`; rencana: `reports/feature-update/PHASE-08B-PLAN.md`.
-Baseline induk: `main` pada `8dcfb1d` (pencatatan DEC-36); paket review dilaporkan setelah commit/push (tanpa klaim SHA masa depan). Status: **IMPLEMENTED — agent-verified (2026-11-02)**. Status review pemilik: **PENDING**.
+Baseline induk: `main` pada `8dcfb1d` (pencatatan DEC-36); paket review **`23a38d7`**. Status: **IMPLEMENTED — agent-verified (2026-11-02)**. Status review pemilik: **APPROVED (#1–#17, 2026-11-02 WIB)**.
 
 ## Status penerimaan pemilik
 
 - Persetujuan rencana D1–D8 (**DEC-36**) mengotorisasi implementasi; persetujuan rencana bukan penerimaan hasil.
-- Agen telah memverifikasi checklist **#1–#17**; item **#18** (penghentian server UAT) menunggu penerimaan pemilik. Commit/push paket review bukan penerimaan.
-- Setelah pemilik menyatakan persetujuan, penerimaan dicatat pada commit dokumentasi terpisah, server UAT dihentikan (DEC-27; PID/command line diverifikasi, port bebas), dan `.uat-phase08` dipertahankan.
+- **Penerimaan 2026-11-02 WIB:** pemilik menyatakan **"Pengujian nomor 1-17 sudah berhasil dan saya approved."** Pernyataan ini dicatat sebagai penerimaan checklist 08b **#1–#17**; agen tidak mengulang skenario dan item NOT RUN tetap NOT RUN.
+- Item **#18** bukan bagian dari pernyataan approval. Setelah penerimaan, agen menjalankan penghentian server UAT sesuai DEC-27: API PID 21084 dan SPA PID 17108 (beserta anak esbuild PID 14948) diverifikasi command line sebelum `taskkill /T /F`, port 14026/18026 dipastikan bebas, dan `.uat-phase08` dipertahankan; Apache PID 1304 (80/443) dan MariaDB PID 18244 (3306) tidak disentuh.
+- Penerimaan ini dicatat pada commit dokumentasi terpisah setelah paket review `23a38d7`.
 - Batas: penerimaan 08b tidak mengotorisasi merge/deploy/force-push, migrasi database operasional/MariaDB, perubahan dependency/lockfile, perubahan service/`.env`, atau retensi DEC-13. Jangan menyentuh database operasional, `.uat-phase05/06/07`, Apache, atau service MariaDB.
 
 ## Lingkungan UAT (terisolasi)
@@ -18,18 +19,17 @@ Baseline induk: `main` pada `8dcfb1d` (pencatatan DEC-36); paket review dilapork
 - Data: `.uat-phase08` SQLite; cookie `school_phase08_session`; storage `.uat-phase08/storage`
 - Launcher: `laravel-api/scripts/phase08-uat.php`
 - Akun: **`uat.operator`** (Operator Sekolah), **`uat.admin`** (Admin Sistem), **`uat.kepsek`** (Kepala Sekolah; satu-satunya peran dengan `leaves.approve`), **`uat.waka`** (Wakil Kesiswaan, view-only), **`uat.guru`** (peran Guru, tertaut ke `UAT-P08 Employee 01`), **`uat.inactive`** (nonaktif). Password hanya di runtime privat `.uat-phase08/account-password.txt`; tidak dicetak di dokumen.
-- Server UAT **masih berjalan** saat paket review ini dibuat: API PID 21084 (`php -S 127.0.0.1:18026 -t public scripts/phase08-uat.php`), SPA PID 17108 (`vite --port 14026 --strictPort`). Penghentian hanya dilakukan setelah penerimaan.
+- Server UAT **telah dihentikan 2026-11-02 WIB setelah penerimaan** (DEC-27): API PID 21084 (`C:\xampp\php82-operational\php.exe -S 127.0.0.1:18026 scripts/phase08-uat.php`), SPA PID 17108 (`node ...vite.js --mode uat --host 127.0.0.1 --port 14026`) dan anak esbuild PID 14948 diverifikasi command line sebelum `taskkill /T /F`; port 14026/18026 terverifikasi bebas; `.uat-phase08` dipertahankan.
 - Jangan me-reset `.uat-phase08`; `prepare-decisions` idempoten dan mempertahankan baris yang sudah ada. Perubahan status akibat review manual adalah data UAT yang wajar.
 
 Perintah restart bila server sudah berhenti:
 
 ```powershell
 # API (dari laravel-api)
-C:\xampp\php82-operational\php.exe -S 127.0.0.1:18026 -t public scripts/phase08-uat.php
+C:\xampp\php82-operational\php.exe -S 127.0.0.1:18026 scripts/phase08-uat.php
 
-# SPA (dari vue-app)
-$env:VITE_API_BASE_URL = "http://127.0.0.1:18026"
-npm run dev -- --host 127.0.0.1 --port 14026 --strictPort
+# SPA (dari vue-app; mode uat memakai konfigurasi API 18026)
+npx vite --mode uat --host 127.0.0.1 --port 14026
 ```
 
 Perintah status (read-only, hanya membaca `.uat-phase08`):
@@ -142,8 +142,8 @@ Angka acuan saat ini (hasil pengujian agen, data tidak di-reset):
 - Status agen: **PASS** (3 console error hanya probe yang disengaja: `409` approve, `403` recap, `403` daftar guru).
 
 ### 18. Penghentian server UAT setelah penerimaan
-- **PENDING** — server UAT masih berjalan sampai pemilik menyatakan persetujuan. Setelah itu: verifikasi PID/command line, hentikan API 18026 dan SPA 14026, pastikan port bebas, dan pertahankan `.uat-phase08`; jangan menyentuh Apache/MariaDB.
-- Status agen: **PENDING (menunggu penerimaan pemilik, DEC-27)**.
+- **DONE setelah penerimaan (agen, 2026-11-02 WIB)** — API PID 21084 (`php -S 127.0.0.1:18026 scripts/phase08-uat.php`) dan SPA PID 17108 (`node ...vite.js --mode uat --host 127.0.0.1 --port 14026`) beserta anak esbuild PID 14948 diverifikasi command line sebelum dihentikan dengan `taskkill /T /F`; port 14026/18026 terverifikasi bebas; `.uat-phase08` dipertahankan; Apache PID 1304 (80/443) dan MariaDB PID 18244 (3306) tidak disentuh.
+- Status: **DONE (bukan bagian dari pernyataan approval #1–#17; dijalankan agen sesuai DEC-27 setelah penerimaan)**.
 
 ## Cara melaporkan hasil
 
