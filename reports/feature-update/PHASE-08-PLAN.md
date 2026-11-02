@@ -2,7 +2,7 @@
 
 - Tanggal: 2026-11-02 (WIB). Branch: `main`. Baseline dokumen/audit: `2db6475` (paket penerimaan 07c).
 - Status dokumen: **PLAN APPROVED — DEC-35 APPROVED (2026-11-02 WIB)** berdasarkan pernyataan pemilik **"Saya setuju D1-D12"**. Implementasi **08a diotorisasi**; **08b menunggu instruksi terpisah**. **DEC-07 CLOSED** melalui DEC-35; **DEC-13 tetap OPEN**.
-- Status implementasi (2026-11-02): **08a IMPLEMENTED + agent-verified**; review pemilik **PENDING (#1–#16)**; **08b belum dimulai**. Bukti: `reports/feature-update/PHASE-08A-REPORT.md`; checklist: `PHASE-08A-MANUAL-REVIEW.md`.
+- Status implementasi (2026-11-02): **08a IMPLEMENTED + agent-verified dan OWNER APPROVED (#1–#16)** berdasarkan **"Pengujian nomor 1-16 sudah berhasil dan saya approved."**; paket review `91b3eeb`; UAT dihentikan; **08b belum dimulai**. Bukti: `reports/feature-update/PHASE-08A-REPORT.md`; checklist: `PHASE-08A-MANUAL-REVIEW.md`.
 - Cakupan paket ini: **rencana** — pada saat paket rencana disusun belum ada implementasi izin, migration, route, model, controller, service, UI, tes, atau UAT. Implementasi 08a dikerjakan setelah persetujuan ini dan dicatat di laporan subfase.
 - Otorisasi sebelumnya: 07a/07b/07c **OWNER APPROVED** (07c #1–#18, 2026-11-02 WIB). **DEC-11 CLOSED untuk lingkup 07c**; **DEC-13 tetap OPEN**.
 - Di luar cakupan paket ini: implementasi Fase 08, merge/deploy, migrasi database operasional/MariaDB, perubahan dependency/lockfile, perubahan service/`.env`, dan perluasan peran di luar D9.

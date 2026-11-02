@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-02] Fase 08a — Penerimaan pemilik #1–#16 dan penghentian UAT
+- Type: Docs
+- Scope / fase: Penerimaan checklist manual 08a; penghentian server UAT. Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `docs/TESTING.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-08-LEAVES.md`, `reports/feature-update/INDEX.md`, `HANDOFF.md`, `PHASE-08-PLAN.md`, `PHASE-08A-REPORT.md`, `PHASE-08A-MANUAL-REVIEW.md`.
+- What changed: mencatat pernyataan pemilik **"Pengujian nomor 1-16 sudah berhasil dan saya approved."** (2026-11-02 WIB) sebagai penerimaan checklist 08a #1–#16; paket review **`91b3eeb`**; status 08a menjadi OWNER APPROVED. Server UAT 14026/18026 dihentikan sesuai DEC-27 setelah verifikasi PID/command line (API 11864, SPA 19376), port dipastikan bebas, `.uat-phase08` dipertahankan. 08b tetap belum dimulai.
+- Why: penerimaan pemilik adalah gate review manual; server UAT fase yang sudah lulus dihentikan agar tidak terus berjalan (DEC-27).
+- Validation: pernyataan pemilik; verifikasi proses/port sebelum dan sesudah penghentian; **NOT RUN:** agen tidak mengulang skenario #1–#16, tes, build, atau browser; item NOT RUN tetap NOT RUN.
+- Notes / risks: penerimaan 08a tidak mengotorisasi 08b, merge/deploy, migrasi DB operasional/MariaDB, dependency/service/`.env`, atau retensi DEC-13. DEC-13 tetap OPEN.
+- Evidence: `reports/feature-update/PHASE-08A-MANUAL-REVIEW.md`, `PHASE-08A-REPORT.md`; paket review `91b3eeb`; baseline `7a45813`.
+
 ## [2026-11-02] Fase 08a — Pengajuan izin siswa dan pegawai (DEC-35)
 - Type: Feature | Schema Change
 - Scope / fase: 08a — pengajuan izin siswa/pegawai, validasi kelayakan/tanggal/overlap, lampiran privat, pembatalan, audit, UI Leaves, dan UAT terisolasi. 08b (keputusan/rekap) tidak termasuk.
@@ -24,7 +34,7 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 - What changed: tabel additive `leave_requests`/`leave_decisions`/`leave_attachments`; ability `leaves.request` + peran awal `guru`; subjek siswa (hanya `leaves.manage`) atau pegawai (self via `leaves.request` + tautan `user_id` tepat); alur `draft → submitted → cancelled` dengan `expected_version`/`409` dan riwayat keputusan append-only; validasi tahun ajaran/keanggotaan siswa, batas 30/90 hari, dan overlap submitted/approved; lampiran privat 3×5 MB (PDF/JPG/JPEG/PNG) dengan validator bersama; 13 route `/api/leaves*`; halaman `/public/leaves` (Requests/My Leaves); audit tanpa alasan/nama file/path/hash; UAT `.uat-phase08` 18026/14026 dengan 120 fixture sintetis + 2 izin hasil browser.
 - Why: melaksanakan D1–D12/DEC-35 untuk FR-10 bagian pengajuan; guru memperoleh self-service tanpa memberi `leaves.manage`, dan siswa dapat diajukan staf berwenang tanpa akun login siswa.
 - Validation: Leaves **22 passed / 209 assertions (19,44 s)**; regresi Letters **86 passed / 1.744 assertions (88,68 s)**; Pint **23 file PASS**; `route:list --path=leaves` **13 route**; `npm run build` **PASS 25,44 s**; ESLint **0 error** (595 warning Prettier); UAT status guard PASS — 122 izin (34 draft/73 submitted/15 cancelled), 49 lampiran/49 file, 15 keputusan, 123 siswa/123 keanggotaan aktif, 20 pegawai/1 tertaut, 6 akun; browser/API operator end-to-end, guru self-service, waka/kepsek view-only, viewport sempit, 0 console error. **NOT RUN:** suite penuh (batas akses `school_access_uat`), race MariaDB/InnoDB, dua tab nyata, restore drill, visual regression, benchmark, alur 08b.
-- Notes / risks: `approved`/`rejected` belum dapat dicapai dan `leaves.approve` belum ditegakkan (08b); overlap ditegakkan aplikasi, konkurensi MariaDB belum diuji; lampiran disimpan setelah soft delete sampai DEC-13; review pemilik **PENDING (#1–#16)** dan server UAT berjalan sampai penerimaan. Tidak ada perubahan dependency/lockfile, service, `.env`, database operasional/MariaDB, merge, deploy, atau force-push.
+- Notes / risks: `approved`/`rejected` belum dapat dicapai dan `leaves.approve` belum ditegakkan (08b); overlap ditegakkan aplikasi, konkurensi MariaDB belum diuji; lampiran disimpan setelah soft delete sampai DEC-13; review pemilik **PENDING (#1–#16)** saat implementasi; **kemudian APPROVED 2026-11-02 WIB (#1–#16)** (entri penerimaan di atas), server UAT dihentikan. Tidak ada perubahan dependency/lockfile, service, `.env`, database operasional/MariaDB, merge, deploy, atau force-push.
 - Evidence: `reports/feature-update/PHASE-08A-REPORT.md`, `reports/feature-update/PHASE-08A-MANUAL-REVIEW.md`; baseline `7a45813`; SHA paket review dicatat pada checkpoint berikutnya.
 
 ## [2026-11-02] Fase 08 — Pemilik menyetujui rencana (DEC-35 APPROVED; DEC-07 CLOSED)

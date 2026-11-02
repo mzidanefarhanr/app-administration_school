@@ -1,6 +1,6 @@
 # Laporan Subfase 08a — Pengajuan Izin Siswa dan Pegawai
 
-Tanggal: implementasi dan verifikasi agen 2026-11-02 WIB. Branch: `main`. Baseline induk: `7a45813` (pencatatan DEC-35 APPROVED). Status teknis: **IMPLEMENTED — agent-verified (2026-11-02)**. Status review pemilik: **PENDING (#1–#16)** melalui `PHASE-08A-MANUAL-REVIEW.md`; commit/push paket review bukan penerimaan manual.
+Tanggal: implementasi dan verifikasi agen 2026-11-02 WIB. Branch: `main`. Baseline induk: `7a45813` (pencatatan DEC-35 APPROVED); paket review `91b3eeb`. Status teknis: **IMPLEMENTED — agent-verified (2026-11-02)**. Status review pemilik: **APPROVED (#1–#16, 2026-11-02 WIB)** berdasarkan pernyataan **"Pengujian nomor 1-16 sudah berhasil dan saya approved."**; agen tidak mengulang skenario dan item NOT RUN tetap NOT RUN. Server UAT dihentikan setelah penerimaan (DEC-27; PID/command line diverifikasi, port bebas, `.uat-phase08` dipertahankan).
 Keputusan pemilik: **DEC-35 APPROVED** (D1–D12, 2026-11-02 WIB; pernyataan **"Saya setuju D1-D12"**); **DEC-07 CLOSED**; **DEC-13 tetap OPEN**; **DEC-11 CLOSED untuk lingkup 07c**.
 Otorisasi: implementasi **08a**; **08b menunggu instruksi terpisah**. Rencana: `reports/feature-update/PHASE-08-PLAN.md`.
 
@@ -85,7 +85,7 @@ Kontrak endpoint 08a (detail respons di `docs/API-CONTRACTS.md`):
 | E6 | `npx eslint src/views/pages/public/Leaves.vue src/layout/AppMenu.vue src/router/index.js src/views/pages/master/Roles.vue` | — | Tanpa error | **0 error**, 595 warning Prettier (CRLF) | PASS |
 | E7 | `php scripts/phase08-uat.php status` | `.uat-phase08` SQLite | Guard isolasi + fixture | **Guard PASS; 122 izin (34 draft/73 submitted/15 cancelled; 101 siswa/21 pegawai), 49 lampiran/49 file, 15 keputusan, 123 siswa/123 keanggotaan aktif, 20 pegawai (1 tertaut), 6 akun** | PASS |
 | E8 | Browser/API Chrome DevTools MCP | operator/guru/waka/kepsek | Alur utama + tampilan | **Operator end-to-end (draft → lampiran → submit → unduh berizin → cancel + riwayat); guru self-service (draft v1 → edit v2 → submit v3, hanya Cancel tersisa); waka/kepsek view-only 122 baris tanpa tombol tulis; viewport sempit 500 px tanpa overflow halaman; 0 console error aplikasi** | PASS (terbatas pada daftar ini) |
-| E9 | Checklist manual `PHASE-08A-MANUAL-REVIEW.md` | 16 skenario | Dijalankan pemilik | **PENDING** | PENDING |
+| E9 | Checklist manual `PHASE-08A-MANUAL-REVIEW.md` | 16 skenario | Dijalankan pemilik | **APPROVED (#1–#16, 2026-11-02 WIB)** — pernyataan pemilik; agen tidak mengulang skenario | PASS (owner) |
 
 ### Batas suite penuh
 
@@ -94,7 +94,7 @@ Kontrak endpoint 08a (detail respons di `docs/API-CONTRACTS.md`):
 
 ## 4. UAT manual dan fixture
 
-Lingkungan: `.uat-phase08` (SQLite), API `php -S 127.0.0.1:18026 scripts/phase08-uat.php`, SPA Vite `127.0.0.1:14026`, cookie `school_phase08_session`. Password hanya di `.uat-phase08/account-password.txt` dan tidak pernah masuk dokumen. Server dipertahankan sampai penerimaan pemilik; setelah itu dihentikan sesuai DEC-27 dan `.uat-phase08` dipertahankan.
+Lingkungan: `.uat-phase08` (SQLite), API `php -S 127.0.0.1:18026 scripts/phase08-uat.php`, SPA Vite `127.0.0.1:14026`, cookie `school_phase08_session`. Password hanya di `.uat-phase08/account-password.txt` dan tidak pernah masuk dokumen. Server dihentikan setelah penerimaan pemilik 2026-11-02 (DEC-27): API PID 11864 dan SPA PID 19376 diverifikasi command line sebelum dihentikan, port 14026/18026 dipastikan bebas, `.uat-phase08` dipertahankan.
 
 Akun: `uat.admin` (Admin Sistem), `uat.operator` (Operator Sekolah), `uat.kepsek` (Kepala Sekolah), `uat.waka` (Wakil Kesiswaan), `uat.guru` (peran Guru, tertaut ke `UAT-P08 Employee 01`), `uat.inactive` (nonaktif).
 
@@ -144,7 +144,7 @@ Skenario manual lain (validasi tanggal/kelayakan, overlap, delete lampiran, audi
 
 ## 7. Langkah berikutnya
 
-1. Pemilik menjalankan `PHASE-08A-MANUAL-REVIEW.md` #1–#16 pada server UAT 14026/18026.
-2. Setelah pernyataan penerimaan, catat approval pada commit dokumentasi terpisah dan hentikan server UAT (DEC-27) dengan verifikasi PID/command line; pertahankan `.uat-phase08`.
+1. ~~Pemilik menjalankan `PHASE-08A-MANUAL-REVIEW.md` #1–#16 pada server UAT 14026/18026.~~ **Selesai — APPROVED #1–#16 (2026-11-02 WIB).**
+2. ~~Setelah pernyataan penerimaan, catat approval pada commit dokumentasi terpisah dan hentikan server UAT (DEC-27) dengan verifikasi PID/command line; pertahankan `.uat-phase08`.~~ **Selesai — approval dicatat pada commit dokumentasi terpisah; server dihentikan (PID 11864/19376 diverifikasi, port bebas); `.uat-phase08` dipertahankan.**
 3. 08b (keputusan dan rekap) hanya dimulai setelah instruksi pemilik terpisah.
 4. Sebelum suite penuh berikutnya, gate `MariaDbIntegrationTest` agar tidak mengakses `school_access_uat` tanpa opt-in.

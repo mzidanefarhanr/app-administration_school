@@ -2,12 +2,13 @@
 
 Subfase: 08a — pengajuan izin siswa dan pegawai, validasi kelayakan/tanggal/overlap, lampiran privat, pembatalan, audit, dan UI Leaves.
 Keputusan: **DEC-35 APPROVED** (D1–D12, 2026-11-02 WIB; **"Saya setuju D1-D12"**); **DEC-07 CLOSED**; **DEC-13 OPEN**. Implementasi 08a diotorisasi; 08b menunggu instruksi terpisah. Laporan teknis: `reports/feature-update/PHASE-08A-REPORT.md`.
-Baseline induk: `main` pada `7a45813` (pencatatan DEC-35). Status: **IMPLEMENTED — agent-verified**. Status review pemilik: **PENDING (#1–#16)**.
+Baseline induk: `main` pada `7a45813` (pencatatan DEC-35); paket review `91b3eeb`. Status: **IMPLEMENTED — agent-verified**. Status review pemilik: **APPROVED (#1–#16, 2026-11-02 WIB)**.
 
 ## Status penerimaan pemilik
 
 - Persetujuan rencana D1–D12 (**DEC-35**) mengotorisasi implementasi; persetujuan rencana bukan penerimaan hasil.
-- Penerimaan hasil 08a dicatat **hanya** setelah pernyataan pemilik. Setelah itu server UAT dihentikan (DEC-27) dan data `.uat-phase08` dipertahankan.
+- **Penerimaan 2026-11-02 WIB:** pemilik menyatakan **"Pengujian nomor 1-16 sudah berhasil dan saya approved."** Pernyataan ini dicatat sebagai penerimaan checklist 08a #1–#16; agen tidak mengulang skenario dan item NOT RUN tetap NOT RUN.
+- Setelah penerimaan, server UAT dihentikan (DEC-27; PID/command line diverifikasi, port bebas) dan data `.uat-phase08` dipertahankan.
 - Batas: penerimaan 08a tidak mengotorisasi 08b, merge, deploy, force-push/rewrite, migrasi database operasional/MariaDB, perubahan dependency/lockfile, perubahan service/`.env`, atau retensi DEC-13. UAT hanya pada `.uat-phase08`; jangan menyentuh database operasional, `.uat-phase05`, `.uat-phase06`, `.uat-phase07`, Apache, atau service MariaDB.
 
 ## Lingkungan UAT (terisolasi)
@@ -17,7 +18,7 @@ Baseline induk: `main` pada `7a45813` (pencatatan DEC-35). Status: **IMPLEMENTED
 - Data: `.uat-phase08` SQLite; cookie `school_phase08_session`; storage `.uat-phase08/storage`
 - Launcher: `laravel-api/scripts/phase08-uat.php`
 - Akun: **`uat.operator`** (Operator Sekolah), **`uat.admin`** (Admin Sistem), **`uat.kepsek`** (Kepala Sekolah, view-only di 08a), **`uat.waka`** (Wakil Kesiswaan, view-only), **`uat.guru`** (peran Guru, tertaut ke `UAT-P08 Employee 01`), **`uat.inactive`** (nonaktif). Password hanya ada di runtime privat `.uat-phase08/account-password.txt`; tidak dicetak di dokumen.
-- Server UAT dipertahankan sampai penerimaan pemilik. Setelah penerimaan, hentikan hanya setelah verifikasi PID/command line, pastikan port 14026/18026 bebas, dan pertahankan `.uat-phase08`; jangan menyentuh Apache/MariaDB.
+- Server UAT dihentikan 2026-11-02 setelah penerimaan pemilik: API PID 11864 dan SPA PID 19376 diverifikasi command line sebelum dihentikan, port 14026/18026 dipastikan bebas, `.uat-phase08` dipertahankan; Apache/MariaDB tidak disentuh.
 - Jangan me-reset `.uat-phase08`; fixture `prepare-leaves` idempoten dan mempertahankan baris yang sudah ada.
 
 Perintah restart bila server sudah berhenti:
