@@ -1,9 +1,9 @@
 # Fase 08 — Perizinan siswa dan guru
 
-Status teknis: **08a IMPLEMENTED — agent-verified 2026-11-02**; **08b PLAN — AWAITING OWNER APPROVAL (D1–D8; proposed DEC-36)**. Status review: **08a APPROVED (#1–#16, 2026-11-02 WIB)**; 08b PENDING. Tes otomatis/browser 08a: lihat `PHASE-08A-REPORT.md`; review manual owner: **APPROVED #1–#16**; UAT `.uat-phase08` dihentikan setelah penerimaan.
+Status teknis: **08a IMPLEMENTED — agent-verified 2026-11-02**; **08b PLAN APPROVED — DEC-36 APPROVED (2026-11-02 WIB); implementasi dikerjakan**. Status review: **08a APPROVED (#1–#16, 2026-11-02 WIB)**; 08b PENDING. Tes otomatis/browser 08a: lihat `PHASE-08A-REPORT.md`; review manual owner: **APPROVED #1–#16**; UAT `.uat-phase08` dihentikan setelah penerimaan.
 Dependensi: 01,03,04; file privat Fase07a atau service ekuivalen; DEC-07 (CLOSED via DEC-35). Baseline rencana: b02a87f; audit ulang HEAD saat pelaksanaan.
 
-Rencana rinci: **`reports/feature-update/PHASE-08-PLAN.md`** (baseline audit `2db6475`, 2026-11-02 WIB) — **PLAN APPROVED — DEC-35 APPROVED (2026-11-02 WIB)** berdasarkan **"Saya setuju D1-D12"**. **DEC-07 CLOSED**; **DEC-13 tetap OPEN**. Implementasi **08a telah diselesaikan** (lihat `PHASE-08A-REPORT.md`). Rencana 08b: **`reports/feature-update/PHASE-08B-PLAN.md`** (baseline `618b8f8`) — **PLAN — AWAITING OWNER APPROVAL (D1–D8); proposed DEC-36 PROPOSED**; belum ada kode/tes/UAT 08b.
+Rencana rinci: **`reports/feature-update/PHASE-08-PLAN.md`** (baseline audit `2db6475`, 2026-11-02 WIB) — **PLAN APPROVED — DEC-35 APPROVED (2026-11-02 WIB)** berdasarkan **"Saya setuju D1-D12"**. **DEC-07 CLOSED**; **DEC-13 tetap OPEN**. Implementasi **08a telah diselesaikan** (lihat `PHASE-08A-REPORT.md`). Rencana 08b: **`reports/feature-update/PHASE-08B-PLAN.md`** (baseline `618b8f8`) — **PLAN APPROVED — DEC-36 APPROVED (2026-11-02 WIB)** berdasarkan **"Saya setuju D1-D8"**; implementasi dikerjakan.
 
 ## Tujuan dan scope
 Perizinan siswa dan guru. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Implementasi 08a dicatat di `reports/feature-update/PHASE-08A-REPORT.md`; 08b belum dimulai.
@@ -31,7 +31,7 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 ```
 
 ### 08b — Keputusan dan rekap
-Status: **PLAN — AWAITING OWNER APPROVAL (D1–D8; proposed DEC-36 PROPOSED)** di `reports/feature-update/PHASE-08B-PLAN.md` (baseline `618b8f8`); **belum ada kode/tes/UAT**; implementasi menunggu persetujuan pemilik atas D1–D8.
+Status: **PLAN APPROVED — DEC-36 APPROVED (2026-11-02 WIB)** berdasarkan **"Saya setuju D1-D8"**; implementasi dikerjakan sesuai `reports/feature-update/PHASE-08B-PLAN.md` (baseline `618b8f8`).
 
 Scope: Approval/rejection alasan, actor/waktu, delegasi bila disetujui; transisi atomik dan retry aman; rekap periode/kelas/pegawai.
 

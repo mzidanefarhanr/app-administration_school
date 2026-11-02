@@ -1,8 +1,8 @@
 # Rencana Subfase 08b — Keputusan Izin (Approve/Reject/Cancel Approved) dan Rekap
 
 - Tanggal: 2026-11-02 (WIB). Branch: `main`. Baseline audit: `618b8f8` (pencatatan penerimaan 08a). Paket rencana: commit dokumentasi setelah file ini.
-- Status dokumen: **PLAN — AWAITING OWNER APPROVAL (D1–D8)**; diusulkan sebagai **DEC-36 PROPOSED**.
-- Otorisasi saat ini: **DEC-35 APPROVED** (D1–D12, 2026-11-02 WIB; **DEC-07 CLOSED**), 08a **IMPLEMENTED + agent-verified + OWNER APPROVED #1–#16** (2026-11-02 WIB). **08b belum diotorisasi dan belum diimplementasikan**. Implementasi hanya dimulai setelah pernyataan pemilik yang menyetujui D1–D8 pada dokumen ini (mis. **"Saya setuju D1-D8"** atau instruksi eksplisit setara).
+- Status dokumen: **PLAN APPROVED — DEC-36 APPROVED (2026-11-02 WIB)** berdasarkan pernyataan pemilik **"Saya setuju D1-D8"**; implementasi 08b diotorisasi.
+- Otorisasi saat ini: **DEC-36 APPROVED** (D1–D8, 2026-11-02 WIB), **DEC-35 APPROVED** (D1–D12; **DEC-07 CLOSED**), 08a **IMPLEMENTED + agent-verified + OWNER APPROVED #1–#16** (2026-11-02 WIB). Implementasi 08b mengikuti D1–D8 pada dokumen ini.
 - Cakupan paket ini: **rencana 08b** — keputusan approve/reject, pembatalan izin approved oleh approver, rekap izin, policy/otorisasi, UI, tes, UAT, dan dokumentasi. **Tidak ada kode, migration, route, model, service, request, controller, komponen, tes, atau fixture UAT yang dibuat/diubah oleh paket rencana ini.**
 - Gate: **DEC-13 tetap OPEN**; **DEC-11 CLOSED untuk lingkup 07c**; **DEC-06 CLOSED**. Merge/deploy/force-push, migrasi database operasional/MariaDB, perubahan dependency/lockfile, perubahan service/`.env`, dan fase selain 08b **tidak diotorisasi**.
 - Dokumen acuan: `reports/feature-update/PHASE-08-PLAN.md` (§§4.3–4.10, D5/D7, T17–T20/T26/T29, S7–S9), `roadmap/phases/PHASE-08-LEAVES.md`, `docs/DECISIONS.md` (DEC-35), `docs/API-CONTRACTS.md` (08a), `docs/ACCESS-CONTROL.md` (08a), `docs/DATABASE.md` (08a), `docs/REQUIREMENTS.md` FR-10, `reports/feature-update/PHASE-08A-REPORT.md`, `PHASE-08A-MANUAL-REVIEW.md`.

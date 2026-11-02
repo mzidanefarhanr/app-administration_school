@@ -1,13 +1,20 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-02 (Subfase 08b PLAN — AWAITING OWNER APPROVAL; proposed DEC-36)
+## Current checkpoint — 2026-11-02 (Rencana 08b DISETUJUI — DEC-36; implementasi diotorisasi)
 
-- **Status:** plan for **08b (keputusan dan rekap izin)** is written in `reports/feature-update/PHASE-08B-PLAN.md` (baseline `618b8f8`) and is **PLAN — AWAITING OWNER APPROVAL (D1–D8)**; proposed **DEC-36 PROPOSED**. **No code, migration, route, test, fixture, or UAT was produced or run** for this package. 08a remains **OWNER APPROVED (#1–#16, 2026-11-02 WIB)**.
+- **Status:** owner statement **"Saya setuju D1-D8"** (2026-11-02 WIB) is recorded as **DEC-36 APPROVED**; implementation of **08b (keputusan dan rekap izin)** is authorized by `reports/feature-update/PHASE-08B-PLAN.md`. 08a remains **OWNER APPROVED (#1–#16)**; **DEC-35 unchanged**; **DEC-13 remains OPEN**.
+- **Approved scope:** approve/reject under `leaves.approve` + `leaves.view` only (never requester/subject, no self-decision) and only `submitted` (reject reason required 10–500, approve optional); approved leave cancelled via existing `POST /cancel` by an approver with reason 10–255, preserving decision history; `GET /api/leaves/recap` with required period ≤366 days, leave-date overlap, clipped days, aggregates by status/type/class/employee without reasons/attachments/NIK; transactions + `lockForUpdate` + `expected_version`/`409`; third Recap tab; 16 routes total; no new tables/columns/abilities/dependencies.
+- **Gates:** `leaves.approve` remains seeded to Kepala Sekolah only; admin/operator/waka/teacher do not receive it automatically; no per-request delegation; merge/deploy/operational or MariaDB migration, dependency/service/`.env` changes remain unauthorized; full suite remains **NOT RUN** because `Tests\Feature\Backup\MariaDbIntegrationTest` reads the excluded `school_access_uat`.
+- **Git:** branch `main`; baseline `618b8f8`; plan package `dc86ce5` (pushed); implementation package SHA will be reported after verification and push (no future-SHA claim).
+- **Next:** implement S1–S8 (policy/service/API/UI/tests/UAT/docs), verify, commit/push the review package, and stop for owner manual review. UAT servers stop only after acceptance (DEC-27); `.uat-phase08` data is retained.
+
+## Previous checkpoint — 2026-11-02 (Subfase 08b PLAN — proposed DEC-36)
+
+- **Status:** plan for **08b (keputusan dan rekap izin)** is written in `reports/feature-update/PHASE-08B-PLAN.md` (baseline `618b8f8`) and was **PLAN — AWAITING OWNER APPROVAL (D1–D8)**; proposed **DEC-36 PROPOSED**. **No code, migration, route, test, fixture, or UAT was produced or run** for that package. 08a remains **OWNER APPROVED (#1–#16, 2026-11-02 WIB)**.
 - **Proposed 08b design:** `POST /api/leaves/{leave}/approve` and `/reject` under `leaves.approve` only, never requester/subject, no self-decision; `submitted` only; reject reason required 10–500, approve reason optional 10–500; an approved leave is cancelled through the existing `POST /api/leaves/{leave}/cancel` by an approver with reason 10–255, preserving decision history; `GET /api/leaves/recap` with required `from`/`to` (≤366 days, inclusive WIB), leave-date overlap and clipped days, aggregates by status/type/class/employee and no reasons/attachments/NIK; transactions + `lockForUpdate` + `expected_version`/`409`; third **Recap** tab on `/public/leaves`; 16 routes total; no new tables/columns/abilities/dependencies.
-- **Gates:** `leaves.approve` remains seeded to Kepala Sekolah only and is not enforced until 08b; **DEC-13 remains OPEN**; **DEC-35 unchanged**. 08b is **not authorized** until the owner approves D1–D8.
+- **Gates:** `leaves.approve` remains seeded to Kepala Sekolah only and is not enforced until 08b; **DEC-13 remains OPEN**; **DEC-35 unchanged**. 08b was **not authorized** until the owner approved D1–D8.
 - **Evidence:** plan only — **NOT RUN**: tests, build, Pint, ESLint, route count, browser, UAT. No UAT servers were started.
-- **Git:** branch `main`; baseline `618b8f8`; plan package SHA reported after push (no future-SHA claim). Repository has no `.github/workflows`. Selective staging excludes `.uat-*`, `console.txt`, `vue-app/test-results/`, runtime DB/logs/credentials, and `.env`.
-- **Next:** owner reviews D1–D8 in `PHASE-08B-PLAN.md` on GitHub; if approved, implement 08b only, then commit/push the review package and stop. Do not merge/deploy/migrate operational DBs or change dependencies/services/`.env`.
+- **Git:** branch `main`; baseline `618b8f8`; plan package `dc86ce5` (pushed). Repository has no `.github/workflows`. Selective staging excludes `.uat-*`, `console.txt`, `vue-app/test-results/`, runtime DB/logs/credentials, and `.env`.
 
 ## Previous checkpoint — 2026-11-02 (Subfase 08a OWNER APPROVED #1–#16; UAT stopped)
 

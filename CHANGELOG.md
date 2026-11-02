@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-02] Fase 08b — Pemilik menyetujui rencana (DEC-36 APPROVED; implementasi diotorisasi)
+- Type: Docs
+- Scope / fase: Persetujuan rencana 08b D1–D8; implementasi 08b diotorisasi. Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `reports/feature-update/PHASE-08B-PLAN.md`, `reports/feature-update/PHASE-08-PLAN.md`, `reports/feature-update/INDEX.md`, `HANDOFF.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-08-LEAVES.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: mencatat pernyataan pemilik **"Saya setuju D1-D8"** (2026-11-02 WIB) sebagai **DEC-36 APPROVED**; status rencana 08b menjadi PLAN APPROVED dan implementasi dikerjakan; 08a tetap OWNER APPROVED #1–#16; DEC-35 tidak berubah.
+- Why: persetujuan pemilik adalah gate implementasi subfase; keputusan dicatat terpisah dari paket implementasi.
+- Validation: **NOT RUN** — tidak ada tes/build/Pint/ESLint/browser/UAT pada entri persetujuan; server UAT tidak dinyalakan.
+- Notes / risks: DEC-13 tetap OPEN; merge/deploy/migrasi DB operasional/MariaDB, dependency/service/`.env`, dan fase lain tidak diotorisasi; implementasi 08b belum diverifikasi pada entri ini.
+- Evidence: `reports/feature-update/PHASE-08B-PLAN.md`; paket rencana `dc86ce5`; baseline `618b8f8`.
+
 ## [2026-11-02] Fase 08b — Rencana keputusan dan rekap izin disusun (proposed DEC-36)
 - Type: Docs
 - Scope / fase: Perencanaan 08b (approve/reject, pembatalan izin approved, rekap). Tidak ada perubahan kode aplikasi pada entri ini.
