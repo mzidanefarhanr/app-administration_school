@@ -88,6 +88,15 @@ Retensi, jadwal, enkripsi, lokasi salinan, RPO (kehilangan data maksimal) dan RT
 - **Siklus server**: server UAT dipertahankan sampai penerimaan pemilik, lalu dihentikan sesuai DEC-27 setelah verifikasi PID/command line, port 18026/14026 dipastikan bebas, dan `.uat-phase08` dipertahankan; Apache/MariaDB/service tidak disentuh. Perintah restart ada di `PHASE-08A-MANUAL-REVIEW.md`.
 - **Batas 08a**: tidak ada approve/reject/rekap (08b), notifikasi email/WhatsApp, PDF surat izin, absensi otomatis, saldo cuti, impor/ekspor CSV izin, atau perubahan dependency/service/`.env`. Database operasional/MariaDB dan merge/deploy tidak disentuh.
 
+## Arsip dokumen privat dan UAT (Fase 09a — DEC-37)
+- **Penyimpanan file arsip**: disk `local` pada `storage/app/attachments/archives/{archive_document_id}/{uuid}.{ext}` (config `archives.attachment.disk`/`path`), di luar web root; PDF/JPG/JPEG/PNG maksimum 10 MB per file; nama file UUID, nama asli tersanitasi, SHA-256 dicatat internal. Tidak ada URL publik; unduhan lewat endpoint berizin dengan header pola 07c/08a (tanpa `Content-Disposition`).
+- **Versi immutable**: setiap unggahan membuat baris `archive_file_versions` baru; versi lama dipertahankan dan tetap dapat diunduh sesuai izin. Update metadata/versi baru memakai `expected_version` (`409` tanpa mutasi). Tidak ada hapus/restore/preview inline pada 09a.
+- **Konsumsi ruang**: file tidak pernah dihapus otomatis pada 09a; tidak ada auto-prune/antivirus. Pemantauan kapasitas disk tetap tanggung jawab operasional; retensi/pemusnahan menunggu **DEC-13 OPEN**.
+- **Backup**: path berada di bawah `storage/app/attachments`, sehingga pemindaian `config/backup.php`/`BackupService` mencakup file arsip tanpa perubahan kode backup. Restore drill dengan tabel/versi/file arsip **belum dijalankan**; jangan mengklaim recoverability sebelum drill pada target disposable.
+- **UAT terisolasi**: `.uat-phase09` (SQLite/storage terpisah; launcher `scripts/phase09-uat.php`; API `127.0.0.1:18027`, SPA `127.0.0.1:14027`, cookie `school_phase09_session`). Launcher menolak target non-SQLite/URL dan tidak membuka koneksi MariaDB. Fixture `prepare`/`prepare-archives` idempoten; jangan me-reset `.uat-phase09`.
+- **Siklus server**: server UAT dihentikan setelah verifikasi UAT dan sebelum review pemilik (DEC-27): PID/command line diverifikasi, port 18027/14027 dipastikan bebas, `.uat-phase09` dipertahankan, Apache/MariaDB/service tidak disentuh. Perintah restart ada di `PHASE-09A-MANUAL-REVIEW.md`.
+- **Batas 09a**: tidak ada preview inline, audit akses download, expiry task, arsip/restore, retensi/purge (09b), OCR/fulltext, pemindahan lampiran lama, perubahan dependency/lockfile/service/`.env`, atau mutasi database operasional/MariaDB.
+
 ## Restore drill
 1. Pilih backup fixture sintetis dan target terisolasi; verifikasi target bukan DB/storage aktif.
 2. Periksa manifest/checksum dan kompatibilitas schema; dokumentasikan app commit yang diperlukan.

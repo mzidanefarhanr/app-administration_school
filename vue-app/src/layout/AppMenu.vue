@@ -65,6 +65,13 @@ const model = ref([
         ]
     },
     {
+        label: 'Archives',
+        requires: 'archives.view',
+        items: [
+            { label: 'Archive Documents', icon: 'pi pi-fw pi-folder', to: '/public/archives', requires: 'archives.view' },
+        ]
+    },
+    {
         label: 'Personal',
         requires: null,
         items: [{ label: 'Profile', icon: 'pi pi-fw pi-user', to: '/profile/user' }]

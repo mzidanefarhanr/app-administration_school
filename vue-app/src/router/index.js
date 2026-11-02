@@ -107,6 +107,12 @@ const router = createRouter({
                     component: () => import('@/views/pages/public/Leaves.vue')
                 },
                 {
+                    path: '/public/archives',
+                    name: 'archives',
+                    meta: { breadcrumb: 'Archives', requiresAbility: 'archives.view' },
+                    component: () => import('@/views/pages/public/Archives.vue')
+                },
+                {
                     path: '/public/data-quality',
                     name: 'dataquality',
                     meta: { breadcrumb: 'Data Quality', requiresAbility: ['students.view', 'employees.view'] },

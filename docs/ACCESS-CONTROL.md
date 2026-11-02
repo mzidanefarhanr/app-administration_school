@@ -142,6 +142,19 @@ API mayoritas hanya auth:sanctum. Beberapa controller akun membedakan tipe secar
 - **UI**: tombol baris/detail hanya bila `can.approve`/`can.reject`; dialog keputusan dengan validasi alasan; **Cancel Approved**; tab **Recap** hanya untuk `leaves.view`; `409` memakai dialog Reload Latest. Tombol tersembunyi bukan pengganti enforcement server.
 - **UAT**: `.uat-phase08` additive `prepare-decisions` (idempoten); server dihentikan hanya setelah penerimaan (DEC-27).
 
+## Implementasi Subfase 09a (metadata dan versi arsip dokumen)
+- **Ability baru `archives.view` dan `archives.manage`** (keduanya tidak sensitif). Pemetaan peran awal: `admin-sistem` dan `operator-sekolah` → view + manage; `kepala-sekolah` dan `wakil-kesiswaan` → view; `guru` → tidak ada. Migration idempoten dan tidak mengubah peran yang sudah dikonfigurasi admin. Tidak ada bypass "admin boleh segalanya".
+- **Ability domain tambahan**: dokumen bertaut `student` juga memerlukan `students.view`; `employee` → `employees.view`; `letter` → `letters.view`; `leave` → `leaves.view`. Dokumen umum (subjek null) hanya memerlukan `archives.view`. Mengubah/menambah versi dokumen bertaut juga memerlukan ability domain di samping `archives.manage`.
+- **Route matrix**:
+  - `GET /api/archives/options`, `GET /api/archives`, `GET /api/archives/{archive}`, `GET /api/archives/{archive}/versions`, `GET /api/archives/{archive}/versions/{version}/download` → middleware `archives.view` + policy view/download (termasuk domain).
+  - `GET /api/archives/subjects/{type}` → `archives.view` + ability domain tipe; tipe di luar whitelist tidak terdaftar dan `403` bila aktor tidak berhak atas domain.
+  - `POST /api/archives`, `PUT/PATCH /api/archives/{archive}`, `POST /api/archives/{archive}/versions` → middleware `archives.manage` + policy write (termasuk domain).
+  - Guest `401`; akun nonaktif `403`; tanpa ability `403`; filter subjek tanpa ability domain `403`; objek/unduhan tersembunyi `404`; validasi/tautan subjek/file `422`; konflik versi `409`.
+- **Visibilitas daftar**: query hanya memuat dokumen umum atau tipe subjek yang ability domain-nya dimiliki aktor. `uat.archivist` yang hanya memegang `archives.view` melihat dokumen umum saja; dokumen siswa/pegawai/surat/izin tidak muncul dan direct show/download `404`. Filter `subject_type` eksplisit tanpa ability domain `403` (bukan filter senyap).
+- **Tautan subjek**: whitelist `student`/`employee`/`letter`/`leave` atau null; both-or-none; existence divalidasi per tipe dan memakai `withTrashed()` untuk siswa/pegawai; tipe/id arbitrer atau mismatch `422`; tautan immutable setelah create (request update `prohibited`).
+- **Pemisahan tugas**: `archives.manage` tidak otomatis diberikan ke Kepala Sekolah/Wakil Kesiswaan; view-only tidak dapat membuat/mengubah/menambah versi. `delete`/`restore`/`forceDelete` selalu `false` pada 09a (tidak ada route).
+- **UI**: menu **Archives** hanya untuk `archives.view`; route guard `requiresAbility: 'archives.view'`; tombol New/Edit/Add Version hanya bila `can.manage` server. Tombol tersembunyi bukan pengganti enforcement server.
+- **UAT**: `.uat-phase09` terisolasi (API 18027/SPA 14027, cookie `school_phase09_session`); akun `uat.archivist` khusus dibuat untuk menguji view-only tanpa ability domain; server dihentikan setelah verifikasi UAT dan data dipertahankan.
 
 | Kemampuan | Admin | Operator | Kepala sekolah | Guru/wali kelas |
 |---|---|---|---|---|

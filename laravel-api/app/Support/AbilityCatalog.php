@@ -61,6 +61,10 @@ final class AbilityCatalog
             'leaves.approve' => self::def('leaves', 'Menyetujui izin.', true),
             'leaves.request' => self::def('leaves', 'Mengajukan izin untuk diri sendiri (pegawai tertaut).', false),
 
+            // Arsip dokumen (Fase 09a)
+            'archives.view' => self::def('archives', 'Melihat arsip dokumen.', false),
+            'archives.manage' => self::def('archives', 'Mengelola arsip dokumen.', false),
+
             // Pembelajaran (belum tersedia)
             'teaching.view' => self::def('teaching', 'Melihat jadwal/jurnal pembelajaran.', false),
             'teaching.manage' => self::def('teaching', 'Mengelola jadwal/jurnal pembelajaran.', false),
@@ -92,6 +96,7 @@ final class AbilityCatalog
                     'employees.view', 'employees.manage', 'employees.export', 'employees.import',
                     'letters.view', 'letters.manage',
                     'leaves.view', 'leaves.manage', 'leaves.request',
+                    'archives.view', 'archives.manage',
                     'teaching.view', 'teaching.manage',
                 ],
                 // Perhatikan: admin TIDAK diberi letters.approve, letters.sign,
@@ -107,6 +112,7 @@ final class AbilityCatalog
                     'employees.view', 'employees.manage', 'employees.export', 'employees.import',
                     'letters.view', 'letters.manage',
                     'leaves.view', 'leaves.manage', 'leaves.request',
+                    'archives.view', 'archives.manage',
                     'teaching.view',
                 ],
             ],
@@ -120,6 +126,7 @@ final class AbilityCatalog
                     'employees.view', 'employees.export',
                     'letters.view', 'letters.approve', 'letters.sign',
                     'leaves.view', 'leaves.approve', 'leaves.request',
+                    'archives.view',
                     'teaching.view',
                     'audit.view',
                 ],
@@ -136,6 +143,7 @@ final class AbilityCatalog
                     'teaching.view', 'teaching.manage',
                     'leaves.view', 'leaves.request',
                     'letters.view',
+                    'archives.view',
                 ],
             ],
             'guru' => [

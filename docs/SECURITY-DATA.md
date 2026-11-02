@@ -24,6 +24,16 @@ Jangan menyimpan NIK/KK/alamat/nomor kontak/dump nyata dalam screenshot, log deb
 ## Lampiran
 Whitelist tipe MIME/ekstensi/ukuran; tolak executable dan path traversal; nama storage acak; simpan di disk privat; endpoint download menegakkan izin objek. Preview konten aktif seperti HTML/SVG harus dibatasi atau disajikan sebagai download aman. Jangan menaruh backup di public storage. Upload gagal/metadata gagal membersihkan orphan sesuai transaksi/kompensasi.
 
+## Arsip dokumen privat (Fase 09a — DEC-37)
+- **Penyimpanan**: file arsip disimpan di disk `local` pada `storage/app/attachments/archives/{archive_document_id}/{uuid}.{ext}` (config `archives.attachment.disk`/`path`), di luar web root; tidak ada URL publik, path/checksum tidak pernah diekspos ke API. Unduhan hanya lewat `GET /api/archives/{archive}/versions/{version}/download` setelah policy memeriksa ability `archives.*` dan ability domain subjek.
+- **Header unduhan**: `X-Document-Filename` (nama asli tersanitasi), `Access-Control-Expose-Headers: X-Document-Filename`, `nosniff`, CSP `sandbox; default-src 'none'`, `Cache-Control: private, no-store`; **tanpa `Content-Disposition`** mengikuti pola 07c/08a.
+- **Validasi upload**: PDF/JPG/JPEG/PNG maksimum 10 MB per file melalui `PrivateUploadValidator` bersama (allowlist ekstensi, MIME server, kecocokan ekstensi–MIME, `getimagesize`); nama file UUID dibuat server; nama asli disanitasi; SHA-256 dicatat internal untuk verifikasi, bukan untuk ditampilkan.
+- **Versi immutable**: baris `archive_file_versions` tidak diubah/dihapus; versi lama tetap dapat diunduh sesuai izin. Versi baru menaikkan `current_version` dokumen dalam transaksi + `lockForUpdate` + `expected_version`/`409`; kegagalan penyimpanan/insert membuang file best-effort dan rollback.
+- **Visibilitas dan izin objek**: dokumen umum (tanpa subjek) terlihat oleh `archives.view`; dokumen bertaut hanya bila aktor juga memiliki ability domain (`students.view`/`employees.view`/`letters.view`/`leaves.view`). Filter subjek eksplisit tanpa izin domain → `403`; akses/download objek tersembunyi → `404` (bukan membocorkan keberadaan). Subjek `student`/`employee` yang soft-deleted tetap boleh ditautkan dan diringkas; tautan subjek immutable setelah dibuat.
+- **Audit**: allowlist server mencatat aksi dokumen/versi tanpa `title`, nomor dokumen, deskripsi, nama file asli, path storage, atau checksum; tidak ada audit khusus pembukaan/download pada 09a (audit akses download masuk 09b bila diminta).
+- **Batas 09a**: tanpa preview inline, tanpa endpoint hapus/restore/soft delete, tanpa auto-purge/antivirus, tanpa OCR/fulltext, dan tanpa memindahkan lampiran lama secara destruktif. Retensi/pemusnahan file arsip tetap **DEC-13 OPEN**.
+- **UAT terisolasi**: `.uat-phase09` memakai SQLite/storage terpisah; file uji sintetis dan tidak menyentuh `school_access_uat`, MariaDB operasional, atau storage lampiran operasional.
+
 ## Operasi
 Environment rahasia tidak masuk git. Nilai VITE_* terlihat oleh browser, jadi tidak boleh berisi secret. HTTPS pada produksi; cookie Secure/SameSite dan Sanctum/CORS selaras deployment. Jangan membuka allowed origins wildcard sebagai solusi login.
 Akun bootstrap diprovisi aman, tanpa password tetap di seeder. Rate limit login baseline dipertahankan; tambah pembatasan ekspor/impor/backup bila diperlukan.
