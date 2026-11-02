@@ -1,7 +1,7 @@
 # Rencana Fase 09 — Subfase 09a: Metadata dan Versi Arsip Dokumen
 
 - Tanggal: 2026-11-02 (WIB). Branch: `main`. Baseline audit: `aeca361` (pencatatan penerimaan 08b dan penghentian UAT). Paket rencana: commit dokumentasi setelah file ini.
-- Status dokumen: **PLAN — AWAITING OWNER APPROVAL (D1–D10)**. Usulan keputusan: **DEC-37 PROPOSED**.
+- Status dokumen: **PLAN APPROVED — DEC-37 APPROVED (2026-11-02 WIB)** berdasarkan pernyataan pemilik **"Saya setuju D1-D10"**; implementasi 09a diotorisasi. Usulan keputusan: **DEC-37 APPROVED**.
 - Otorisasi saat ini: **tidak ada implementasi Fase 09 yang diotorisasi**. 08a/08b sudah **OWNER APPROVED**; DEC-35/DEC-36 tidak berubah. Paket ini hanya rencana.
 - Cakupan paket ini: rencana **09a — metadata, kategori, link domain, versi file/checksum, pencarian lintas domain berizin, dan download file berizin**. **Tidak ada kode, migration, route, model, service, request, controller, komponen, tes, fixture, atau UAT yang dibuat/diubah oleh paket rencana ini.**
 - Gate: **DEC-13 (retensi data pribadi) tetap OPEN** dan menjadi prasyarat 09b; **09b tidak direncanakan rinci di sini** dan memerlukan rencana serta persetujuan terpisah. Merge/deploy/force-push, migrasi database operasional/MariaDB, perubahan dependency/lockfile, dan perubahan service/`.env` tidak diotorisasi.

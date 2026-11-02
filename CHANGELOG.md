@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-02] Fase 09a — Pemilik menyetujui rencana (DEC-37 APPROVED; implementasi diotorisasi)
+- Type: Docs
+- Scope / fase: Persetujuan rencana 09a D1–D10; implementasi 09a diotorisasi. Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-09-ARCHIVES.md`, `reports/feature-update/PHASE-09-PLAN.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: mencatat pernyataan pemilik **"Saya setuju D1-D10"** (2026-11-02 WIB) sebagai **DEC-37 APPROVED**; status rencana 09a menjadi PLAN APPROVED dan implementasi 09a dikerjakan; 08a/08b tetap OWNER APPROVED; DEC-35/DEC-36 tidak berubah; DEC-13 tetap OPEN.
+- Why: persetujuan pemilik adalah gate implementasi subfase; keputusan dicatat terpisah dari paket implementasi.
+- Validation: **NOT RUN** — tidak ada tes/build/Pint/ESLint/browser/UAT pada entri persetujuan; server UAT tidak dinyalakan.
+- Notes / risks: 09b (preview, audit akses, expiry, arsip/restore, retensi/purge) dan DEC-13 tidak diotorisasi; merge/deploy/migrasi DB operasional/MariaDB, dependency/lockfile, dan service/`.env` tidak diotorisasi; implementasi 09a belum diverifikasi pada entri ini.
+- Evidence: `reports/feature-update/PHASE-09-PLAN.md`; paket rencana `1dcf044`; baseline `aeca361`.
+
 ## [2026-11-02] Fase 09a — Rencana metadata dan versi arsip disusun (proposed DEC-37)
 - Type: Docs
 - Scope / fase: Perencanaan 09a (metadata, kategori, link domain, versi file/checksum, pencarian dan download berizin). Tidak ada perubahan kode aplikasi pada entri ini.
