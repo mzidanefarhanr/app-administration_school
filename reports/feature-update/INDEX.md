@@ -1,6 +1,10 @@
 # Indeks laporan pengembangan
 
-## Current checkpoint — 2026-11-02 (Subfase 07c OWNER APPROVED #1–#18; UAT stopped)
+## Current checkpoint — 2026-11-02 (Rencana Fase 08 disusun — menunggu persetujuan D1–D12)
+
+Rencana rinci **Fase 08 — Perizinan siswa dan guru** (08a pengajuan; 08b keputusan dan rekap) tersedia di `PHASE-08-PLAN.md` (baseline audit `2db6475`; 2026-11-02 WIB) dan berstatus **PLAN — AWAITING OWNER APPROVAL (D1–D12)**, diajukan sebagai **DEC-35 PROPOSED**. **DEC-07 tetap OPEN**; **DEC-13 tetap OPEN**. Usulan mencakup tabel additive `leave_requests`/`leave_decisions`/`leave_attachments`, subjek siswa atau pegawai, `leaves.request` + peran awal `guru` untuk self-service, `leaves.manage` untuk pengajuan siswa/atas nama, `leaves.approve` untuk keputusan tanpa self-approval, alur `draft → submitted → approved/rejected/cancelled` dengan keputusan append-only, rentang inklusif WIB ≤30 hari (maternity 90), larangan tumpang tindih, lampiran privat opsional, 16 endpoint, halaman `/public/leaves`, audit allowlist, dan UAT `.uat-phase08` 18026/14026. **Belum ada kode/migration/route/model/UI/tes/UAT izin**; implementasi menunggu persetujuan pemilik. Detail: `PHASE-08-PLAN.md`.
+
+## Previous checkpoint — 2026-11-02 (Subfase 07c OWNER APPROVED #1–#18; UAT stopped)
 
 **Subfase 07c — kop, logo, penandatangan, tanda tangan, stempel, template PDF, dan snapshot immutable** **IMPLEMENTED & DIVERIFIKASI AGEN 2026-11-02** di atas `main` @ baseline `4713c70` (paket implementasi `2a78b7e`; perbaikan tes `ac3b811`; paket review `a078050`), dengan otorisasi **DEC-34 APPROVED** ("Saya setuju D1-D11"; **DEC-11 CLOSED untuk lingkup 07c**; **DEC-13 OPEN**). **Review manual pemilik: APPROVED 2026-11-02 WIB (#1–#18)** berdasarkan pernyataan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."**; agen tidak mengulang skenario dan item NOT RUN tetap NOT RUN. Setelah penerimaan, server UAT 14025/18025 dihentikan sesuai DEC-27 (API PID 8340, SPA PID 22456/8808 diverifikasi command line, port bebas, `.uat-phase07` dipertahankan; Apache/MariaDB tidak disentuh). Bukti lengkap: `PHASE-07C-REPORT.md`; checklist: `PHASE-07C-MANUAL-REVIEW.md`. Merge/deploy, migrasi DB operasional/MariaDB, dependency/service/`.env` lain, dan Fase 08 tetap tidak diotorisasi. Detail: `PHASE-07C-REPORT.md` dan `PHASE-07C-PLAN.md`.
 

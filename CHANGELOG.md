@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-02] Fase 08 — Rencana perizinan siswa dan guru (DEC-35 PROPOSED)
+- Type: Docs
+- Scope / fase: Rencana Fase 08 (08a pengajuan; 08b keputusan dan rekap); tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `reports/feature-update/PHASE-08-PLAN.md` (baru), `roadmap/phases/PHASE-08-LEAVES.md`, `roadmap/ROADMAP.md`, `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `reports/feature-update/INDEX.md`, `HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: menambahkan rencana rinci Fase 08 (baseline audit `2db6475`) dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D12)**, diajukan sebagai **DEC-35 PROPOSED**; menandai DEC-07 masih OPEN dan DEC-13 tetap OPEN; menyinkronkan baris roadmap 08 menjadi rencana menunggu persetujuan dengan implementasi NOT STARTED.
+- Why: DEC-07 (jenis, approver, delegasi, perubahan/pembatalan keputusan izin) harus diputuskan pemilik sebelum implementasi; rencana perlu reviewable di GitHub sesuai kebijakan paket per fase.
+- Validation: audit source aktual (tidak ada model/tabel/route/UI izin; ability `leaves.view/manage/approve` sudah ada; siswa tanpa akun; `employees.user_id` unik; pola file privat 07a/07c; UAT per fase); **NOT RUN:** implementasi izin, migration, tes, build/lint, browser, UAT 08.
+- Notes / risks: rencana mencakup seluruh Fase 08 tetapi implementasi dimulai 08a saja; `leaves.request` + peran `guru` adalah usulan D9; tidak ada dependency baru; temuan `MariaDbIntegrationTest`/`school_access_uat`, CORS lampiran 07a/07b, dan DEC-13 tetap tercatat. Merge/deploy/force-push, migrasi DB operasional/MariaDB, dan perubahan service/`.env` tetap tidak diotorisasi.
+- Evidence: `reports/feature-update/PHASE-08-PLAN.md`; baseline `2db6475`.
+
 ## [2026-11-02] Fase 07c — Penerimaan pemilik (#1–#18) dan penutupan UAT
 - Type: Docs
 - Scope / fase: Penerimaan manual Subfase 07c; tidak ada perubahan kode aplikasi pada entri ini.

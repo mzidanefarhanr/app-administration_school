@@ -3,6 +3,8 @@
 Status teknis: NOT STARTED. Status review: PENDING. Semua tes/browser/manual: NOT RUN.
 Dependensi: 01,03,04; file privat Fase07a atau service ekuivalen; DEC-07. Baseline rencana: b02a87f; audit ulang HEAD saat pelaksanaan.
 
+Rencana rinci: **`reports/feature-update/PHASE-08-PLAN.md`** (baseline audit `2db6475`, 2026-11-02 WIB) — status **PLAN — AWAITING OWNER APPROVAL (D1–D12)**, diajukan sebagai **DEC-35 PROPOSED**. **DEC-07 tetap OPEN** sampai pemilik menyetujui D1–D12. Rencana mencakup desain seluruh fase tetapi implementasi dimulai 08a saja setelah persetujuan; 08b menunggu instruksi terpisah. Belum ada kode, migration, route, model, UI, tes, atau UAT izin.
+
 ## Tujuan dan scope
 Perizinan siswa dan guru. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Tidak ada pekerjaan implementasi yang telah dilakukan dalam penyusunan dokumen ini.
 
