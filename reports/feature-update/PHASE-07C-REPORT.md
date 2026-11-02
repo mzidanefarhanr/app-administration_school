@@ -2,7 +2,7 @@
 
 Tanggal: implementasi dan verifikasi agen 2026-11-02 WIB. Branch: `main`. Baseline induk: `4713c70` (pencatatan DEC-34 APPROVED). Paket implementasi 07c: `2a78b7e` (40 file; 7.306 insertions/33 deletions). Paket dokumentasi dicatat pada checkpoint setelah commit dokumentasi.
 Keputusan pemilik: **DEC-34 APPROVED** (D1–D11, 2026-11-02 WIB; pernyataan **"Saya setuju D1-D11"**); **DEC-11 CLOSED untuk lingkup 07c**; **DEC-13 tetap OPEN**.
-Status teknis: **IMPLEMENTED — agent-verified (2026-11-02)**. Status review pemilik: **PENDING (#1–#18)** di `reports/feature-update/PHASE-07C-MANUAL-REVIEW.md`; commit/push bukan penerimaan.
+Status teknis: **IMPLEMENTED — agent-verified (2026-11-02)**. Status review pemilik: **APPROVED (#1–#18, 2026-11-02 WIB)** berdasarkan pernyataan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."**; agen tidak mengulang skenario; detail di `reports/feature-update/PHASE-07C-MANUAL-REVIEW.md`.
 Rencana: `reports/feature-update/PHASE-07C-PLAN.md`. Checklist manual: `reports/feature-update/PHASE-07C-MANUAL-REVIEW.md`.
 
 ## 1. Outcome dan cakupan
@@ -17,7 +17,7 @@ Subfase 07c melengkapi modul persuratan Fase 07 dengan kop sekolah, penandatanga
 - **Akses dokumen.** Draft/review/approved typed mendapat preview PDF watermarked `PREVIEW — NOT ISSUED` tanpa nomor/counter/penyimpanan; issued/cancelled mengunduh PDF tersimpan; surat umum/legacy 07b, tipe salah, atau file hilang `404`; settings/subjek tidak valid saat preview `422`. Respons PDF tanpa `Content-Disposition` dan memakai `X-Document-Filename` karena Chrome memblokir `fetch` lintas origin berkredensial untuk header tersebut.
 - **API dan UI.** Sembilan route baru (4 settings, 3 subject picker, 2 dokumen; total **37 route surat**). Halaman **Letter Settings** dan perluasan **Outgoing Letters** (form bertipe, subject picker, document card, filter Type/Has document, preview/download). Menu **Letters → Incoming/Outgoing/Dispositions/Letter Settings**; English, 390 px, keyboard/aria, konflik versi `409` + Reload Latest, tombol mengikuti ability.
 - **Audit dan privasi.** `LetterDocument` immutable (menolak update/delete), snapshot tanpa NIK siswa/orang tua, alamat, atau kontak pribadi; API hanya mengekspos ringkasan dokumen. Allowlist `Letter` menambah `letter_type` tetapi tidak `document_fields`/`document_subject_id`; `LetterSettings` tidak mencatat alamat/kontak/nama/identifier/path; event `issued` typed hanya menambah `template_code`/`template_version`/`page_count`.
-- **UAT terisolasi.** `.uat-phase07` dipakai ulang tanpa reset dengan perintah idempoten `prepare-documents`: 20 surat bertipe, 7 dokumen/12 halaman/7 PDF, nomor resmi 007–013, settings v2 siap, sementara 126 surat masuk, 32 disposisi, 14 pegawai, 123 siswa, 20 mutasi, dan 443 event tetap utuh. Server API 18025/SPA 14025 berjalan sampai penerimaan pemilik.
+- **UAT terisolasi.** `.uat-phase07` dipakai ulang tanpa reset dengan perintah idempoten `prepare-documents`: 20 surat bertipe, 7 dokumen/12 halaman/7 PDF, nomor resmi 007–013, settings v2 siap, sementara 126 surat masuk, 32 disposisi, 14 pegawai, 123 siswa, 20 mutasi, dan 443 event tetap utuh. Server API 18025/SPA 14025 dihentikan setelah penerimaan pemilik 2026-11-02 (DEC-27); data `.uat-phase07` dipertahankan.
 
 Tidak dikerjakan pada 07c (non-goals D1/D11): template CRUD/editor, DOCX/PDF-A, e-sign tersertifikasi/QR/OCR, email/WhatsApp, notifikasi, bulk generation, arsip/versioning Fase 09, retensi DEC-13, rekap DEC-12, surat izin Fase 08, ability/role baru, backfill PDF surat 07b/legacy, merge/deploy/force-push, migrasi database operasional/MariaDB, dan perubahan dependency/service/`.env` selain D2.
 
@@ -92,7 +92,7 @@ Route `subjects/*` didaftarkan sebelum `/outgoing/{letter}` dan memakai `whereNu
 | E10 | Pemeriksaan `composer.lock` | — | Hanya D2 | **dompdf v2.0.8 + 4 transitive**, tanpa penghapusan/upgrade lain | PASS |
 | E11 | `php scripts/phase07-uat.php prepare-documents` + status | `.uat-phase07` SQLite | Fixture idempoten, 07a/07b utuh | **20 surat bertipe, 7 dokumen/12 halaman/7 PDF, nomor 007–013, settings v2; 126 incoming/32 disposisi/443 event utuh** | PASS |
 | E12 | Browser/API Chrome DevTools MCP | operator/kepsek/waka sintetis | Settings, preview, PDF, 390 px, console | **Readiness/pemisahan izin settings, preview watermarked, PDF issued 2 halaman `#000192` nomor `013`, 390 px tanpa overflow, 0 console error** | PASS (terbatas pada daftar ini) |
-| E13 | Checklist manual `PHASE-07C-MANUAL-REVIEW.md` | 18 skenario | Tersedia untuk pemilik | **Tersedia; review PENDING (#1–#18)** | REVIEW PENDING |
+| E13 | Checklist manual `PHASE-07C-MANUAL-REVIEW.md` | 18 skenario | Dijalankan pemilik | **Approved #1–#18 (2026-11-02 WIB)** | APPROVED |
 
 ### Addendum hasil suite penuh
 
@@ -124,7 +124,7 @@ Bukti browser/API yang dijalankan agen: readiness settings dan pemisahan izin (h
 - **CORS PDF.** `Content-Disposition` dihilangkan dan nama file diekspos lewat `X-Document-Filename`; UI memakai atribut `download`. Unduhan lampiran 07a/07b yang masih memakai `Content-Disposition` tetap gagal lintas origin di Chrome — temuan di luar scope, tidak diperbaiki pada 07c.
 - **Batas akses suite penuh.** `Tests\Feature\Backup\MariaDbIntegrationTest` (baseline lama, bukan perubahan 07c) membaca `school_access_uat` dan me-restore ke `school_restore_drill_uat` saat MariaDB root lokal dapat dijangkau; run suite penuh pertama menjalankannya. Data sumber tidak diubah; target adalah DB drill disposable milik tes. Sesuai instruksi pemilik, suite penuh tidak diulang; tes ini perlu digating (opt-in) sebelum suite penuh berikutnya.
 - **UAT `php -S` single-threaded.** Tidak merepresentasikan konkurensi produksi; race/dua tab nyata tetap NOT RUN. `409` diuji lewat versi basi/replay, bukan dua proses paralel.
-- **Server UAT masih berjalan** sampai penerimaan pemilik (DEC-27); setelah penerimaan dihentikan dengan verifikasi PID/command line dan `.uat-phase07` dipertahankan.
+- **Server UAT dihentikan setelah penerimaan 2026-11-02** (DEC-27): PID 8340 (API) dan 22456/8808 (SPA) diverifikasi command line, port 14025/18025 terverifikasi bebas, `.uat-phase07` dipertahankan.
 
 ## 6. Sinkronisasi dokumen
 
@@ -132,14 +132,14 @@ Bukti browser/API yang dijalankan agen: readiness settings dan pemisahan izin (h
 - `docs/API-CONTRACTS.md` — 9 endpoint 07c, typed fields, transaksi issue, header PDF, audit, UI, non-goals, total 37 route.
 - `docs/ACCESS-CONTROL.md` — route matrix 07c, pemisahan aset mentah, readiness gate, batas objek/state.
 - `docs/OPERATIONS.md` — resolusi settings, aset privat/re-encode, permission/versioning, template, transaksi PDF/snapshot/rollback, header, backup, dependency, UAT, DEC-13.
-- `docs/REQUIREMENTS.md` — FR-09 selesai untuk lingkup 07; review PENDING #1–#18; DEC-11 CLOSED untuk 07c; DEC-13 OPEN.
-- `docs/DECISIONS.md` — DEC-34 IMPLEMENTED agent-verified; DEC-11 CLOSED untuk 07c.
+- `docs/REQUIREMENTS.md` — FR-09 selesai untuk lingkup 07; review #1–#18 APPROVED; DEC-11 CLOSED untuk 07c; DEC-13 OPEN.
+- `docs/DECISIONS.md` — DEC-34 IMPLEMENTED agent-verified dan review manual APPROVED #1–#18; DEC-11 CLOSED untuk 07c.
 - `docs/TESTING.md` — bukti 07c, NOT RUN, temuan batas akses.
 - `CHANGELOG.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-07-LETTERS.md`, `PHASE-07-PLAN.md`, `PHASE-07C-PLAN.md` §12, `INDEX.md`, `HANDOFF.md`, `PROJECT_CONTEXT.md` — status implementasi/review dan langkah berikutnya.
 
 ## 7. Langkah berikutnya
 
-1. Pemilik menjalankan `PHASE-07C-MANUAL-REVIEW.md` #1–#18 pada server UAT 14025/18025 yang masih berjalan.
-2. Setelah pernyataan penerimaan, catat approval pada commit dokumentasi terpisah (bukan commit implementasi), hentikan server UAT sesuai DEC-27 dengan verifikasi PID/command line, dan pertahankan `.uat-phase07`.
+1. ~~Pemilik menjalankan `PHASE-07C-MANUAL-REVIEW.md` #1–#18 pada server UAT 14025/18025.~~ **Selesai — APPROVED #1–#18, 2026-11-02 WIB.**
+2. ~~Catat approval pada commit dokumentasi terpisah dan hentikan server UAT.~~ **Selesai — approval dicatat di commit dokumentasi; server dihentikan sesuai DEC-27 dengan verifikasi PID/command line; `.uat-phase07` dipertahankan.**
 3. Sebelum suite penuh berikutnya, gate `MariaDbIntegrationTest` agar tidak mengakses `school_access_uat` tanpa opt-in eksplisit.
 4. Fase berikutnya (termasuk 07 lanjutan/08) memerlukan instruksi dan rencana terpisah. Jangan merge/deploy/force-push, migrasi DB operasional/MariaDB, mengubah service/`.env`, atau menambah dependency lain tanpa otorisasi.

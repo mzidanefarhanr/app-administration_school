@@ -2,12 +2,13 @@
 
 Subfase: 07c — letterhead/kop, logo, penandatangan, tanda tangan, stempel, tiga jenis surat, template PDF berversi, PDF tersimpan, dan snapshot immutable.
 Keputusan: **DEC-34 APPROVED** (D1–D11, 2026-11-02 WIB; pernyataan **"Saya setuju D1-D11"**); **DEC-11 CLOSED untuk lingkup 07c**; DEC-13 tetap OPEN. Laporan teknis: `reports/feature-update/PHASE-07C-REPORT.md`.
-Baseline induk: `main` pada `4713c70` (pencatatan DEC-34); paket implementasi 07c: `2a78b7e`. Status: **IMPLEMENTED — agent-verified**. Status review pemilik: **PENDING**.
+Baseline induk: `main` pada `4713c70` (pencatatan DEC-34); paket implementasi 07c: `2a78b7e`. Status: **IMPLEMENTED — agent-verified**. Status review pemilik: **APPROVED (#1–#18, 2026-11-02 WIB)**.
 
 ## Status penerimaan pemilik
 
 - Pemilik menyetujui rencana D1–D11 sebagai **DEC-34** dan mengotorisasi implementasi 07c; persetujuan rencana bukan penerimaan hasil.
-- **Penerimaan hasil: PENDING.** Checklist ini berisi 18 skenario. Agen sudah menjalankan verifikasi otomatis T1–T28 dan sebagian pemeriksaan browser; skenario manual di bawah belum dinyatakan diterima sampai pemilik menyatakan hasilnya.
+- **Penerimaan hasil: APPROVED 2026-11-02 WIB.** Pernyataan pemilik: **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** Checklist 18 skenario di bawah ditetapkan **APPROVED (#1–#18)**. Agen tidak mengulang skenario setelah pernyataan ini; item NOT RUN tetap NOT RUN.
+- Setelah penerimaan, server UAT 14025/18025 dihentikan sesuai DEC-27 (PID/command line diverifikasi, port bebas, data `.uat-phase07` dipertahankan); perintah restart tetap tercatat di bawah.
 - Batas: penerimaan 07c tidak mengotorisasi merge, deploy, force-push/rewrite, migrasi database operasional/MariaDB, perubahan dependency selain D2, perubahan service/`.env`, retensi DEC-13, rekap DEC-12, surat izin Fase 08, atau Fase 08. UAT hanya pada `.uat-phase07`; jangan menyentuh `.uat-phase05`/`.uat-phase06`, database operasional, atau MariaDB.
 
 ## Lingkungan UAT (terisolasi)
@@ -17,7 +18,7 @@ Baseline induk: `main` pada `4713c70` (pencatatan DEC-34); paket implementasi 07
 - Data: `.uat-phase07` SQLite; cookie `school_phase07_session`; storage `.uat-phase07/storage`
 - Launcher: `laravel-api/scripts/phase07-uat.php`
 - Akun: **`uat.operator`** dan **`uat.admin`** (`letters.view`/`letters.manage`), **`uat.kepsek`** (`letters.view`/`letters.approve`/`letters.sign`), **`uat.waka`** (`letters.view`). Password hanya ada di runtime privat `.uat-phase07/account-password.txt`; tidak dicetak di dokumen.
-- Server UAT saat ini **berjalan** (2026-11-02): API PID 8340 (`php.exe -S 127.0.0.1:18025 -t public scripts/phase07-uat.php`) dan SPA PID 22456 (Vite `--host 127.0.0.1 --port 14025 --strictPort`). Sesuai DEC-27 server **dihentikan setelah pemilik menyatakan penerimaan**; data `.uat-phase07` dipertahankan; Apache/MariaDB tidak disentuh.
+- Server UAT **dihentikan 2026-11-02 setelah penerimaan** (DEC-27): API PID 8340 (`php.exe -S 127.0.0.1:18025 -t public scripts/phase07-uat.php`) dan SPA PID 22456 (Vite `--host 127.0.0.1 --port 14025 --strictPort`; anak PID 8808) diverifikasi command line sebelum dihentikan; port 14025/18025 terverifikasi bebas; data `.uat-phase07` dipertahankan; Apache/MariaDB tidak disentuh. Perintah restart di bawah.
 - Jangan menguji pada database operasional, `.uat-phase05`, `.uat-phase06`, atau MariaDB. Jangan me-reset `.uat-phase07`; fixture 07c idempoten dan mempertahankan baris 07a/07b.
 
 Perintah restart bila server sudah berhenti:
@@ -56,6 +57,8 @@ Daftar surat bertipe untuk memudahkan review:
 - Surat umum/legacy 07b tidak memiliki PDF (contoh issued 07b: `#000170` = `005/20512345/2026`); tidak ada backfill.
 
 ## Checklist
+
+**Hasil review pemilik (2026-11-02 WIB): #1–#18 APPROVED** berdasarkan pernyataan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** Rincian di bawah dipertahankan sebagai catatan skenario yang diuji.
 
 ### 1. Isolasi, login, dan menu Letters
 - Login sebagai `uat.operator`, buka grup menu **LETTERS**. Harapkan empat item: **Incoming Letters**, **Outgoing Letters**, **Dispositions**, **Letter Settings**.
@@ -153,8 +156,8 @@ Daftar surat bertipe untuk memudahkan review:
 - Perubahan status akibat review manual (mis. issue `#000179`, approve/reject surat baru) adalah data UAT yang wajar; jangan me-reset fixture untuk mengembalikan angka.
 
 ### 18. Penutupan setelah penerimaan
-- Setelah pemilik menyatakan penerimaan, hentikan **hanya** server UAT 14025/18025 dengan verifikasi PID/command line, lalu pastikan port bebas; pertahankan `.uat-phase07` (database/storage/password runtime).
-- Jangan menyentuh Apache/MariaDB, jangan merge/deploy/force-push, jangan migrasi database operasional/MariaDB, jangan mengubah `.env`/service, dan jangan memulai Fase 08.
+- **Selesai 2026-11-02:** server UAT 14025/18025 dihentikan **hanya** setelah verifikasi PID/command line; port terverifikasi bebas; `.uat-phase07` (database/storage/password runtime) dipertahankan.
+- Tidak menyentuh Apache/MariaDB, tidak merge/deploy/force-push, tidak migrasi database operasional/MariaDB, tidak mengubah `.env`/service, dan tidak memulai Fase 08.
 - Penerimaan dicatat pada commit dokumentasi tersendiri; commit/push paket review bukan penerimaan manual.
 
 ## Cara melaporkan hasil

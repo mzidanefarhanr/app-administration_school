@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-02] Fase 07c — Penerimaan pemilik (#1–#18) dan penutupan UAT
+- Type: Docs
+- Scope / fase: Penerimaan manual Subfase 07c; tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `docs/DECISIONS.md`, `docs/TESTING.md`, `docs/REQUIREMENTS.md`, `reports/feature-update/PHASE-07C-REPORT.md`, `PHASE-07C-MANUAL-REVIEW.md`, `PHASE-07C-PLAN.md`, `PHASE-07-PLAN.md`, `INDEX.md`, `HANDOFF.md`, `CHANGELOG.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-07-LETTERS.md`, `PROJECT_CONTEXT.md`.
+- What changed: mencatat pernyataan pemilik **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** sebagai **OWNER APPROVED (#1–#18, 2026-11-02 WIB)** untuk checklist 07c; status review PENDING diganti APPROVED. Setelah penerimaan, server UAT 14025/18025 dihentikan sesuai DEC-27: API PID 8340 dan SPA PID 22456/8808 diverifikasi command line sebelum `taskkill /T /F`, port terverifikasi bebas, data `.uat-phase07` dipertahankan; Apache/MariaDB tidak disentuh.
+- Why: catatan penerimaan manual pemilik harus terpisah dari commit implementasi dan paket review; DEC-27 mewajibkan server UAT fase yang telah diterima dihentikan.
+- Validation: pernyataan pemilik; verifikasi PID/command line dan port; **agen tidak mengulang skenario**; item NOT RUN tetap NOT RUN. Tidak ada tes/build baru pada entri dokumentasi ini.
+- Notes / risks: **DEC-13 tetap OPEN**; merge/deploy/force-push, migrasi DB operasional/MariaDB, perubahan dependency/service/`.env`, dan Fase 08 tidak diotorisasi; temuan `MariaDbIntegrationTest`/`school_access_uat` dan CORS lampiran 07a/07b tetap tercatat.
+- Evidence: `reports/feature-update/PHASE-07C-REPORT.md`, `PHASE-07C-MANUAL-REVIEW.md`; implementasi `2a78b7e`, perbaikan tes `ac3b811`, paket review `a078050`; commit dokumentasi penerimaan menyusul setelah `a078050`.
+
 ## [2026-11-02] Fase 07c — Kop, tanda tangan, stempel, template PDF, dan snapshot surat (implementasi)
 - Type: Feature
 - Scope / fase: Subfase 07c sesuai DEC-34 (D1–D11); 07a/07b tetap berjalan; Fase 08 tidak dimulai.
@@ -24,7 +34,7 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 - What changed: `letter_settings` 1:1 dengan profil sekolah aktif (kop/logo/penandatangan/signature/stamp privat, readiness, versi) dan `letter_documents` immutable; tiga jenis surat (`student_active`, `student_mutation`, `employee_duty`) dengan tipe/subjek immutable; template Blade berversi dan `dompdf/dompdf v2.0.8`; PDF + snapshot minimal PII dibuat di dalam transaksi `approved → issued` setelah nomor (gagal → rollback, nomor tidak dikonsumsi); preview watermarked draft/review/approved; download issued/cancelled; surat umum/legacy `404`; 9 endpoint (total 37 route surat); halaman Letter Settings dan typed Outgoing.
 - Why: menutup DEC-11 untuk lingkup 07c dan menyediakan dokumen resmi bertanda tangan/stempel yang tidak berubah setelah terbit, sesuai D1–D11.
 - Validation: `LetterSettingsTest` **10/167**, `LetterDocumentTest` **21/744**, gabungan **31/911 (59,98 s)**, regresi Letters **86/1.744 (109,17 s)**; suite penuh **552 passed / 1 failed / 13 skipped / 6.235 assertions (541,94 s)** dengan kegagalan tunggal filter route 06c yang menghitung route 07c — diperbaiki dan lulus ulang **1/23 (4,32 s)**, suite penuh tidak diulang karena tes drill MariaDB melanggar batas akses; Pint **28**; **37 route**; build **32,44 s**; ESLint **0 error** (623 warning); UAT `.uat-phase07` `prepare-documents` (20 surat bertipe, 7 dokumen/12 halaman/7 PDF, nomor 007–013, settings v2; 07a/07b utuh); browser settings/preview/PDF 2 halaman/390 px/0 console error.
-- Notes / risks: review pemilik **PENDING (#1–#18)**; DEC-13 tetap OPEN; render sinkron tanpa queue, retensi file, dan backfill legacy belum ada; unduhan lampiran 07a/07b masih kena blokir CORS `Content-Disposition` (di luar scope); `MariaDbIntegrationTest` baseline membaca `school_access_uat` saat MariaDB root terjangkau — suite penuh tidak diulang dan tes perlu digating; item NOT RUN dicatat di laporan. Tidak ada merge/deploy, migrasi DB operasional/MariaDB, atau perubahan service/`.env`.
+- Notes / risks: review pemilik saat entri ini **PENDING (#1–#18)**, kemudian **APPROVED 2026-11-02 WIB** (lihat entri terbaru); DEC-13 tetap OPEN; render sinkron tanpa queue, retensi file, dan backfill legacy belum ada; unduhan lampiran 07a/07b masih kena blokir CORS `Content-Disposition` (di luar scope); `MariaDbIntegrationTest` baseline membaca `school_access_uat` saat MariaDB root terjangkau — suite penuh tidak diulang dan tes perlu digating; item NOT RUN dicatat di laporan. Tidak ada merge/deploy, migrasi DB operasional/MariaDB, atau perubahan service/`.env`.
 - Evidence: `reports/feature-update/PHASE-07C-REPORT.md`, `PHASE-07C-MANUAL-REVIEW.md`; paket implementasi `2a78b7e` di atas baseline `4713c70`; paket dokumentasi dicatat setelah commit.
 
 ## [2026-11-02] Fase 07c — Pemilik menyetujui rencana (DEC-34 APPROVED; DEC-11 CLOSED untuk 07c)

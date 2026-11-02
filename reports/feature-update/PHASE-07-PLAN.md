@@ -1,11 +1,11 @@
 # Rencana Fase 07 — Persuratan: Subfase 07a (Surat Masuk dan Lampiran)
 
 - Tanggal: 2026-11-01 (WIB). Branch: `main`. Baseline dokumen: `1101812` (HEAD; penerimaan 06c tercatat).
-- Status dokumen: **PLAN APPROVED — DEC-32 APPROVED 2026-11-01 WIB** berdasarkan pernyataan pemilik **"Saya setuju D1-D10"**. Implementasi 07a **selesai, agent-verified, dan OWNER APPROVED (#1–#16, 2026-11-01 WIB)**. Rencana rinci **07b** tersedia di `PHASE-07B-PLAN.md` dan **APPROVED 2026-11-01 WIB sebagai DEC-33** ("Saya setuju D1-D11"); implementasi 07b diotorisasi dan **DEC-06 ditutup**. Rencana **07c** disetujui sebagai **DEC-34** ("Saya setuju D1-D11", 2026-11-02 WIB), diimplementasikan, dan diverifikasi agen; review pemilik **PENDING (#1–#18)**. Bukti: `PHASE-07A-REPORT.md`, `PHASE-07C-REPORT.md`; checklist pemilik `PHASE-07A-MANUAL-REVIEW.md`, `PHASE-07C-MANUAL-REVIEW.md`.
+- Status dokumen: **PLAN APPROVED — DEC-32 APPROVED 2026-11-01 WIB** berdasarkan pernyataan pemilik **"Saya setuju D1-D10"**. Implementasi 07a **selesai, agent-verified, dan OWNER APPROVED (#1–#16, 2026-11-01 WIB)**. Rencana rinci **07b** tersedia di `PHASE-07B-PLAN.md` dan **APPROVED 2026-11-01 WIB sebagai DEC-33** ("Saya setuju D1-D11"); implementasi 07b diotorisasi dan **DEC-06 ditutup**. Rencana **07c** disetujui sebagai **DEC-34** ("Saya setuju D1-D11", 2026-11-02 WIB), diimplementasikan, diverifikasi agen, dan **OWNER APPROVED (#1–#18, 2026-11-02 WIB)**. Bukti: `PHASE-07A-REPORT.md`, `PHASE-07C-REPORT.md`; checklist pemilik `PHASE-07A-MANUAL-REVIEW.md`, `PHASE-07C-MANUAL-REVIEW.md`.
 - Cakupan: **07a saja** — agenda surat masuk (tanggal terima/tanggal surat, nomor sumber, pengirim, perihal, kategori, catatan), lampiran privat, pencarian/filter, edit/void berversi, dan history. Layanan file minimal dibuat di sini dan diperluas pada Fase 09.
 - Di luar cakupan: **07b** (disposisi, surat keluar, penomoran, approval/sign), **07c** (template PDF, snapshot, kop/tanda tangan/stempel), OCR, e-sign provider, pengiriman email/WhatsApp otomatis, arsip terpusat/versioning Fase 09, retensi/pemusnahan data pribadi (DEC-13), merge/deploy, migrasi database operasional/MariaDB, perubahan dependency/lockfile/`.env`/service.
 - Dokumen acuan: `roadmap/phases/PHASE-07-LETTERS.md`, `roadmap/ROADMAP.md`, `docs/DECISIONS.md` (DEC-06, DEC-11, DEC-13, DEC-27), `docs/DATABASE.md`, `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `docs/OPERATIONS.md`, `docs/TESTING.md`, `reports/feature-update/PHASE-06C-PLAN.md`.
-- Gate: 06c **OWNER APPROVED 2026-11-01 WIB (#1–#16)**; **DEC-11 CLOSED untuk lingkup 07c** melalui DEC-34/D9; **DEC-06 CLOSED** melalui DEC-33 (D4–D5) untuk 07b. Dependency 07c disetujui melalui D2/DEC-34 dan hanya `dompdf/dompdf v2.0.8` + empat transitive yang ditambahkan. **D1–D10 APPROVED 2026-11-01 WIB sebagai DEC-32**; implementasi 07a selesai sesuai rencana ini; 07c telah diimplementasikan dan diverifikasi agen.
+- Gate: 06c **OWNER APPROVED 2026-11-01 WIB (#1–#16)**; **DEC-11 CLOSED untuk lingkup 07c** melalui DEC-34/D9; **DEC-06 CLOSED** melalui DEC-33 (D4–D5) untuk 07b. Dependency 07c disetujui melalui D2/DEC-34 dan hanya `dompdf/dompdf v2.0.8` + empat transitive yang ditambahkan. **D1–D10 APPROVED 2026-11-01 WIB sebagai DEC-32**; implementasi 07a selesai sesuai rencana ini; 07c telah diimplementasikan, diverifikasi agen, dan **OWNER APPROVED #1–#18 (2026-11-02 WIB)**.
 
 ---
 
@@ -538,7 +538,7 @@ HANDOFF dan ROADMAP. Berhenti setelah hasil subfase siap review; jangan lanjut
 
 ---
 
-## 12. Gambaran 07b/07c (07b selesai & diterima; 07c belum diotorisasi)
+## 12. Gambaran 07b/07c (keduanya selesai & diterima pemilik)
 
 ### 07b — Disposisi, surat keluar, dan nomor
 
@@ -550,10 +550,9 @@ HANDOFF dan ROADMAP. Berhenti setelah hasil subfase siap review; jangan lanjut
 
 ### 07c — Template PDF dan snapshot
 
-- Gate: **DEC-11** (kop, tanda tangan, stempel, jenis surat pertama, format rekap) dan keputusan dependency PDF.
-- Tidak ada library PDF terpasang dan aturan pemilik melarang perubahan dependency tanpa persetujuan. Opsi yang perlu diputuskan: menambah library PDF maintained (eksplisit disetujui) atau menunda 07c sampai keputusan tersedia.
-- Rencana yang akan disusun: template versioned, auto-fill siswa/pegawai, snapshot penandatangan/biodata/template saat terbit, kop/tanda tangan/stempel, PDF halaman panjang, dan download berizin. Surat issued tidak boleh dibuat ulang dari master yang berubah.
-- Tidak ada implementasi pada paket ini.
+- **Rencana rinci:** `reports/feature-update/PHASE-07C-PLAN.md` (baseline `ff581c6`; paket `42108dc`; **DEC-34 APPROVED 2026-11-02 WIB**). **Status implementasi: IMPLEMENTED — agent-verified 2026-11-02; OWNER APPROVED #1–#18 (2026-11-02 WIB)**; server UAT dihentikan setelah penerimaan (DEC-27). Bukti di `PHASE-07C-REPORT.md`; checklist di `PHASE-07C-MANUAL-REVIEW.md`. Rencana ini menggantikan gambaran singkat di bawah.
+- Gate: **DEC-11 CLOSED untuk lingkup 07c** melalui D9/DEC-34; dependency PDF disetujui melalui D2 (`dompdf/dompdf v2.0.8` + empat transitive).
+- Implementasi: `letter_settings` 1:1 profil sekolah dengan kop/logo/penandatangan/signature/stamp privat, template Blade berversi, tiga jenis surat bertipe, PDF + snapshot minimal PII di dalam transaksi issue, preview watermarked, download berizin, dan 9 route baru (37 total).
 
 ---
 

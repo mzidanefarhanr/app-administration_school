@@ -1,7 +1,7 @@
 # Rencana Fase 07 — Subfase 07c (Kop, Tanda Tangan, Stempel, Template PDF, dan Snapshot)
 
 - Tanggal: 2026-11-02 (WIB). Branch: `main`. Baseline dokumen/audit: `ff581c6` (paket penerimaan 07b). Paket rencana: `42108dc`.
-- Status dokumen: **PLAN APPROVED — DEC-34 APPROVED 2026-11-02 WIB** berdasarkan pernyataan pemilik **"Saya setuju D1-D11"**. Implementasi **07c diotorisasi**; bukti implementasi dicatat pada `PHASE-07C-REPORT.md` setelah verifikasi. **DEC-11 CLOSED untuk lingkup 07c** (D9); **DEC-13 tetap OPEN**.
+- Status dokumen: **PLAN APPROVED — DEC-34 APPROVED 2026-11-02 WIB** berdasarkan pernyataan pemilik **"Saya setuju D1-D11"**. Implementasi **07c selesai, agent-verified, dan OWNER APPROVED #1–#18 (2026-11-02 WIB)**; bukti di `PHASE-07C-REPORT.md`. **DEC-11 CLOSED untuk lingkup 07c** (D9); **DEC-13 tetap OPEN**.
 - Cakupan: **07c saja** — pengaturan kop sekolah, logo, penandatangan, gambar tanda tangan, stempel, registry template kode, tiga jenis surat terpilih, render PDF server-side, snapshot immutable saat terbit, serta preview/download berizin.
 - Di luar cakupan: **07d/Fase 08** (surat izin), template CRUD/editor, DOCX, PDF/A, e-sign tersertifikasi, QR/barcode, OCR, email/WhatsApp otomatis, arsip/versioning Fase 09, retensi DEC-13, rekap sekolah (DEC-12), merge/deploy, migrasi database operasional/MariaDB, perubahan service/`.env`, dan dependency selain yang diputuskan di D2.
 - Dokumen acuan: `roadmap/phases/PHASE-07-LETTERS.md` (07c), `roadmap/ROADMAP.md`, `docs/DECISIONS.md` (DEC-07, DEC-11, DEC-12, DEC-13, DEC-27, DEC-32, DEC-33), `docs/REQUIREMENTS.md` (FR-08/FR-09, PDF dan snapshot), `docs/DATABASE.md`, `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `reports/feature-update/PHASE-07A-REPORT.md`, `reports/feature-update/PHASE-07B-REPORT.md`, `reports/feature-update/PHASE-07B-MANUAL-REVIEW.md`.
@@ -650,10 +650,10 @@ subfase siap review; jangan lanjut Fase 08 atau merge/deploy.
 - [x] `letter_settings`, `letter_documents`, dan kolom typed pada `letters` dimigrasikan additive; 07a/07b tetap berjalan (regresi Letters 86/1.744).
 - [x] Tiga jenis surat, kop/logo/penandatangan/signature/stamp, PDF, snapshot, preview, dan download berfungsi (settings 10/167; documents 21/744).
 - [x] Matriks T1–T28 dijalankan atau NOT RUN dengan alasan; hasil aktual (31 tes/911 assertions; NOT RUN dicatat di `PHASE-07C-REPORT.md`).
-- [ ] UAT `.uat-phase07` + `prepare-documents` dan checklist manual tersedia; persetujuan pemilik dicatat terpisah. **Checklist tersedia; review pemilik PENDING (#1–#18).**
+- [x] UAT `.uat-phase07` + `prepare-documents` dan checklist manual tersedia; persetujuan pemilik dicatat terpisah. **Checklist #1–#18 APPROVED 2026-11-02 WIB** ("Pengujian nomor 1-18 sudah berhasil dan saya approved.").
 - [x] Kontrak DATABASE/API-CONTRACTS/ACCESS-CONTROL/OPERATIONS/REQUIREMENTS diperbarui.
 - [x] SHA/working tree, known issues, dan langkah berikutnya dicatat di INDEX/HANDOFF/ROADMAP/laporan (`4713c70` → `2a78b7e`).
-- [ ] Server UAT dihentikan setelah penerimaan (DEC-27); data dipertahankan. **Belum: server 14025/18025 masih berjalan sampai penerimaan.**
+- [x] Server UAT dihentikan setelah penerimaan (DEC-27); data dipertahankan. **Selesai 2026-11-02: PID 8340 (API) dan 22456/8808 (SPA) diverifikasi, port 14025/18025 bebas, `.uat-phase07` dipertahankan.**
 - [x] Tidak ada merge/deploy/force-push/rewrite, migrasi DB operasional/MariaDB, perubahan service/`.env`, atau dependency lain; Fase 08 tidak dimulai.
 
 ---
