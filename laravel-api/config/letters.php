@@ -44,4 +44,52 @@ return [
         'format' => '{seq:03d}/{school_code}/{year}',
         'school_code' => env('LETTERS_NUMBER_SCHOOL_CODE'),
     ],
+
+    // Fase 07c (DEC-34): kop, penandatangan, dokumen PDF bertipe, dan aset privat.
+    'letter_types' => [
+        'student_active' => [
+            'label' => 'Student Active Certificate',
+            'template' => 'student_active',
+            'subject_type' => 'student',
+        ],
+        'student_mutation' => [
+            'label' => 'Student Mutation Certificate',
+            'template' => 'student_mutation',
+            'subject_type' => 'student_mutation',
+        ],
+        'employee_duty' => [
+            'label' => 'Employee Duty Letter',
+            'template' => 'employee_duty',
+            'subject_type' => 'employee',
+        ],
+    ],
+    'templates' => [
+        'student_active' => ['version' => 1, 'view' => 'letters.pdf.student-active'],
+        'student_mutation' => ['version' => 1, 'view' => 'letters.pdf.student-mutation'],
+        'employee_duty' => ['version' => 1, 'view' => 'letters.pdf.employee-duty'],
+    ],
+    'document' => [
+        'paper' => 'a4',
+        'orientation' => 'portrait',
+        'font' => 'DejaVu Sans',
+        'assets_path' => 'attachments/letter-settings',
+        'documents_path' => 'attachments/letter-documents',
+        'max_image_kb' => 2048,
+        'max_image_dimension' => 2000,
+        'preview_watermark' => 'PREVIEW — NOT ISSUED',
+    ],
+    'typed_fields' => [
+        'purpose_min_length' => 5,
+        'purpose_max_length' => 500,
+        'duty_description_min_length' => 10,
+        'duty_description_max_length' => 2000,
+        'location_min_length' => 5,
+        'location_max_length' => 200,
+    ],
+    'subject_picker' => [
+        'search_max_length' => 100,
+        'per_page_options' => [10, 20, 50],
+        'default_per_page' => 20,
+        'max_per_page' => 50,
+    ],
 ];

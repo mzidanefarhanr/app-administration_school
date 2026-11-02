@@ -22,6 +22,8 @@ use App\Http\Controllers\GenderController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\IncomingLetterController;
 use App\Http\Controllers\LetterDispositionController;
+use App\Http\Controllers\LetterSettingsController;
+use App\Http\Controllers\LetterSubjectController;
 use App\Http\Controllers\MaritalStatusController;
 use App\Http\Controllers\OutgoingLetterController;
 use App\Http\Controllers\PhaseStatusController;
@@ -225,8 +227,26 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
             ->middleware('can:letters.view');
     });
 
+    // Fase 07c (DEC-34) — kop, penandatangan, dan aset privat surat bertipe.
+    Route::prefix('letters/settings')->group(function () {
+        Route::get('/', [LetterSettingsController::class, 'show'])
+            ->middleware('can:letters.view');
+        Route::post('/header', [LetterSettingsController::class, 'updateHeader'])
+            ->middleware('can:letters.manage');
+        Route::post('/signatory', [LetterSettingsController::class, 'updateSignatory'])
+            ->middleware('can:letters.sign');
+        Route::get('/assets/{asset}', [LetterSettingsController::class, 'asset'])
+            ->middleware('can:letters.view');
+    });
+
     // Fase 07b (DEC-33) — surat keluar: draft, approval/sign, nomor resmi, lampiran.
     Route::prefix('letters/outgoing')->group(function () {
+        Route::get('/subjects/students', [LetterSubjectController::class, 'students'])
+            ->middleware(['can:letters.manage', 'can:students.view']);
+        Route::get('/subjects/student-mutations', [LetterSubjectController::class, 'mutations'])
+            ->middleware(['can:letters.manage', 'can:students.view']);
+        Route::get('/subjects/employees', [LetterSubjectController::class, 'employees'])
+            ->middleware(['can:letters.manage', 'can:employees.view']);
         Route::get('/options', [OutgoingLetterController::class, 'options'])
             ->middleware('can:letters.view');
         Route::get('/', [OutgoingLetterController::class, 'index'])
@@ -246,6 +266,10 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::post('/{letter}/issue', [OutgoingLetterController::class, 'issue'])
             ->whereNumber('letter')->middleware('can:letters.sign');
         Route::post('/{letter}/cancel', [OutgoingLetterController::class, 'cancel'])
+            ->whereNumber('letter')->middleware('can:letters.view');
+        Route::get('/{letter}/document', [OutgoingLetterController::class, 'downloadDocument'])
+            ->whereNumber('letter')->middleware('can:letters.view');
+        Route::get('/{letter}/document/preview', [OutgoingLetterController::class, 'previewDocument'])
             ->whereNumber('letter')->middleware('can:letters.view');
         Route::post('/{letter}/attachments', [OutgoingLetterController::class, 'storeAttachment'])
             ->whereNumber('letter')->middleware('can:letters.manage');

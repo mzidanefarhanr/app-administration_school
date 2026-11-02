@@ -869,7 +869,7 @@ it('exposes outgoing routes with letter abilities', function () {
     $routes = collect(Route::getRoutes())
         ->filter(fn ($route) => str_starts_with($route->uri(), 'api/letters/outgoing'));
 
-    expect($routes)->toHaveCount(13);
+    expect($routes)->toHaveCount(18);
 
     foreach ($routes as $route) {
         $middleware = $route->gatherMiddleware();

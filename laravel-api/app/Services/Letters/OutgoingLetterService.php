@@ -6,7 +6,6 @@ use App\Models\Letter;
 use App\Models\LetterApproval;
 use App\Models\LetterAttachment;
 use App\Models\LetterEvent;
-use App\Models\SchoolProfile;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -26,6 +25,10 @@ class OutgoingLetterService
     public function __construct(
         private readonly LetterAttachmentService $attachments,
         private readonly LetterNumberService $numbering,
+        private readonly LetterSettingsService $settings,
+        private readonly LetterDocumentService $documents,
+        private readonly LetterTemplateRegistry $templates,
+        private readonly LetterSubjectService $subjects,
     ) {}
 
     /**
@@ -33,6 +36,9 @@ class OutgoingLetterService
      */
     public function options(): array
     {
+        $this->templates->assertValid();
+        $readiness = $this->settings->readiness();
+
         return [
             'categories' => config('letters.categories'),
             'workflow_statuses' => $this->workflowStatusOptions(),
@@ -51,6 +57,23 @@ class OutgoingLetterService
                 'scope' => $this->numbering->scope(),
                 'period' => (string) config('letters.numbering.period'),
             ],
+            'letter_types' => $this->templates->options(),
+            'settings_ready' => $readiness['ready'],
+            'settings_missing' => $readiness['missing'],
+            'typed_fields' => config('letters.typed_fields'),
+            'subject_picker' => config('letters.subject_picker'),
+            'document' => [
+                'preview_statuses' => [
+                    Letter::WORKFLOW_DRAFT,
+                    Letter::WORKFLOW_REVIEW,
+                    Letter::WORKFLOW_APPROVED,
+                ],
+                'download_statuses' => [
+                    Letter::WORKFLOW_ISSUED,
+                    Letter::WORKFLOW_CANCELLED,
+                ],
+                'watermark' => (string) config('letters.document.preview_watermark'),
+            ],
         ];
     }
 
@@ -62,6 +85,8 @@ class OutgoingLetterService
     {
         $search = trim((string) ($filters['search'] ?? ''));
         $workflowStatus = $filters['workflow_status'] ?? null;
+        $letterType = $filters['letter_type'] ?? null;
+        $hasDocument = $filters['has_document'] ?? null;
         $letterFrom = $filters['letter_from'] ?? null;
         $letterTo = $filters['letter_to'] ?? null;
         $perPage = (int) ($filters['per_page'] ?? config('letters.default_per_page'));
@@ -69,7 +94,21 @@ class OutgoingLetterService
         $query = Letter::query()
             ->where('direction', Letter::DIRECTION_OUTGOING)
             ->withCount('attachments')
-            ->with(['creator:id,name', 'approver:id,name', 'issuer:id,name', 'voider:id,name']);
+            ->with([
+                'creator:id,name',
+                'approver:id,name',
+                'issuer:id,name',
+                'voider:id,name',
+                'document' => fn ($query) => $query->select([
+                    'id',
+                    'letter_id',
+                    'template_code',
+                    'template_version',
+                    'page_count',
+                    'generated_at',
+                    'pdf_size_bytes',
+                ]),
+            ]);
 
         if ($search !== '') {
             $pattern = $this->likePattern($search);
@@ -84,6 +123,22 @@ class OutgoingLetterService
 
         if ($workflowStatus !== null && $workflowStatus !== '' && $workflowStatus !== 'all') {
             $query->where('workflow_status', $workflowStatus);
+        }
+
+        if ($letterType !== null && $letterType !== '' && $letterType !== 'all') {
+            if ($letterType === 'general') {
+                $query->whereNull('letter_type');
+            } else {
+                $query->where('letter_type', $letterType);
+            }
+        }
+
+        if ($hasDocument !== null && $hasDocument !== '') {
+            if (in_array($hasDocument, [1, '1', true, 'true'], true)) {
+                $query->whereHas('document');
+            } elseif (in_array($hasDocument, [0, '0', false, 'false'], true)) {
+                $query->whereDoesntHave('document');
+            }
         }
 
         if ($letterFrom !== null && $letterFrom !== '') {
@@ -113,6 +168,8 @@ class OutgoingLetterService
             'filters' => [
                 'search' => $search,
                 'workflow_status' => $workflowStatus,
+                'letter_type' => $letterType,
+                'has_document' => $hasDocument,
                 'letter_from' => $letterFrom,
                 'letter_to' => $letterTo,
                 'per_page' => $perPage,
@@ -134,7 +191,10 @@ class OutgoingLetterService
      */
     public function create(array $data, User $actor): array
     {
-        $letter = DB::transaction(function () use ($data, $actor) {
+        $letterType = $this->requestedLetterType($data);
+        $typed = $letterType !== null ? $this->typedAttributes($letterType, $data) : null;
+
+        $letter = DB::transaction(function () use ($data, $actor, $letterType, $typed) {
             $letter = Letter::create([
                 'direction' => Letter::DIRECTION_OUTGOING,
                 'version' => 1,
@@ -145,6 +205,10 @@ class OutgoingLetterService
                 'recipient' => trim((string) $data['recipient']),
                 'subject' => trim((string) $data['subject']),
                 'category' => $data['category'],
+                'letter_type' => $letterType,
+                'document_subject_type' => $typed['document_subject_type'] ?? null,
+                'document_subject_id' => $typed['document_subject_id'] ?? null,
+                'document_fields' => $typed['document_fields'] ?? null,
                 'notes' => $this->nullableTrimmed($data['notes'] ?? null),
                 'status' => Letter::STATUS_ACTIVE,
                 'workflow_status' => Letter::WORKFLOW_DRAFT,
@@ -170,6 +234,7 @@ class OutgoingLetterService
 
             $this->assertDraft($letter);
             $this->assertVersion($letter, $expectedVersion);
+            $this->assertTypedIdentityUnchanged($letter, $data);
 
             $fill = [];
 
@@ -181,6 +246,13 @@ class OutgoingLetterService
 
             if (array_key_exists('notes', $data)) {
                 $fill['notes'] = $this->nullableTrimmed($data['notes']);
+            }
+
+            if ($letter->isTyped() && array_key_exists('document_fields', $data)) {
+                $fill['document_fields'] = $this->subjects->validateFields(
+                    (string) $letter->letter_type,
+                    $data['document_fields'],
+                );
             }
 
             $letter->fill($fill);
@@ -216,6 +288,10 @@ class OutgoingLetterService
             }
 
             $this->assertVersion($letter, $expectedVersion);
+
+            if ($letter->isTyped()) {
+                $this->documents->prepare($letter);
+            }
 
             $letter->workflow_status = Letter::WORKFLOW_REVIEW;
             $letter->version = $letter->version + 1;
@@ -311,8 +387,10 @@ class OutgoingLetterService
      */
     public function issue(int $letterId, int $expectedVersion, User $actor): array
     {
+        $storedPdfPath = null;
+
         try {
-            $letter = DB::transaction(function () use ($letterId, $expectedVersion, $actor) {
+            $letter = DB::transaction(function () use ($letterId, $expectedVersion, $actor, &$storedPdfPath) {
                 $letter = $this->lockOutgoing($letterId);
 
                 if ($letter->workflow_status !== Letter::WORKFLOW_APPROVED) {
@@ -322,6 +400,8 @@ class OutgoingLetterService
                 $this->assertVersion($letter, $expectedVersion);
                 $this->assertNotCreator($letter, $actor, 'issue');
 
+                $prepared = $letter->isTyped() ? $this->documents->prepare($letter) : null;
+
                 $now = Carbon::now();
                 $number = $this->numbering->next($now, (string) $letter->category);
 
@@ -330,17 +410,49 @@ class OutgoingLetterService
                 $letter->issued_by = $actor->id;
                 $letter->workflow_status = Letter::WORKFLOW_ISSUED;
                 $letter->version = $letter->version + 1;
+
+                $rendered = null;
+                $stored = null;
+
+                if ($prepared !== null) {
+                    $rendered = $this->documents->renderIssued(
+                        $prepared,
+                        $letter,
+                        $number['official_number'],
+                        $now,
+                        $actor,
+                    );
+
+                    $stored = $this->documents->write($letter, $rendered['bytes']);
+                    $storedPdfPath = $stored['path'];
+                }
+
                 $letter->save();
 
-                $this->recordEvent($letter, LetterEvent::EVENT_ISSUED, $actor, [
+                if ($rendered !== null && $stored !== null) {
+                    $this->documents->record($letter, $rendered, $stored, $now, $actor);
+                }
+
+                $metadata = [
                     'official_number' => $number['official_number'],
                     'period' => $number['period'],
                     'sequence' => $number['sequence'],
-                ]);
+                ];
+
+                if ($rendered !== null) {
+                    $metadata['template_code'] = $rendered['template']['code'];
+                    $metadata['template_version'] = $rendered['template']['version'];
+                    $metadata['page_count'] = $rendered['page_count'];
+                }
+
+                $this->recordEvent($letter, LetterEvent::EVENT_ISSUED, $actor, $metadata);
 
                 return $letter;
             });
         } catch (UniqueConstraintViolationException) {
+            $this->documents->discard($storedPdfPath);
+            $storedPdfPath = null;
+
             $current = $this->findOutgoing($letterId);
 
             $this->conflict(
@@ -348,6 +460,11 @@ class OutgoingLetterService
                 'The official number was already issued by another request. Reload the latest version.',
                 $this->versionContext($current),
             );
+        } catch (\Throwable $exception) {
+            $this->documents->discard($storedPdfPath);
+            $storedPdfPath = null;
+
+            throw $exception;
         }
 
         return $this->serializeDetail($letter);
@@ -603,14 +720,7 @@ class OutgoingLetterService
 
     private function defaultSender(): ?string
     {
-        $name = SchoolProfile::query()
-            ->with('educationSchool:id,npsn,name')
-            ->orderBy('id')
-            ->first()
-            ?->educationSchool
-            ?->name;
-
-        return is_string($name) && trim($name) !== '' ? trim($name) : null;
+        return $this->settings->activeSchoolName();
     }
 
     /**
@@ -623,6 +733,7 @@ class OutgoingLetterService
             'approver:id,name',
             'issuer:id,name',
             'voider:id,name',
+            'document',
             'attachments' => fn ($query) => $query->orderBy('id'),
             'events' => fn ($query) => $query
                 ->with('actor:id,name')
@@ -636,6 +747,9 @@ class OutgoingLetterService
         ]);
 
         return $this->serializeLetter($letter, $letter->attachments->count()) + [
+            'document' => $this->documents->summary($letter),
+            'document_subject' => $this->subjects->summaryForLetter($letter),
+            'document_fields' => $letter->letter_type !== null ? ($letter->document_fields ?? []) : null,
             'attachments' => $letter->attachments
                 ->map(fn (LetterAttachment $attachment) => [
                     'id' => $attachment->id,
@@ -692,6 +806,10 @@ class OutgoingLetterService
             'sender' => $letter->sender,
             'subject' => $letter->subject,
             'category' => $letter->category,
+            'letter_type' => $letter->letter_type,
+            'letter_type_label' => $this->templates->label($letter->letter_type)
+                ?? ($letter->letter_type === null ? 'General Letter' : $letter->letter_type),
+            'has_document' => $this->documents->hasDocument($letter),
             'received_date' => $letter->received_date?->format('Y-m-d'),
             'letter_date' => $letter->letter_date?->format('Y-m-d'),
             'notes' => $letter->notes,
@@ -736,6 +854,88 @@ class OutgoingLetterService
         $trimmed = trim((string) $value);
 
         return $trimmed === '' ? null : $trimmed;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function requestedLetterType(array $data): ?string
+    {
+        $value = $data['letter_type'] ?? null;
+
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $letterType = (string) $value;
+
+        if (! $this->templates->isKnown($letterType)) {
+            $this->invalid('letter_type', 'The letter type is not available.');
+        }
+
+        return $letterType;
+    }
+
+    /**
+     * Validasi subjek dan field saat create; tipe/subjek immutable setelahnya.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array{document_subject_type: string, document_subject_id: int, document_fields: array<string, mixed>}
+     */
+    private function typedAttributes(string $letterType, array $data): array
+    {
+        $definition = $this->templates->definition($letterType);
+        $subjectId = (int) ($data['document_subject_id'] ?? 0);
+
+        if ($subjectId < 1) {
+            $this->invalid('document_subject_id', 'A subject is required for this letter type.');
+        }
+
+        $context = $this->settings->context();
+
+        $this->subjects->resolveSubject($definition['subject_type'], $subjectId, $context['school_year']);
+
+        return [
+            'document_subject_type' => $definition['subject_type'],
+            'document_subject_id' => $subjectId,
+            'document_fields' => $this->subjects->validateFields($letterType, $data['document_fields'] ?? null),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function assertTypedIdentityUnchanged(Letter $letter, array $data): void
+    {
+        $requestedType = $data['letter_type'] ?? null;
+
+        if ($letter->isTyped()) {
+            if ($requestedType !== null && $requestedType !== ''
+                && (string) $requestedType !== (string) $letter->letter_type) {
+                $this->invalid('letter_type', 'The letter type cannot be changed after the letter is created.');
+            }
+
+            if (array_key_exists('document_subject_id', $data)
+                && $data['document_subject_id'] !== null
+                && (int) $data['document_subject_id'] !== (int) $letter->document_subject_id) {
+                $this->invalid('document_subject_id', 'The letter subject cannot be changed after the letter is created.');
+            }
+
+            return;
+        }
+
+        if (($requestedType !== null && $requestedType !== '')
+            || ! empty($data['document_subject_id'])
+            || ! empty($data['document_fields'])) {
+            $this->invalid('letter_type', 'The letter type cannot be changed after the letter is created.');
+        }
+    }
+
+    private function invalid(string $field, string $message): never
+    {
+        throw ValidationException::withMessages([
+            $field => [$message],
+        ]);
     }
 
     private function likePattern(string $search): string

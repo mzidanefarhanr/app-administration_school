@@ -38,6 +38,12 @@ const statusFilterOptions = [
     { label: 'Cancelled', value: 'cancelled' }
 ];
 
+const documentFilterOptions = [
+    { label: 'All documents', value: 'all' },
+    { label: 'PDF available', value: '1' },
+    { label: 'No PDF', value: '0' }
+];
+
 const fieldLabels = {
     received_date: 'Recorded date',
     letter_date: 'Letter date',
@@ -79,12 +85,33 @@ const meta = ref({ current_page: 1, per_page: 20, total: 0, last_page: 1 });
 const listLoading = ref(false);
 const listError = ref('');
 const page = ref(1);
-const filters = reactive({ search: '', workflowStatus: 'all', letterFrom: null, letterTo: null, perPage: 20 });
+const filters = reactive({
+    search: '',
+    workflowStatus: 'all',
+    letterType: 'all',
+    hasDocument: 'all',
+    letterFrom: null,
+    letterTo: null,
+    perPage: 20
+});
 let searchTimer = null;
 let listRequestId = 0;
 let lastDateFilterKey = '|';
 
 const categoryOptions = computed(() => (options.value?.categories ?? []).map((category) => ({ label: category, value: category })));
+const typedLetterTypes = computed(() => options.value?.letter_types ?? []);
+const letterTypeOptions = computed(() => [
+    { label: 'General Letter', value: 'general' },
+    ...typedLetterTypes.value.map((type) => ({ label: type.label, value: type.value, subject_type: type.subject_type }))
+]);
+const typeFilterOptions = computed(() => [
+    { label: 'All types', value: 'all' },
+    { label: 'General Letter', value: 'general' },
+    ...typedLetterTypes.value.map((type) => ({ label: type.label, value: type.value }))
+]);
+const settingsReady = computed(() => options.value?.settings_ready !== false);
+const settingsMissing = computed(() => options.value?.settings_missing ?? []);
+const settingsMissingLabel = computed(() => settingsMissing.value.join(', '));
 const perPageOptions = computed(() => options.value?.per_page_options ?? [10, 20, 50, 100]);
 const maxFiles = computed(() => options.value?.max_files_per_letter ?? 5);
 const maxFileKb = computed(() => options.value?.max_file_kb ?? 10240);
@@ -181,6 +208,8 @@ const loadLetters = async () => {
     try {
         const params = { page: page.value, per_page: filters.perPage, workflow_status: filters.workflowStatus };
         if (filters.search.trim()) params.search = filters.search.trim();
+        if (filters.letterType !== 'all') params.letter_type = filters.letterType;
+        if (filters.hasDocument !== 'all') params.has_document = filters.hasDocument;
 
         const from = dateToIso(filters.letterFrom);
         const to = dateToIso(filters.letterTo);
@@ -231,6 +260,8 @@ const onDateFilterChange = () => {
 const resetFilters = () => {
     filters.search = '';
     filters.workflowStatus = 'all';
+    filters.letterType = 'all';
+    filters.hasDocument = 'all';
     filters.letterFrom = null;
     filters.letterTo = null;
     lastDateFilterKey = '|';
@@ -261,8 +292,87 @@ const form = reactive({
     subject: '',
     category: null,
     notes: '',
-    version: null
+    version: null,
+    letterType: 'general',
+    documentSubject: null,
+    purpose: '',
+    dutyDescription: '',
+    dutyStart: null,
+    dutyEnd: null,
+    location: ''
 });
+
+const typedForm = computed(() => form.letterType !== 'general');
+const typedLimits = computed(() => options.value?.typed_fields ?? {});
+
+const subjectSuggestions = ref([]);
+const subjectLoading = ref(false);
+const subjectError = ref('');
+let subjectRequestId = 0;
+let subjectSearchTimer = null;
+
+const subjectEndpoint = (letterType) => ({
+    student_active: '/api/letters/outgoing/subjects/students',
+    student_mutation: '/api/letters/outgoing/subjects/student-mutations',
+    employee_duty: '/api/letters/outgoing/subjects/employees'
+}[letterType] ?? null);
+
+const mapSubjectItem = (item) => {
+    if (form.letterType === 'student_active') {
+        const details = [item.nis ? `NIS ${item.nis}` : null, item.class].filter(Boolean).join(' · ');
+        return { id: item.id, label: details ? `${item.name} — ${details}` : item.name };
+    }
+
+    if (form.letterType === 'student_mutation') {
+        const destination = item.destination_school ?? item.destination_npsn ?? 'Unknown destination';
+        return { id: item.id, label: `${item.student_name ?? 'Student'} → ${destination} (${formatDate(item.effective_date)})` };
+    }
+
+    const details = [item.nuptk ? `NUPTK ${item.nuptk}` : null, item.employee_type].filter(Boolean).join(' · ');
+    return { id: item.id, label: details ? `${item.name} — ${details}` : item.name };
+};
+
+const fetchSubjects = async (query = '') => {
+    const endpoint = subjectEndpoint(form.letterType);
+    if (!endpoint) return;
+
+    const requestId = ++subjectRequestId;
+    subjectLoading.value = true;
+    subjectError.value = '';
+
+    try {
+        const response = await apiLogin.get(endpoint, {
+            params: { per_page: options.value?.subject_picker?.default_per_page ?? 20, search: query.trim() || undefined }
+        });
+        if (requestId !== subjectRequestId) return;
+        subjectSuggestions.value = (response.data?.data?.items ?? []).map(mapSubjectItem);
+    } catch (error) {
+        if (requestId !== subjectRequestId) return;
+        subjectSuggestions.value = [];
+        subjectError.value = errorMessage(error, 'Failed to load subject options.');
+    } finally {
+        if (requestId === subjectRequestId) subjectLoading.value = false;
+    }
+};
+
+const searchSubjects = (event) => {
+    const query = event?.query ?? '';
+    if (subjectSearchTimer) clearTimeout(subjectSearchTimer);
+    subjectSearchTimer = setTimeout(() => fetchSubjects(query), 250);
+};
+
+const onLetterTypeChange = () => {
+    form.documentSubject = null;
+    subjectSuggestions.value = [];
+    subjectError.value = '';
+    form.purpose = '';
+    form.dutyDescription = '';
+    form.dutyStart = null;
+    form.dutyEnd = null;
+    form.location = '';
+
+    if (typedForm.value) fetchSubjects('');
+};
 
 const openCreate = () => {
     const today = isoToDate(todayIso());
@@ -277,6 +387,15 @@ const openCreate = () => {
     form.category = null;
     form.notes = '';
     form.version = null;
+    form.letterType = 'general';
+    form.documentSubject = null;
+    form.purpose = '';
+    form.dutyDescription = '';
+    form.dutyStart = null;
+    form.dutyEnd = null;
+    form.location = '';
+    subjectSuggestions.value = [];
+    subjectError.value = '';
     formErrors.value = {};
     formError.value = '';
     formSaving.value = false;
@@ -284,20 +403,43 @@ const openCreate = () => {
     formVisible.value = true;
 };
 
-const startEdit = (source) => {
+const startEdit = async (source) => {
     if (!canManage.value || source.workflow_status !== 'draft') return;
 
+    let data = source;
+
+    if (source.letter_type) {
+        try {
+            const response = await apiLogin.get(`/api/letters/outgoing/${source.id}`);
+            data = response.data?.data ?? source;
+        } catch (error) {
+            notify('error', errorMessage(error, 'Failed to load the draft letter.'));
+            return;
+        }
+    }
+
     formMode.value = 'edit';
-    form.id = source.id;
-    form.reference = source.reference;
-    form.recordedDate = isoToDate(source.received_date);
-    form.letterDate = isoToDate(source.letter_date);
-    form.sender = source.sender ?? '';
-    form.recipient = source.recipient ?? '';
-    form.subject = source.subject ?? '';
-    form.category = source.category ?? null;
-    form.notes = source.notes ?? '';
-    form.version = source.version;
+    form.id = data.id;
+    form.reference = data.reference;
+    form.recordedDate = isoToDate(data.received_date);
+    form.letterDate = isoToDate(data.letter_date);
+    form.sender = data.sender ?? '';
+    form.recipient = data.recipient ?? '';
+    form.subject = data.subject ?? '';
+    form.category = data.category ?? null;
+    form.notes = data.notes ?? '';
+    form.version = data.version;
+    form.letterType = data.letter_type ?? 'general';
+    form.documentSubject = data.document_subject
+        ? { id: data.document_subject.id, label: data.document_subject.label ?? `#${data.document_subject.id}` }
+        : null;
+    form.purpose = data.document_fields?.purpose ?? '';
+    form.dutyDescription = data.document_fields?.duty_description ?? '';
+    form.dutyStart = isoToDate(data.document_fields?.start_date);
+    form.dutyEnd = isoToDate(data.document_fields?.end_date);
+    form.location = data.document_fields?.location ?? '';
+    subjectSuggestions.value = form.documentSubject ? [form.documentSubject] : [];
+    subjectError.value = '';
     formErrors.value = {};
     formError.value = '';
     formSaving.value = false;
@@ -331,7 +473,62 @@ const validateForm = () => {
     if (!form.category) errors.category = ['The category is required.'];
     if (form.notes.trim().length > 2000) errors.notes = ['The notes may not exceed 2000 characters.'];
 
+    if (typedForm.value) {
+        if (!form.documentSubject?.id) {
+            errors.document_subject_id = ['The letter subject is required.'];
+        }
+
+        if (form.letterType === 'student_active') {
+            const purpose = form.purpose.trim();
+            const min = typedLimits.value.purpose_min_length ?? 5;
+            const max = typedLimits.value.purpose_max_length ?? 500;
+            if (!purpose) errors['document_fields.purpose'] = ['The purpose is required.'];
+            else if (purpose.length < min) errors['document_fields.purpose'] = [`The purpose must be at least ${min} characters.`];
+            else if (purpose.length > max) errors['document_fields.purpose'] = [`The purpose may not exceed ${max} characters.`];
+        }
+
+        if (form.letterType === 'employee_duty') {
+            const description = form.dutyDescription.trim();
+            const descriptionMin = typedLimits.value.duty_description_min_length ?? 10;
+            const descriptionMax = typedLimits.value.duty_description_max_length ?? 2000;
+            const location = form.location.trim();
+            const locationMin = typedLimits.value.location_min_length ?? 5;
+            const locationMax = typedLimits.value.location_max_length ?? 200;
+            const start = dateToIso(form.dutyStart);
+            const end = dateToIso(form.dutyEnd);
+
+            if (!description) errors['document_fields.duty_description'] = ['The duty description is required.'];
+            else if (description.length < descriptionMin) errors['document_fields.duty_description'] = [`The duty description must be at least ${descriptionMin} characters.`];
+            else if (description.length > descriptionMax) errors['document_fields.duty_description'] = [`The duty description may not exceed ${descriptionMax} characters.`];
+
+            if (!start) errors['document_fields.start_date'] = ['The start date is required.'];
+            if (!end) errors['document_fields.end_date'] = ['The end date is required.'];
+            else if (start && end < start) errors['document_fields.end_date'] = ['The end date may not be before the start date.'];
+
+            if (!location) errors['document_fields.location'] = ['The location is required.'];
+            else if (location.length < locationMin) errors['document_fields.location'] = [`The location must be at least ${locationMin} characters.`];
+            else if (location.length > locationMax) errors['document_fields.location'] = [`The location may not exceed ${locationMax} characters.`];
+        }
+    }
+
     return errors;
+};
+
+const buildDocumentFields = () => {
+    if (form.letterType === 'student_active') {
+        return { purpose: form.purpose.trim() };
+    }
+
+    if (form.letterType === 'employee_duty') {
+        return {
+            duty_description: form.dutyDescription.trim(),
+            start_date: dateToIso(form.dutyStart),
+            end_date: dateToIso(form.dutyEnd),
+            location: form.location.trim()
+        };
+    }
+
+    return {};
 };
 
 const submitForm = async () => {
@@ -353,8 +550,14 @@ const submitForm = async () => {
         recipient: form.recipient.trim(),
         subject: form.subject.trim(),
         category: form.category,
-        notes: form.notes.trim() || null
+        notes: form.notes.trim() || null,
+        letter_type: typedForm.value ? form.letterType : null
     };
+
+    if (typedForm.value) {
+        payload.document_subject_id = form.documentSubject?.id ?? null;
+        payload.document_fields = buildDocumentFields();
+    }
 
     const editing = formMode.value === 'edit';
     if (editing) payload.expected_version = form.version;
@@ -398,6 +601,8 @@ const openDetail = async (row) => {
     detailLoading.value = true;
     detailError.value = '';
     uploadError.value = '';
+    documentError.value = '';
+    closeDocumentPreview();
     selectedFile.value = null;
     if (fileInput.value) fileInput.value.value = '';
 
@@ -640,6 +845,81 @@ const downloadAttachment = async (attachment) => {
     }
 };
 
+const documentError = ref('');
+const documentBusy = ref('');
+const documentPreviewVisible = ref(false);
+const documentPreviewUrl = ref('');
+const documentPreviewLoading = ref(false);
+
+const blobErrorMessage = async (error, fallback) => {
+    const data = error.response?.data;
+
+    if (data instanceof Blob) {
+        try {
+            const parsed = JSON.parse(await data.text());
+            return parsed?.message ?? fallback;
+        } catch {
+            return fallback;
+        }
+    }
+
+    return data?.message ?? fallback;
+};
+
+const canPreviewDocument = (letter) => Boolean(letter?.letter_type) && ['draft', 'review', 'approved'].includes(letter?.workflow_status);
+const canDownloadDocument = (letter) => Boolean(letter?.letter_type) && ['issued', 'cancelled'].includes(letter?.workflow_status) && letter?.has_document === true;
+
+const previewDocument = async (letter) => {
+    if (!letter || documentBusy.value) return;
+
+    documentError.value = '';
+    documentBusy.value = 'preview';
+    documentPreviewLoading.value = true;
+    documentPreviewVisible.value = true;
+
+    try {
+        const response = await apiLogin.get(`/api/letters/outgoing/${letter.id}/document/preview`, { responseType: 'blob' });
+        if (documentPreviewUrl.value) URL.revokeObjectURL(documentPreviewUrl.value);
+        documentPreviewUrl.value = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+    } catch (error) {
+        documentPreviewVisible.value = false;
+        documentError.value = await blobErrorMessage(error, 'The letter preview could not be generated. Check letter settings and the selected subject.');
+    } finally {
+        documentPreviewLoading.value = false;
+        documentBusy.value = '';
+    }
+};
+
+const closeDocumentPreview = () => {
+    documentPreviewVisible.value = false;
+    if (documentPreviewUrl.value) URL.revokeObjectURL(documentPreviewUrl.value);
+    documentPreviewUrl.value = '';
+};
+
+const downloadDocument = async (letter) => {
+    if (!letter || documentBusy.value) return;
+
+    documentError.value = '';
+    documentBusy.value = 'download';
+
+    try {
+        const response = await apiLogin.get(`/api/letters/outgoing/${letter.id}/document`, { responseType: 'blob' });
+        const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+        const filename = response.headers?.['x-document-filename'] ?? '';
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename || `letter-${letter.id}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (error) {
+        documentError.value = await blobErrorMessage(error, 'The stored letter PDF could not be downloaded.');
+    } finally {
+        documentBusy.value = '';
+    }
+};
+
 const removeVisible = ref(false);
 const removeSaving = ref(false);
 const removeTarget = ref(null);
@@ -715,12 +995,14 @@ onMounted(async () => {
             </div>
 
             <div class="card mt-6 flex flex-col gap-4">
-                <div class="flex flex-col xl:flex-row xl:items-center gap-3">
+                <div class="flex flex-col xl:flex-row xl:items-center xl:flex-wrap gap-3">
                     <IconField class="w-full xl:max-w-sm">
                         <InputIcon><i class="pi pi-search" /></InputIcon>
                         <InputText v-model="filters.search" placeholder="Search number, recipient, or subject" class="w-full" maxlength="100" aria-label="Search outgoing letters" @input="onSearchInput" />
                     </IconField>
                     <Select v-model="filters.workflowStatus" :options="statusFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-48" aria-label="Workflow status" @change="onFilterChange" />
+                    <Select v-model="filters.letterType" :options="typeFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-56" aria-label="Letter type" @change="onFilterChange" />
+                    <Select v-model="filters.hasDocument" :options="documentFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-44" aria-label="Document availability" @change="onFilterChange" />
                     <DatePicker
                         v-model="filters.letterFrom"
                         placeholder="Letter date from"
@@ -763,7 +1045,7 @@ onMounted(async () => {
                     :rowsPerPageOptions="perPageOptions"
                     dataKey="id"
                     :loading="listLoading"
-                    tableStyle="min-width: 74rem"
+                    tableStyle="min-width: 84rem"
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} letters"
                     @page="onPage"
@@ -779,6 +1061,11 @@ onMounted(async () => {
                     <Column header="Reference" style="min-width: 7rem">
                         <template #body="{ data }">
                             <span class="font-medium">{{ data.reference }}</span>
+                        </template>
+                    </Column>
+                    <Column header="Type" style="min-width: 11rem">
+                        <template #body="{ data }">
+                            <Tag :value="data.letter_type_label ?? 'General Letter'" :severity="data.letter_type ? 'info' : 'secondary'" />
                         </template>
                     </Column>
                     <Column header="Recorded" style="min-width: 8rem">
@@ -810,6 +1097,13 @@ onMounted(async () => {
                     </Column>
                     <Column header="Files" style="min-width: 5rem">
                         <template #body="{ data }">{{ data.attachments_count ?? 0 }}</template>
+                    </Column>
+                    <Column header="PDF" style="min-width: 4rem">
+                        <template #body="{ data }">
+                            <i v-if="data.has_document" class="pi pi-file-pdf text-green-600" aria-hidden="true"></i>
+                            <span v-if="data.has_document" class="sr-only">PDF available</span>
+                            <span v-else class="text-surface-400" aria-label="No PDF">—</span>
+                        </template>
                     </Column>
                     <Column header="Actions" style="min-width: 9rem">
                         <template #body="{ data }">
@@ -867,6 +1161,91 @@ onMounted(async () => {
             </div>
 
             <div class="flex flex-col gap-2">
+                <label for="outgoingLetterType" class="font-medium">Letter Type</label>
+                <Select
+                    inputId="outgoingLetterType"
+                    v-model="form.letterType"
+                    :options="letterTypeOptions"
+                    optionLabel="label"
+                    optionValue="value"
+                    :disabled="formMode === 'edit'"
+                    fluid
+                    @change="onLetterTypeChange"
+                />
+                <small v-if="formMode === 'edit'" class="text-surface-500">The letter type and subject cannot be changed after the letter is created.</small>
+                <small v-if="fieldError(formErrors, 'letter_type')" class="text-red-500">{{ fieldError(formErrors, 'letter_type') }}</small>
+            </div>
+
+            <template v-if="typedForm">
+                <Message v-if="!settingsReady" severity="warn" :closable="false">
+                    Letter settings are incomplete ({{ settingsMissingLabel || 'header, signatory, or signature' }}). You can save this draft, but it cannot be submitted until Letter Settings are complete.
+                </Message>
+
+                <div class="flex flex-col gap-2">
+                    <label for="outgoingDocumentSubject" class="font-medium">
+                        {{ form.letterType === 'student_active' ? 'Student' : form.letterType === 'student_mutation' ? 'Mutation record' : 'Employee' }}
+                        <span class="text-red-500">*</span>
+                    </label>
+                    <AutoComplete
+                        inputId="outgoingDocumentSubject"
+                        v-model="form.documentSubject"
+                        :suggestions="subjectSuggestions"
+                        optionLabel="label"
+                        :loading="subjectLoading"
+                        :disabled="formMode === 'edit'"
+                        :minLength="0"
+                        dropdown
+                        forceSelection
+                        placeholder="Type to search"
+                        fluid
+                        @complete="searchSubjects"
+                    />
+                    <small v-if="formMode === 'edit'" class="text-surface-500">Selected: {{ form.documentSubject?.label ?? '-' }}</small>
+                    <small v-if="subjectError" class="text-red-500">{{ subjectError }}</small>
+                    <small v-if="fieldError(formErrors, 'document_subject_id')" class="text-red-500">{{ fieldError(formErrors, 'document_subject_id') }}</small>
+                </div>
+
+                <div v-if="form.letterType === 'student_active'" class="flex flex-col gap-2">
+                    <label for="outgoingPurpose" class="font-medium">Purpose <span class="text-red-500">*</span></label>
+                    <Textarea id="outgoingPurpose" v-model="form.purpose" rows="3" :maxlength="typedLimits.purpose_max_length ?? 500" autoResize placeholder="Purpose stated in the certificate" />
+                    <small class="text-surface-500">{{ form.purpose.length }}/{{ typedLimits.purpose_max_length ?? 500 }}</small>
+                    <small v-if="fieldError(formErrors, 'document_fields.purpose')" class="text-red-500">{{ fieldError(formErrors, 'document_fields.purpose') }}</small>
+                </div>
+
+                <Message v-if="form.letterType === 'student_mutation'" severity="info" :closable="false">
+                    The certificate uses the selected mutation record: class, destination school, NPSN, effective date, and reason. No additional fields are required.
+                </Message>
+
+                <template v-if="form.letterType === 'employee_duty'">
+                    <div class="flex flex-col gap-2">
+                        <label for="outgoingDutyDescription" class="font-medium">Duty Description <span class="text-red-500">*</span></label>
+                        <Textarea id="outgoingDutyDescription" v-model="form.dutyDescription" rows="4" :maxlength="typedLimits.duty_description_max_length ?? 2000" autoResize placeholder="Describe the assigned duty" />
+                        <small class="text-surface-500">{{ form.dutyDescription.length }}/{{ typedLimits.duty_description_max_length ?? 2000 }}</small>
+                        <small v-if="fieldError(formErrors, 'document_fields.duty_description')" class="text-red-500">{{ fieldError(formErrors, 'document_fields.duty_description') }}</small>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex flex-col gap-2">
+                            <label for="outgoingDutyStart" class="font-medium">Start Date <span class="text-red-500">*</span></label>
+                            <DatePicker inputId="outgoingDutyStart" v-model="form.dutyStart" dateFormat="yy-mm-dd" showIcon manualInput fluid />
+                            <small v-if="fieldError(formErrors, 'document_fields.start_date')" class="text-red-500">{{ fieldError(formErrors, 'document_fields.start_date') }}</small>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <label for="outgoingDutyEnd" class="font-medium">End Date <span class="text-red-500">*</span></label>
+                            <DatePicker inputId="outgoingDutyEnd" v-model="form.dutyEnd" dateFormat="yy-mm-dd" showIcon manualInput fluid />
+                            <small v-if="fieldError(formErrors, 'document_fields.end_date')" class="text-red-500">{{ fieldError(formErrors, 'document_fields.end_date') }}</small>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <label for="outgoingDutyLocation" class="font-medium">Location <span class="text-red-500">*</span></label>
+                        <InputText id="outgoingDutyLocation" v-model="form.location" :maxlength="typedLimits.location_max_length ?? 200" />
+                        <small v-if="fieldError(formErrors, 'document_fields.location')" class="text-red-500">{{ fieldError(formErrors, 'document_fields.location') }}</small>
+                    </div>
+                </template>
+            </template>
+
+            <div class="flex flex-col gap-2">
                 <label for="outgoingNotes" class="font-medium">Notes</label>
                 <Textarea id="outgoingNotes" v-model="form.notes" rows="3" maxlength="2000" autoResize placeholder="Optional internal notes" />
                 <small class="text-surface-500">{{ form.notes.length }}/2000</small>
@@ -889,6 +1268,7 @@ onMounted(async () => {
             <div class="flex flex-wrap items-center gap-2">
                 <Tag :value="workflowLabels[detail.workflow_status] ?? detail.workflow_status" :severity="workflowSeverity[detail.workflow_status] ?? 'secondary'" />
                 <Tag :value="detail.status === 'void' ? 'Void' : 'Active'" :severity="detail.status === 'void' ? 'danger' : 'success'" />
+                <Tag :value="detail.letter_type_label ?? 'General Letter'" :severity="detail.letter_type ? 'info' : 'secondary'" />
                 <Tag :value="detail.category" severity="secondary" />
                 <Tag :value="`Version ${detail.version}`" severity="contrast" />
                 <Tag v-if="detail.official_number" :value="detail.official_number" severity="success" />
@@ -935,6 +1315,10 @@ onMounted(async () => {
                     <div class="text-surface-500">Subject</div>
                     <div class="font-medium break-words">{{ detail.subject }}</div>
                 </div>
+                <div v-if="detail.letter_type">
+                    <div class="text-surface-500">Document subject</div>
+                    <div class="font-medium break-words">{{ detail.document_subject?.label ?? '-' }}</div>
+                </div>
                 <div>
                     <div class="text-surface-500">Recorded by</div>
                     <div class="font-medium">{{ detail.created_by?.name ?? '-' }} · {{ formatDateTime(detail.created_at) }}</div>
@@ -952,6 +1336,79 @@ onMounted(async () => {
             <div v-if="detail.notes">
                 <div class="text-sm text-surface-500 mb-1">Notes</div>
                 <div class="text-sm whitespace-pre-line break-words">{{ detail.notes }}</div>
+            </div>
+
+            <div v-if="detail.letter_type" class="border border-surface-200 dark:border-surface-700 rounded p-4 flex flex-col gap-3 text-sm">
+                <div class="font-semibold">Letter Content</div>
+                <div v-if="detail.letter_type === 'student_active'">
+                    <div class="text-surface-500">Purpose</div>
+                    <div class="whitespace-pre-line break-words">{{ detail.document_fields?.purpose || '-' }}</div>
+                </div>
+                <template v-else-if="detail.letter_type === 'employee_duty'">
+                    <div>
+                        <div class="text-surface-500">Duty description</div>
+                        <div class="whitespace-pre-line break-words">{{ detail.document_fields?.duty_description || '-' }}</div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div><div class="text-surface-500">Start date</div><div class="font-medium">{{ formatDate(detail.document_fields?.start_date) }}</div></div>
+                        <div><div class="text-surface-500">End date</div><div class="font-medium">{{ formatDate(detail.document_fields?.end_date) }}</div></div>
+                        <div><div class="text-surface-500">Location</div><div class="font-medium break-words">{{ detail.document_fields?.location || '-' }}</div></div>
+                    </div>
+                </template>
+                <div v-else class="text-surface-500">The certificate content follows the selected mutation record. The final layout is fixed when the letter is issued.</div>
+            </div>
+
+            <div class="border border-surface-200 dark:border-surface-700 rounded p-4 flex flex-col gap-3">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div class="font-semibold">Document</div>
+                    <div class="flex flex-wrap gap-2">
+                        <Button
+                            v-if="canPreviewDocument(detail)"
+                            label="Preview PDF"
+                            icon="pi pi-eye"
+                            size="small"
+                            variant="outlined"
+                            :loading="documentBusy === 'preview'"
+                            @click="previewDocument(detail)"
+                        />
+                        <Button
+                            v-if="canDownloadDocument(detail)"
+                            label="Download PDF"
+                            icon="pi pi-download"
+                            size="small"
+                            :loading="documentBusy === 'download'"
+                            @click="downloadDocument(detail)"
+                        />
+                    </div>
+                </div>
+
+                <Message v-if="documentError" severity="error" :closable="false">{{ documentError }}</Message>
+
+                <div v-if="detail.letter_type === null" class="text-sm text-surface-500">No PDF available (legacy letter).</div>
+                <template v-else>
+                    <div v-if="detail.document?.available" class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-sm">
+                        <div>
+                            <div class="text-surface-500">Template</div>
+                            <div class="font-medium">{{ detail.document.template_code }} v{{ detail.document.template_version }}</div>
+                        </div>
+                        <div>
+                            <div class="text-surface-500">Pages</div>
+                            <div class="font-medium">{{ detail.document.page_count }}</div>
+                        </div>
+                        <div>
+                            <div class="text-surface-500">Generated</div>
+                            <div class="font-medium">{{ formatDateTime(detail.document.generated_at) }}</div>
+                        </div>
+                        <div>
+                            <div class="text-surface-500">Size</div>
+                            <div class="font-medium">{{ formatSize(detail.document.size_bytes) }}</div>
+                        </div>
+                    </div>
+                    <div v-else-if="['draft', 'review', 'approved'].includes(detail.workflow_status)" class="text-sm text-surface-500">
+                        A watermarked preview is available. The final PDF is generated and stored when the letter is issued.
+                    </div>
+                    <div v-else class="text-sm text-surface-500">No stored PDF is available for this letter.</div>
+                </template>
             </div>
 
             <div class="border border-surface-200 dark:border-surface-700 rounded p-4">
@@ -1025,6 +1482,29 @@ onMounted(async () => {
                 </ol>
             </div>
         </div>
+    </Dialog>
+
+    <Dialog
+        v-model:visible="documentPreviewVisible"
+        modal
+        :draggable="false"
+        :style="{ width: 'min(96vw, 72rem)' }"
+        header="Letter PDF Preview"
+        @hide="closeDocumentPreview"
+    >
+        <div v-if="documentPreviewLoading" class="flex justify-center py-12">
+            <i class="pi pi-spin pi-spinner text-2xl" aria-hidden="true"></i>
+        </div>
+        <iframe
+            v-else-if="documentPreviewUrl"
+            :src="documentPreviewUrl"
+            title="Letter PDF preview"
+            class="w-full rounded border border-surface-200 dark:border-surface-700"
+            style="height: 75vh"
+        ></iframe>
+        <template #footer>
+            <Button label="Close" severity="secondary" variant="text" @click="closeDocumentPreview" />
+        </template>
     </Dialog>
 
     <Dialog v-model:visible="actionVisible" modal :draggable="false" :style="{ width: 'min(94vw, 38rem)' }" :header="actionConfig.title">

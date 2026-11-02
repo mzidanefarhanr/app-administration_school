@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Agenda surat (Fase 07a, DEC-32).
@@ -64,6 +65,7 @@ class Letter extends Model
         'letter_date',
         'source_number',
         'category',
+        'letter_type',
         'status',
         'version',
         'voided_at',
@@ -87,6 +89,10 @@ class Letter extends Model
         'recipient',
         'subject',
         'category',
+        'letter_type',
+        'document_subject_type',
+        'document_subject_id',
+        'document_fields',
         'notes',
         'status',
         'workflow_status',
@@ -108,6 +114,7 @@ class Letter extends Model
         'issued_at' => 'datetime',
         'voided_at' => 'datetime',
         'version' => 'integer',
+        'document_fields' => 'array',
     ];
 
     protected static function booted(): void
@@ -135,6 +142,11 @@ class Letter extends Model
     public function approvals(): HasMany
     {
         return $this->hasMany(LetterApproval::class, 'letter_id', 'id');
+    }
+
+    public function document(): HasOne
+    {
+        return $this->hasOne(LetterDocument::class, 'letter_id', 'id');
     }
 
     public function creator(): BelongsTo
@@ -165,5 +177,10 @@ class Letter extends Model
     public function isOutgoing(): bool
     {
         return $this->direction === self::DIRECTION_OUTGOING;
+    }
+
+    public function isTyped(): bool
+    {
+        return $this->letter_type !== null;
     }
 }

@@ -24,6 +24,9 @@ class StoreOutgoingLetterRequest extends FormRequest
             'recipient' => ['required', 'string', 'max:150'],
             'subject' => ['required', 'string', 'max:200'],
             'category' => ['required', 'string', Rule::in(config('letters.categories'))],
+            'letter_type' => ['nullable', 'string', Rule::in(array_keys(config('letters.letter_types')))],
+            'document_subject_id' => ['nullable', 'integer', 'min:1'],
+            'document_fields' => ['nullable', 'array'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];
     }
@@ -48,6 +51,10 @@ class StoreOutgoingLetterRequest extends FormRequest
             'subject.max' => 'The subject may not exceed 200 characters.',
             'category.required' => 'The category is required.',
             'category.in' => 'The selected category is not valid.',
+            'letter_type.in' => 'The selected letter type is not valid.',
+            'document_subject_id.integer' => 'The document subject must be a valid record ID.',
+            'document_subject_id.min' => 'The document subject must be a valid record ID.',
+            'document_fields.array' => 'The document fields must be an array.',
             'notes.max' => 'The notes may not exceed 2000 characters.',
         ];
     }

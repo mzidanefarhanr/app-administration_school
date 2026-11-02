@@ -12,8 +12,10 @@ use App\Http\Requests\SubmitOutgoingLetterRequest;
 use App\Http\Requests\UpdateOutgoingLetterRequest;
 use App\Http\Resources\StatusResource;
 use App\Services\Letters\LetterAttachmentService;
+use App\Services\Letters\LetterDocumentService;
 use App\Services\Letters\OutgoingLetterService;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -22,6 +24,7 @@ class OutgoingLetterController extends Controller
     public function __construct(
         private readonly OutgoingLetterService $letters,
         private readonly LetterAttachmentService $attachments,
+        private readonly LetterDocumentService $documents,
     ) {}
 
     public function options(): StatusResource
@@ -42,6 +45,12 @@ class OutgoingLetterController extends Controller
                 'string',
                 Rule::in([...config('letters.outgoing_workflow_statuses'), 'all']),
             ],
+            'letter_type' => [
+                'nullable',
+                'string',
+                Rule::in([...array_keys(config('letters.letter_types')), 'general', 'all']),
+            ],
+            'has_document' => ['nullable', Rule::in(['0', '1', 'true', 'false'])],
             'letter_from' => ['nullable', 'date_format:Y-m-d'],
             'letter_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:letter_from'],
             'per_page' => ['nullable', 'integer', Rule::in(config('letters.per_page_options'))],
@@ -49,6 +58,8 @@ class OutgoingLetterController extends Controller
         ], [
             'search.max' => 'The search term may not exceed 100 characters.',
             'workflow_status.in' => 'The selected workflow status is not valid.',
+            'letter_type.in' => 'The selected letter type is not valid.',
+            'has_document.in' => 'The document filter must be 0 or 1.',
             'letter_from.date_format' => 'The start date must use the YYYY-MM-DD format.',
             'letter_to.date_format' => 'The end date must use the YYYY-MM-DD format.',
             'letter_to.after_or_equal' => 'The end date may not be before the start date.',
@@ -165,6 +176,24 @@ class OutgoingLetterController extends Controller
         return new StatusResource(true, 'Outgoing letter cancelled successfully.', $data);
     }
 
+    public function previewDocument(int $letter): Response
+    {
+        $this->authorize('letters.view');
+
+        $document = $this->documents->preview($letter);
+
+        return $this->pdfResponse($document['bytes'], $document['filename']);
+    }
+
+    public function downloadDocument(int $letter): Response
+    {
+        $this->authorize('letters.view');
+
+        $document = $this->documents->download($letter);
+
+        return $this->pdfResponse($document['bytes'], $document['filename']);
+    }
+
     public function storeAttachment(StoreLetterAttachmentRequest $request, int $letter): StatusResource
     {
         $this->authorize('letters.manage');
@@ -190,5 +219,21 @@ class OutgoingLetterController extends Controller
         $data = $this->letters->removeAttachment($letter, $attachment, $request->user());
 
         return new StatusResource(true, 'Attachment removed successfully.', $data);
+    }
+
+    private function pdfResponse(string $bytes, string $filename): Response
+    {
+        // Content-Disposition is omitted because browsers block credentialed
+        // cross-origin fetches of such responses; the SPA reads the filename
+        // from the exposed header and applies it via the download attribute.
+        return response($bytes, 200, [
+            'Content-Type' => 'application/pdf',
+            'X-Document-Filename' => $filename,
+            'Access-Control-Expose-Headers' => 'X-Document-Filename',
+            'Content-Length' => (string) strlen($bytes),
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store',
+            'Content-Security-Policy' => 'sandbox',
+        ]);
     }
 }

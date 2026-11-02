@@ -89,6 +89,12 @@ const router = createRouter({
                     component: () => import('@/views/pages/public/OutgoingLetters.vue')
                 },
                 {
+                    path: '/public/letters/settings',
+                    name: 'letterSettings',
+                    meta: { breadcrumb: 'Letter Settings', requiresAbility: 'letters.view' },
+                    component: () => import('@/views/pages/public/LetterSettings.vue')
+                },
+                {
                     path: '/public/letters/dispositions',
                     name: 'letterDispositions',
                     meta: { breadcrumb: 'Letter Dispositions', requiresAbility: 'letters.view' },

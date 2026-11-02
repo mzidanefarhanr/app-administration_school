@@ -552,6 +552,418 @@ if ($command === 'prepare-dispositions') {
     exit(0);
 }
 
+if ($command === 'prepare-documents') {
+    $exit = $kernel->call('migrate', ['--force' => true]);
+    fwrite(STDOUT, $kernel->output());
+    if ($exit !== 0) {
+        exit($exit);
+    }
+
+    $operator = App\Models\User::where('username', 'uat.operator')->first();
+    $principal = App\Models\User::where('username', 'uat.kepsek')->first();
+    $admin = App\Models\User::where('username', 'uat.admin')->first();
+    if (! $operator || ! $principal || ! $admin) {
+        throw new RuntimeException('Run prepare first (UAT users are required).');
+    }
+
+    /** @var App\Services\Letters\LetterSettingsService $settingsService */
+    $settingsService = $app->make(App\Services\Letters\LetterSettingsService::class);
+
+    // 1. Konteks sekolah aktif (tahun ajaran 2026/2027) dan profil.
+    $educationLevel = App\Models\EducationLevel::firstOrCreate(['name' => 'Sekolah Menengah Atas']);
+    $province = App\Models\Province::firstOrCreate(['name' => 'DKI Jakarta UAT']);
+    $regency = App\Models\Regency::firstOrCreate(['province_id' => $province->id, 'name' => 'Jakarta Utara UAT']);
+    $district = App\Models\District::firstOrCreate(['regency_id' => $regency->id, 'name' => 'Koja UAT']);
+
+    $school = App\Models\EducationSchool::withTrashed()->firstOrNew(['npsn' => '20512345']);
+    $school->fill([
+        'name' => 'SMA Negeri 1 UAT Sintetis',
+        'education_level_id' => $educationLevel->id,
+        'status_education' => 'Negeri',
+        'address' => 'Jl. Sintetis No. 1, Jakarta Utara UAT',
+        'district_id' => $district->id,
+    ]);
+    $school->deleted_at = null;
+    $school->save();
+
+    $destination = App\Models\EducationSchool::withTrashed()->firstOrNew(['npsn' => '20599999']);
+    $destination->fill([
+        'name' => 'SMA Tujuan UAT Sintetis',
+        'education_level_id' => $educationLevel->id,
+        'status_education' => 'Swasta',
+        'address' => 'Jl. Tujuan No. 2, Jakarta Utara UAT',
+        'district_id' => $district->id,
+    ]);
+    $destination->deleted_at = null;
+    $destination->save();
+
+    $year = App\Models\SchoolYear::withTrashed()->firstOrNew(['name' => '2026/2027']);
+    $year->fill(['start_date' => '2026-07-01', 'end_date' => '2027-06-30']);
+    $year->deleted_at = null;
+    $year->save();
+
+    $academic = App\Models\AcademicSetting::find(App\Models\AcademicSetting::SINGLETON_ID);
+    if (! $academic) {
+        $academic = new App\Models\AcademicSetting;
+        $academic->id = App\Models\AcademicSetting::SINGLETON_ID;
+    }
+    if ($academic->active_school_year_id !== null && (int) $academic->active_school_year_id !== (int) $year->id) {
+        throw new RuntimeException('The active school year is already set to another year; reset it before preparing document fixtures.');
+    }
+    $academic->active_school_year_id = $year->id;
+    $academic->updated_by = $admin->id;
+    $academic->save();
+
+    $statusPrincipalId = App\Models\StatusUser::where('name', 'Aktif')->value('id');
+    if ($statusPrincipalId === null) {
+        throw new RuntimeException('The active principal status reference is missing.');
+    }
+
+    $profile = App\Models\SchoolProfile::withTrashed()->firstOrNew(['school_year_id' => $year->id]);
+    $profile->fill([
+        'education_school_npsn' => $school->npsn,
+        'principal_id' => $principal->id,
+        'status_principal_id' => $statusPrincipalId,
+    ]);
+    $profile->deleted_at = null;
+    $profile->save();
+
+    // 2. Kop/penandatangan sintetis dengan aset PNG privat.
+    $syntheticPng = function (string $path, int $width, int $height, string $label): void {
+        $image = imagecreatetruecolor($width, $height);
+        imagealphablending($image, false);
+        imagesavealpha($image, true);
+        $transparent = imagecolorallocatealpha($image, 0, 0, 0, 127);
+        imagefilledrectangle($image, 0, 0, $width, $height, $transparent);
+        imagealphablending($image, true);
+        $ink = imagecolorallocate($image, 15, 23, 42);
+        $font = 5;
+        $x = max(4, (int) (($width - imagefontwidth($font) * strlen($label)) / 2));
+        $y = (int) (($height - imagefontheight($font)) / 2);
+        imagestring($image, $font, $x, $y, $label, $ink);
+        imagepng($image, $path);
+        imagedestroy($image);
+    };
+    $upload = function (string $path, string $name): Illuminate\Http\UploadedFile {
+        return new Illuminate\Http\UploadedFile($path, $name, 'image/png', null, true);
+    };
+
+    $readiness = $settingsService->readiness();
+    if (! $readiness['header']) {
+        $settings = $settingsService->context()['settings'];
+        $header = [
+            'government_line' => 'PEMERINTAH PROVINSI UAT SINTETIS',
+            'school_name' => 'SMA NEGERI 1 UAT SINTETIS',
+            'address_line' => 'Jl. Sintetis No. 1, Jakarta Utara UAT',
+            'contact_line' => '(021) 0000000 - uat@example.invalid',
+            'place_of_issue' => 'Jakarta',
+        ];
+        if ($settings === null || ! $settings->logo_path) {
+            $logoPath = $runtime.'/tmp/uat-p07c-logo.png';
+            $syntheticPng($logoPath, 400, 160, 'UAT SYNTHETIC LOGO');
+            $header['logo'] = $upload($logoPath, 'uat-p07c-logo.png');
+        }
+        $settingsService->updateHeader($header, (int) ($settings?->version ?? 0), $admin);
+        @unlink($runtime.'/tmp/uat-p07c-logo.png');
+    }
+
+    $readiness = $settingsService->readiness();
+    if (! $readiness['signatory'] || ! $readiness['signature']) {
+        $settings = $settingsService->context()['settings'];
+        $signatory = [
+            'signatory_name' => 'UAT Kepala Sekolah',
+            'signatory_title' => 'Kepala Sekolah',
+            'signatory_identifier_label' => 'NIP',
+            'signatory_identifier' => '190000000000000001',
+        ];
+        if ($settings === null || ! $settings->signature_path) {
+            $signaturePath = $runtime.'/tmp/uat-p07c-signature.png';
+            $syntheticPng($signaturePath, 360, 120, 'UAT SYNTHETIC SIGNATURE');
+            $signatory['signature'] = $upload($signaturePath, 'uat-p07c-signature.png');
+        }
+        if ($settings === null || ! $settings->stamp_path) {
+            $stampPath = $runtime.'/tmp/uat-p07c-stamp.png';
+            $syntheticPng($stampPath, 200, 200, 'UAT SYNTHETIC STAMP');
+            $signatory['stamp'] = $upload($stampPath, 'uat-p07c-stamp.png');
+        }
+        $settingsService->updateSignatory($signatory, (int) ($settings?->version ?? 0), $principal);
+        @unlink($runtime.'/tmp/uat-p07c-signature.png');
+        @unlink($runtime.'/tmp/uat-p07c-stamp.png');
+    }
+
+    // 3. 120 siswa sintetis: 100 anggota aktif + 20 subjek mutasi keluar.
+    $schoolLevel = App\Models\SchoolLevel::firstOrCreate(['name' => 'UAT Level']);
+    $classNames = ['X-A', 'X-B', 'XI-A', 'XI-B'];
+    $classes = [];
+    foreach ($classNames as $suffix) {
+        $classes[$suffix] = App\Models\SchoolRombel::firstOrCreate(
+            ['school_year_id' => $year->id, 'name' => 'UAT-P07C '.$suffix],
+            ['school_level_id' => $schoolLevel->id]
+        );
+    }
+    $statusActive = App\Models\StudentStatus::firstOrCreate(['name' => 'Aktif']);
+    $statusMutationOut = App\Models\StudentStatus::firstOrCreate(['name' => 'Mutasi Keluar']);
+    if ((int) $statusMutationOut->id !== App\Services\Academic\StudentMutationService::STATUS_MUTATION_OUT) {
+        throw new RuntimeException('The mutation-out student status does not match the canonical id 2 baseline.');
+    }
+    $entryNew = App\Models\StudentEntry::firstOrCreate(['name' => 'Siswa Baru']);
+    $male = App\Models\Gender::firstOrCreate(['name' => 'Laki-Laki']);
+    $female = App\Models\Gender::firstOrCreate(['name' => 'Perempuan']);
+
+    $students = [];
+    $memberships = [];
+    $studentsCreated = 0;
+    for ($i = 1; $i <= 120; $i++) {
+        $nik = '07'.str_pad((string) $i, 14, '0', STR_PAD_LEFT);
+        $nis = '0710'.str_pad((string) $i, 3, '0', STR_PAD_LEFT);
+        $nisn = '0071'.str_pad((string) $i, 6, '0', STR_PAD_LEFT);
+
+        $existing = App\Models\Student::withTrashed()->where('nis', $nis)->first();
+        if (! $existing) {
+            $studentsCreated++;
+        }
+
+        $student = App\Models\Student::withTrashed()->updateOrCreate(['nis' => $nis], [
+            'name' => 'UAT-P07C Student '.str_pad((string) $i, 3, '0', STR_PAD_LEFT),
+            'nik' => $nik,
+            'nisn' => $nisn,
+            'birthplace' => 'Synthetic City',
+            'birthdate' => '2010-01-01',
+            'gender_id' => $i % 2 === 0 ? $female->id : $male->id,
+            'deleted_at' => null,
+        ]);
+
+        $classKey = $classNames[(int) floor(($i - 1) / 30)];
+        $membership = App\Models\StudentRombel::withTrashed()->firstOrNew([
+            'student_id' => $student->id,
+            'school_rombel' => $classes[$classKey]->id,
+        ]);
+        $membership->student_nik = $student->nik;
+        if (! $membership->exists || ($membership->latest_student_exit_date === null
+            && (int) $membership->student_status_id !== App\Services\Academic\StudentMutationService::STATUS_MUTATION_OUT)) {
+            $membership->student_status_id = $statusActive->id;
+            $membership->student_entry_id = $entryNew->id;
+            $membership->latest_student_entry_date = '2026-07-01';
+        }
+        $membership->archived_at = null;
+        $membership->deleted_at = null;
+        $membership->save();
+
+        $students[$i] = $student;
+        $memberships[$i] = $membership;
+    }
+
+    // 4. 20 mutasi keluar melalui service agar status membership konsisten.
+    /** @var App\Services\Academic\StudentMutationService $mutations */
+    $mutations = $app->make(App\Services\Academic\StudentMutationService::class);
+    $mutationsCreated = 0;
+    for ($i = 101; $i <= 120; $i++) {
+        $activeOut = App\Models\StudentMutation::query()
+            ->where('student_rombel_id', $memberships[$i]->id)
+            ->where('type', App\Models\StudentMutation::TYPE_OUT)
+            ->where('status', App\Models\StudentMutation::STATUS_ACTIVE)
+            ->exists();
+
+        if ($activeOut) {
+            continue;
+        }
+
+        $student = $students[$i]->fresh();
+        $membership = $memberships[$i]->fresh();
+        $mutations->mutationOut($student->id, [
+            'student_rombel_id' => $membership->id,
+            'effective_date' => '2026-10-'.str_pad((string) (($i - 101) % 28 + 1), 2, '0', STR_PAD_LEFT),
+            'school_npsn' => $destination->npsn,
+            'reason' => 'UAT-P07C synthetic mutation-out for document fixture '.sprintf('%03d', $i).'.',
+            'expected_student_version' => (int) $student->version,
+            'expected_membership_version' => (int) $membership->version,
+        ], $operator);
+        $mutationsCreated++;
+    }
+
+    $mutationRows = App\Models\StudentMutation::query()
+        ->whereIn('student_id', collect(range(101, 120))->map(fn (int $i) => $students[$i]->id))
+        ->where('type', App\Models\StudentMutation::TYPE_OUT)
+        ->where('status', App\Models\StudentMutation::STATUS_ACTIVE)
+        ->orderBy('id')
+        ->get();
+
+    // 5. Dua puluh surat bertipe dengan lintas status dan subjek.
+    /** @var App\Services\Letters\OutgoingLetterService $outgoing */
+    $outgoing = $app->make(App\Services\Letters\OutgoingLetterService::class);
+
+    $activeStudents = [];
+    for ($i = 1; $i <= 100; $i++) {
+        $activeStudents[] = $students[$i];
+    }
+
+    $activeEmployees = App\Models\Employee::query()
+        ->whereNull('exit_date')
+        ->orderBy('id')
+        ->take(4)
+        ->get()
+        ->all();
+    if (count($activeEmployees) < 4 || $mutationRows->count() < 4) {
+        throw new RuntimeException('Run prepare-outgoing and prepare-dispositions first (employees and mutations are required).');
+    }
+
+    $longDuty = trim(str_repeat('Melaksanakan tugas sintetis pengelolaan administrasi sekolah untuk kebutuhan pengujian dokumen. ', 14));
+
+    $specs = [];
+    $studentTargets = ['draft', 'draft', 'draft', 'draft', 'review', 'review', 'approved', 'approved', 'issued', 'issued', 'issued', 'cancelled'];
+    foreach ($studentTargets as $index => $target) {
+        $specs[] = [
+            'type' => 'student_active',
+            'subject_id' => (int) $activeStudents[$index]->id,
+            'fields' => ['purpose' => 'UAT-P07C synthetic purpose for active student certificate '.sprintf('%03d', $index + 1).'.'],
+            'target' => $target,
+            'cancel_after_issue' => $target === 'cancelled',
+        ];
+    }
+
+    foreach (['draft', 'approved', 'issued', 'cancelled'] as $index => $target) {
+        $specs[] = [
+            'type' => 'student_mutation',
+            'subject_id' => (int) $mutationRows[$index]->id,
+            'fields' => [],
+            'target' => $target,
+            'cancel_after_issue' => $target === 'cancelled',
+        ];
+    }
+
+    foreach (['draft', 'review', 'approved', 'issued'] as $index => $target) {
+        $specs[] = [
+            'type' => 'employee_duty',
+            'subject_id' => (int) $activeEmployees[$index]->id,
+            'fields' => [
+                'duty_description' => $index === 3 ? $longDuty : 'Melaksanakan pendampingan kegiatan sekolah sintetis untuk pengujian dokumen.',
+                'start_date' => '2026-11-02',
+                'end_date' => '2026-11-30',
+                'location' => 'SMA Negeri 1 UAT Sintetis',
+            ],
+            'target' => $target,
+            'cancel_after_issue' => false,
+        ];
+    }
+
+    $categories = config('letters.categories');
+    $advanceTo = function (App\Models\Letter $letter, string $target, bool $cancelAfterIssue) use ($outgoing, $operator, $principal, &$transitions): void {
+        for ($step = 0; $step < 8; $step++) {
+            $letter = $letter->fresh();
+            if (! $letter) {
+                return;
+            }
+
+            $status = (string) $letter->workflow_status;
+
+            if ($target === 'cancelled') {
+                if ($status === App\Models\Letter::WORKFLOW_CANCELLED) {
+                    return;
+                }
+                if ($status === App\Models\Letter::WORKFLOW_ISSUED) {
+                    $outgoing->cancel($letter->id, 'UAT-P07C synthetic cancellation after issue.', (int) $letter->version, $principal);
+                    $transitions++;
+
+                    continue;
+                }
+                if (! $cancelAfterIssue && in_array($status, [App\Models\Letter::WORKFLOW_DRAFT, App\Models\Letter::WORKFLOW_REVIEW], true)) {
+                    $outgoing->cancel($letter->id, 'UAT-P07C synthetic cancellation before issue.', (int) $letter->version, $operator);
+                    $transitions++;
+
+                    continue;
+                }
+            } elseif ($status === $target) {
+                return;
+            }
+
+            $version = (int) $letter->version;
+            if ($status === App\Models\Letter::WORKFLOW_DRAFT) {
+                $outgoing->submit($letter->id, $version, $operator);
+            } elseif ($status === App\Models\Letter::WORKFLOW_REVIEW) {
+                $outgoing->approve($letter->id, 'UAT-P07C synthetic approval note.', $version, $principal);
+            } elseif ($status === App\Models\Letter::WORKFLOW_APPROVED) {
+                $outgoing->issue($letter->id, $version, $principal);
+            } else {
+                return;
+            }
+            $transitions++;
+        }
+    };
+
+    $createdTyped = 0;
+    $reusedTyped = 0;
+    $transitions = 0;
+
+    foreach ($specs as $index => $spec) {
+        $n = $index + 1;
+        $subjectLabel = match ($spec['type']) {
+            'student_active' => 'Student Active',
+            'student_mutation' => 'Student Mutation',
+            default => 'Employee Duty',
+        };
+        $subject = sprintf('UAT-P07C Typed Letter %03d — %s', $n, $subjectLabel);
+
+        $letter = App\Models\Letter::query()
+            ->where('direction', App\Models\Letter::DIRECTION_OUTGOING)
+            ->where('subject', $subject)
+            ->first();
+
+        if ($letter) {
+            $reusedTyped++;
+        } else {
+            $date = Illuminate\Support\Carbon::create(2026, 10, 1)->addDays(($n - 1) % 28);
+            $outgoing->create([
+                'received_date' => $date->format('Y-m-d'),
+                'letter_date' => $date->copy()->subDay()->format('Y-m-d'),
+                'sender' => 'SMA Negeri 1 UAT Sintetis',
+                'recipient' => 'Dinas Pendidikan Sintetis',
+                'subject' => $subject,
+                'category' => $categories[($n - 1) % count($categories)],
+                'notes' => 'UAT-P07C synthetic typed letter fixture '.sprintf('%03d', $n).'.',
+                'letter_type' => $spec['type'],
+                'document_subject_id' => $spec['subject_id'],
+                'document_fields' => $spec['fields'],
+            ], $operator);
+            $createdTyped++;
+
+            $letter = App\Models\Letter::query()
+                ->where('direction', App\Models\Letter::DIRECTION_OUTGOING)
+                ->where('subject', $subject)
+                ->firstOrFail();
+        }
+
+        $advanceTo($letter, (string) $spec['target'], (bool) $spec['cancel_after_issue']);
+    }
+
+    $typedQuery = App\Models\Letter::query()->whereNotNull('letter_type');
+    $typedByType = (clone $typedQuery)->pluck('letter_type')->countBy();
+    $typedByStatus = (clone $typedQuery)->pluck('workflow_status')->countBy();
+    $documentFiles = Illuminate\Support\Facades\Storage::disk('local')->allFiles('attachments/letter-documents');
+    $counter = App\Models\LetterNumberCounter::query()
+        ->where('scope', 'outgoing')
+        ->where('period', Illuminate\Support\Carbon::now('Asia/Jakarta')->format('Y'))
+        ->first();
+
+    fwrite(STDOUT, 'School context: '.$school->name.' (NPSN '.$school->npsn.'), year '.$year->name
+        .', profile #'.$profile->id.', settings ready '.($settingsService->readiness()['ready'] ? 'yes' : 'no').".\n");
+    fwrite(STDOUT, 'Students: '.App\Models\Student::count().' total ('.$studentsCreated.' created this run); '
+        .App\Models\StudentRombel::query()->whereNull('archived_at')->whereNull('latest_student_exit_date')
+            ->whereHas('schoolRombel', fn ($query) => $query->where('school_year_id', $year->id))->count()
+        .' active memberships in '.$year->name.'.'."\n");
+    fwrite(STDOUT, 'Mutations: '.App\Models\StudentMutation::count().' total, '
+        .App\Models\StudentMutation::where('status', App\Models\StudentMutation::STATUS_ACTIVE)->count()
+        ." active ({$mutationsCreated} created this run).\n");
+    fwrite(STDOUT, 'Typed letters: '.(clone $typedQuery)->count()." total ({$createdTyped} created, {$reusedTyped} reused, {$transitions} transitions); "
+        .'student_active '.($typedByType['student_active'] ?? 0).', student_mutation '.($typedByType['student_mutation'] ?? 0)
+        .', employee_duty '.($typedByType['employee_duty'] ?? 0).".\n");
+    fwrite(STDOUT, 'Typed workflow: draft '.($typedByStatus['draft'] ?? 0).', review '.($typedByStatus['review'] ?? 0)
+        .', approved '.($typedByStatus['approved'] ?? 0).', issued '.($typedByStatus['issued'] ?? 0)
+        .', cancelled '.($typedByStatus['cancelled'] ?? 0).".\n");
+    fwrite(STDOUT, 'Letter documents: '.App\Models\LetterDocument::count().' rows, '.count($documentFiles)
+        .' private files; counter '.$counter?->period.' = '.($counter?->last_number ?? 0).".\n");
+    exit(0);
+}
+
 if ($command === 'status') {
     fwrite(STDOUT, "[ISOLATION GUARD PASS] Dedicated phase-07 SQLite UAT; no MariaDB connection.\n");
     $letters = App\Models\Letter::where('direction', 'incoming');
@@ -578,6 +990,40 @@ if ($command === 'status') {
     $counter = App\Models\LetterNumberCounter::query()->where('scope', 'outgoing')
         ->orderByDesc('period')->first();
     fwrite(STDOUT, 'Number counter: '.($counter ? $counter->period.' = '.$counter->last_number : 'none')."\n");
+    if (Illuminate\Support\Facades\Schema::hasTable('letter_settings')
+        && Illuminate\Support\Facades\Schema::hasTable('letter_documents')
+        && Illuminate\Support\Facades\Schema::hasColumn('letters', 'letter_type')) {
+        /** @var App\Services\Letters\LetterSettingsService $settingsService */
+        $settingsService = $app->make(App\Services\Letters\LetterSettingsService::class);
+        $context = $settingsService->context();
+        $readiness = $settingsService->readiness($context);
+        $settings = $context['settings'];
+
+        fwrite(STDOUT, 'School context: year '.($context['school_year']?->name ?? 'none')
+            .', profile '.($context['profile'] ? '#'.$context['profile']->id.' ('.$context['profile']->education_school_npsn.')' : 'none')
+            .', letter settings '.($settings ? 'v'.$settings->version : 'none')
+            .', ready '.($readiness['ready'] ? 'yes' : 'no').', missing '
+            .($readiness['missing'] === [] ? 'none' : implode(', ', $readiness['missing'])).".\n");
+        $typed = App\Models\Letter::query()->whereNotNull('letter_type');
+        $typedByType = (clone $typed)->pluck('letter_type')->countBy();
+        $typedByStatus = (clone $typed)->pluck('workflow_status')->countBy();
+        fwrite(STDOUT, 'Typed letters: '.(clone $typed)->count().' total; student_active '.($typedByType['student_active'] ?? 0)
+            .', student_mutation '.($typedByType['student_mutation'] ?? 0).', employee_duty '.($typedByType['employee_duty'] ?? 0)
+            .'; draft '.($typedByStatus['draft'] ?? 0).', review '.($typedByStatus['review'] ?? 0)
+            .', approved '.($typedByStatus['approved'] ?? 0).', issued '.($typedByStatus['issued'] ?? 0)
+            .', cancelled '.($typedByStatus['cancelled'] ?? 0).".\n");
+        $documentFiles = Illuminate\Support\Facades\Storage::disk('local')->allFiles('attachments/letter-documents');
+        $documentPages = App\Models\LetterDocument::query()->sum('page_count');
+        fwrite(STDOUT, 'Letter documents: '.App\Models\LetterDocument::count().' rows ('.$documentPages
+            .' pages), '.count($documentFiles)." private PDF files.\n");
+        fwrite(STDOUT, 'Students: '.App\Models\Student::count().' total; '
+            .App\Models\StudentRombel::query()->whereNull('archived_at')->whereNull('latest_student_exit_date')
+                ->whereHas('schoolRombel', fn ($query) => $query->where('school_year_id', $context['school_year']?->id))->count()
+            .' active memberships in the active year; '.App\Models\StudentMutation::count().' mutation logs ('
+            .App\Models\StudentMutation::where('status', App\Models\StudentMutation::STATUS_ACTIVE)->count()." active).\n");
+    } else {
+        fwrite(STDOUT, "Typed documents: 07c migration not applied yet (run prepare-documents).\n");
+    }
     $dispositions = App\Models\LetterDisposition::query();
     $dispositionByStatus = (clone $dispositions)->pluck('status')->countBy();
     fwrite(STDOUT, 'Dispositions: '.(clone $dispositions)->count().' total; pending '.($dispositionByStatus['pending'] ?? 0)
@@ -591,4 +1037,4 @@ if ($command === 'status') {
     exit(0);
 }
 
-throw new RuntimeException('Allowed commands: init, prepare, prepare-letters, prepare-outgoing, prepare-dispositions, status. Serve using PHP -S 127.0.0.1:18025 with this router.');
+throw new RuntimeException('Allowed commands: init, prepare, prepare-letters, prepare-outgoing, prepare-dispositions, prepare-documents, status. Serve using PHP -S 127.0.0.1:18025 with this router.');
