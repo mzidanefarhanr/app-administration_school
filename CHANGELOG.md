@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-02] Fase 08b — Rencana keputusan dan rekap izin disusun (proposed DEC-36)
+- Type: Docs
+- Scope / fase: Perencanaan 08b (approve/reject, pembatalan izin approved, rekap). Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `reports/feature-update/PHASE-08B-PLAN.md`, `reports/feature-update/INDEX.md`, `HANDOFF.md`, `PHASE-08-PLAN.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-08-LEAVES.md`, `PROJECT_CONTEXT.md`, `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `CHANGELOG.md`.
+- What changed: rencana 08b dengan D1–D8 berstatus **PLAN — AWAITING OWNER APPROVAL** dan usulan **DEC-36 PROPOSED**: approve/reject hanya `leaves.approve` tanpa self-decision dan hanya `submitted` (reject wajib alasan 10–500, approve opsional), pembatalan approved via `/cancel` oleh approver beralasan 10–255 tanpa menghapus riwayat, `GET /api/leaves/recap` (≤366 hari, irisan tanggal izin, agregat tanpa PII), transaksi + `lockForUpdate` + `expected_version`/`409`, tab Recap, total 16 route, tanpa tabel/kolom/ability/dependency baru; UAT `.uat-phase08` `prepare-decisions` direncanakan saat implementasi.
+- Why: menyiapkan subfase berikutnya setelah 08a diterima, tanpa menebak keputusan bisnis; persetujuan pemilik diperlukan sebelum implementasi.
+- Validation: **NOT RUN** — tidak ada tes/build/Pint/ESLint/route/browser/UAT pada paket rencana; server UAT tidak dinyalakan.
+- Notes / risks: 08b belum diotorisasi sampai D1–D8 disetujui; DEC-35 tetap; DEC-13 OPEN; tanpa perubahan dependency/service/`.env`/DB.
+- Evidence: `reports/feature-update/PHASE-08B-PLAN.md`; baseline `618b8f8`; SHA paket dilaporkan setelah push (tanpa klaim SHA masa depan).
+
 ## [2026-11-02] Fase 08a — Penerimaan pemilik #1–#16 dan penghentian UAT
 - Type: Docs
 - Scope / fase: Penerimaan checklist manual 08a; penghentian server UAT. Tidak ada perubahan kode aplikasi pada entri ini.
