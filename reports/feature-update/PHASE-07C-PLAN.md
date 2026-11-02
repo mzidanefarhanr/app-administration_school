@@ -646,15 +646,15 @@ subfase siap review; jangan lanjut Fase 08 atau merge/deploy.
 ## 12. Syarat keluar 07c
 
 - [x] D1–D11 disetujui dan dicatat sebagai **DEC-34 APPROVED** (2026-11-02 WIB); **DEC-11 CLOSED untuk lingkup 07c**; DEC-13 tetap OPEN.
-- [ ] Dependency D2 disetujui dan hanya `dompdf/dompdf:^2.0` + transitive yang ditambahkan; diff lockfile diperiksa.
-- [ ] `letter_settings`, `letter_documents`, dan kolom typed pada `letters` dimigrasikan additive; 07a/07b tetap berjalan.
-- [ ] Tiga jenis surat, kop/logo/penandatangan/signature/stamp, PDF, snapshot, preview, dan download berfungsi.
-- [ ] Matriks T1–T28 dijalankan atau NOT RUN dengan alasan; hasil aktual (jumlah tes/assertions) dicatat.
-- [ ] UAT `.uat-phase07` + `prepare-documents` dan checklist manual tersedia; persetujuan pemilik dicatat terpisah.
-- [ ] Kontrak DATABASE/API-CONTRACTS/ACCESS-CONTROL/OPERATIONS/REQUIREMENTS diperbarui.
-- [ ] SHA/working tree, known issues, dan langkah berikutnya dicatat di INDEX/HANDOFF/ROADMAP/laporan.
-- [ ] Server UAT dihentikan setelah penerimaan (DEC-27); data dipertahankan.
-- [ ] Tidak ada merge/deploy/force-push/rewrite, migrasi DB operasional/MariaDB, perubahan service/`.env`, atau dependency lain; Fase 08 tidak dimulai.
+- [x] Dependency D2 disetujui dan hanya `dompdf/dompdf v2.0.8` + empat transitive (`masterminds/html5`, `phenx/php-font-lib`, `phenx/php-svg-lib`, `sabberworm/php-css-parser`) yang ditambahkan; diff lockfile diperiksa, tanpa penghapusan/upgrade lain.
+- [x] `letter_settings`, `letter_documents`, dan kolom typed pada `letters` dimigrasikan additive; 07a/07b tetap berjalan (regresi Letters 86/1.744).
+- [x] Tiga jenis surat, kop/logo/penandatangan/signature/stamp, PDF, snapshot, preview, dan download berfungsi (settings 10/167; documents 21/744).
+- [x] Matriks T1–T28 dijalankan atau NOT RUN dengan alasan; hasil aktual (31 tes/911 assertions; NOT RUN dicatat di `PHASE-07C-REPORT.md`).
+- [ ] UAT `.uat-phase07` + `prepare-documents` dan checklist manual tersedia; persetujuan pemilik dicatat terpisah. **Checklist tersedia; review pemilik PENDING (#1–#18).**
+- [x] Kontrak DATABASE/API-CONTRACTS/ACCESS-CONTROL/OPERATIONS/REQUIREMENTS diperbarui.
+- [x] SHA/working tree, known issues, dan langkah berikutnya dicatat di INDEX/HANDOFF/ROADMAP/laporan (`4713c70` → `2a78b7e`).
+- [ ] Server UAT dihentikan setelah penerimaan (DEC-27); data dipertahankan. **Belum: server 14025/18025 masih berjalan sampai penerimaan.**
+- [x] Tidak ada merge/deploy/force-push/rewrite, migrasi DB operasional/MariaDB, perubahan service/`.env`, atau dependency lain; Fase 08 tidak dimulai.
 
 ---
 

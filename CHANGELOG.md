@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-02] Fase 07c — Kop, tanda tangan, stempel, template PDF, dan snapshot surat (implementasi)
+- Type: Feature
+- Scope / fase: Subfase 07c sesuai DEC-34 (D1–D11); 07a/07b tetap berjalan; Fase 08 tidak dimulai.
+- Files touched: tiga migration additive (`letter_settings`, `letter_documents`, kolom typed `letters`); model `LetterSettings`/`LetterDocument` + perluasan `Letter`; service settings/aset/template/renderer/dokumen/subjek + integrasi `OutgoingLetterService::issue()`; controller settings/subjek, request header/signatory + typed, sembilan route baru; enam template Blade; `config/letters.php`; `composer.json`/`composer.lock` (hanya dompdf + transitive); tes settings/dokumen + fixture; `scripts/phase07-uat.php`; `LetterSettings.vue`, `OutgoingLetters.vue`, router, menu; dokumentasi.
+- What changed: `letter_settings` 1:1 dengan profil sekolah aktif (kop/logo/penandatangan/signature/stamp privat, readiness, versi) dan `letter_documents` immutable; tiga jenis surat (`student_active`, `student_mutation`, `employee_duty`) dengan tipe/subjek immutable; template Blade berversi dan `dompdf/dompdf v2.0.8`; PDF + snapshot minimal PII dibuat di dalam transaksi `approved → issued` setelah nomor (gagal → rollback, nomor tidak dikonsumsi); preview watermarked draft/review/approved; download issued/cancelled; surat umum/legacy `404`; 9 endpoint (total 37 route surat); halaman Letter Settings dan typed Outgoing.
+- Why: menutup DEC-11 untuk lingkup 07c dan menyediakan dokumen resmi bertanda tangan/stempel yang tidak berubah setelah terbit, sesuai D1–D11.
+- Validation: `LetterSettingsTest` **10/167**, `LetterDocumentTest` **21/744**, gabungan **31/911 (59,98 s)**, regresi Letters **86/1.744 (109,17 s)**; suite penuh **552 passed / 1 failed / 13 skipped / 6.235 assertions (541,94 s)** dengan kegagalan tunggal filter route 06c yang menghitung route 07c — diperbaiki dan lulus ulang **1/23 (4,32 s)**, suite penuh tidak diulang karena tes drill MariaDB melanggar batas akses; Pint **28**; **37 route**; build **32,44 s**; ESLint **0 error** (623 warning); UAT `.uat-phase07` `prepare-documents` (20 surat bertipe, 7 dokumen/12 halaman/7 PDF, nomor 007–013, settings v2; 07a/07b utuh); browser settings/preview/PDF 2 halaman/390 px/0 console error.
+- Notes / risks: review pemilik **PENDING (#1–#18)**; DEC-13 tetap OPEN; render sinkron tanpa queue, retensi file, dan backfill legacy belum ada; unduhan lampiran 07a/07b masih kena blokir CORS `Content-Disposition` (di luar scope); `MariaDbIntegrationTest` baseline membaca `school_access_uat` saat MariaDB root terjangkau — suite penuh tidak diulang dan tes perlu digating; item NOT RUN dicatat di laporan. Tidak ada merge/deploy, migrasi DB operasional/MariaDB, atau perubahan service/`.env`.
+- Evidence: `reports/feature-update/PHASE-07C-REPORT.md`, `PHASE-07C-MANUAL-REVIEW.md`; paket implementasi `2a78b7e` di atas baseline `4713c70`; paket dokumentasi dicatat setelah commit.
+
 ## [2026-11-02] Fase 07c — Pemilik menyetujui rencana (DEC-34 APPROVED; DEC-11 CLOSED untuk 07c)
 - Type: Docs
 - Scope / fase: Persetujuan rencana Subfase 07c; implementasi 07c diotorisasi. Tidak ada perubahan kode aplikasi pada entri ini.

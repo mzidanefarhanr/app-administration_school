@@ -1,11 +1,11 @@
 # Rencana Fase 07 — Persuratan: Subfase 07a (Surat Masuk dan Lampiran)
 
 - Tanggal: 2026-11-01 (WIB). Branch: `main`. Baseline dokumen: `1101812` (HEAD; penerimaan 06c tercatat).
-- Status dokumen: **PLAN APPROVED — DEC-32 APPROVED 2026-11-01 WIB** berdasarkan pernyataan pemilik **"Saya setuju D1-D10"**. Implementasi 07a **selesai, agent-verified, dan OWNER APPROVED (#1–#16, 2026-11-01 WIB)**. Rencana rinci **07b** tersedia di `PHASE-07B-PLAN.md` dan **APPROVED 2026-11-01 WIB sebagai DEC-33** ("Saya setuju D1-D11"); implementasi 07b diotorisasi dan **DEC-06 ditutup**. 07c tetap memerlukan rencana dan keputusan terpisah. Bukti: `PHASE-07A-REPORT.md`; checklist pemilik `PHASE-07A-MANUAL-REVIEW.md`.
+- Status dokumen: **PLAN APPROVED — DEC-32 APPROVED 2026-11-01 WIB** berdasarkan pernyataan pemilik **"Saya setuju D1-D10"**. Implementasi 07a **selesai, agent-verified, dan OWNER APPROVED (#1–#16, 2026-11-01 WIB)**. Rencana rinci **07b** tersedia di `PHASE-07B-PLAN.md` dan **APPROVED 2026-11-01 WIB sebagai DEC-33** ("Saya setuju D1-D11"); implementasi 07b diotorisasi dan **DEC-06 ditutup**. Rencana **07c** disetujui sebagai **DEC-34** ("Saya setuju D1-D11", 2026-11-02 WIB), diimplementasikan, dan diverifikasi agen; review pemilik **PENDING (#1–#18)**. Bukti: `PHASE-07A-REPORT.md`, `PHASE-07C-REPORT.md`; checklist pemilik `PHASE-07A-MANUAL-REVIEW.md`, `PHASE-07C-MANUAL-REVIEW.md`.
 - Cakupan: **07a saja** — agenda surat masuk (tanggal terima/tanggal surat, nomor sumber, pengirim, perihal, kategori, catatan), lampiran privat, pencarian/filter, edit/void berversi, dan history. Layanan file minimal dibuat di sini dan diperluas pada Fase 09.
 - Di luar cakupan: **07b** (disposisi, surat keluar, penomoran, approval/sign), **07c** (template PDF, snapshot, kop/tanda tangan/stempel), OCR, e-sign provider, pengiriman email/WhatsApp otomatis, arsip terpusat/versioning Fase 09, retensi/pemusnahan data pribadi (DEC-13), merge/deploy, migrasi database operasional/MariaDB, perubahan dependency/lockfile/`.env`/service.
 - Dokumen acuan: `roadmap/phases/PHASE-07-LETTERS.md`, `roadmap/ROADMAP.md`, `docs/DECISIONS.md` (DEC-06, DEC-11, DEC-13, DEC-27), `docs/DATABASE.md`, `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `docs/OPERATIONS.md`, `docs/TESTING.md`, `reports/feature-update/PHASE-06C-PLAN.md`.
-- Gate: 06c **OWNER APPROVED 2026-11-01 WIB (#1–#16)**; **DEC-11 tetap OPEN** dan hanya menjadi gate 07c; **DEC-06 CLOSED** melalui DEC-33 (D4–D5) untuk 07b. Tidak ada PDF library terpasang; 07c memerlukan keputusan dependency terpisah. **D1–D10 APPROVED 2026-11-01 WIB sebagai DEC-32**; implementasi 07a selesai sesuai rencana ini.
+- Gate: 06c **OWNER APPROVED 2026-11-01 WIB (#1–#16)**; **DEC-11 CLOSED untuk lingkup 07c** melalui DEC-34/D9; **DEC-06 CLOSED** melalui DEC-33 (D4–D5) untuk 07b. Dependency 07c disetujui melalui D2/DEC-34 dan hanya `dompdf/dompdf v2.0.8` + empat transitive yang ditambahkan. **D1–D10 APPROVED 2026-11-01 WIB sebagai DEC-32**; implementasi 07a selesai sesuai rencana ini; 07c telah diimplementasikan dan diverifikasi agen.
 
 ---
 
@@ -20,9 +20,9 @@
 | File privat | Pola storage privat + download berizin sudah ada pada modul impor; backup memindai `storage/app/attachments` | Dapat dipakai ulang dengan path baru |
 | Backup lampiran | `config/backup.php` menunjuk `storage/app/attachments`; direktori belum ada; manifest menyatakan modul lampiran operasional belum ada | Perlu diselaraskan saat 07a |
 | Data untuk 07c | Siswa dan pegawai sudah tersedia untuk auto-fill; letterhead/signatory/stempel belum ada di `school_profiles` | Gap 07c, bukan 07a |
-| PDF | Tidak ada library PDF di `composer.json`/`composer.lock` | Gate dependency 07c |
+| PDF | D2/DEC-34 disetujui; `dompdf/dompdf v2.0.8` + empat transitive ditambahkan | Terpenuhi (07c) |
 | UAT | `.uat-phase06` dipertahankan; server 14024/18024 berhenti; belum ada `.uat-phase07` | Perlu lingkungan baru |
-| Keputusan | DEC-06 **CLOSED** melalui DEC-33/D4–D5 (07b); DEC-11 (kop/tanda tangan/stempel/jenis surat pertama) **OPEN** | DEC-11 gate 07c |
+| Keputusan | DEC-06 **CLOSED** melalui DEC-33/D4–D5 (07b); DEC-11 **CLOSED untuk lingkup 07c** melalui DEC-34/D9; DEC-13 tetap OPEN | Terpenuhi |
 
 Catatan: seluruh kondisi di atas diverifikasi dari source, migration, konfigurasi, dan dokumen aktual, bukan dari data operasional.
 

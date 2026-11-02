@@ -97,6 +97,21 @@ API mayoritas hanya auth:sanctum. Beberapa controller akun membedakan tipe secar
 - **Void incoming dengan disposisi terbuka**: ditolak `409` untuk semua aktor sampai disposisi completed/cancelled.
 - **UI**: grup **Letters** menampilkan Incoming/Outgoing/Dispositions dengan `letters.view`; tombol approve/reject `letters.approve`, issue `letters.sign`, tulis `letters.manage`; principal/wakil view-only tetap mendapat `403` dari server untuk mutasi. Panel Assign hanya untuk `letters.manage` + `employees.view`.
 
+## Implementasi Subfase 07c (kop, penandatangan, aset, dan dokumen PDF)
+- **Tanpa ability/role baru**: `letters.view`/`letters.manage`/`letters.approve`/`letters.sign`/`students.view`/`employees.view` dipakai kembali. Admin Sistem/Operator tetap tidak otomatis memperoleh `letters.sign`; Kepala Sekolah tidak otomatis dapat mengubah header/logo.
+- **Route matrix**:
+  - `GET /api/letters/settings` (metadata/readiness/suggestions) → `letters.view`.
+  - `POST /api/letters/settings/header` (kop + logo) → `letters.manage`.
+  - `POST /api/letters/settings/signatory` (penandatangan + signature + stamp) → `letters.sign`.
+  - `GET /api/letters/settings/assets/{asset}` → `logo` dengan `letters.view`; `signature`/`stamp` hanya `letters.sign`.
+  - `GET /api/letters/outgoing/subjects/students` dan `student-mutations` → `letters.manage` + `students.view`; `employees` → `letters.manage` + `employees.view`.
+  - `GET /api/letters/outgoing/{letter}/document` dan `.../preview` → `letters.view`.
+- **Pemisahan data sensitif**: aset mentah signature/stamp tidak boleh dibaca operator/wakil; logo boleh dibaca `letters.view`. Settings response tidak memuat path/hash; `LetterDocument` tidak mengekspos snapshot/path/hash.
+- **Batas objek/state**: settings selalu diresolusikan ke tahun ajaran aktif dan profil sekolahnya; dokumen hanya untuk outgoing bertipe; download hanya issued/cancelled; preview hanya draft/review/approved; general/legacy `404`; subjek/tipe salah `404`/`422`; konflik versi settings `409` tanpa mutasi.
+- **Readiness sebagai gate**: submit/issue typed memvalidasi settings lengkap dan subjek eligible (`422`); tombol UI mengikuti readiness, tetapi server tetap menolak bila tidak siap. General letter 07b tidak memerlukan settings/PDF.
+- **UI**: **Letter Settings** (`letters.view`; form header/logo hanya `letters.manage`, form signatory/aset hanya `letters.sign`), perluasan **Outgoing Letters** (typed create/edit `letters.manage`, preview/download `letters.view`). Seluruh tombol disembunyikan sesuai ability; server tetap `403`/`404`.
+- **Header respons dokumen**: PDF memakai `application/pdf`, `X-Document-Filename`, `nosniff`, `Cache-Control: private, no-store`, CSP sandbox; **tanpa `Content-Disposition`** karena browser memblokir `fetch` lintas origin berkredensial untuk respons yang memuat header tersebut. UI memakai `X-Document-Filename` untuk nama file. Ini bukan pelemahan otorisasi: unduhan tetap melalui endpoint berizin.
+
 ## Matriks target — usulan, bukan role yang sudah ada
 | Kemampuan | Admin | Operator | Kepala sekolah | Guru/wali kelas |
 |---|---|---|---|---|
