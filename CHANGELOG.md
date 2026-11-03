@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 10c — Persetujuan rencana laporan belum mengisi jurnal (DEC-41 APPROVED)
+- Type: Docs
+- Scope / fase: Pencatatan persetujuan pemilik atas rencana Subfase 10c (`D1–D9` sebagai `DEC-41 APPROVED`). Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `reports/feature-update/PHASE-10C-PLAN.md`, `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `roadmap/phases/PHASE-10-TEACHING.md`, `roadmap/ROADMAP.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: mencatat pernyataan pemilik **"Saya setuju D1-D9"** (2026-11-03 WIB) sebagai **DEC-41 APPROVED** di atas paket rencana `1ab03ef` (baseline audit `35728bb`), serta mengotorisasi implementasi Subfase 10c (S1–S8).
+- Why: memisahkan commit persetujuan rencana pemilik dari commit implementasi kode sesuai aturan repositori.
+- Validation: **NOT RUN** — commit dokumentasi persetujuan rencana.
+- Notes / risks: implementasi kode Subfase 10c dikerjakan pada commit berikutnya.
+- Evidence: `reports/feature-update/PHASE-10C-PLAN.md`; paket rencana `1ab03ef`; baseline `35728bb`.
+
 ## [2026-11-03] Fase 10c — Rencana laporan belum mengisi jurnal (PLAN; DEC-41 PROPOSED)
 - Type: Docs
 - Scope / fase: Rencana rinci Subfase **10c — Laporan belum mengisi jurnal** (`DEC-41 PROPOSED D1–D9`). Tidak ada perubahan kode aplikasi pada entri ini.

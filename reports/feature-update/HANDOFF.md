@@ -1,6 +1,11 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Rencana Subfase 10c disusun — PLAN; DEC-41 PROPOSED)
+## Current checkpoint — 2026-11-03 (Rencana Subfase 10c DISETUJUI — DEC-41 APPROVED; implementasi diotorisasi)
+
+- **Status:** pemilik menyatakan **"Saya setuju D1-D9"** (2026-11-03 WIB); dicatat sebagai **DEC-41 APPROVED**. Implementasi **Subfase 10c — Laporan belum mengisi jurnal** diotorisasi sesuai `reports/feature-update/PHASE-10C-PLAN.md` (baseline **`35728bb`**; paket rencana **`1ab03ef`**). **Subfase 10a & 10b tetap OWNER APPROVED (#1–#18, 2026-11-03 WIB)**.
+- **Next:** eksekusi S1–S8 Subfase 10c, verifikasi penuh, dan siapkan `PHASE-10C-REPORT.md` serta `PHASE-10C-MANUAL-REVIEW.md`.
+
+## Previous checkpoint — 2026-11-03 (Rencana Subfase 10c disusun — PLAN; DEC-41 PROPOSED)
 
 - **Status:** rencana rinci **Fase 10 — Subfase 10c: Laporan belum mengisi jurnal** telah disusun di `reports/feature-update/PHASE-10C-PLAN.md` (baseline audit **`35728bb`** di atas pencatatan penerimaan 10b) dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D9)** dan usulan **DEC-41 PROPOSED**. Paket ini **hanya dokumentasi**: tidak ada kode aplikasi, migration, model, service, controller, route, komponen Vue, fixture UAT 10c, atau eksekusi suite tes (`NOT RUN`), dan implementasi 10c **belum diotorisasi** sampai pemilik menyetujui **D1–D9**.
 - **Previous subphase state:** **Subfase 10a & 10b tetap OWNER APPROVED (#1–#18, 2026-11-03 WIB)**, server UAT `.uat-phase10` `18028`/`14028` sudah dihentikan sesuai DEC-27 dan data (`8` akun, `101` penugasan, `121` jadwal, `6` exception, `66` jurnal) dipertahankan.
