@@ -1,27 +1,30 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import { useToast } from 'primevue/usetoast';
 import { authStore } from '@/stores/authStore';
 import apiLogin from '@/apiLogin';
+import { formatDate as formatDateUtil } from '@/utils/formatters';
 
 const store = authStore();
 const toast = useToast();
+const { t, locale } = useI18n();
 const canManage = computed(() => store.can('students.manage'));
 
-const steps = [
-    { id: 1, label: 'Academic Years' },
-    { id: 2, label: 'Students & Decisions' },
-    { id: 3, label: 'Preview' },
-    { id: 4, label: 'Result' }
-];
+const steps = computed(() => [
+    { id: 1, label: t('students.progression.steps.step1') },
+    { id: 2, label: t('students.progression.steps.step2') },
+    { id: 3, label: t('students.progression.steps.step3') },
+    { id: 4, label: t('students.progression.steps.step4') }
+]);
 
-const decisionOptions = [
-    { label: 'Promote', value: 'promote' },
-    { label: 'Retain', value: 'retain' },
-    { label: 'Graduate', value: 'graduate' },
-    { label: 'Skip', value: 'skip' }
-];
+const decisionOptions = computed(() => [
+    { label: t('students.progression.decisions.promote'), value: 'promote' },
+    { label: t('students.progression.decisions.retain'), value: 'retain' },
+    { label: t('students.progression.decisions.graduate'), value: 'graduate' },
+    { label: t('students.progression.decisions.skip'), value: 'skip' }
+]);
 
 const step = ref(1);
 
@@ -109,33 +112,30 @@ const previewFieldErrorList = computed(() => Object.values(previewFieldErrors.va
 
 const canReview = computed(() => canManage.value && !rosterError.value && selectedRows.value.length > 0 && promoteWithoutTarget.value === 0 && !graduateMissingDate.value && !batchTooLarge.value);
 
-const notify = (severity, detail, summary = 'Student Progression') => {
+const notify = (severity, detail, summary = t('students.progression.title')) => {
     toast.add({ severity, summary, detail, life: 5000 });
 };
 
 const errorMessage = (error, fallback) => error.response?.data?.message ?? fallback;
 
-const reasonLabel = (reason) =>
-    ({
-        multiple_active_memberships: 'Multiple active class memberships',
-        no_active_membership: 'No active class membership',
-        target_membership_exists: 'Already has a membership in the target year'
-    })[reason] ??
-    reason ??
-    'Not eligible';
+const reasonLabel = (reason) => {
+    const key = `students.progression.reasons.${reason}`;
+    const translated = t(key);
+    if (translated !== key) return translated;
+    return reason ?? t('students.progression.reasons.notEligible');
+};
 
 const formatDate = (value) => {
     if (!value) return '-';
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) return value;
-    return parsed.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    return formatDateUtil(value);
 };
 
 const formatDateTime = (value) => {
     if (!value) return '-';
     const parsed = new Date(value);
     if (Number.isNaN(parsed.getTime())) return value;
-    return parsed.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const loc = locale.value === 'en' ? 'en-GB' : 'id-ID';
+    return parsed.toLocaleString(loc, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 };
 
 const batchSummaryTotal = (batch) => {
@@ -482,11 +482,11 @@ onMounted(() => {
         <div class="bg-surface-0 dark:bg-surface-950 px-4 py-6 md:px-12 md:py-8 lg:px-20">
             <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div>
-                    <div class="font-bold text-3xl text-surface-900 dark:text-surface-0 mb-2">Student Progression</div>
-                    <p class="text-surface-500 dark:text-surface-400">Promote, retain, or graduate students at the end of an academic year. Previews never change data; committing is atomic, audited, and protected by a short-lived token.</p>
+                    <div class="font-bold text-3xl text-surface-900 dark:text-surface-0 mb-2">{{ t('students.progression.title') }}</div>
+                    <p class="text-surface-500 dark:text-surface-400">{{ t('students.progression.subtitle') }}</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
-                    <Tag v-if="!canManage" severity="secondary" value="View-only access" />
+                    <Tag v-if="!canManage" severity="secondary" :value="t('students.progression.step2.viewOnlyNotice')" />
                 </div>
             </div>
 
@@ -500,28 +500,35 @@ onMounted(() => {
                 <div v-if="step === 1" class="mt-5 flex flex-col gap-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="flex flex-col gap-2">
-                            <label for="sourceYear" class="font-medium">Source Academic Year <span class="text-red-500">*</span></label>
-                            <Select id="sourceYear" v-model="sourceYearId" :options="years" optionLabel="name" optionValue="id" placeholder="Select source year" :loading="yearsLoading" fluid />
+                            <label for="sourceYear" class="font-medium">{{ t('students.progression.step1.sourceYear') }} <span class="text-red-500">*</span></label>
+                            <Select id="sourceYear" v-model="sourceYearId" :options="years" optionLabel="name" optionValue="id" :placeholder="t('students.progression.step1.selectSourceYear')" :loading="yearsLoading" fluid />
                             <small v-if="sourceYear" class="text-surface-500">
                                 {{ formatDate(sourceYear.start_date) }} – {{ formatDate(sourceYear.end_date) }}
-                                <span v-if="sourceYear.is_locked" class="text-red-500"> · Locked</span>
+                                <span v-if="sourceYear.is_locked" class="text-red-500"> · {{ t('students.progression.step1.locked') }}</span>
                             </small>
                         </div>
                         <div class="flex flex-col gap-2">
-                            <label for="targetYear" class="font-medium">Target Academic Year <span class="text-red-500">*</span></label>
-                            <Select id="targetYear" v-model="targetYearId" :options="years" optionLabel="name" optionValue="id" placeholder="Select target year" :loading="yearsLoading" fluid />
+                            <label for="targetYear" class="font-medium">{{ t('students.progression.step1.targetYear') }} <span class="text-red-500">*</span></label>
+                            <Select id="targetYear" v-model="targetYearId" :options="years" optionLabel="name" optionValue="id" :placeholder="t('students.progression.step1.selectTargetYear')" :loading="yearsLoading" fluid />
                             <small v-if="targetYear" class="text-surface-500">
                                 {{ formatDate(targetYear.start_date) }} – {{ formatDate(targetYear.end_date) }}
-                                <span v-if="targetYear.is_locked" class="text-red-500"> · Locked</span>
+                                <span v-if="targetYear.is_locked" class="text-red-500"> · {{ t('students.progression.step1.locked') }}</span>
                             </small>
                         </div>
                     </div>
 
-                    <Message v-if="sourceYearId && targetYearId && sourceYearId === targetYearId" severity="warn" :closable="false"> The source and target academic years must be different. </Message>
+                    <Message v-if="sourceYearId && targetYearId && sourceYearId === targetYearId" severity="warn" :closable="false"> {{ t('students.progression.step1.differentYearsRequired') }} </Message>
                     <Message v-if="optionsError" severity="error" :closable="false">{{ optionsError }}</Message>
 
                     <div class="flex flex-wrap justify-end gap-2">
-                        <Button label="Continue to Students" icon="pi pi-arrow-right" iconPos="right" :loading="optionsLoading" :disabled="optionsLoading || !sourceYearId || !targetYearId || sourceYearId === targetYearId" @click="loadOptions" />
+                        <Button
+                            :label="t('students.progression.step1.btnContinue')"
+                            icon="pi pi-arrow-right"
+                            iconPos="right"
+                            :loading="optionsLoading"
+                            :disabled="optionsLoading || !sourceYearId || !targetYearId || sourceYearId === targetYearId"
+                            @click="loadOptions"
+                        />
                     </div>
                 </div>
 
@@ -533,18 +540,18 @@ onMounted(() => {
                         <Tag v-if="options?.target_school_year?.is_locked" value="Target locked" severity="danger" />
                     </div>
 
-                    <Message v-if="!canManage" severity="secondary" :closable="false"> View-only access: you can review the roster, but preview and commit require the students.manage ability. </Message>
+                    <Message v-if="!canManage" severity="secondary" :closable="false"> {{ t('students.progression.step2.viewOnlyNotice') }} </Message>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
                         <div class="flex flex-col gap-2 lg:col-span-1">
-                            <label class="font-medium">Source Classes</label>
+                            <label class="font-medium">{{ t('students.progression.step2.sourceClasses') }}</label>
                             <MultiSelect
                                 v-model="selectedSourceClasses"
                                 :options="sourceClasses"
                                 optionLabel="name"
                                 optionValue="id"
                                 display="chip"
-                                placeholder="All source classes"
+                                :placeholder="t('students.progression.step2.allSourceClasses')"
                                 filter
                                 :maxSelectedLabels="2"
                                 class="w-full"
@@ -552,30 +559,30 @@ onMounted(() => {
                             />
                         </div>
                         <div class="flex flex-col gap-2 lg:col-span-1">
-                            <label class="font-medium">Search Students</label>
+                            <label class="font-medium">{{ t('students.progression.step2.searchStudents') }}</label>
                             <IconField>
                                 <InputIcon><i class="pi pi-search" /></InputIcon>
-                                <InputText v-model="rosterSearch" placeholder="Name, NIS, or NISN" class="w-full" @input="onSearchInput" />
+                                <InputText v-model="rosterSearch" :placeholder="t('students.progression.step2.searchPlaceholder')" class="w-full" @input="onSearchInput" />
                             </IconField>
                         </div>
                         <div class="flex flex-col gap-2 lg:col-span-1">
-                            <label class="font-medium">Default Target Class (bulk promote)</label>
+                            <label class="font-medium">{{ t('students.progression.step2.defaultTargetClass') }}</label>
                             <Select v-model="bulkTargetClassId" :options="targetClasses" optionLabel="name" optionValue="id" placeholder="Select target class" showClear filter class="w-full" />
                         </div>
                     </div>
 
                     <div v-if="canManage" class="flex flex-wrap items-center gap-2">
-                        <span class="text-sm text-surface-500">Apply to all eligible:</span>
-                        <Button label="Promote" size="small" icon="pi pi-arrow-up" :disabled="!bulkTargetClassId" @click="applyBulk('promote')" />
-                        <Button label="Retain" size="small" severity="warn" variant="outlined" @click="applyBulk('retain')" />
-                        <Button label="Graduate" size="small" severity="success" variant="outlined" @click="applyBulk('graduate')" />
-                        <Button label="Reset" size="small" severity="secondary" text @click="applyBulk('skip')" />
+                        <span class="text-sm text-surface-500">{{ t('students.progression.step2.applyToEligible') }}</span>
+                        <Button :label="t('students.progression.step2.btnPromote')" size="small" icon="pi pi-arrow-up" :disabled="!bulkTargetClassId" @click="applyBulk('promote')" />
+                        <Button :label="t('students.progression.step2.btnRetain')" size="small" severity="warn" variant="outlined" @click="applyBulk('retain')" />
+                        <Button :label="t('students.progression.step2.btnGraduate')" size="small" severity="success" variant="outlined" @click="applyBulk('graduate')" />
+                        <Button :label="t('students.progression.step2.btnReset')" size="small" severity="secondary" text @click="applyBulk('skip')" />
                     </div>
 
                     <Message v-if="rosterTruncated" severity="warn" :closable="false">
                         Only the first {{ maxBatchSize }} students are shown. Narrow the class filter or search to review the rest; a single batch accepts at most {{ maxBatchSize }} decisions.
                     </Message>
-                    <Message v-if="hasLockWarning" severity="warn" :closable="false"> The selected decisions need an unlocked year: promote requires an unlocked target year and graduate requires an unlocked source year. </Message>
+                    <Message v-if="hasLockWarning" severity="warn" :closable="false"> {{ t('students.progression.step2.lockedNotice') }} </Message>
                     <Message v-if="rosterError" severity="error" :closable="false">{{ rosterError }}</Message>
 
                     <DataTable
@@ -599,8 +606,8 @@ onMounted(() => {
                                 <Button v-if="rosterError" icon="pi pi-refresh" label="Retry" @click="fetchRoster(false)" />
                             </div>
                         </template>
-                        <template #loading>Loading students. Please wait.</template>
-                        <Column header="Student" frozen style="min-width: 15rem">
+                        <template #loading>{{ t('students.progression.step2.loading') }}</template>
+                        <Column :header="t('students.progression.step2.columns.student')" frozen style="min-width: 15rem">
                             <template #body="{ data }">
                                 <div class="flex flex-col">
                                     <span class="font-medium">{{ data.name }}</span>
@@ -608,7 +615,7 @@ onMounted(() => {
                                 </div>
                             </template>
                         </Column>
-                        <Column header="Source Class" style="min-width: 12rem">
+                        <Column :header="t('students.progression.step2.columns.sourceClass')" style="min-width: 12rem">
                             <template #body="{ data }">
                                 <div class="flex flex-col">
                                     <span>{{ data.source_rombel?.name ?? '-' }}</span>
@@ -619,18 +626,18 @@ onMounted(() => {
                                 </div>
                             </template>
                         </Column>
-                        <Column header="Eligibility" style="min-width: 12rem">
+                        <Column :header="t('students.progression.step2.columns.eligibility')" style="min-width: 12rem">
                             <template #body="{ data }">
                                 <Tag v-if="data.eligible" value="Ready" severity="success" />
                                 <Tag v-else :value="reasonLabel(data.ineligible_reason)" severity="danger" />
                             </template>
                         </Column>
-                        <Column header="Decision" style="min-width: 11rem">
+                        <Column :header="t('students.progression.step2.columns.decision')" style="min-width: 11rem">
                             <template #body="{ data }">
                                 <Select v-model="data.decision" :options="decisionOptions" optionLabel="label" optionValue="value" :disabled="!canManage || !data.eligible" class="w-full" @change="onDecisionChange(data)" />
                             </template>
                         </Column>
-                        <Column header="Target Class (promote)" style="min-width: 15rem">
+                        <Column :header="t('students.progression.step2.columns.targetClass')" style="min-width: 15rem">
                             <template #body="{ data }">
                                 <Select
                                     v-model="data.target_rombel_id"
@@ -658,11 +665,11 @@ onMounted(() => {
                             <span v-if="hiddenDecisionCount > 0"> · {{ hiddenDecisionCount }} selected decision(s) are outside the current filter and stay in this batch. </span>
                         </div>
                         <div class="flex flex-wrap justify-end gap-2">
-                            <Button label="Back" icon="pi pi-arrow-left" severity="secondary" text @click="step = 1" />
-                            <Button v-if="canManage" label="Review Preview" icon="pi pi-eye" iconPos="right" :disabled="!canReview" @click="goToPreview" />
+                            <Button :label="t('students.progression.step2.btnBack')" icon="pi pi-arrow-left" severity="secondary" text @click="step = 1" />
+                            <Button v-if="canManage" :label="t('students.progression.step2.btnReview')" icon="pi pi-eye" iconPos="right" :disabled="!canReview" @click="goToPreview" />
                         </div>
                     </div>
-                    <small v-if="canManage && selectedRows.length === 0" class="text-surface-500"> Choose at least one decision other than Skip to continue. </small>
+                    <small v-if="canManage && selectedRows.length === 0" class="text-surface-500"> {{ t('students.progression.step2.chooseDecisionNotice') }} </small>
                     <small v-if="canManage && promoteWithoutTarget > 0" class="text-red-500"> {{ promoteWithoutTarget }} promoted student(s) still need a target class. </small>
                 </div>
 
@@ -675,9 +682,9 @@ onMounted(() => {
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div class="flex flex-col gap-2">
-                            <label for="graduationDate" class="font-medium">Graduation Date</label>
+                            <label for="graduationDate" class="font-medium">{{ t('students.progression.step2.graduationDate') }}</label>
                             <InputText id="graduationDate" v-model="graduationDate" type="date" fluid :invalid="graduateMissingDate" />
-                            <small v-if="graduateMissingDate" class="text-red-500"> A graduation date is required because at least one student graduates. </small>
+                            <small v-if="graduateMissingDate" class="text-red-500"> {{ t('students.progression.step2.graduationDateRequired') }} </small>
                         </div>
                     </div>
 
@@ -701,16 +708,16 @@ onMounted(() => {
                     </div>
 
                     <div class="border border-surface-200 dark:border-surface-700 rounded p-4 text-sm text-surface-600 dark:text-surface-300">
-                        <p class="font-medium mb-1">What happens when you commit</p>
+                        <p class="font-medium mb-1">{{ t('students.progression.step3.summaryNoticeTitle') }}</p>
                         <ul class="list-disc pl-5 flex flex-col gap-1">
-                            <li>Promote: a new active class membership is created in the selected target class.</li>
-                            <li>Retain: nothing changes; the student remains unplaced in the target year.</li>
-                            <li>Graduate: the source membership becomes Graduated with the selected graduation date.</li>
-                            <li>Skip: the student is not included in this batch.</li>
+                            <li>{{ t('students.progression.step3.promoteExpl') }}</li>
+                            <li>{{ t('students.progression.step3.retainExpl') }}</li>
+                            <li>{{ t('students.progression.step3.graduateExpl') }}</li>
+                            <li>{{ t('students.progression.step3.skipExpl') }}</li>
                         </ul>
                     </div>
 
-                    <Message v-if="hasLockWarning" severity="warn" :closable="false"> A locked academic year blocks the selected decisions. Unlock the year before creating the preview. </Message>
+                    <Message v-if="hasLockWarning" severity="warn" :closable="false"> {{ t('students.progression.step3.lockedWarning') }} </Message>
                     <Message v-if="previewError" severity="error" :closable="false">{{ previewError }}</Message>
                     <Message v-if="previewFieldErrorList.length > 0" severity="error" :closable="false">
                         <ul class="list-disc pl-5">
@@ -719,24 +726,24 @@ onMounted(() => {
                     </Message>
 
                     <DataTable v-if="preview?.items?.length" :value="preview.items" dataKey="student_id" showGridlines scrollable scrollHeight="24rem" size="small">
-                        <Column header="Student" style="min-width: 13rem">
+                        <Column :header="t('students.progression.step3.columns.student')" style="min-width: 13rem">
                             <template #body="{ data }">
                                 <span class="font-medium">{{ data.student_name ?? `Student #${data.student_id}` }}</span>
                             </template>
                         </Column>
-                        <Column header="Decision" style="min-width: 8rem">
+                        <Column :header="t('students.progression.step3.columns.decision')" style="min-width: 8rem">
                             <template #body="{ data }"><Tag :value="data.decision" severity="info" /></template>
                         </Column>
-                        <Column header="Target Class" style="min-width: 11rem">
+                        <Column :header="t('students.progression.step3.columns.targetClass')" style="min-width: 11rem">
                             <template #body="{ data }">{{ data.target_rombel?.name ?? '-' }}</template>
                         </Column>
-                        <Column header="Status" style="min-width: 9rem">
+                        <Column :header="t('students.progression.step3.columns.status')" style="min-width: 9rem">
                             <template #body="{ data }">
                                 <Tag v-if="data.ready" value="Ready" severity="success" />
                                 <Tag v-else value="Conflict" severity="danger" />
                             </template>
                         </Column>
-                        <Column header="Details" style="min-width: 18rem">
+                        <Column :header="t('students.progression.step3.columns.details')" style="min-width: 18rem">
                             <template #body="{ data }">
                                 <ul v-if="data.conflicts?.length" class="list-disc pl-4 text-red-500">
                                     <li v-for="conflict in data.conflicts" :key="conflict.code">{{ conflict.message }}</li>
@@ -756,10 +763,10 @@ onMounted(() => {
                     </div>
 
                     <div class="flex flex-wrap justify-end gap-2">
-                        <Button label="Back to Students" icon="pi pi-arrow-left" severity="secondary" text :disabled="previewLoading || commitLoading" @click="backToStudents" />
-                        <Button v-if="!preview?.valid" label="Create Preview" icon="pi pi-search" :loading="previewLoading" :disabled="previewLoading || !canReview" @click="createPreview" />
-                        <Button v-if="preview?.valid" label="Create New Preview" icon="pi pi-refresh" severity="secondary" variant="outlined" :disabled="previewLoading || commitLoading" @click="createPreview" />
-                        <Button v-if="preview?.valid" label="Commit Decisions" icon="pi pi-check" severity="success" :disabled="commitLoading" @click="openCommitDialog" />
+                        <Button :label="t('students.progression.step3.btnBackToStudents')" icon="pi pi-arrow-left" severity="secondary" text :disabled="previewLoading || commitLoading" @click="backToStudents" />
+                        <Button v-if="!preview?.valid" :label="t('students.progression.step3.btnCreatePreview')" icon="pi pi-search" :loading="previewLoading" :disabled="previewLoading || !canReview" @click="createPreview" />
+                        <Button v-if="preview?.valid" :label="t('students.progression.step3.btnCreateNewPreview')" icon="pi pi-refresh" severity="secondary" variant="outlined" :disabled="previewLoading || commitLoading" @click="createPreview" />
+                        <Button v-if="preview?.valid" :label="t('students.progression.step3.btnCommit')" icon="pi pi-check" severity="success" :disabled="commitLoading" @click="openCommitDialog" />
                     </div>
                 </div>
 
@@ -774,26 +781,26 @@ onMounted(() => {
                     <Message v-if="commitError" severity="error" :closable="false">{{ commitError }}</Message>
 
                     <DataTable :value="commitResult?.items ?? []" dataKey="student_id" showGridlines scrollable scrollHeight="24rem" size="small">
-                        <Column header="Student" style="min-width: 13rem">
+                        <Column :header="t('students.progression.step3.columns.student')" style="min-width: 13rem">
                             <template #body="{ data }">{{ data.student_name ?? `Student #${data.student_id}` }}</template>
                         </Column>
-                        <Column header="Decision" style="min-width: 8rem">
+                        <Column :header="t('students.progression.step3.columns.decision')" style="min-width: 8rem">
                             <template #body="{ data }"><Tag :value="data.decision" severity="info" /></template>
                         </Column>
-                        <Column header="From Class" style="min-width: 10rem">
+                        <Column :header="t('students.progression.step4.columns.fromClass')" style="min-width: 10rem">
                             <template #body="{ data }">{{ data.source_rombel_name ?? '-' }}</template>
                         </Column>
-                        <Column header="To Class" style="min-width: 10rem">
+                        <Column :header="t('students.progression.step4.columns.toClass')" style="min-width: 10rem">
                             <template #body="{ data }">{{ data.target_rombel_name ?? '-' }}</template>
                         </Column>
-                        <Column header="New Membership" style="min-width: 9rem">
+                        <Column :header="t('students.progression.step4.columns.newMembership')" style="min-width: 9rem">
                             <template #body="{ data }">{{ data.new_membership_id ?? '-' }}</template>
                         </Column>
                     </DataTable>
 
                     <div class="flex flex-wrap justify-end gap-2">
-                        <Button label="Start a New Batch" icon="pi pi-plus" @click="startNewBatch" />
-                        <Button label="View Batch History" icon="pi pi-list" severity="secondary" variant="outlined" @click="scrollToHistory" />
+                        <Button :label="t('students.progression.step4.btnStartNew')" icon="pi pi-plus" @click="startNewBatch" />
+                        <Button :label="t('students.progression.step4.btnViewHistory')" icon="pi pi-list" severity="secondary" variant="outlined" @click="scrollToHistory" />
                     </div>
                 </div>
             </div>
@@ -801,8 +808,8 @@ onMounted(() => {
             <div ref="historySection" class="card mt-6">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div>
-                        <div class="font-semibold text-xl">Batch History</div>
-                        <p class="text-surface-500 text-sm">Committed batches are immutable history; previews are visible only to their creator.</p>
+                        <div class="font-semibold text-xl">{{ t('students.progression.history.title') }}</div>
+                        <p class="text-surface-500 text-sm">{{ t('students.progression.history.subtitle') }}</p>
                     </div>
                     <Button icon="pi pi-refresh" label="Refresh" severity="secondary" variant="outlined" :loading="batchesLoading" @click="fetchBatches" />
                 </div>
@@ -810,11 +817,11 @@ onMounted(() => {
                 <Message v-if="batchesError" severity="error" :closable="false" class="mt-3">{{ batchesError }}</Message>
 
                 <DataTable :value="batches" dataKey="id" showGridlines size="small" :loading="batchesLoading" scrollable class="mt-3">
-                    <template #empty>No progression batches yet.</template>
+                    <template #empty>{{ t('students.progression.history.empty') }}</template>
                     <Column header="#" style="width: 4rem">
                         <template #body="{ data }">#{{ data.id }}</template>
                     </Column>
-                    <Column header="Academic Years" style="min-width: 15rem">
+                    <Column :header="t('students.progression.history.columns.years')" style="min-width: 15rem">
                         <template #body="{ data }"> {{ data.source_school_year?.name ?? '-' }} → {{ data.target_school_year?.name ?? '-' }} </template>
                     </Column>
                     <Column header="Status" style="min-width: 8rem">
@@ -822,21 +829,21 @@ onMounted(() => {
                             <Tag :value="data.status" :severity="data.status === 'committed' ? 'success' : 'warn'" />
                         </template>
                     </Column>
-                    <Column header="Decisions" style="min-width: 8rem">
+                    <Column :header="t('students.progression.history.columns.decisions')" style="min-width: 8rem">
                         <template #body="{ data }">{{ batchSummaryTotal(data) }}</template>
                     </Column>
-                    <Column header="Created By" style="min-width: 11rem">
+                    <Column :header="t('students.progression.history.columns.createdBy')" style="min-width: 11rem">
                         <template #body="{ data }">{{ data.created_by?.name ?? '-' }}</template>
                     </Column>
-                    <Column header="Created At" style="min-width: 12rem">
+                    <Column :header="t('students.progression.history.columns.createdAt')" style="min-width: 12rem">
                         <template #body="{ data }">{{ formatDateTime(data.created_at) }}</template>
                     </Column>
-                    <Column header="Committed At" style="min-width: 12rem">
+                    <Column :header="t('students.progression.history.columns.committedAt')" style="min-width: 12rem">
                         <template #body="{ data }">{{ formatDateTime(data.committed_at) }}</template>
                     </Column>
-                    <Column header="Action" style="min-width: 8rem">
+                    <Column :header="t('students.progression.history.columns.action')" style="min-width: 8rem">
                         <template #body="{ data }">
-                            <Button icon="pi pi-eye" label="View" size="small" text @click="openBatch(data)" />
+                            <Button icon="pi pi-eye" :label="t('students.progression.history.btnView')" size="small" text @click="openBatch(data)" />
                         </template>
                     </Column>
                 </DataTable>
@@ -844,7 +851,7 @@ onMounted(() => {
         </div>
     </Fluid>
 
-    <Dialog v-model:visible="commitDialog" modal :style="{ width: '560px', maxWidth: '95vw' }" header="Commit Student Progression" :draggable="false">
+    <Dialog v-model:visible="commitDialog" modal :style="{ width: '560px', maxWidth: '95vw' }" :header="t('students.progression.dialogCommit.title')" :draggable="false">
         <div class="flex flex-col gap-3">
             <p>
                 Apply <strong>{{ preview?.summary?.total ?? selectedRows.length }}</strong> decision(s) from <strong>{{ sourceYearName }}</strong> to <strong>{{ targetYearName }}</strong
@@ -855,16 +862,16 @@ onMounted(() => {
                 <li>Retain: {{ preview?.summary?.by_decision?.retain ?? decisionTotals.retain }}</li>
                 <li>Graduate: {{ preview?.summary?.by_decision?.graduate ?? decisionTotals.graduate }} ({{ formatDate(graduationDate) }})</li>
             </ul>
-            <p class="text-sm text-surface-500">The commit is atomic and audited. If any roster data changed after the preview, nothing is applied and you will be asked to preview again.</p>
+            <p class="text-sm text-surface-500">{{ t('students.progression.dialogCommit.atomicNotice') }}</p>
             <p v-if="commitError" class="text-red-500 text-sm">{{ commitError }}</p>
         </div>
         <template #footer>
             <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="commitLoading" @click="commitDialog = false" />
-            <Button label="Commit Now" icon="pi pi-check" severity="success" :loading="commitLoading" :disabled="commitLoading" @click="executeCommit" />
+            <Button :label="t('students.progression.dialogCommit.btnCommitNow')" icon="pi pi-check" severity="success" :loading="commitLoading" :disabled="commitLoading" @click="executeCommit" />
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="conflictDialog" modal :style="{ width: '640px', maxWidth: '95vw' }" header="Data Conflict Detected" :draggable="false">
+    <Dialog v-model:visible="conflictDialog" modal :style="{ width: '640px', maxWidth: '95vw' }" :header="t('students.progression.dialogConflict.title')" :draggable="false">
         <div class="flex flex-col gap-3">
             <div class="flex items-start gap-3">
                 <i class="pi pi-exclamation-triangle !text-3xl text-orange-500" />
@@ -877,7 +884,7 @@ onMounted(() => {
                 <Column header="Decision" style="min-width: 7rem">
                     <template #body="{ data }">{{ data.decision }}</template>
                 </Column>
-                <Column header="Conflicts" style="min-width: 18rem">
+                <Column :header="t('students.progression.dialogConflict.columns.conflicts')" style="min-width: 18rem">
                     <template #body="{ data }">
                         <ul class="list-disc pl-4 text-red-500">
                             <li v-for="conflict in data.conflicts" :key="conflict.code">{{ conflict.message }}</li>
@@ -885,16 +892,16 @@ onMounted(() => {
                     </template>
                 </Column>
             </DataTable>
-            <p class="text-sm text-surface-500">No data was changed. Reload the roster, review the decisions, and create a new preview.</p>
+            <p class="text-sm text-surface-500">{{ t('students.progression.dialogConflict.notice') }}</p>
         </div>
         <template #footer>
-            <Button label="Close" icon="pi pi-times" text severity="secondary" @click="conflictDialog = false" />
-            <Button label="Reload & Preview Again" icon="pi pi-refresh" @click="reloadAfterConflict" />
+            <Button :label="t('common.action.close')" icon="pi pi-times" text severity="secondary" @click="conflictDialog = false" />
+            <Button :label="t('students.progression.dialogConflict.btnReload')" icon="pi pi-refresh" @click="reloadAfterConflict" />
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="batchDialog" modal :style="{ width: '760px', maxWidth: '95vw' }" :header="`Progression Batch #${batchDetail?.id ?? ''}`" :draggable="false">
-        <div v-if="batchDetailLoading" class="py-4 text-center text-surface-500">Loading batch detail...</div>
+    <Dialog v-model:visible="batchDialog" modal :style="{ width: '760px', maxWidth: '95vw' }" :header="t('students.progression.dialogBatch.title', { id: batchDetail?.id ?? '' })" :draggable="false">
+        <div v-if="batchDetailLoading" class="py-4 text-center text-surface-500">{{ t('students.progression.dialogBatch.loading') }}</div>
         <Message v-else-if="batchDetailError" severity="error" :closable="false">{{ batchDetailError }}</Message>
         <div v-else-if="batchDetail" class="flex flex-col gap-3">
             <div class="flex flex-wrap items-center gap-2">
@@ -904,23 +911,23 @@ onMounted(() => {
                 <span v-if="batchDetail.committed_by" class="text-sm text-surface-500"> · Committed by {{ batchDetail.committed_by.name }} </span>
             </div>
             <DataTable :value="batchDetail.items ?? []" dataKey="student_id" showGridlines size="small" scrollable scrollHeight="20rem">
-                <template #empty>No item details are stored for this preview.</template>
-                <Column header="Student" style="min-width: 13rem">
+                <template #empty>{{ t('students.progression.dialogBatch.noDetails') }}</template>
+                <Column :header="t('students.progression.step3.columns.student')" style="min-width: 13rem">
                     <template #body="{ data }">{{ data.student_name ?? `Student #${data.student_id}` }}</template>
                 </Column>
-                <Column header="Decision" style="min-width: 8rem">
+                <Column :header="t('students.progression.step3.columns.decision')" style="min-width: 8rem">
                     <template #body="{ data }">{{ data.decision }}</template>
                 </Column>
-                <Column header="Target Class" style="min-width: 11rem">
+                <Column :header="t('students.progression.step3.columns.targetClass')" style="min-width: 11rem">
                     <template #body="{ data }">{{ data.target_rombel_name ?? '-' }}</template>
                 </Column>
-                <Column header="New Membership" style="min-width: 9rem">
+                <Column :header="t('students.progression.step4.columns.newMembership')" style="min-width: 9rem">
                     <template #body="{ data }">{{ data.new_membership_id ?? '-' }}</template>
                 </Column>
             </DataTable>
         </div>
         <template #footer>
-            <Button label="Close" icon="pi pi-times" text severity="secondary" @click="batchDialog = false" />
+            <Button :label="t('common.action.close')" icon="pi pi-times" text severity="secondary" @click="batchDialog = false" />
         </template>
     </Dialog>
 </template>

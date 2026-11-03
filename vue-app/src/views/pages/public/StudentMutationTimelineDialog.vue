@@ -1,7 +1,9 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import apiLogin from '@/apiLogin';
+import { formatDate as formatDateUtil } from '@/utils/formatters';
 
 const props = defineProps({
     visible: { type: Boolean, default: false },
@@ -10,34 +12,32 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible']);
 
+const { t, locale } = useI18n();
+
 const loading = ref(false);
 const error = ref('');
 const mutations = ref([]);
 const corrections = ref([]);
 
-const mutationLabel = (type) => (type === 'in' ? 'Mutation In' : 'Mutation Out');
+const mutationLabel = (type) => (type === 'in' ? t('students.mutations.timeline.mutationIn') : t('students.mutations.timeline.mutationOut'));
 
-const actionLabels = {
-    mutation_in: 'Mutation In date/school',
-    mutation_out: 'Mutation Out date/school',
-    mutation_cancel: 'Mutation cancellation',
-    membership_exit: 'Membership exit',
-    membership_reopen: 'Membership reopen'
+const actionLabel = (action) => {
+    const key = `students.mutations.timeline.actions.${action}`;
+    const translated = t(key);
+    return translated !== key ? translated : action;
 };
 
 const formatDate = (value) => {
     if (!value) return '-';
-    const raw = String(value).slice(0, 10);
-    const parsed = new Date(raw + 'T00:00:00');
-    if (Number.isNaN(parsed.getTime())) return raw;
-    return parsed.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    return formatDateUtil(value);
 };
 
 const formatDateTime = (value) => {
     if (!value) return '-';
     const parsed = new Date(value);
     if (Number.isNaN(parsed.getTime())) return value;
-    return parsed.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const loc = locale.value === 'en' ? 'en-GB' : 'id-ID';
+    return parsed.toLocaleString(loc, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 };
 
 const displayValue = (value) => (value === null || value === undefined || value === '' ? '-' : String(value));
@@ -52,10 +52,10 @@ const summaryLines = (correction) => {
             lines.push(`Status: ${displayValue(before.mutation.status)} -> ${displayValue(after.mutation.status)}`);
         }
         if (displayValue(before.mutation.effective_date) !== displayValue(after.mutation.effective_date)) {
-            lines.push(`Effective date: ${displayValue(before.mutation.effective_date)} -> ${displayValue(after.mutation.effective_date)}`);
+            lines.push(`${t('students.mutations.columns.effectiveDate')}: ${displayValue(before.mutation.effective_date)} -> ${displayValue(after.mutation.effective_date)}`);
         }
         if (displayValue(before.mutation.school_npsn) !== displayValue(after.mutation.school_npsn)) {
-            lines.push(`School NPSN: ${displayValue(before.mutation.school_npsn)} -> ${displayValue(after.mutation.school_npsn)}`);
+            lines.push(`${t('students.mutations.columns.school')} NPSN: ${displayValue(before.mutation.school_npsn)} -> ${displayValue(after.mutation.school_npsn)}`);
         }
     }
 
@@ -133,7 +133,7 @@ const close = () => emit('update:visible', false);
 </script>
 
 <template>
-    <Dialog :visible="visible" @update:visible="(value) => emit('update:visible', value)" modal :draggable="false" :style="{ width: 'min(94vw, 44rem)' }" header="Student Mutation Timeline">
+    <Dialog :visible="visible" modal :draggable="false" :style="{ width: 'min(94vw, 44rem)' }" :header="t('students.mutations.timeline.title')" @update:visible="(value) => emit('update:visible', value)">
         <div class="flex flex-col gap-4">
             <div v-if="student" class="text-sm text-surface-600 dark:text-surface-300">
                 <strong>{{ student.name }}</strong>
@@ -142,47 +142,47 @@ const close = () => emit('update:visible', false);
 
             <div v-if="loading" class="flex justify-center py-6">
                 <i class="pi pi-spin pi-spinner text-2xl" aria-hidden="true"></i>
-                <span class="sr-only">Loading the mutation timeline</span>
+                <span class="sr-only">{{ t('students.mutations.timeline.loadingSr') }}</span>
             </div>
 
             <Message v-else-if="error" severity="error" :closable="false">{{ error }}</Message>
 
-            <div v-else-if="events.length === 0" class="text-surface-500 py-4">No mutations or locked corrections have been recorded for this student.</div>
+            <div v-else-if="events.length === 0" class="text-surface-500 py-4">{{ t('students.mutations.timeline.empty') }}</div>
 
             <ol v-else class="flex flex-col gap-4 list-none p-0 m-0">
                 <li v-for="event in events" :key="event.key" class="border-l-4 pl-3" :class="event.kind === 'correction' ? 'border-orange-400' : event.mutation.status === 'cancelled' ? 'border-red-300' : 'border-green-500'">
                     <template v-if="event.kind === 'mutation'">
                         <div class="flex flex-wrap items-center gap-2">
                             <Tag :value="mutationLabel(event.mutation.type)" :severity="event.mutation.type === 'in' ? 'info' : 'warn'" />
-                            <Tag :value="event.mutation.status === 'active' ? 'Active' : 'Cancelled'" :severity="event.mutation.status === 'active' ? 'success' : 'danger'" />
+                            <Tag :value="event.mutation.status === 'active' ? t('students.mutations.timeline.active') : t('students.mutations.timeline.cancelled')" :severity="event.mutation.status === 'active' ? 'success' : 'danger'" />
                             <span class="text-sm font-medium">{{ formatDate(event.mutation.effective_date) }}</span>
                         </div>
                         <div class="text-sm mt-1">
-                            Class: <strong>{{ event.mutation.class?.name ?? '-' }}</strong> · School: <strong>{{ event.mutation.school_npsn }}</strong>
+                            {{ t('students.mutations.timeline.class') }} <strong>{{ event.mutation.class?.name ?? '-' }}</strong> · {{ t('students.mutations.timeline.school') }} <strong>{{ event.mutation.school_npsn }}</strong>
                             <span v-if="event.mutation.school_name"> — {{ event.mutation.school_name }}</span>
                         </div>
-                        <div class="text-sm" v-if="event.mutation.reason">Reason: {{ event.mutation.reason }}</div>
-                        <div class="text-xs text-surface-500 mt-1">Recorded by {{ event.mutation.created_by?.name ?? 'Unknown' }} on {{ formatDateTime(event.mutation.created_at) }}</div>
+                        <div v-if="event.mutation.reason" class="text-sm">{{ t('students.mutations.timeline.reason', { reason: event.mutation.reason }) }}</div>
+                        <div class="text-xs text-surface-500 mt-1">{{ t('students.mutations.timeline.recordedBy', { user: event.mutation.created_by?.name ?? 'Unknown', time: formatDateTime(event.mutation.created_at) }) }}</div>
                         <div v-if="event.mutation.status === 'cancelled'" class="text-xs text-red-500 mt-1">
-                            Cancelled by {{ event.mutation.cancelled_by?.name ?? 'Unknown' }} on {{ formatDateTime(event.mutation.cancelled_at) }}: {{ event.mutation.cancel_reason ?? '-' }}
+                            {{ t('students.mutations.timeline.cancelledBy', { user: event.mutation.cancelled_by?.name ?? 'Unknown', time: formatDateTime(event.mutation.cancelled_at), reason: event.mutation.cancel_reason ?? '-' }) }}
                         </div>
                     </template>
 
                     <template v-else>
                         <div class="flex flex-wrap items-center gap-2">
-                            <Tag value="Locked Correction" severity="secondary" />
-                            <span class="text-sm font-medium">{{ actionLabels[event.correction.action] ?? event.correction.action }}</span>
+                            <Tag :value="t('students.mutations.timeline.lockedCorrection')" severity="secondary" />
+                            <span class="text-sm font-medium">{{ actionLabel(event.correction.action) }}</span>
                             <span class="text-sm">{{ formatDateTime(event.correction.created_at) }}</span>
                         </div>
                         <div class="text-sm mt-1">
-                            Academic year: <strong>{{ event.correction.year_name ?? '-' }}</strong>
+                            {{ t('students.mutations.timeline.academicYear') }} <strong>{{ event.correction.year_name ?? '-' }}</strong>
                         </div>
-                        <ul class="text-sm mt-1 list-disc pl-5" v-if="summaryLines(event.correction).length > 0">
+                        <ul v-if="summaryLines(event.correction).length > 0" class="text-sm mt-1 list-disc pl-5">
                             <li v-for="line in summaryLines(event.correction)" :key="line">{{ line }}</li>
                         </ul>
-                        <div class="text-sm" v-if="event.correction.reason">Reason: {{ event.correction.reason }}</div>
-                        <div class="text-sm" v-if="event.correction.approval_reference">Approval reference: {{ event.correction.approval_reference }}</div>
-                        <div class="text-xs text-surface-500 mt-1">Recorded by {{ event.correction.created_by?.name ?? 'Unknown' }}</div>
+                        <div v-if="event.correction.reason" class="text-sm">{{ t('students.mutations.timeline.reason', { reason: event.correction.reason }) }}</div>
+                        <div v-if="event.correction.approval_reference" class="text-sm">{{ t('students.mutations.timeline.approvalRef', { ref: event.correction.approval_reference }) }}</div>
+                        <div class="text-xs text-surface-500 mt-1">{{ t('students.mutations.timeline.recordedBy', { user: event.correction.created_by?.name ?? 'Unknown', time: formatDateTime(event.correction.created_at) }) }}</div>
                     </template>
                 </li>
             </ol>
@@ -190,8 +190,8 @@ const close = () => emit('update:visible', false);
 
         <template #footer>
             <div class="flex justify-end gap-2">
-                <Button label="Reload" icon="pi pi-refresh" severity="secondary" variant="outlined" :disabled="loading" @click="load" />
-                <Button label="Close" icon="pi pi-times" text @click="close" />
+                <Button :label="t('common.action.refresh')" icon="pi pi-refresh" severity="secondary" variant="outlined" :disabled="loading" @click="load" />
+                <Button :label="t('common.action.close')" icon="pi pi-times" text @click="close" />
             </div>
         </template>
     </Dialog>
