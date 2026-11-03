@@ -1,7 +1,7 @@
 # Fase 10 — Administrasi pembelajaran
 
-Status teknis: **10a PLAN APPROVED — DEC-39 APPROVED (2026-11-03 WIB, `"Saya setuju D1-D11."`); implementasi 10a diotorisasi; DEC-10 CLOSED**; **10b–10c NOT STARTED**. Status review: **10a PLAN APPROVED (D1–D11); implementasi belum diverifikasi pada checkpoint ini**; **10b–10c PENDING**. Semua tes/browser/manual: **NOT RUN** pada checkpoint persetujuan rencana ini.
-Dependensi: 04,06; DEC-10 (**CLOSED** melalui `DEC-39` D3/D5/D8). Baseline rencana 10a: `f185ca6`; paket rencana: `a8264ad`; rencana lengkap di `reports/feature-update/PHASE-10-PLAN.md`.
+Status teknis: **10a IMPLEMENTED — agent-verified (2026-11-03 WIB; DEC-39 APPROVED `"Saya setuju D1-D11."`; DEC-10 CLOSED)**; **10b–10c NOT STARTED**. Status review: **10a PENDING OWNER MANUAL REVIEW (#1–#18 di `reports/feature-update/PHASE-10A-MANUAL-REVIEW.md`)**; **10b–10c PENDING**. Bukti 10a: `TeachingScheduleApiTest` **6 tes / 116 assertions PASS (6,57 s)**, regresi Academic+Access+Archives **147 tes / 2.002 assertions PASS (199,60 s)**, Pint **26 file PASS**, **13 route `/api/teaching/*`**, ESLint **0 error**, `npm run build` **PASS (35,86 s)**, UAT `.uat-phase10` (`18028`/`14028`) **101 penugasan / 121 jadwal / 6 exception** (idempoten, probe HTTP lintas peran/bentrok/`409`/locked year PASS, server dihentikan sesuai DEC-27); otomasi klik browser visual/screenshot & race MariaDB multi-proses **NOT RUN**.
+Dependensi: 04,06; DEC-10 (**CLOSED** melalui `DEC-39` D3/D5/D8). Baseline rencana 10a: `f185ca6`; paket rencana: `a8264ad`; persetujuan: `b515cb1`; rencana di `reports/feature-update/PHASE-10-PLAN.md`, laporan di `reports/feature-update/PHASE-10A-REPORT.md`, dan panduan review di `reports/feature-update/PHASE-10A-MANUAL-REVIEW.md`.
 
 ## Tujuan dan scope
 Administrasi pembelajaran. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Tidak ada pekerjaan implementasi yang telah dilakukan dalam penyusunan dokumen ini.
@@ -9,7 +9,7 @@ Administrasi pembelajaran. Kerjakan satu subfase per instruksi pemilik; jangan m
 ## Subfase
 
 ### 10a — Penugasan dan jadwal
-- **Status rencana (2026-11-03 WIB):** **PLAN APPROVED — DEC-39 APPROVED (D1–D11; `"Saya setuju D1-D11."`; DEC-10 CLOSED)** di `reports/feature-update/PHASE-10-PLAN.md` (baseline `f185ca6`, paket rencana `a8264ad`). Implementasi Subfase 10a diotorisasi.
+- **Status implementasi (2026-11-03 WIB):** **IMPLEMENTED — agent-verified; review manual pemilik PENDING (#1–#18)** (`reports/feature-update/PHASE-10A-REPORT.md`, `reports/feature-update/PHASE-10A-MANUAL-REVIEW.md`). Disahkan melalui **DEC-39 APPROVED (D1–D11; `"Saya setuju D1-D11."`; DEC-10 CLOSED)** di atas baseline `b515cb1`.
 Scope: Relasi banyak guru-matpel-rombel-periode; timetable/hari/jam/ruang bila diperlukan; bentrok guru/rombel/ruang; libur/cancel/reschedule.
 
 Kriteria penerimaan: Guru dapat beberapa penugasan; bentrok nyata ditolak; exception jadwal tidak menghasilkan tugas palsu.
@@ -78,9 +78,9 @@ DATABASE; REQUIREMENTS; ACCESS-CONTROL; API-CONTRACTS; DECISIONS; CHANGELOG; lap
 “Belum isi jurnal” tidak bisa dihitung hanya dari daftar guru; perlu sumber expected session yang jelas.
 
 ## Syarat keluar subfase
-- [ ] Scope selesai atau partial/blocker dijelaskan.
-- [ ] Kontrak request/response/schema/permission yang berubah didokumentasikan.
-- [ ] Uji relevan benar-benar dijalankan atau NOT RUN dengan alasan.
-- [ ] Checklist manual tersedia bila dibutuhkan; persetujuan dicatat hanya setelah jawaban pemilik.
-- [ ] SHA/working tree, known issues dan langkah berikutnya dicatat.
-- [ ] Scope berikutnya diusulkan, belum dijalankan tanpa instruksi.
+- [x] Scope selesai atau partial/blocker dijelaskan (10a selesai dan diverifikasi agen; 10b/10c belum dimulai).
+- [x] Kontrak request/response/schema/permission yang berubah didokumentasikan (`DATABASE.md`, `ACCESS-CONTROL.md`, `API-CONTRACTS.md`, `TESTING.md`).
+- [x] Uji relevan benar-benar dijalankan atau NOT RUN dengan alasan (`PHASE-10A-REPORT.md`).
+- [x] Checklist manual tersedia bila dibutuhkan (`PHASE-10A-MANUAL-REVIEW.md` #1–#18); persetujuan dicatat hanya setelah jawaban pemilik.
+- [x] SHA/working tree, known issues dan langkah berikutnya dicatat.
+- [x] Scope berikutnya diusulkan (10b), belum dijalankan tanpa instruksi.

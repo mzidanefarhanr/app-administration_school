@@ -51,6 +51,10 @@ use App\Http\Controllers\StudentProgressionController;
 use App\Http\Controllers\StudentRombelController;
 use App\Http\Controllers\StudentStatusController;
 use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\TeachingAssignmentController;
+use App\Http\Controllers\TeachingOptionController;
+use App\Http\Controllers\TeachingScheduleController;
+use App\Http\Controllers\TeachingScheduleExceptionController;
 use App\Http\Controllers\TypeUserController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VillageController;
@@ -361,6 +365,46 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::post('/{archive}/restore', [ArchiveController::class, 'restore'])
             ->whereNumber('archive')
             ->middleware('can:archives.manage');
+    });
+
+    // Fase 10a (DEC-39 / DEC-10) — penugasan mengajar, jadwal mingguan + deteksi bentrok,
+    // dan exception kalender (holiday / cancelled / rescheduled).
+    Route::prefix('teaching')->group(function () {
+        Route::get('/options', TeachingOptionController::class)
+            ->middleware('can:teaching.view');
+
+        Route::get('/assignments', [TeachingAssignmentController::class, 'index'])
+            ->middleware('can:teaching.view');
+        Route::post('/assignments', [TeachingAssignmentController::class, 'store'])
+            ->middleware('can:teaching.manage');
+        Route::match(['put', 'patch'], '/assignments/{teachingAssignment}', [TeachingAssignmentController::class, 'update'])
+            ->whereNumber('teachingAssignment')
+            ->middleware('can:teaching.manage');
+        Route::delete('/assignments/{teachingAssignment}', [TeachingAssignmentController::class, 'destroy'])
+            ->whereNumber('teachingAssignment')
+            ->middleware('can:teaching.manage');
+
+        Route::get('/schedules', [TeachingScheduleController::class, 'index'])
+            ->middleware('can:teaching.view');
+        Route::post('/schedules', [TeachingScheduleController::class, 'store'])
+            ->middleware('can:teaching.manage');
+        Route::match(['put', 'patch'], '/schedules/{teachingSchedule}', [TeachingScheduleController::class, 'update'])
+            ->whereNumber('teachingSchedule')
+            ->middleware('can:teaching.manage');
+        Route::delete('/schedules/{teachingSchedule}', [TeachingScheduleController::class, 'destroy'])
+            ->whereNumber('teachingSchedule')
+            ->middleware('can:teaching.manage');
+
+        Route::get('/exceptions', [TeachingScheduleExceptionController::class, 'index'])
+            ->middleware('can:teaching.view');
+        Route::post('/exceptions', [TeachingScheduleExceptionController::class, 'store'])
+            ->middleware('can:teaching.manage');
+        Route::match(['put', 'patch'], '/exceptions/{teachingScheduleException}', [TeachingScheduleExceptionController::class, 'update'])
+            ->whereNumber('teachingScheduleException')
+            ->middleware('can:teaching.manage');
+        Route::delete('/exceptions/{teachingScheduleException}', [TeachingScheduleExceptionController::class, 'destroy'])
+            ->whereNumber('teachingScheduleException')
+            ->middleware('can:teaching.manage');
     });
 
     // Fase 01a — penegakan kemampuan pada endpoint master/referensi.

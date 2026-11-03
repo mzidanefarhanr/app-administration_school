@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Employee extends Model
@@ -192,6 +193,19 @@ class Employee extends Model
                 $builder->whereNull('employees.exit_date')
                     ->orWhere('employees.exit_date', '>=', $today);
             });
+    }
+
+    /**
+     * Active teaching staff eligible for teaching assignments (DEC-39 D2).
+     */
+    public function scopeEligibleTeacher(Builder $query): Builder
+    {
+        return $this->scopeEligibleHomeroomTeacher($query);
+    }
+
+    public function teachingAssignments(): HasMany
+    {
+        return $this->hasMany(TeachingAssignment::class, 'employee_id', 'id');
     }
 
     public function employeeStatus(): BelongsTo

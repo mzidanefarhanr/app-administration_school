@@ -68,7 +68,7 @@ final class AbilityCatalog
             // pemusnahan data belum diotorisasi.
             'archives.purge' => self::def('archives', 'Memusnahkan arsip dokumen menurut kebijakan retensi.', true),
 
-            // Pembelajaran (belum tersedia)
+            // Pembelajaran (Fase 10)
             'teaching.view' => self::def('teaching', 'Melihat jadwal/jurnal pembelajaran.', false),
             'teaching.manage' => self::def('teaching', 'Mengelola jadwal/jurnal pembelajaran.', false),
         ];
@@ -116,7 +116,7 @@ final class AbilityCatalog
                     'letters.view', 'letters.manage',
                     'leaves.view', 'leaves.manage', 'leaves.request',
                     'archives.view', 'archives.manage',
-                    'teaching.view',
+                    'teaching.view', 'teaching.manage',
                 ],
             ],
             'kepala-sekolah' => [
@@ -151,10 +151,11 @@ final class AbilityCatalog
             ],
             'guru' => [
                 'name' => 'Teacher',
-                'description' => 'Submits leave requests for their own linked employee profile.',
+                'description' => 'Views teaching schedules and submits leave requests for their own linked employee profile.',
                 'protected' => false,
                 'abilities' => [
                     'leaves.request',
+                    'teaching.view',
                 ],
             ],
         ];

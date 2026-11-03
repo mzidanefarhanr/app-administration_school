@@ -113,6 +113,13 @@ const router = createRouter({
                     component: () => import('@/views/pages/public/Archives.vue')
                 },
                 {
+                    path: '/public/teaching/schedules',
+                    alias: '/teaching/schedules',
+                    name: 'teachingSchedules',
+                    meta: { breadcrumb: 'Assignments & Timetable', requiresAbility: 'teaching.view' },
+                    component: () => import('@/views/teaching/TeachingSchedulesView.vue')
+                },
+                {
                     path: '/public/data-quality',
                     name: 'dataquality',
                     meta: { breadcrumb: 'Data Quality', requiresAbility: ['students.view', 'employees.view'] },

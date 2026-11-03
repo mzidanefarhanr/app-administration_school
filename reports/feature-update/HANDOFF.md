@@ -1,6 +1,26 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Rencana Subfase 10a DISETUJUI — DEC-39 APPROVED; DEC-10 CLOSED; implementasi diotorisasi)
+## Current checkpoint — 2026-11-03 (Subfase 10a IMPLEMENTED — agent-verified; review pemilik PENDING; UAT stopped)
+
+- **Status:** **Subfase 10a — Penugasan dan jadwal pembelajaran** is **IMPLEMENTED and agent-verified 2026-11-03** above `main` @ baseline **`b515cb1`** (DEC-39 approval commit on top of plan package `a8264ad` and 09b acceptance `f185ca6`), under **DEC-39 APPROVED** ("Saya setuju D1-D11."; **DEC-10 CLOSED**). **Fase 09 (09a & 09b) tetap DITERIMA PEMILIK & DITUTUP LENGKAP** (`f185ca6`). Owner manual review for 10a is **PENDING (#1–#18)** in `reports/feature-update/PHASE-10A-MANUAL-REVIEW.md`; commit/push is not acceptance.
+- **Delivered (S0–S8):**
+  - Config `config/teaching.php` (`days_of_week` 1..6, `period_presets` 1..12, `max_period=12`, `max_hours_per_week=24`, `exception_types`, `journal_grace_days=7`).
+  - Three additive tables (`teaching_assignments`, `teaching_schedules`, `teaching_schedule_exceptions`) + idempotent ability migration syncing `teaching.manage` to `operator-sekolah` and `teaching.view` to `guru` (`AbilityCatalog` + `2029_10_01_000004_sync_teaching_abilities_to_default_roles.php`).
+  - Models `TeachingAssignment`, `TeachingSchedule`, and `TeachingScheduleException` with `Loggable` `$auditableAttributes` allowlists excluding `notes`/`reason` (`D10`), plus `Employee::scopeEligibleTeacher()` (`employee_type = 'Pendidik'`, `is_active = true`, non-trashed).
+  - `TeachingScheduleService` with transactions, `SchoolYear::lockForUpdate()`, `expected_version`/`409` conflict payload (`conflict: true`, `latest`), locked school year write guard (`422`), and automatic overlap detection (`start_time < end_time AND end_time > start_time`) on **teacher (`employee_id`)**, **class (`school_rombel_id`)**, and **room (`room_normalized`)** for both weekly schedule slots and `rescheduled` exceptions.
+  - Reference delete/update guards in `SchoolYearController::destroy()` and `SchoolRombelController::update()`/`destroy()` (`422` when referenced by teaching assignments or schedule exceptions).
+  - **13 `/api/teaching/*` routes** (`TeachingOptionController`, `TeachingAssignmentController`, `TeachingScheduleController`, `TeachingScheduleExceptionController`) + 6 FormRequests.
+  - Vue view `vue-app/src/views/teaching/TeachingSchedulesView.vue` at `/public/teaching/schedules` (alias `/teaching/schedules`, `requiresAbility: 'teaching.view'`) with 3 tabs (`Weekly Timetable`, `Teaching Assignments`, `Schedule Exceptions`) and sidebar menu `Teaching -> Assignments & Timetable`.
+- **Evidence:**
+  - Feature tests (`tests/Feature/Teaching/TeachingScheduleApiTest.php`): **6 passed (116 assertions) in 6.57s** covering `T1–T14`.
+  - Backend regressions (`Academic`, `Access`, `Archives`): **147 passed (2,002 assertions) in 199.60s**.
+  - Style & build: `php artisan route:list --path=teaching` → **13 routes**; Pint on all 26 changed/new PHP files → **PASS (26 files)**; ESLint on `TeachingSchedulesView.vue`, `router/index.js`, `AppMenu.vue` → **0 errors**; `npm run build` → **PASS in 35.86s**.
+  - Isolated UAT `.uat-phase10` (`127.0.0.1:18028` / `127.0.0.1:14028`, cookie `school_phase10_session`): `prepare-teaching` run twice (idempotent) → **101 teaching assignments**, **121 teaching schedules**, **6 schedule exceptions** across `12` classes, `10` subjects, and `15` eligible `Pendidik` teachers; 11 live HTTP probes passed (`401` guest, `403` staff, `200`/`403` guru view-only, `200` operator options/matrix/assignments/exceptions, `422` teacher collision, `409` stale version with `latest`, `422` delete guard, `422` locked school year).
+- **UAT state (DEC-27):** UAT servers on `127.0.0.1:18028` and `127.0.0.1:14028` were **stopped on 2026-11-03 WIB** after verification (ports `18028`/`14028` confirmed free, `.uat-phase10` SQLite/storage/runtime password preserved, Apache and MariaDB untouched). Restart commands for owner review are in `PHASE-10A-MANUAL-REVIEW.md`.
+- **NOT RUN:** interactive browser UI automation / visual screenshots (1440×900 & 390×844) and keyboard navigation in this session; full PHPUnit suite across all phases (`MariaDbIntegrationTest`); MariaDB/InnoDB multi-process races; real two-tab browser `409`; restore drill including 10a schema.
+- **Next:** owner reviews `reports/feature-update/PHASE-10A-REPORT.md` and runs `reports/feature-update/PHASE-10A-MANUAL-REVIEW.md` (#1–#18). After owner approval, record acceptance in a separate documentation commit before planning Subphase 10b.
+
+## Previous checkpoint — 2026-11-03 (Rencana Subfase 10a DISETUJUI — DEC-39 APPROVED; DEC-10 CLOSED; implementasi diotorisasi)
 
 - **Status:** pemilik menyatakan **"Saya setuju D1-D11."** (2026-11-03 WIB); dicatat sebagai **DEC-39 APPROVED** dan menutup gerbang **DEC-10** melalui D3, D5, dan D8. Implementasi **Subfase 10a — Penugasan dan jadwal pembelajaran** diotorisasi sesuai `reports/feature-update/PHASE-10-PLAN.md` (baseline **`f185ca6`**; paket rencana **`a8264ad`**). **Fase 09 (09a & 09b) tetap DITERIMA PEMILIK & DITUTUP LENGKAP** (`f185ca6`).
 - **Next:** eksekusi S1–S8 Subfase 10a, verifikasi penuh, dan siapkan `PHASE-10A-REPORT.md` serta `PHASE-10A-MANUAL-REVIEW.md`.

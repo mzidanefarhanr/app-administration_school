@@ -9,6 +9,8 @@ use App\Models\SchoolYear;
 use App\Models\StudentLockedCorrection;
 use App\Models\StudentMutation;
 use App\Models\StudentProgressionBatch;
+use App\Models\TeachingAssignment;
+use App\Models\TeachingScheduleException;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -238,6 +240,26 @@ class SchoolYearController extends Controller
                 if ($correctionCount > 0) {
                     abort(response()->json([
                         'message' => "This record is still being referenced by {$correctionCount} locked correction(s).",
+                    ], 422));
+                }
+
+                $teachingAssignmentCount = TeachingAssignment::query()
+                    ->where('school_year_id', $schoolYear->id)
+                    ->count();
+
+                if ($teachingAssignmentCount > 0) {
+                    abort(response()->json([
+                        'message' => "This record is still being referenced by {$teachingAssignmentCount} teaching assignment(s).",
+                    ], 422));
+                }
+
+                $teachingExceptionCount = TeachingScheduleException::query()
+                    ->where('school_year_id', $schoolYear->id)
+                    ->count();
+
+                if ($teachingExceptionCount > 0) {
+                    abort(response()->json([
+                        'message' => "This record is still being referenced by {$teachingExceptionCount} teaching schedule exception(s).",
                     ], 422));
                 }
 

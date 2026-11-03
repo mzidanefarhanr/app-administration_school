@@ -9,6 +9,8 @@ use App\Models\Employee;
 use App\Models\SchoolRombel;
 use App\Models\SchoolYear;
 use App\Models\StudentRombel;
+use App\Models\TeachingAssignment;
+use App\Models\TeachingScheduleException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -219,6 +221,15 @@ class SchoolRombelController extends Controller
                 throw ValidationException::withMessages($errors);
             }
 
+            if ($yearChanged && (
+                TeachingAssignment::where('school_rombel_id', $rombel->id)->exists()
+                || TeachingScheduleException::where('school_rombel_id', $rombel->id)->exists()
+            )) {
+                throw ValidationException::withMessages([
+                    'school_year_id' => ['The academic year cannot be changed because this class has teaching assignments or schedule exceptions.'],
+                ]);
+            }
+
             if ($this->nameExists((int) $targetYear->id, $name, (int) $rombel->id)) {
                 throw ValidationException::withMessages([
                     'name' => ['The class name has already been taken for this school year.'],
@@ -303,6 +314,15 @@ class SchoolRombelController extends Controller
             if ($hasHistory) {
                 throw ValidationException::withMessages([
                     'id' => ['This class already has membership history and cannot be deleted.'],
+                ]);
+            }
+
+            $hasTeachingUsage = TeachingAssignment::where('school_rombel_id', $rombel->id)->exists()
+                || TeachingScheduleException::where('school_rombel_id', $rombel->id)->exists();
+
+            if ($hasTeachingUsage) {
+                throw ValidationException::withMessages([
+                    'id' => ['This class already has teaching assignments or schedule exceptions and cannot be deleted.'],
                 ]);
             }
 

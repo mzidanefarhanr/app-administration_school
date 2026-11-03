@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { ref, computed, onMounted } from 'vue';
 
 import AppMenuItem from './AppMenuItem.vue';
@@ -69,6 +69,13 @@ const model = ref([
         requires: 'archives.view',
         items: [
             { label: 'Archive Documents', icon: 'pi pi-fw pi-folder', to: '/public/archives', requires: 'archives.view' },
+        ]
+    },
+    {
+        label: 'Teaching',
+        requires: 'teaching.view',
+        items: [
+            { label: 'Assignments & Timetable', icon: 'pi pi-fw pi-calendar-clock', to: '/public/teaching/schedules', requires: 'teaching.view' },
         ]
     },
     {
