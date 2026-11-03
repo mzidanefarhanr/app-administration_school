@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 10c — Rencana laporan belum mengisi jurnal (PLAN; DEC-41 PROPOSED)
+- Type: Docs
+- Scope / fase: Rencana rinci Subfase **10c — Laporan belum mengisi jurnal** (`DEC-41 PROPOSED D1–D9`). Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `reports/feature-update/PHASE-10C-PLAN.md`, `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `roadmap/phases/PHASE-10-TEACHING.md`, `roadmap/ROADMAP.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: menyusun rencana teknis Subfase 10c (laporan kepatuhan pengisian jurnal, perbandingan deterministik sesi terjadwal vs aktual, rekap per guru, drilldown sesi belum mengisi, ekspor CSV, dan pembatasan akses) dengan usulan `DEC-41 PROPOSED (D1–D9)` di atas baseline audit `35728bb`.
+- Why: menyiapkan spesifikasi teknis, aturan denominator, segmentasi grace window vs overdue, kontrak API, desain UI, dan matriks tes sebelum implementasi 10c dimulai.
+- Validation: **NOT RUN** — commit dokumentasi rencana; implementasi belum diotorisasi.
+- Notes / risks: implementasi kode memerlukan persetujuan pemilik atas `D1–D9`.
+- Evidence: `reports/feature-update/PHASE-10C-PLAN.md`; baseline `35728bb`.
+
 ## [2026-11-03] Fase 10b — Penerimaan manual pemilik #1–#18 (OWNER APPROVED; UAT stopped)
 - Type: Docs
 - Scope / fase: Penerimaan manual pemilik atas Subfase **10b — Sesi dan jurnal pembelajaran** (`#1–#18 APPROVED`). Tidak ada perubahan kode aplikasi pada entri ini.
