@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 09b — Penerimaan manual pemilik #1–#18 (OWNER APPROVED; UAT stopped; Fase 09 selesai)
+- Type: Docs
+- Scope / fase: Penerimaan manual subfase 09b. Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `reports/feature-update/PHASE-09B-REPORT.md`, `reports/feature-update/PHASE-09B-MANUAL-REVIEW.md`, `reports/feature-update/PHASE-09B-PLAN.md`, `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `docs/TESTING.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-09-ARCHIVES.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: mencatat pernyataan pemilik **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** (2026-11-03 WIB) sebagai penerimaan checklist 09b **#1–#18**; status DEC-38 menjadi IMPLEMENTED + OWNER APPROVED; paket review dicatat sebagai **`51002e6`** di `origin/main`; 09a tetap OWNER APPROVED (`dfd6f85`); 08a/08b tetap OWNER APPROVED; DEC-35/DEC-36/DEC-37 tidak berubah; **DEC-13 tetap PARTIALLY CLOSED untuk lingkup modul arsip dokumen** dan sisanya tetap OPEN untuk Fase 13.
+- Why: penerimaan manual pemilik dicatat terpisah dari commit implementasi (`51002e6`) sesuai aturan repo dan menjadi gate penyusunan rencana fase berikutnya.
+- Validation: **NOT RUN** — tidak ada tes/build/Pint/ESLint/browser ulang; agen tidak mengulang skenario manual dan item NOT RUN tetap NOT RUN. Verifikasi operasional read-only: port **18027/14027 bebas**, `.uat-phase09` (SQLite/storage/password runtime) dipertahankan, Apache/MariaDB tidak disentuh.
+- Notes / risks: penerimaan 09b tidak mengotorisasi eksekusi purge/pemusnahan data, penugasan `archives.purge` ke role, pengaktifan scheduler, merge/deploy/force-push, migrasi DB operasional/MariaDB, perubahan dependency/lockfile/service/`.env`, atau pelaksanaan Fase 10 tanpa persetujuan rencana terpisah.
+- Evidence: `reports/feature-update/PHASE-09B-REPORT.md`; `reports/feature-update/PHASE-09B-MANUAL-REVIEW.md`; paket review `51002e6`; baseline `b405fe7`.
+
 ## [2026-11-03] Fase 09b — Retensi, akses aman, dan pengingat arsip (IMPLEMENTED; agent-verified; review pemilik PENDING)
 - Type: Feature
 - Scope / fase: Subfase **09b — retensi read-only, akses aman (preview + SHA-256), audit akses append-only, arsip/restore dokumen, dan pengingat masa berlaku di dashboard** (DEC-38 APPROVED; D6 = Opsi A tanpa eksekusi purge; DEC-13 partially closed untuk lingkup modul arsip dokumen).

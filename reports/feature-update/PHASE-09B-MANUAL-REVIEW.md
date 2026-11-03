@@ -2,12 +2,12 @@
 
 Subfase: 09b — preview inline aman, verifikasi SHA-256 saat baca, audit akses append-only (`archive_access_logs`), pengingat masa berlaku di dashboard (`ArchiveExpiryWidget.vue`), arsip/restore dokumen berversi (`expected_version`/`409`), dan laporan retensi read-only tanpa purge (`app:archives-retention --dry-run`).
 Keputusan: **DEC-38 APPROVED** (D1–D11, 2026-11-03 WIB; **"Saya setuju D1-D11"**; D6 = **Opsi A** tanpa eksekusi purge; **DEC-13 PARTIALLY CLOSED untuk lingkup modul arsip dokumen**, sisanya tetap OPEN untuk Fase 13). Laporan teknis: `reports/feature-update/PHASE-09B-REPORT.md`; rencana: `reports/feature-update/PHASE-09B-PLAN.md`.
-Baseline induk: `main` pada `b405fe7` (pencatatan DEC-38 APPROVED). Status teknis: **IMPLEMENTED — agent-verified (2026-11-03)**. Status review pemilik: **PENDING (#1–#18)**.
+Baseline induk: `main` pada `b405fe7` (pencatatan DEC-38 APPROVED); paket review **`51002e6`** (di-push ke `origin/main`). Status teknis: **IMPLEMENTED — agent-verified (2026-11-03)**. Status review pemilik: **APPROVED (#1–#18, 2026-11-03 WIB)**.
 
 ## Status penerimaan pemilik
 
-- **PENDING (#1–#18)** — menunggu pemeriksaan pemilik. Commit/push paket review ini **bukan** penerimaan manual.
-- Server UAT `.uat-phase09` (`127.0.0.1:18027` dan `127.0.0.1:14027`) **sudah dihentikan oleh agen pada 2026-11-03 WIB** setelah verifikasi selesai (DEC-27), dengan seluruh data `.uat-phase09` dipertahankan. Gunakan perintah di bawah untuk menyalakan server saat hendak menguji di browser, dan hentikan kembali setelah selesai (#18).
+- **APPROVED (#1–#18, 2026-11-03 WIB)** berdasarkan pernyataan pemilik **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** Agen tidak mengulang skenario; semua status di bawah tetap **bukti agen** dan item NOT RUN tetap NOT RUN. Penerimaan dicatat pada commit dokumentasi terpisah setelah paket review `51002e6`.
+- Server UAT `.uat-phase09` (`127.0.0.1:18027` dan `127.0.0.1:14027`) **sudah dihentikan oleh agen pada 2026-11-03 WIB** setelah verifikasi selesai dan diverifikasi ulang setelah penerimaan (DEC-27): port `18027` dan `14027` bebas, `.uat-phase09` dipertahankan, Apache/MariaDB tidak disentuh.
 - Batas: review 09b tidak mengotorisasi eksekusi purge/pemusnahan data, penugasan `archives.purge` ke role, pengaktifan scheduler, merge/deploy/force-push, migrasi database operasional/MariaDB, perubahan dependency/lockfile, perubahan service/`.env`, atau 09c/Fase 10+.
 
 ## Lingkungan UAT (terisolasi)
