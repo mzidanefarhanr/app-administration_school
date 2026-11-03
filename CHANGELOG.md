@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 10b — Rencana sesi dan jurnal pembelajaran (PLAN; DEC-40 PROPOSED)
+- Type: Docs
+- Scope / fase: Penyusunan rencana rinci Subfase 10b (`reports/feature-update/PHASE-10B-PLAN.md`, `DEC-40 PROPOSED`). Tidak ada perubahan kode aplikasi, migration, model, service, controller, route, komponen Vue, fixture UAT 10b, atau eksekusi suite tes pada entri ini (`NOT RUN`).
+- Files touched: `reports/feature-update/PHASE-10B-PLAN.md`, `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `roadmap/phases/PHASE-10-TEACHING.md`, `roadmap/ROADMAP.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: mendokumentasikan audit kode faktual pada baseline `a304df8` (fondasi 10a `teaching_assignments`/`teaching_schedules`/`teaching_schedule_exceptions` + `config/teaching.php` aktif, tautan `employees.user_id`, pemetaan `teaching.view`/`teaching.manage`, dan kebutuhan guard terhadap sesi berjurnal) serta menyusun usulan keputusan pemilik **D1–D9** (`DEC-40 PROPOSED`): tabel additive `teaching_journals` dengan `UNIQUE (teaching_schedule_id, session_date)`, evaluasi deterministik sesi efektif harian/rentang (`regular` vs `holiday`/`cancelled`/`rescheduled_out`/`rescheduled`), idempotent retry (`200` vs `201` vs `409`), otorisasi `own assignment` vs `teaching.manage` (`correction_reason`), penegakan `journal_grace_days = 7` WIB & tahun ajaran `locked`, guard hapus/exception terhadap sesi berjurnal, allowlist audit tanpa `topic`/`summary`/`notes`/`correction_reason`, 5 route baru (total 18 route `/api/teaching/*`), halaman `/public/teaching/journals` (2 tab), dan UAT additive `prepare-journals` di `.uat-phase10`.
+- Why: setelah Subfase 10a diterima pemilik (`a304df8`), tahap berikutnya pada roadmap adalah Subfase 10b yang memerlukan keputusan tertulis pemilik atas `D1–D9` sebelum implementasi dimulai.
+- Validation: **NOT RUN** — tahap rencana dokumentasi saja.
+- Notes / risks: implementasi kode Subfase 10b belum diotorisasi sampai pemilik menyetujui `D1–D9`.
+- Evidence: `reports/feature-update/PHASE-10B-PLAN.md`; baseline `a304df8`.
+
 ## [2026-11-03] Fase 10a — Penerimaan manual pemilik #1–#18 (OWNER APPROVED; UAT stopped)
 - Type: Docs
 - Scope / fase: Penerimaan manual Subfase 10a. Tidak ada perubahan kode aplikasi pada entri ini.
