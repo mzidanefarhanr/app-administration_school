@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 11b — Penerimaan manual pemilik checklist #1–#18; Subfase 11b SELESAI LENGKAP & DITUTUP
+- Type: Docs
+- Scope / fase: Pencatatan penerimaan pemilik atas Subfase 11b (checklist #1–#18) dan penutupan lengkap Subfase 11b. Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `reports/feature-update/PHASE-11B-MANUAL-REVIEW.md`, `docs/DECISIONS.md`, `roadmap/phases/PHASE-11-ANALYTICS.md`, `roadmap/ROADMAP.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: mencatat pernyataan pemilik **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual #1–#18 pada `PHASE-11B-MANUAL-REVIEW.md` disahkan sebagai **APPROVED**; DEC-43 status disahkan menjadi **APPROVED & CLOSED**; DEC-12 CLOSED; Subfase 11b disahkan selesai lengkap dan ditutup; port 18028/14028 bebas listener (`PORTS_18028_14028_FREE`).
+- Why: memisahkan commit pencatatan penerimaan pemilik dari implementasi kode dan penyusunan rencana subfase berikutnya sesuai aturan repositori.
+- Validation: **NOT RUN** — commit dokumentasi penerimaan. Verifikasi port 18028 dan 14028 tetap bebas.
+- Notes / risks: Tidak ada mutasi kode atau skema. Tahap berikutnya adalah penyusunan rencana Fase 11 — Subfase 11c (Tugas dan Pengingat Internal Operator).
+- Evidence: `reports/feature-update/PHASE-11B-MANUAL-REVIEW.md`; paket review `78a2c28`.
+
 ## [2026-11-03] Fase 11b — Laporan rekapitulasi sekolah, statistik multi-tahun, dan rekonsiliasi Dapodik (DEC-43 IMPLEMENTED; DEC-12 CLOSED)
 - Type: Feature
 - Scope / fase: Implementasi Fase 11 — Subfase 11b: Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data Dapodik (DEC-43 IMPLEMENTED, DEC-12 CLOSED). Zero schema change.

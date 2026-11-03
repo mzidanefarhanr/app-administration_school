@@ -1,6 +1,10 @@
 # Konteks proyek
 
-## Current addendum — 2026-11-03 (Subfase 11b IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18; DEC-43 IMPLEMENTED; DEC-12 CLOSED)
+## Current addendum — 2026-11-03 (Subfase 11b OWNER APPROVED #1–#18; Subfase 11b SELESAI LENGKAP & DITUTUP)
+
+Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual 11b **#1–#18 APPROVED**. **Subfase 11b — Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data Dapodik** resmi **SELESAI LENGKAP & DITUTUP** di atas `main` @ baseline **`dc43954`** (paket implementasi **`78a2c28`**). **DEC-43 disahkan menjadi APPROVED & CLOSED** dan gerbang **DEC-12 CLOSED**. Seluruh fungsionalitas statistik multi-tahun, demografi, kesiapan identitas Dapodik, dan rekonsiliasi berkas Dapodik lokal telah beroperasi penuh dan terverifikasi. Server UAT port 18028/14028 bebas (`PORTS_18028_14028_FREE`). Milestone aktif bergeser ke **Fase 11 — Subfase 11c: Tugas dan Pengingat Internal Operator**.
+
+## Previous addendum — 2026-11-03 (Subfase 11b IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18; DEC-43 IMPLEMENTED; DEC-12 CLOSED)
 
 Subfase **11b — Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data Dapodik** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`dc43954`** (pencatatan persetujuan rencana `DEC-43 APPROVED` dan `DEC-12 CLOSED`). Disampaikan:
 - **Backend Services & Controllers:**

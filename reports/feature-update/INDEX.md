@@ -1,6 +1,10 @@
 # Indeks laporan pengembangan
 
-## Current checkpoint — 2026-11-03 (Subfase 11b IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-43 IMPLEMENTED; DEC-12 CLOSED)
+## Current checkpoint — 2026-11-03 (Subfase 11b OWNER APPROVED #1–#18; Subfase 11b SELESAI LENGKAP & DITUTUP)
+
+Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual 11b **#1–#18 APPROVED**. **Subfase 11b — Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data Dapodik** resmi **SELESAI LENGKAP & DITUTUP** (`78a2c28`). **DEC-43 disahkan menjadi APPROVED & CLOSED** dan gerbang **DEC-12 CLOSED**. Port 18028/14028 bebas listener (`PORTS_18028_14028_FREE`). Tonggak aktif bergeser ke persiapan perencanaan **Fase 11 — Subfase 11c: Tugas dan Pengingat Internal Operator**.
+
+## Previous checkpoint — 2026-11-03 (Subfase 11b IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-43 IMPLEMENTED; DEC-12 CLOSED)
 
 Subfase **11b — Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data Dapodik** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`dc43954`** (dokumentasi persetujuan rencana `DEC-43 APPROVED` dan penutupan `DEC-12 CLOSED`). Seluruh implementasi S1–S8 selesai: backend `SchoolStatisticsReportService`, `DapodikReconciliationService`, controller `SchoolReportController`, `DapodikReconciliationController`, 6 route `/api/reports/*`, komponen antarmuka `MultiYearTrendsTab.vue`, `DemographicsTab.vue`, `DapodikReconciliationTab.vue`, view induk `SchoolReportsView.vue` (`/public/reports/school`), router & menu kesiswaan `AppMenu.vue`, 12 tes feature `SchoolReportApiTest` (`T1–T12`, 105 assertions), Pint PASS, ESLint 0 errors / 0 warnings, build Vite PASS (39.56 kB), 5 probe HTTP UAT `probe-reports-school` PASS, dan full suite 666 passed / 13 skipped PASS (7.872 assertions). Port 18028/14028 dihentikan sesuai DEC-27. Dokumen laporan rinci: **`PHASE-11B-REPORT.md`**; checklist review manual pemilik: **`PHASE-11B-MANUAL-REVIEW.md`** (#1–#18).
 

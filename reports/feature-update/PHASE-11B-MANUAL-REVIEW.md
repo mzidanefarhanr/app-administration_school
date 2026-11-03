@@ -3,7 +3,7 @@
 Subfase: 11b — Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data Dapodik (DEC-43 IMPLEMENTED, DEC-12 CLOSED).
 Keputusan pemilik: **DEC-43 APPROVED** (D1–D10, 2026-11-03 WIB; pernyataan **"Saya setuju D1-D10"**). **DEC-12 CLOSED**.
 Laporan teknis lengkap: [`reports/feature-update/PHASE-11B-REPORT.md`](./PHASE-11B-REPORT.md); rencana kerja: [`reports/feature-update/PHASE-11B-PLAN.md`](./PHASE-11B-PLAN.md).
-Baseline induk: `main` pada `dc43954`. Status teknis: **IMPLEMENTED — agent-verified (2026-11-03)**. Status review pemilik: **AWAITING OWNER REVIEW (#1–#18, 2026-11-03 WIB)**.
+Baseline induk: `main` pada `dc43954` (implementasi `78a2c28`). Status teknis: **IMPLEMENTED & DIVERIFIKASI AGEN (2026-11-03)**. Status review pemilik: **APPROVED (#1–#18, 2026-11-03 WIB)** berdasarkan pernyataan: *"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."*
 
 ---
 
@@ -153,3 +153,18 @@ npx vite --host 127.0.0.1 --port 14028
 ### Skenario 18: Tab Rekonsiliasi Dapodik — Unduh Berkas Audit Rekonsiliasi CSV
 - **Langkah**: Klik tombol **"Unduh Audit Rekonsiliasi (CSV)"** di toolbar atas hasil rekonsiliasi.
 - **Ekspektasi**: Berkas bernama `audit_rekonsiliasi_dapodik_YYYYMMDD.csv` terunduh. Berkas tersebut memuat seluruh baris komparasi, status diskrepansi, dan catatan perbedaan atribut dengan format UTF-8 BOM yang dapat dibuka langsung di aplikasi spreadsheet.
+
+---
+
+## Catatan Penerimaan Pemilik (2026-11-03 WIB)
+
+Pernyataan pemilik:
+> **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."**
+
+- **Hasil checklist manual #1–#18**: Seluruhnya **APPROVED** (2026-11-03 WIB).
+- **Status Subfase 11b**: **SELESAI LENGKAP & DITUTUP**.
+- **DEC-43**: **APPROVED & CLOSED**.
+- **DEC-12**: **CLOSED**.
+- **Server UAT 18028/14028**: Dipastikan dihentikan per DEC-27 (`PORTS_18028_14028_FREE`).
+- **Tahap selanjutnya**: Perencanaan Subfase 11c (Tugas dan Pengingat Internal Operator).
+

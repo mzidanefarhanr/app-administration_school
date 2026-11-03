@@ -1,6 +1,12 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Subfase 11b IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-43 IMPLEMENTED; DEC-12 CLOSED)
+## Current checkpoint — 2026-11-03 (Subfase 11b OWNER APPROVED #1–#18; Subfase 11b SELESAI LENGKAP & DITUTUP)
+
+- **Status:** Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual 11b **#1–#18 APPROVED**. Subfase **11b — Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data Dapodik** resmi **SELESAI LENGKAP & DITUTUP** (`78a2c28`). DEC-43 disahkan menjadi **APPROVED & CLOSED** dan gerbang **DEC-12 CLOSED**. Seluruh fitur laporan statistik multi-tahun, demografi, audit kesiapan profil Dapodik, serta rekonsiliasi berkas Dapodik lokal telah beroperasi penuh dan terverifikasi.
+- **Server UAT:** Server UAT `.uat-phase10` pada port `18028` dan `14028` diverifikasi bebas listener (`PORTS_18028_14028_FREE`). Data `.uat-phase10` dipertahankan. Apache dan MariaDB operasional tidak disentuh.
+- **Next:** Menyusun rencana rinci untuk subfase berikutnya: **Fase 11 — Subfase 11c: Tugas dan Pengingat Internal Operator** (`reports/feature-update/PHASE-11C-PLAN.md` dengan usulan `DEC-44 PROPOSED`).
+
+## Previous checkpoint — 2026-11-03 (Subfase 11b IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-43 IMPLEMENTED; DEC-12 CLOSED)
 
 - **Status:** Subfase **11b — Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data Dapodik** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`dc43954`** (dokumentasi persetujuan rencana `DEC-43 APPROVED` dan `DEC-12 CLOSED`). Paket implementasi dilaporkan di `reports/feature-update/PHASE-11B-REPORT.md` dan checklist pengujian manual pemilik disediakan di `reports/feature-update/PHASE-11B-MANUAL-REVIEW.md` (#1–#18). **Subfase 11a tetap OWNER APPROVED (#1–#18, 2026-11-03 WIB; DEC-42 CLOSED)**, dan **Fase 10 tetap SELESAI LENGKAP & DITUTUP** (`2a36800`).
 - **Implementasi yang diselesaikan (S1–S8):**

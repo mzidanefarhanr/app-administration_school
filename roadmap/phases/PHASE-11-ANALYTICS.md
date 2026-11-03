@@ -1,7 +1,7 @@
 # Fase 11 — Dashboard operator dan laporan
 
-Status teknis: **11a IMPLEMENTED & SELESAI LENGKAP (2026-11-03 WIB)**; **11b PLAN IN PREPARATION**. Status review: **11a OWNER APPROVED (#1–#18, 2026-11-03 WIB)** berdasarkan pernyataan pemilik: *"Pengujian nomor 1-18 sudah berhasil dan saya approved."*
-Dependensi: Modul sumber 03–10; boleh bertahap setelah sumber siap. Baseline implementasi 11a: `d7cf62d`; paket implementasi: `2b7e8a5`.
+Status teknis: **11a SELESAI LENGKAP & DITUTUP (2026-11-03 WIB)**; **11b SELESAI LENGKAP & DITUTUP (2026-11-03 WIB)**; **11c PLAN IN PREPARATION**. Status review: **11a OWNER APPROVED (#1–#18)**; **11b OWNER APPROVED (#1–#18, 2026-11-03 WIB)** berdasarkan pernyataan pemilik: *"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."*
+Dependensi: Modul sumber 03–10; boleh bertahap setelah sumber siap. Baseline implementasi 11b: `dc43954`; paket implementasi: `78a2c28`.
 
 ## Tujuan dan scope
 Dashboard operator dan laporan. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis.
@@ -27,7 +27,7 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 ```
 
 ### 11b — Laporan dan rekonsiliasi
-- **Status implementasi (2026-11-03 WIB):** **IN PROGRESS — DEC-43 APPROVED (D1–D10; `"Saya setuju D1-D10"`) & DEC-12 CLOSED** (`reports/feature-update/PHASE-11B-PLAN.md`). Implementasi langkah S1–S8 diotorisasi.
+- **Status implementasi (2026-11-03 WIB):** **SELESAI LENGKAP & DITUTUP — DEC-43 APPROVED & CLOSED; DEC-12 CLOSED**. Review manual pemilik: **APPROVED (#1–#18)** (`reports/feature-update/PHASE-11B-MANUAL-REVIEW.md`). Laporan implementasi: `reports/feature-update/PHASE-11B-REPORT.md`. Paket commit: `78a2c28`.
 Scope: Tren per tahun, mutasi/bantuan/kelengkapan; definisi aktif/pending/overdue; filter drilldown dan ekspor. Dapodik rekonsiliasi file jika dipilih, bukan sync otomatis (DEC-12 CLOSED).
 
 Kriteria penerimaan: Chart/list/export konsisten; hari batas dan periode jelas; perbedaan data terlihat tanpa auto-overwrite.
