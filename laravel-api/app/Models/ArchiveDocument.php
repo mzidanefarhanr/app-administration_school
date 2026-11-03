@@ -11,10 +11,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
- * Metadata arsip dokumen (Fase 09a, DEC-37).
+ * Metadata arsip dokumen (Fase 09a, DEC-37; siklus hidup 09b, DEC-38 D5).
  *
  * Subjek domain disimpan sebagai type/id dengan whitelist service; tidak
- * memakai relasi polimorfik. Status validitas dihitung dari tanggal WIB.
+ * memakai relasi polimorfik. Status validitas dihitung dari tanggal WIB dan
+ * status arsip dihitung dari archived_at (tanpa soft delete).
  */
 class ArchiveDocument extends Model
 {
@@ -45,12 +46,17 @@ class ArchiveDocument extends Model
 
     public const VALIDITY_EXPIRED = 'expired';
 
+    public const STATUS_ACTIVE = 'active';
+
+    public const STATUS_ARCHIVED = 'archived';
+
     protected $guarded = ['id'];
 
     protected $table = 'archive_documents';
 
     /**
-     * Allowlist audit; judul, nomor, deskripsi, dan nama file tidak dicatat.
+     * Allowlist audit; judul, nomor, deskripsi, nama file, dan alasan arsip
+     * tidak dicatat.
      *
      * @var array<int, string>
      */
@@ -63,6 +69,7 @@ class ArchiveDocument extends Model
         'subject_id',
         'current_version',
         'version',
+        'archived_at',
     ];
 
     protected $fillable = [
@@ -77,6 +84,9 @@ class ArchiveDocument extends Model
         'subject_id',
         'current_version',
         'version',
+        'archived_at',
+        'archive_reason',
+        'archived_by',
         'created_by',
         'updated_by',
     ];
@@ -85,6 +95,7 @@ class ArchiveDocument extends Model
         'document_date' => 'date:Y-m-d',
         'valid_from' => 'date:Y-m-d',
         'valid_until' => 'date:Y-m-d',
+        'archived_at' => 'datetime',
         'current_version' => 'integer',
         'version' => 'integer',
     ];
@@ -93,6 +104,13 @@ class ArchiveDocument extends Model
     {
         return $this->hasMany(ArchiveFileVersion::class, 'archive_document_id')
             ->orderBy('version_number');
+    }
+
+    public function accessLogs(): HasMany
+    {
+        return $this->hasMany(ArchiveAccessLog::class, 'archive_document_id')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id');
     }
 
     public function latestVersion(): HasOne
@@ -111,9 +129,24 @@ class ArchiveDocument extends Model
         return $this->belongsTo(User::class, 'updated_by', 'id')->withTrashed();
     }
 
+    public function archiver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'archived_by', 'id')->withTrashed();
+    }
+
     public function categoryLabel(): string
     {
         return (string) config('archives.categories.'.$this->category, $this->category);
+    }
+
+    public function isArchived(): bool
+    {
+        return $this->archived_at !== null;
+    }
+
+    public function status(): string
+    {
+        return $this->isArchived() ? self::STATUS_ARCHIVED : self::STATUS_ACTIVE;
     }
 
     public function validityStatus(?string $today = null): string

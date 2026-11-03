@@ -5,6 +5,7 @@ namespace App\Services\Archives;
 use App\Models\ArchiveDocument;
 use App\Models\ArchiveFileVersion;
 use App\Services\Files\PrivateUploadValidator;
+use Illuminate\Contracts\Filesystem\Filesystem as FilesystemContract;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -12,13 +13,18 @@ use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Penyimpanan file arsip privat (Fase 09a, DEC-37 D5).
+ * Penyimpanan file arsip privat (Fase 09a, DEC-37 D5; preview 09b, DEC-38 D2).
  *
  * Nama file dibuat server, path/checksum tidak pernah diekspos, dan unduhan
- * memakai header pola 07c/08a tanpa Content-Disposition.
+ * maupun preview memakai header pola 07c/08a tanpa Content-Disposition.
  */
 class ArchiveFileService
 {
+    /**
+     * Pesan aman untuk kegagalan integritas; tidak menyebut path/checksum.
+     */
+    public const INTEGRITY_MESSAGE = 'The stored file failed its integrity check.';
+
     public function __construct(
         private readonly PrivateUploadValidator $validator,
     ) {}
@@ -80,13 +86,36 @@ class ArchiveFileService
         }
     }
 
-    public function downloadResponse(ArchiveFileVersion $version): StreamedResponse
+    public function assertReadable(ArchiveFileVersion $version): void
     {
         $disk = Storage::disk((string) config('archives.attachment.disk'));
 
         if (! $disk->exists($version->path)) {
             abort(response()->json(['message' => 'Archive file not found.'], 404));
         }
+
+        $this->assertIntegrity($disk, $version);
+    }
+
+    public function downloadResponse(ArchiveFileVersion $version): StreamedResponse
+    {
+        return $this->streamResponse($version, "sandbox; default-src 'none'");
+    }
+
+    /**
+     * Preview inline memakai pola header 07c/08a tanpa Content-Disposition;
+     * CSP hanya sandbox agar renderer bawaan browser dapat menampilkan isi.
+     */
+    public function previewResponse(ArchiveFileVersion $version): StreamedResponse
+    {
+        return $this->streamResponse($version, 'sandbox');
+    }
+
+    private function streamResponse(ArchiveFileVersion $version, string $contentSecurityPolicy): StreamedResponse
+    {
+        $this->assertReadable($version);
+
+        $disk = Storage::disk((string) config('archives.attachment.disk'));
 
         $stream = $disk->readStream($version->path);
 
@@ -106,9 +135,22 @@ class ArchiveFileService
             'X-Document-Filename' => $this->downloadName($version),
             'Access-Control-Expose-Headers' => 'X-Document-Filename',
             'X-Content-Type-Options' => 'nosniff',
-            'Content-Security-Policy' => "sandbox; default-src 'none'",
+            'Content-Security-Policy' => $contentSecurityPolicy,
             'Cache-Control' => 'private, no-store',
         ]);
+    }
+
+    /**
+     * Verifikasi SHA-256 saat baca (DEC-38 D7). Byte ditahan dan pesan aman
+     * dikembalikan bila checksum tidak cocok; detail internal tidak bocor.
+     */
+    private function assertIntegrity(FilesystemContract $disk, ArchiveFileVersion $version): void
+    {
+        $checksum = hash_file('sha256', $disk->path($version->path));
+
+        if ($checksum === false || ! hash_equals((string) $version->checksum_sha256, $checksum)) {
+            abort(response()->json(['message' => self::INTEGRITY_MESSAGE], 500));
+        }
     }
 
     public function downloadName(ArchiveFileVersion $version): string

@@ -316,6 +316,8 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     });
 
     // Fase 09a (DEC-37) — metadata dan versi file arsip dokumen.
+    // Fase 09b (DEC-38) — preview aman, audit akses, tugas kedaluwarsa,
+    // arsip/restore, dan laporan retensi read-only.
     // Filter domain dan 404 untuk objek hidden ditegakkan di service.
     Route::prefix('archives')->group(function () {
         Route::get('/options', [ArchiveController::class, 'options'])
@@ -323,6 +325,11 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::get('/subjects/{type}', [ArchiveController::class, 'subjects'])
             ->whereIn('type', array_keys((array) config('archives.subject_types')))
             ->middleware('can:archives.view');
+        // Rute statis harus sebelum /{archive} (yang dibatasi whereNumber).
+        Route::get('/tasks/expiring', [ArchiveController::class, 'expiringTasks'])
+            ->middleware('can:archives.view');
+        Route::get('/retention/report', [ArchiveController::class, 'retentionReport'])
+            ->middleware('can:archives.manage');
         Route::get('/', [ArchiveController::class, 'index'])
             ->middleware('can:archives.view');
         Route::post('/', [ArchiveController::class, 'store'])
@@ -342,6 +349,18 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::get('/{archive}/versions/{version}/download', [ArchiveController::class, 'downloadVersion'])
             ->whereNumber(['archive', 'version'])
             ->middleware('can:archives.view');
+        Route::get('/{archive}/versions/{version}/preview', [ArchiveController::class, 'previewVersion'])
+            ->whereNumber(['archive', 'version'])
+            ->middleware('can:archives.view');
+        Route::get('/{archive}/access-logs', [ArchiveController::class, 'accessLogs'])
+            ->whereNumber('archive')
+            ->middleware('can:archives.view');
+        Route::post('/{archive}/archive', [ArchiveController::class, 'archive'])
+            ->whereNumber('archive')
+            ->middleware('can:archives.manage');
+        Route::post('/{archive}/restore', [ArchiveController::class, 'restore'])
+            ->whereNumber('archive')
+            ->middleware('can:archives.manage');
     });
 
     // Fase 01a — penegakan kemampuan pada endpoint master/referensi.

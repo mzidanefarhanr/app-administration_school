@@ -61,9 +61,12 @@ final class AbilityCatalog
             'leaves.approve' => self::def('leaves', 'Menyetujui izin.', true),
             'leaves.request' => self::def('leaves', 'Mengajukan izin untuk diri sendiri (pegawai tertaut).', false),
 
-            // Arsip dokumen (Fase 09a)
+            // Arsip dokumen (Fase 09a/09b)
             'archives.view' => self::def('archives', 'Melihat arsip dokumen.', false),
             'archives.manage' => self::def('archives', 'Mengelola arsip dokumen.', false),
+            // 09b (DEC-38 D6 Opsi A): dibuat tanpa penugasan peran; eksekusi
+            // pemusnahan data belum diotorisasi.
+            'archives.purge' => self::def('archives', 'Memusnahkan arsip dokumen menurut kebijakan retensi.', true),
 
             // Pembelajaran (belum tersedia)
             'teaching.view' => self::def('teaching', 'Melihat jadwal/jurnal pembelajaran.', false),

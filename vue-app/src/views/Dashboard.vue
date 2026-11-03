@@ -1,4 +1,5 @@
 <script setup>
+import ArchiveExpiryWidget from '@/components/dashboard/ArchiveExpiryWidget.vue';
 import BestSellingWidget from '@/components/dashboard/BestSellingWidget.vue';
 import ChartDataWidget_1 from '@/components/dashboard/ChartDataWidget_1.vue';
 import ListUsersOnlineWidget from '@/components/dashboard/ListUsersOnlineWidget.vue';
@@ -10,6 +11,8 @@ import StatsWidget from '@/components/dashboard/StatsWidget.vue';
 
 <template>
     <div class="grid grid-cols-12 gap-8">
+        <ArchiveExpiryWidget />
+
         <StatsWidget />
 
         <div class="col-span-12 xl:col-span-6">

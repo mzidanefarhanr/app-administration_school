@@ -97,6 +97,20 @@ Retensi, jadwal, enkripsi, lokasi salinan, RPO (kehilangan data maksimal) dan RT
 - **Siklus server**: server UAT dihentikan setelah verifikasi UAT dan sebelum review pemilik (DEC-27): PID/command line diverifikasi, port 18027/14027 dipastikan bebas, `.uat-phase09` dipertahankan, Apache/MariaDB/service tidak disentuh. Perintah restart ada di `PHASE-09A-MANUAL-REVIEW.md`.
 - **Batas 09a**: tidak ada preview inline, audit akses download, expiry task, arsip/restore, retensi/purge (09b), OCR/fulltext, pemindahan lampiran lama, perubahan dependency/lockfile/service/`.env`, atau mutasi database operasional/MariaDB.
 
+## Retensi read-only, audit akses, dan pengingat arsip (Fase 09b — DEC-38)
+- **Preview inline & verifikasi integritas**: endpoint `GET /api/archives/{archive}/versions/{version}/preview` menyajikan PDF/JPG/PNG dari disk privat `local` menggunakan header pola 07c (`Content-Security-Policy: sandbox`, `nosniff`, `Cache-Control: private, no-store`, `X-Document-Filename`, tanpa `Content-Disposition`). Baik `download` maupun `preview` memverifikasi keberadaan file (`404`) dan kecocokan `checksum_sha256` (`500` bila file rusak/berubah, tanpa mengalirkan bytes).
+- **Audit akses (`archive_access_logs`)**: setiap `download` dan `preview` yang valid menulis baris append-only ke `archive_access_logs` secara **fail-closed** (bila insert log gagal, respons `500` dan file tidak dialirkan). Riwayat akses dibaca lewat `GET /api/archives/{archive}/access-logs` oleh pemegang `audit.view` + `archives.view` + ability domain.
+- **Pengingat masa berlaku (expiry task)**: dihitung saat baca (`GET /api/archives/tasks/expiring`, ambang 30 hari WIB) hanya untuk dokumen `active` dalam cakupan domain aktor dan ditampilkan pada `ArchiveExpiryWidget.vue` di baris teratas dashboard; tidak ada job background, antrean, atau notifikasi email/WhatsApp.
+- **Siklus arsip/restore dokumen**: dokumen dapat diarsipkan (`POST /api/archives/{archive}/archive` dengan alasan 10–255 karakter + `expected_version`) dan dipulihkan (`POST /api/archives/{archive}/restore` + `expected_version`). Dokumen `archived` bersifat read-only untuk edit metadata/tambah versi (`422`), dikecualikan dari daftar default (`status=active`) dan dari widget expiry task, tetapi file versinya tetap utuh dan tetap dapat diunduh/dipratinjau. Tidak ada hard delete.
+- **Evaluasi retensi read-only (D6 Opsi A; DEC-13 PARTIALLY CLOSED untuk arsip)**:
+  ```bash
+  php artisan app:archives-retention --dry-run
+  # Pada UAT terisolasi Fase 09:
+  php scripts/phase09-uat.php retention-dry-run
+  ```
+  Menampilkan tabel evaluasi per kategori (`student_record` permanen; `employee_record`/`letter`/`other` 5 tahun; `leave` 2 tahun; `school_document` 10 tahun; `archive_access_logs` 5 tahun) beserta jumlah dokumen/ukuran file tanpa menghapus database maupun file. Pemanggilan tanpa `--dry-run` ditolak dengan kode keluar `1`. Ability `archives.purge` didefinisikan tetapi **tidak ditugaskan ke role mana pun**, dan `app/Console/Kernel.php` **tidak** ditambah jadwal retensi arsip.
+- **UAT terisolasi 09b**: `php scripts/phase09-uat.php prepare-09b` bersifat additive dan idempoten di atas `.uat-phase09` (mempertahankan 120 fixture `P09/ARCHIVE/*` dan dokumen hasil UAT 09a, menambah 15 fixture `P09B/ARCHIVE/001`..`015` termasuk 2 dokumen `archived`, 5 baris log akses awal, probe file hilang `#131` → `404`, dan probe file korup `#132` → `500`). Setelah verifikasi UAT selesai, server UAT pada port `18027`/`14027` dihentikan sesuai DEC-27 (PID/command line diverifikasi, port bebas, data `.uat-phase09` dipertahankan, Apache/MariaDB tidak disentuh); perintah restart dicatat di `PHASE-09B-MANUAL-REVIEW.md`.
+
 ## Restore drill
 1. Pilih backup fixture sintetis dan target terisolasi; verifikasi target bukan DB/storage aktif.
 2. Periksa manifest/checksum dan kompatibilitas schema; dokumentasikan app commit yang diperlukan.

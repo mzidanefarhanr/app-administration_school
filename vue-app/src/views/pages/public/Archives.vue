@@ -1,11 +1,13 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { useRoute } from 'vue-router';
 import Button from 'primevue/button';
 import { useToast } from 'primevue/usetoast';
 import apiLogin from '@/apiLogin';
 import { authStore } from '@/stores/authStore';
 
 const store = authStore();
+const route = useRoute();
 const toast = useToast();
 
 const validityLabels = {
@@ -22,6 +24,16 @@ const validitySeverity = {
     valid: 'success',
     expiring_soon: 'warn',
     expired: 'danger'
+};
+
+const statusLabels = {
+    active: 'Active',
+    archived: 'Archived'
+};
+
+const statusSeverity = {
+    active: 'success',
+    archived: 'warn'
 };
 
 const options = ref(null);
@@ -42,12 +54,16 @@ const allowedExtensions = computed(() => options.value?.file?.allowed_extensions
 const acceptAttr = computed(() => allowedExtensions.value.map((extension) => `.${extension}`).join(','));
 const maxFileLabel = computed(() => (maxFileKb.value >= 1024 ? `${Math.round(maxFileKb.value / 1024)} MB` : `${maxFileKb.value} KB`));
 const fileRuleLabel = computed(() => `${allowedExtensions.value.map((extension) => extension.toUpperCase()).join(', ')}. Maximum ${maxFileLabel.value} per file.`);
+const archiveReasonMin = computed(() => options.value?.archive_reason?.min ?? 10);
+const archiveReasonMax = computed(() => options.value?.archive_reason?.max ?? 255);
+const accessLogLabels = computed(() => Object.fromEntries((options.value?.access_log_actions ?? []).map((action) => [action.value, action.label])));
 const perPageLabel = computed(() => `Rows: ${filters.perPage}`);
 const totalLabel = computed(() => `${meta.value.total} ${meta.value.total === 1 ? 'document' : 'documents'}`);
 
 const categoryFilterOptions = computed(() => [{ label: 'All categories', value: '' }, ...categories.value]);
 const subjectTypeFilterOptions = computed(() => [{ label: 'All subject types', value: '' }, ...subjectTypes.value]);
 const validityFilterOptions = computed(() => [{ label: 'All validity statuses', value: '' }, ...(options.value?.validity_statuses ?? [])]);
+const statusFilterOptions = computed(() => [{ label: 'All statuses', value: 'all' }, ...(options.value?.statuses ?? [])]);
 const createSubjectTypeOptions = computed(() => [{ label: 'No subject link', value: '' }, ...subjectTypes.value]);
 
 const notify = (severity, detail) => {
@@ -134,6 +150,7 @@ const filters = reactive({
     subjectType: '',
     subjectId: null,
     validity: '',
+    status: 'active',
     dateFrom: null,
     dateTo: null,
     perPage: 20
@@ -175,13 +192,23 @@ const loadFilterSubjects = async () => {
     }
 };
 
+// Deep link dari widget dashboard dan tautan verifikasi manual (?validity=, ?status=).
+const applyQueryFilters = () => {
+    const validity = String(route.query.validity ?? '');
+    const allowedValidity = (options.value?.validity_statuses ?? []).map((status) => status.value);
+    if (allowedValidity.includes(validity)) filters.validity = validity;
+
+    const status = String(route.query.status ?? '');
+    if (['active', 'archived', 'all'].includes(status)) filters.status = status;
+};
+
 const loadList = async () => {
     const requestId = ++listRequestId;
     listLoading.value = true;
     listError.value = '';
 
     try {
-        const params = { page: page.value, per_page: filters.perPage };
+        const params = { page: page.value, per_page: filters.perPage, status: filters.status };
         if (filters.q.trim()) params.q = filters.q.trim();
         if (filters.category) params.category = filters.category;
         if (filters.subjectType) params.subject_type = filters.subjectType;
@@ -246,6 +273,7 @@ const resetFilters = () => {
     filters.subjectType = '';
     filters.subjectId = null;
     filters.validity = '';
+    filters.status = 'active';
     filters.dateFrom = null;
     filters.dateTo = null;
     filterSubjects.value = [];
@@ -598,17 +626,217 @@ const loadVersions = async (id, targetPage = 1) => {
     }
 };
 
+// Fase 09b — pratinjau inline, riwayat akses, dan siklus arsip/restore.
+const blobErrorMessage = async (error, fallback) => {
+    const data = error.response?.data;
+
+    if (data instanceof Blob) {
+        try {
+            const parsed = JSON.parse(await data.text());
+            return parsed?.message ?? fallback;
+        } catch {
+            return fallback;
+        }
+    }
+
+    return data?.message ?? fallback;
+};
+
+const detailTab = ref(0);
+
+const previewVisible = ref(false);
+const previewLoading = ref(false);
+const previewUrl = ref('');
+const previewError = ref('');
+const previewTarget = ref(null);
+const previewIsImage = computed(() => String(previewTarget.value?.mimeType ?? '').startsWith('image/'));
+
+const releasePreviewUrl = () => {
+    if (previewUrl.value) URL.revokeObjectURL(previewUrl.value);
+    previewUrl.value = '';
+};
+
+const openPreview = async (documentId, version) => {
+    if (!version || previewLoading.value) return;
+
+    releasePreviewUrl();
+    previewError.value = '';
+    previewTarget.value = {
+        documentId,
+        versionNumber: version.version_number,
+        originalName: version.original_name ?? '',
+        mimeType: version.mime_type ?? ''
+    };
+    previewVisible.value = true;
+    previewLoading.value = true;
+
+    try {
+        const response = await apiLogin.get(`/api/archives/${documentId}/versions/${version.version_number}/preview`, { responseType: 'blob' });
+        const mime = response.headers?.['content-type'] || previewTarget.value.mimeType || 'application/octet-stream';
+        previewTarget.value = { ...previewTarget.value, mimeType: mime };
+        previewUrl.value = URL.createObjectURL(new Blob([response.data], { type: mime }));
+        if (detailVisible.value && detail.value?.id === documentId && detail.value.can?.view_access_log) {
+            await loadAccessHistory(documentId, 1);
+        }
+    } catch (error) {
+        previewError.value = await blobErrorMessage(error, 'The archive file could not be previewed.');
+    } finally {
+        previewLoading.value = false;
+    }
+};
+
+const closePreview = () => {
+    previewVisible.value = false;
+    releasePreviewUrl();
+    previewError.value = '';
+    previewTarget.value = null;
+};
+
+const history = ref([]);
+const historyMeta = ref({ current_page: 1, per_page: 10, total: 0, last_page: 1 });
+const historyLoading = ref(false);
+const historyError = ref('');
+let historyRequestId = 0;
+
+const resetAccessHistory = () => {
+    history.value = [];
+    historyError.value = '';
+    historyMeta.value = { current_page: 1, per_page: 10, total: 0, last_page: 1 };
+};
+
+const loadAccessHistory = async (id, targetPage = 1) => {
+    const requestId = ++historyRequestId;
+    historyLoading.value = true;
+    historyError.value = '';
+    try {
+        const response = await apiLogin.get(`/api/archives/${id}/access-logs`, {
+            params: { page: targetPage, per_page: historyMeta.value.per_page }
+        });
+        if (requestId !== historyRequestId || !detailVisible.value || detailDocumentId.value !== id) return;
+        const data = response.data?.data ?? {};
+        history.value = data.items ?? [];
+        historyMeta.value = data.meta ?? { current_page: 1, per_page: 10, total: 0, last_page: 1 };
+    } catch (error) {
+        if (requestId !== historyRequestId) return;
+        history.value = [];
+        historyError.value = await blobErrorMessage(error, 'Failed to load the access history.');
+    } finally {
+        if (requestId === historyRequestId) historyLoading.value = false;
+    }
+};
+
+const onHistoryPage = (event) => {
+    if (!detail.value) return;
+    loadAccessHistory(detail.value.id, event.page + 1);
+};
+
+const accessLogLabel = (action) => accessLogLabels.value[action] ?? (action ? action.charAt(0).toUpperCase() + action.slice(1) : '-');
+
+const archiveVisible = ref(false);
+const archiveSaving = ref(false);
+const archiveTarget = ref(null);
+const archiveReason = ref('');
+const archiveErrors = ref({});
+const archiveError = ref('');
+const restoringId = ref(null);
+
+const openArchive = (row) => {
+    if (!row?.can?.archive) return;
+    archiveTarget.value = row;
+    archiveReason.value = '';
+    archiveErrors.value = {};
+    archiveError.value = '';
+    archiveSaving.value = false;
+    archiveVisible.value = true;
+};
+
+const refreshAfterLifecycle = async (id) => {
+    await loadList();
+    if (detailVisible.value && detail.value?.id === id) {
+        await Promise.all([loadDetail(id), loadVersions(id, versionsMeta.value.current_page), loadAccessHistory(id, historyMeta.value.current_page)]);
+    }
+};
+
+const submitArchive = async () => {
+    if (archiveSaving.value || !archiveTarget.value) return;
+
+    archiveErrors.value = {};
+    archiveError.value = '';
+
+    const reason = archiveReason.value.trim();
+    if (reason.length < archiveReasonMin.value || reason.length > archiveReasonMax.value) {
+        archiveErrors.value = {
+            archive_reason: [`The archive reason must be between ${archiveReasonMin.value} and ${archiveReasonMax.value} characters.`]
+        };
+        return;
+    }
+
+    const target = archiveTarget.value;
+    archiveSaving.value = true;
+    try {
+        const response = await apiLogin.post(`/api/archives/${target.id}/archive`, {
+            archive_reason: reason,
+            expected_version: target.version
+        });
+        archiveVisible.value = false;
+        notify('success', response.data?.message ?? 'Archive document archived.');
+        await refreshAfterLifecycle(target.id);
+    } catch (error) {
+        const status = error.response?.status;
+        if (status === 422) {
+            archiveErrors.value = validationErrors(error);
+            if (Object.keys(archiveErrors.value).length === 0) archiveError.value = errorMessage(error, 'The archive document could not be archived.');
+        } else if (status === 409) {
+            archiveVisible.value = false;
+            openConflict(error, target.id);
+        } else {
+            archiveError.value = errorMessage(error, 'Failed to archive the document.');
+        }
+    } finally {
+        archiveSaving.value = false;
+    }
+};
+
+const submitRestore = async (row) => {
+    if (!row?.can?.restore || restoringId.value) return;
+
+    restoringId.value = row.id;
+    try {
+        const response = await apiLogin.post(`/api/archives/${row.id}/restore`, { expected_version: row.version });
+        notify('success', response.data?.message ?? 'Archive document restored.');
+        await refreshAfterLifecycle(row.id);
+    } catch (error) {
+        const status = error.response?.status;
+        if (status === 409) {
+            openConflict(error, row.id);
+        } else {
+            notify('error', await blobErrorMessage(error, 'Failed to restore the archive document.'));
+        }
+    } finally {
+        restoringId.value = null;
+    }
+};
+
 const openDetail = (row) => {
     if (!row?.can?.view) return;
     detailDocumentId.value = row.id;
     detail.value = row;
     detailError.value = '';
     detailVisible.value = true;
+    detailTab.value = 0;
     versions.value = [];
     versionsError.value = '';
     versionsMeta.value = { current_page: 1, per_page: 10, total: 0, last_page: 1 };
+    resetAccessHistory();
     loadDetail(row.id);
     loadVersions(row.id, 1);
+    if (row.can?.view_access_log) loadAccessHistory(row.id, 1);
+};
+
+const onDetailTabChange = (event) => {
+    if (event.index === 1 && detail.value && history.value.length === 0 && !historyLoading.value && !historyError.value) {
+        loadAccessHistory(detail.value.id, 1);
+    }
 };
 
 const onVersionsPage = (event) => {
@@ -635,8 +863,11 @@ const downloadVersion = async (documentId, versionNumber, fallbackName) => {
         link.click();
         link.remove();
         URL.revokeObjectURL(url);
+        if (detailVisible.value && detail.value?.id === documentId && detail.value.can?.view_access_log) {
+            await loadAccessHistory(documentId, 1);
+        }
     } catch (error) {
-        notify('error', error.response?.status === 404 ? 'The archive file was not found.' : 'Failed to download the archive file.');
+        notify('error', await blobErrorMessage(error, error.response?.status === 404 ? 'The archive file was not found.' : 'Failed to download the archive file.'));
     } finally {
         downloadingKey.value = null;
     }
@@ -753,7 +984,12 @@ const reloadLatest = async () => {
 onMounted(async () => {
     await store.fetchIdentity();
     await loadOptions();
+    applyQueryFilters();
     await loadList();
+});
+
+onBeforeUnmount(() => {
+    releasePreviewUrl();
 });
 </script>
 
@@ -820,6 +1056,15 @@ onMounted(async () => {
                         aria-label="Validity status"
                         @change="onFilterChange"
                     />
+                    <Select
+                        v-model="filters.status"
+                        :options="statusFilterOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                        class="w-full xl:w-40"
+                        aria-label="Archive status"
+                        @change="onFilterChange"
+                    />
                     <DatePicker
                         v-model="filters.dateFrom"
                         placeholder="Document date from"
@@ -863,7 +1108,7 @@ onMounted(async () => {
                     :rowsPerPageOptions="perPageOptions"
                     dataKey="id"
                     :loading="listLoading"
-                    tableStyle="min-width: 84rem"
+                    tableStyle="min-width: 96rem"
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} documents"
                     @page="onPage"
@@ -878,7 +1123,10 @@ onMounted(async () => {
                     </template>
                     <Column header="Title" style="min-width: 18rem">
                         <template #body="{ data }">
-                            <button type="button" class="text-left font-medium text-primary hover:underline" :title="data.title" @click="openDetail(data)">{{ data.title }}</button>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <button type="button" class="text-left font-medium text-primary hover:underline" :title="data.title" @click="openDetail(data)">{{ data.title }}</button>
+                                <Tag v-if="data.status === 'archived'" value="Archived" :severity="statusSeverity.archived" />
+                            </div>
                             <div class="text-xs text-surface-500 mt-1">Version {{ data.version }} · {{ data.current_version }} file version{{ data.current_version === 1 ? '' : 's' }}</div>
                         </template>
                     </Column>
@@ -921,7 +1169,7 @@ onMounted(async () => {
                             <span class="whitespace-nowrap">{{ formatDateTime(data.updated_at) }}</span>
                         </template>
                     </Column>
-                    <Column header="Actions" style="min-width: 12rem">
+                    <Column header="Actions" style="min-width: 16rem">
                         <template #body="{ data }">
                             <div class="flex flex-wrap items-center gap-2">
                                 <Button icon="pi pi-eye" aria-label="View archive document" size="small" variant="outlined" rounded v-tooltip.top="'View'" @click="openDetail(data)" />
@@ -947,6 +1195,16 @@ onMounted(async () => {
                                     @click="openAddVersion(data)"
                                 />
                                 <Button
+                                    v-if="data.can?.preview"
+                                    icon="pi pi-search-plus"
+                                    aria-label="Preview current archive file"
+                                    size="small"
+                                    variant="outlined"
+                                    rounded
+                                    v-tooltip.top="'Preview'"
+                                    @click="openPreview(data.id, { version_number: data.current_version })"
+                                />
+                                <Button
                                     v-if="data.can?.download"
                                     icon="pi pi-download"
                                     aria-label="Download current archive file"
@@ -956,6 +1214,28 @@ onMounted(async () => {
                                     :loading="downloadingKey === `${data.id}:${data.current_version}`"
                                     v-tooltip.top="'Download'"
                                     @click="downloadVersion(data.id, data.current_version)"
+                                />
+                                <Button
+                                    v-if="data.can?.archive"
+                                    icon="pi pi-box"
+                                    aria-label="Archive document"
+                                    size="small"
+                                    variant="outlined"
+                                    rounded
+                                    severity="warn"
+                                    v-tooltip.top="'Archive'"
+                                    @click="openArchive(data)"
+                                />
+                                <Button
+                                    v-if="data.can?.restore"
+                                    icon="pi pi-undo"
+                                    label="Restore"
+                                    size="small"
+                                    variant="outlined"
+                                    severity="secondary"
+                                    :loading="restoringId === data.id"
+                                    aria-label="Restore archived document"
+                                    @click="submitRestore(data)"
                                 />
                             </div>
                         </template>
@@ -1117,127 +1397,218 @@ onMounted(async () => {
     </Dialog>
 
     <Dialog v-model:visible="detailVisible" modal :draggable="false" :style="{ width: 'min(96vw, 64rem)' }" header="Archive Document">
-        <div class="flex flex-col gap-5 max-h-[72vh] overflow-y-auto pr-1">
+        <div class="flex flex-col gap-3 max-h-[74vh] overflow-y-auto pr-1">
             <div v-if="detailLoading" class="py-8 text-center text-surface-500">Loading archive document...</div>
-            <template v-else-if="detail">
-                <Message v-if="detailError" severity="error" :closable="false">{{ detailError }}</Message>
-                <div class="flex flex-col gap-2">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <Tag :value="detail.category_label" severity="secondary" />
-                        <Tag :value="validityLabels[detail.validity_status] ?? detail.validity_status" :severity="validitySeverity[detail.validity_status] ?? 'secondary'" />
-                        <span class="text-xs text-surface-500">Metadata version {{ detail.version }}</span>
-                    </div>
-                    <div class="font-bold text-xl sm:text-2xl">{{ detail.title }}</div>
-                    <div class="text-sm text-surface-500">{{ detail.document_number || 'No document number' }} · Document date {{ formatDate(detail.document_date) }} · File version {{ detail.current_version }}</div>
-                </div>
-                <div v-if="detail.description" class="text-sm whitespace-pre-line break-words">{{ detail.description }}</div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="rounded-border border border-surface-200 dark:border-surface-700 p-4">
-                        <div class="font-semibold mb-2">Validity</div>
-                        <div class="text-sm">Valid from: {{ formatDate(detail.valid_from) }}</div>
-                        <div class="text-sm">Valid until: {{ formatDate(detail.valid_until) }}</div>
-                        <div class="text-xs text-surface-500 mt-2">Computed in WIB. Expiring soon within {{ expiringDays }} days.</div>
-                    </div>
-                    <div class="rounded-border border border-surface-200 dark:border-surface-700 p-4">
-                        <div class="font-semibold mb-2">Linked Subject</div>
-                        <template v-if="detail.subject">
-                            <div class="text-sm font-medium">{{ detail.subject.label }}</div>
-                            <div class="text-xs text-surface-500">{{ detail.subject.secondary }} · {{ subjectTypeLabel(detail.subject.type) }}</div>
-                            <Tag v-if="detail.subject.archived" value="Archived" severity="secondary" class="mt-2" />
-                        </template>
-                        <span v-else class="text-sm text-surface-500">No subject link</span>
-                    </div>
-                </div>
-                <div class="rounded-border border border-surface-200 dark:border-surface-700 p-4">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-                        <div class="font-semibold">Current File</div>
-                        <Button
-                            v-if="detail.latest_version && detail.can?.download"
-                            icon="pi pi-download"
-                            label="Download"
-                            size="small"
-                            severity="secondary"
-                            variant="outlined"
-                            :loading="downloadingKey === `${detail.id}:${detail.latest_version.version_number}`"
-                            @click="downloadVersion(detail.id, detail.latest_version.version_number, detail.latest_version.original_name)"
-                        />
-                    </div>
-                    <template v-if="detail.latest_version">
-                        <div class="text-sm font-medium break-all">{{ detail.latest_version.original_name }}</div>
-                        <div class="text-xs text-surface-500">
-                            {{ detail.latest_version.mime_type }} · {{ formatSize(detail.latest_version.size_bytes) }} · uploaded by
-                            {{ detail.latest_version.uploaded_by?.name ?? '-' }} · {{ formatDateTime(detail.latest_version.created_at) }}
+            <TabView v-else-if="detail" v-model:activeIndex="detailTab" @tab-change="onDetailTabChange">
+                <TabPanel header="Document">
+                    <div class="flex flex-col gap-5">
+                        <Message v-if="detailError" severity="error" :closable="false">{{ detailError }}</Message>
+                        <div class="flex flex-col gap-2">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <Tag :value="detail.category_label" severity="secondary" />
+                                <Tag :value="validityLabels[detail.validity_status] ?? detail.validity_status" :severity="validitySeverity[detail.validity_status] ?? 'secondary'" />
+                                <Tag :value="statusLabels[detail.status] ?? detail.status" :severity="statusSeverity[detail.status] ?? 'secondary'" />
+                                <span class="text-xs text-surface-500">Metadata version {{ detail.version }}</span>
+                            </div>
+                            <div class="font-bold text-xl sm:text-2xl">{{ detail.title }}</div>
+                            <div class="text-sm text-surface-500">{{ detail.document_number || 'No document number' }} · Document date {{ formatDate(detail.document_date) }} · File version {{ detail.current_version }}</div>
                         </div>
-                        <div v-if="detail.latest_version.note" class="text-sm mt-2 whitespace-pre-line break-words">{{ detail.latest_version.note }}</div>
-                    </template>
-                    <span v-else class="text-sm text-surface-500">No file recorded.</span>
-                </div>
-                <div class="text-xs text-surface-500">
-                    Created by {{ detail.created_by?.name ?? '-' }} · {{ formatDateTime(detail.created_at) }}. Last updated by
-                    {{ detail.updated_by?.name ?? '-' }} · {{ formatDateTime(detail.updated_at) }}.
-                </div>
-                <div class="flex flex-col gap-2">
-                    <div class="font-semibold">Version History</div>
-                    <span v-if="versionsError" class="text-red-500 text-sm">{{ versionsError }}</span>
-                    <DataTable
-                        :value="versions"
-                        :lazy="true"
-                        paginator
-                        showGridlines
-                        scrollable
-                        :rows="versionsMeta.per_page"
-                        :totalRecords="versionsMeta.total"
-                        :first="(versionsMeta.current_page - 1) * versionsMeta.per_page"
-                        dataKey="id"
-                        :loading="versionsLoading"
-                        tableStyle="min-width: 52rem"
-                        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
-                        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} versions"
-                        @page="onVersionsPage"
-                    >
-                        <template #empty>
-                            <span class="text-sm text-surface-500">No file versions recorded.</span>
-                        </template>
-                        <Column header="Version" style="min-width: 7rem">
-                            <template #body="{ data }">
-                                <span class="font-medium">v{{ data.version_number }}</span>
-                                <Tag v-if="data.version_number === detail.current_version" value="Current" severity="success" class="ml-2" />
+                        <div v-if="detail.description" class="text-sm whitespace-pre-line break-words">{{ detail.description }}</div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="rounded-border border border-surface-200 dark:border-surface-700 p-4">
+                                <div class="font-semibold mb-2">Validity</div>
+                                <div class="text-sm">Valid from: {{ formatDate(detail.valid_from) }}</div>
+                                <div class="text-sm">Valid until: {{ formatDate(detail.valid_until) }}</div>
+                                <div class="text-xs text-surface-500 mt-2">Computed in WIB. Expiring soon within {{ expiringDays }} days.</div>
+                            </div>
+                            <div class="rounded-border border border-surface-200 dark:border-surface-700 p-4">
+                                <div class="font-semibold mb-2">Linked Subject</div>
+                                <template v-if="detail.subject">
+                                    <div class="text-sm font-medium">{{ detail.subject.label }}</div>
+                                    <div class="text-xs text-surface-500">{{ detail.subject.secondary }} · {{ subjectTypeLabel(detail.subject.type) }}</div>
+                                    <Tag v-if="detail.subject.archived" value="Archived" severity="secondary" class="mt-2" />
+                                </template>
+                                <span v-else class="text-sm text-surface-500">No subject link</span>
+                            </div>
+                        </div>
+                        <div v-if="detail.archived_at" class="rounded-border border border-warn-500/50 bg-orange-50 dark:bg-orange-400/10 p-4">
+                            <div class="font-semibold mb-2">Archive Record</div>
+                            <div class="text-sm">Archived on: {{ formatDateTime(detail.archived_at) }}</div>
+                            <div class="text-sm">Archived by: {{ detail.archived_by?.name ?? '-' }}</div>
+                            <div v-if="detail.archive_reason" class="text-sm mt-2 whitespace-pre-line break-words">{{ detail.archive_reason }}</div>
+                            <div class="text-xs text-surface-500 mt-2">Archived documents stay readable, previewable, and downloadable, but their metadata and file versions are locked.</div>
+                        </div>
+                        <div class="rounded-border border border-surface-200 dark:border-surface-700 p-4">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                                <div class="font-semibold">Current File</div>
+                                <div v-if="detail.latest_version" class="flex flex-wrap items-center gap-2">
+                                    <Button
+                                        v-if="detail.can?.preview"
+                                        icon="pi pi-search-plus"
+                                        label="Preview"
+                                        size="small"
+                                        severity="secondary"
+                                        variant="outlined"
+                                        :loading="previewLoading && previewTarget?.documentId === detail.id"
+                                        @click="openPreview(detail.id, detail.latest_version)"
+                                    />
+                                    <Button
+                                        v-if="detail.can?.download"
+                                        icon="pi pi-download"
+                                        label="Download"
+                                        size="small"
+                                        severity="secondary"
+                                        variant="outlined"
+                                        :loading="downloadingKey === `${detail.id}:${detail.latest_version.version_number}`"
+                                        @click="downloadVersion(detail.id, detail.latest_version.version_number, detail.latest_version.original_name)"
+                                    />
+                                </div>
+                            </div>
+                            <template v-if="detail.latest_version">
+                                <div class="text-sm font-medium break-all">{{ detail.latest_version.original_name }}</div>
+                                <div class="text-xs text-surface-500">
+                                    {{ detail.latest_version.mime_type }} · {{ formatSize(detail.latest_version.size_bytes) }} · uploaded by
+                                    {{ detail.latest_version.uploaded_by?.name ?? '-' }} · {{ formatDateTime(detail.latest_version.created_at) }}
+                                </div>
+                                <div v-if="detail.latest_version.note" class="text-sm mt-2 whitespace-pre-line break-words">{{ detail.latest_version.note }}</div>
                             </template>
-                        </Column>
-                        <Column header="File" style="min-width: 16rem">
-                            <template #body="{ data }">
-                                <div class="text-sm truncate" :title="data.original_name">{{ data.original_name }}</div>
-                                <div class="text-xs text-surface-500">{{ data.mime_type }} · {{ formatSize(data.size_bytes) }}</div>
+                            <span v-else class="text-sm text-surface-500">No file recorded.</span>
+                        </div>
+                        <div class="text-xs text-surface-500">
+                            Created by {{ detail.created_by?.name ?? '-' }} · {{ formatDateTime(detail.created_at) }}. Last updated by
+                            {{ detail.updated_by?.name ?? '-' }} · {{ formatDateTime(detail.updated_at) }}.
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <div class="font-semibold">Version History</div>
+                            <span v-if="versionsError" class="text-red-500 text-sm">{{ versionsError }}</span>
+                            <DataTable
+                                :value="versions"
+                                :lazy="true"
+                                paginator
+                                showGridlines
+                                scrollable
+                                :rows="versionsMeta.per_page"
+                                :totalRecords="versionsMeta.total"
+                                :first="(versionsMeta.current_page - 1) * versionsMeta.per_page"
+                                dataKey="id"
+                                :loading="versionsLoading"
+                                tableStyle="min-width: 56rem"
+                                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
+                                currentPageReportTemplate="Showing {first} to {last} of {totalRecords} versions"
+                                @page="onVersionsPage"
+                            >
+                                <template #empty>
+                                    <span class="text-sm text-surface-500">No file versions recorded.</span>
+                                </template>
+                                <Column header="Version" style="min-width: 7rem">
+                                    <template #body="{ data }">
+                                        <span class="font-medium">v{{ data.version_number }}</span>
+                                        <Tag v-if="data.version_number === detail.current_version" value="Current" severity="success" class="ml-2" />
+                                    </template>
+                                </Column>
+                                <Column header="File" style="min-width: 16rem">
+                                    <template #body="{ data }">
+                                        <div class="text-sm truncate" :title="data.original_name">{{ data.original_name }}</div>
+                                        <div class="text-xs text-surface-500">{{ data.mime_type }} · {{ formatSize(data.size_bytes) }}</div>
+                                    </template>
+                                </Column>
+                                <Column header="Note" style="min-width: 14rem">
+                                    <template #body="{ data }">
+                                        <span class="text-sm block truncate" :title="data.note ?? ''">{{ data.note || '-' }}</span>
+                                    </template>
+                                </Column>
+                                <Column header="Uploaded By" style="min-width: 10rem">
+                                    <template #body="{ data }">
+                                        <div class="text-sm">{{ data.uploaded_by?.name ?? '-' }}</div>
+                                        <div class="text-xs text-surface-500">{{ formatDateTime(data.created_at) }}</div>
+                                    </template>
+                                </Column>
+                                <Column header="Actions" style="min-width: 8rem">
+                                    <template #body="{ data }">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <Button
+                                                v-if="detail.can?.preview"
+                                                icon="pi pi-search-plus"
+                                                aria-label="Preview archive version"
+                                                size="small"
+                                                variant="outlined"
+                                                rounded
+                                                :loading="previewLoading && previewTarget?.documentId === detail.id && previewTarget?.versionNumber === data.version_number"
+                                                v-tooltip.top="'Preview'"
+                                                @click="openPreview(detail.id, data)"
+                                            />
+                                            <Button
+                                                v-if="detail.can?.download"
+                                                icon="pi pi-download"
+                                                aria-label="Download archive version"
+                                                size="small"
+                                                variant="outlined"
+                                                rounded
+                                                :loading="downloadingKey === `${detail.id}:${data.version_number}`"
+                                                v-tooltip.top="'Download'"
+                                                @click="downloadVersion(detail.id, data.version_number, data.original_name)"
+                                            />
+                                        </div>
+                                    </template>
+                                </Column>
+                            </DataTable>
+                        </div>
+                    </div>
+                </TabPanel>
+                <TabPanel v-if="detail.can?.view_access_log" header="Access History">
+                    <div class="flex flex-col gap-3">
+                        <Message v-if="historyError" severity="error" :closable="false">{{ historyError }}</Message>
+                        <Message v-else severity="info" :closable="false">
+                            {{ detail.access_logs_count ?? historyMeta.total }} authorized download and preview events are recorded for this document. Titles, file names, and storage paths are never written to this log.
+                        </Message>
+                        <DataTable
+                            :value="history"
+                            :lazy="true"
+                            paginator
+                            showGridlines
+                            scrollable
+                            :rows="historyMeta.per_page"
+                            :totalRecords="historyMeta.total"
+                            :first="(historyMeta.current_page - 1) * historyMeta.per_page"
+                            dataKey="id"
+                            :loading="historyLoading"
+                            tableStyle="min-width: 44rem"
+                            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
+                            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} events"
+                            @page="onHistoryPage"
+                        >
+                            <template #empty>
+                                <span class="text-sm text-surface-500">No access events recorded yet.</span>
                             </template>
-                        </Column>
-                        <Column header="Note" style="min-width: 14rem">
-                            <template #body="{ data }">
-                                <span class="text-sm block truncate" :title="data.note ?? ''">{{ data.note || '-' }}</span>
-                            </template>
-                        </Column>
-                        <Column header="Uploaded By" style="min-width: 10rem">
-                            <template #body="{ data }">
-                                <div class="text-sm">{{ data.uploaded_by?.name ?? '-' }}</div>
-                                <div class="text-xs text-surface-500">{{ formatDateTime(data.created_at) }}</div>
-                            </template>
-                        </Column>
-                        <Column header="Actions" style="min-width: 6rem">
-                            <template #body="{ data }">
-                                <Button
-                                    icon="pi pi-download"
-                                    aria-label="Download archive version"
-                                    size="small"
-                                    variant="outlined"
-                                    rounded
-                                    :loading="downloadingKey === `${detail.id}:${data.version_number}`"
-                                    v-tooltip.top="'Download'"
-                                    @click="downloadVersion(detail.id, data.version_number, data.original_name)"
-                                />
-                            </template>
-                        </Column>
-                    </DataTable>
-                </div>
-            </template>
+                            <Column header="When" style="min-width: 12rem">
+                                <template #body="{ data }">
+                                    <span class="whitespace-nowrap">{{ formatDateTime(data.created_at) }}</span>
+                                </template>
+                            </Column>
+                            <Column header="Action" style="min-width: 9rem">
+                                <template #body="{ data }">
+                                    <Tag :value="accessLogLabel(data.action)" :severity="data.action === 'preview' ? 'info' : 'secondary'" />
+                                </template>
+                            </Column>
+                            <Column header="File Version" style="min-width: 9rem">
+                                <template #body="{ data }">
+                                    <span class="whitespace-nowrap">{{ data.version_number ? `v${data.version_number}` : '-' }}</span>
+                                </template>
+                            </Column>
+                            <Column header="User" style="min-width: 12rem">
+                                <template #body="{ data }">
+                                    <span class="text-sm">{{ data.user?.name ?? '-' }}</span>
+                                </template>
+                            </Column>
+                            <Column header="IP Address" style="min-width: 11rem">
+                                <template #body="{ data }">
+                                    <span class="whitespace-nowrap text-sm">{{ data.ip_address ?? '-' }}</span>
+                                </template>
+                            </Column>
+                        </DataTable>
+                    </div>
+                </TabPanel>
+            </TabView>
             <div v-else class="flex flex-col items-center gap-3 py-8">
                 <span class="text-red-500">{{ detailError || 'The archive document could not be loaded.' }}</span>
                 <Button icon="pi pi-refresh" label="Retry" @click="detailError = ''; loadDetail(detail?.id)" />
@@ -1245,6 +1616,8 @@ onMounted(async () => {
         </div>
         <template #footer>
             <Button label="Close" severity="secondary" variant="text" @click="detailVisible = false" />
+            <Button v-if="detail?.can?.restore" label="Restore Document" icon="pi pi-undo" severity="secondary" variant="outlined" :loading="restoringId === detail?.id" @click="submitRestore(detail)" />
+            <Button v-if="detail?.can?.archive" label="Archive Document" icon="pi pi-box" severity="warn" variant="outlined" @click="openArchive(detail)" />
             <Button v-if="detail?.can?.add_version" label="Add Version" icon="pi pi-upload" severity="secondary" variant="outlined" @click="openAddVersion(detail)" />
             <Button v-if="detail?.can?.update" label="Edit Metadata" icon="pi pi-pencil" @click="openEdit(detail)" />
         </template>
@@ -1276,6 +1649,45 @@ onMounted(async () => {
         <template #footer>
             <Button label="Cancel" severity="secondary" variant="text" :disabled="addSaving" @click="addVisible = false" />
             <Button label="Upload Version" icon="pi pi-upload" :loading="addSaving" @click="submitAddVersion" />
+        </template>
+    </Dialog>
+
+    <Dialog v-model:visible="archiveVisible" modal :draggable="false" :style="{ width: 'min(94vw, 38rem)' }" header="Archive Document">
+        <div class="flex flex-col gap-4 max-h-[70vh] overflow-y-auto pr-1">
+            <Message v-if="archiveError" severity="error" :closable="false">{{ archiveError }}</Message>
+            <div v-if="archiveTarget" class="text-sm text-surface-500">
+                <span class="font-medium text-surface-900 dark:text-surface-0">{{ archiveTarget.title }}</span>
+                · metadata version {{ archiveTarget.version }} · file version {{ archiveTarget.current_version }}
+            </div>
+            <Message severity="warn" :closable="false">Archiving locks the metadata and file versions. The document stays in the list under the Archived status filter and can still be previewed and downloaded.</Message>
+            <div class="flex flex-col gap-2">
+                <label for="archiveReason" class="font-medium">Archive Reason <span class="text-red-500">*</span></label>
+                <Textarea id="archiveReason" v-model="archiveReason" rows="3" :maxlength="archiveReasonMax" autoResize placeholder="Why is this document being archived? For example: superseded by a newer decree." />
+                <small class="text-surface-500">Between {{ archiveReasonMin }} and {{ archiveReasonMax }} characters. The reason is shown to archive viewers but is never written to the audit trail.</small>
+                <small class="text-surface-500">{{ archiveReason.trim().length }}/{{ archiveReasonMax }}</small>
+                <small v-if="fieldError(archiveErrors, 'archive_reason')" class="text-red-500">{{ fieldError(archiveErrors, 'archive_reason') }}</small>
+                <small v-if="fieldError(archiveErrors, 'expected_version')" class="text-red-500">{{ fieldError(archiveErrors, 'expected_version') }}</small>
+            </div>
+        </div>
+        <template #footer>
+            <Button label="Cancel" severity="secondary" variant="text" :disabled="archiveSaving" @click="archiveVisible = false" />
+            <Button label="Archive Document" icon="pi pi-box" severity="warn" :loading="archiveSaving" @click="submitArchive" />
+        </template>
+    </Dialog>
+
+    <Dialog v-model:visible="previewVisible" modal :draggable="false" :style="{ width: 'min(96vw, 72rem)' }" header="Archive File Preview" @hide="closePreview">
+        <div v-if="previewLoading" class="flex justify-center py-12">
+            <i class="pi pi-spin pi-spinner text-2xl" aria-label="Loading archive preview"></i>
+        </div>
+        <Message v-else-if="previewError" severity="error" :closable="false">{{ previewError }}</Message>
+        <template v-else-if="previewUrl">
+            <Message severity="warn" :closable="false">Internal document — do not redistribute. Every preview and download is recorded in the access history.</Message>
+            <img v-if="previewIsImage" :src="previewUrl" :alt="`Archive preview of version ${previewTarget?.versionNumber}`" class="w-full rounded border border-surface-200 dark:border-surface-700" />
+            <iframe v-else :src="previewUrl" :title="`Archive preview of version ${previewTarget?.versionNumber}`" class="w-full rounded border border-surface-200 dark:border-surface-700" style="height: 70vh"></iframe>
+            <div v-if="previewTarget" class="text-xs text-surface-500 mt-2">Version {{ previewTarget.versionNumber }} · {{ previewTarget.originalName || 'Stored file' }} · {{ previewTarget.mimeType }}</div>
+        </template>
+        <template #footer>
+            <Button label="Close" severity="secondary" variant="text" @click="closePreview" />
         </template>
     </Dialog>
 

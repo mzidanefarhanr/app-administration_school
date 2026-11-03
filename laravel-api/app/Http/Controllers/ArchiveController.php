@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ArchiveDocumentArchiveRequest;
+use App\Http\Requests\ArchiveDocumentRestoreRequest;
 use App\Http\Requests\StoreArchiveDocumentRequest;
 use App\Http\Requests\StoreArchiveVersionRequest;
 use App\Http\Requests\UpdateArchiveDocumentRequest;
 use App\Http\Resources\StatusResource;
 use App\Models\ArchiveDocument;
 use App\Services\Archives\ArchiveDocumentService;
+use App\Services\Archives\ArchiveRetentionService;
+use App\Services\Archives\ArchiveTaskService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -16,6 +20,8 @@ class ArchiveController extends Controller
 {
     public function __construct(
         private readonly ArchiveDocumentService $archives,
+        private readonly ArchiveTaskService $tasks,
+        private readonly ArchiveRetentionService $retention,
     ) {}
 
     public function options(Request $request): StatusResource
@@ -50,6 +56,46 @@ class ArchiveController extends Controller
         $this->authorize('viewAny', ArchiveDocument::class);
 
         return new StatusResource(true, 'Archive documents retrieved successfully.', $this->archives->list($this->filters($request), $request->user()));
+    }
+
+    /**
+     * Tugas kedaluwarsa untuk dashboard (DEC-38 D4); dihitung saat baca.
+     */
+    public function expiringTasks(Request $request): StatusResource
+    {
+        $this->authorize('viewAny', ArchiveDocument::class);
+
+        $filters = $request->validate([
+            'limit' => [
+                'nullable',
+                'integer',
+                'min:1',
+                'max:'.(int) config('archives.expiring_task.max_limit'),
+            ],
+        ], [
+            'limit.min' => 'The result limit must be at least 1.',
+            'limit.max' => 'The result limit may not exceed '.(int) config('archives.expiring_task.max_limit').'.',
+        ]);
+
+        return new StatusResource(
+            true,
+            'Archive expiry tasks retrieved successfully.',
+            $this->tasks->expiring(
+                $request->user(),
+                (int) ($filters['limit'] ?? config('archives.expiring_task.default_limit')),
+            ),
+        );
+    }
+
+    /**
+     * Laporan retensi read-only (DEC-38 D6 Opsi A); tanpa eksekusi pemusnahan.
+     */
+    public function retentionReport(): StatusResource
+    {
+        // Policy create == archives.manage; laporan retensi hanya untuk pengelola.
+        $this->authorize('create', ArchiveDocument::class);
+
+        return new StatusResource(true, 'Archive retention report retrieved successfully.', $this->retention->report());
     }
 
     public function store(StoreArchiveDocumentRequest $request): StatusResource
@@ -106,9 +152,58 @@ class ArchiveController extends Controller
         return new StatusResource(true, 'Archive version created successfully.', $data);
     }
 
-    public function downloadVersion(int $archive, int $version): StreamedResponse
+    public function downloadVersion(Request $request, int $archive, int $version): StreamedResponse
     {
-        return $this->archives->download($archive, $version, request()->user());
+        return $this->archives->download($archive, $version, $request->user(), $request);
+    }
+
+    /**
+     * Preview inline (DEC-38 D2): izin sama dengan download, tanpa
+     * Content-Disposition, dan dicatat di archive_access_logs.
+     */
+    public function previewVersion(Request $request, int $archive, int $version): StreamedResponse
+    {
+        return $this->archives->preview($archive, $version, $request->user(), $request);
+    }
+
+    public function accessLogs(Request $request, int $archive): StatusResource
+    {
+        $filters = $request->validate([
+            'per_page' => ['nullable', 'integer', Rule::in(config('archives.per_page_options'))],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ], [
+            'per_page.in' => 'The page size must be 10, 20, 50, or 100.',
+            'page.min' => 'The page must be at least 1.',
+        ]);
+
+        return new StatusResource(true, 'Archive access logs retrieved successfully.', $this->archives->accessLogs($archive, $filters, $request->user()));
+    }
+
+    public function archive(ArchiveDocumentArchiveRequest $request, int $archive): StatusResource
+    {
+        $validated = $request->validated();
+
+        $data = $this->archives->archive(
+            $archive,
+            (string) $validated['archive_reason'],
+            (int) $validated['expected_version'],
+            $request->user(),
+        );
+
+        return new StatusResource(true, 'Archive document archived successfully.', $data);
+    }
+
+    public function restore(ArchiveDocumentRestoreRequest $request, int $archive): StatusResource
+    {
+        $validated = $request->validated();
+
+        $data = $this->archives->restore(
+            $archive,
+            (int) $validated['expected_version'],
+            $request->user(),
+        );
+
+        return new StatusResource(true, 'Archive document restored successfully.', $data);
     }
 
     /**
@@ -127,6 +222,7 @@ class ArchiveController extends Controller
             ],
             'subject_id' => ['nullable', 'integer', 'min:1'],
             'validity' => ['nullable', 'string', Rule::in(array_keys((array) config('archives.validity_statuses')))],
+            'status' => ['nullable', 'string', Rule::in((array) config('archives.status_filter_options'))],
             'date_from' => ['nullable', 'date_format:Y-m-d'],
             'date_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:date_from'],
             'per_page' => ['nullable', 'integer', Rule::in(config('archives.per_page_options'))],
@@ -138,6 +234,7 @@ class ArchiveController extends Controller
             'subject_type.required_with' => 'Select a subject type when filtering by subject.',
             'subject_id.min' => 'The selected subject is not valid.',
             'validity.in' => 'The selected validity status is not valid.',
+            'status.in' => 'The selected archive status is not valid.',
             'date_from.date_format' => 'The start date must use the YYYY-MM-DD format.',
             'date_to.date_format' => 'The end date must use the YYYY-MM-DD format.',
             'date_to.after_or_equal' => 'The end date may not be before the start date.',

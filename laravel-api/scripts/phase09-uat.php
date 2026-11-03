@@ -487,6 +487,212 @@ if ($command === 'prepare-archives') {
     exit(0);
 }
 
+if ($command === 'prepare-09b') {
+    $exit = $kernel->call('migrate', ['--force' => true]);
+    fwrite(STDOUT, $kernel->output());
+    if ($exit !== 0) {
+        exit($exit);
+    }
+
+    $operator = App\Models\User::where('username', 'uat.operator')->first();
+    if (! $operator) {
+        throw new RuntimeException('Run prepare first (uat.operator is required).');
+    }
+
+    $legacyCount = App\Models\ArchiveDocument::query()->where('document_number', 'like', 'P09/ARCHIVE/%')->count();
+    if ($legacyCount === 0) {
+        throw new RuntimeException('Run prepare-archives first; prepare-09b is additive on the accepted 09a fixtures and never resets them.');
+    }
+
+    $archiver = App\Models\User::query()
+        ->where('username', 'uat.operator')
+        ->whereHas('roles.abilities', fn ($query) => $query->where('name', 'archives.manage'))
+        ->first();
+    if (! $archiver) {
+        throw new RuntimeException('uat.operator must hold archives.manage; re-run prepare before prepare-09b.');
+    }
+
+    $auditor = App\Models\User::where('username', 'uat.admin')->first();
+    if (! $auditor) {
+        throw new RuntimeException('uat.admin is required for the synthetic access-history fixtures.');
+    }
+
+    $student = App\Models\Student::query()->where('nis', 'P09001')->first();
+    if (! $student) {
+        throw new RuntimeException('The 09a student fixture (nis P09001) is missing; re-run prepare-archives.');
+    }
+
+    /** @var App\Services\Archives\ArchiveDocumentService $archiveService */
+    $archiveService = $app->make(App\Services\Archives\ArchiveDocumentService::class);
+
+    $today = Carbon\Carbon::now('Asia/Jakarta')->startOfDay();
+    $samplePng = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==');
+
+    // Fixture 09b: batas expiring_soon, kedaluwarsa, upcoming, arsip, probe file, dan retensi.
+    $fixtures = [
+        ['category' => 'school_document', 'title' => 'UAT-P09B Expiring Tomorrow', 'from' => '-30 days', 'until' => '+1 day', 'file' => 'pdf'],
+        ['category' => 'school_document', 'title' => 'UAT-P09B Expiring In Fifteen Days', 'from' => '-15 days', 'until' => '+15 days', 'file' => 'pdf'],
+        ['category' => 'school_document', 'title' => 'UAT-P09B Expiring On The Thirty Day Boundary', 'from' => '-10 days', 'until' => '+30 days', 'file' => 'pdf'],
+        ['category' => 'school_document', 'title' => 'UAT-P09B Valid Just Past The Window', 'from' => '-10 days', 'until' => '+31 days', 'file' => 'pdf'],
+        ['category' => 'school_document', 'title' => 'UAT-P09B Expired Exactly Yesterday', 'from' => '-120 days', 'until' => '-1 day', 'file' => 'pdf'],
+        ['category' => 'school_document', 'title' => 'UAT-P09B Expired Thirty Days Ago', 'from' => '-200 days', 'until' => '-30 days', 'file' => 'pdf'],
+        ['category' => 'school_document', 'title' => 'UAT-P09B Upcoming Document', 'from' => '+30 days', 'until' => '+395 days', 'file' => 'pdf'],
+        ['category' => 'school_document', 'title' => 'UAT-P09B Archived With Reason', 'from' => '-90 days', 'until' => '+90 days', 'file' => 'pdf', 'archive' => 'Synthetic retention review; the paper original was moved to the off-site store.'],
+        ['category' => 'school_document', 'title' => 'UAT-P09B Archived But Still Downloadable', 'from' => '-60 days', 'until' => '+60 days', 'file' => 'pdf', 'archive' => 'Archived fixture that keeps its file so an authorized download still succeeds.'],
+        ['category' => 'school_document', 'title' => 'UAT-P09B Missing File Probe', 'from' => '-45 days', 'until' => '+45 days', 'file' => 'pdf', 'probe' => 'missing'],
+        ['category' => 'school_document', 'title' => 'UAT-P09B Corrupted File Probe', 'from' => '-45 days', 'until' => '+45 days', 'file' => 'pdf', 'probe' => 'corrupt'],
+        ['category' => 'school_document', 'title' => 'UAT-P09B Image Preview Fixture', 'from' => '-20 days', 'until' => '+180 days', 'file' => 'png'],
+        ['category' => 'student_record', 'title' => 'UAT-P09B Student Linked Access History', 'from' => '-20 days', 'until' => '+180 days', 'file' => 'pdf', 'subject' => ['student', (int) $student->id]],
+        ['category' => 'school_document', 'title' => 'UAT-P09B Retention Candidate Past Ten Years', 'from' => null, 'until' => null, 'document_date' => '-11 years', 'file' => 'pdf'],
+        ['category' => 'leave', 'title' => 'UAT-P09B Retention Candidate Past Two Years', 'from' => null, 'until' => null, 'document_date' => '-3 years', 'file' => 'pdf'],
+    ];
+
+    $created = 0;
+    $reused = 0;
+    $documentIds = [];
+
+    foreach ($fixtures as $index => $fixture) {
+        $number = $index + 1;
+        $documentNumber = sprintf('P09B/ARCHIVE/%03d', $number);
+
+        $existing = App\Models\ArchiveDocument::query()->where('document_number', $documentNumber)->first();
+        if ($existing) {
+            $reused++;
+            $documentIds[$number] = (int) $existing->id;
+
+            continue;
+        }
+
+        $payload = [
+            'category' => $fixture['category'],
+            'title' => $fixture['title'],
+            'document_number' => $documentNumber,
+            'document_date' => ($fixture['document_date'] ?? null) === null
+                ? $today->copy()->subDays($number)->format('Y-m-d')
+                : $today->copy()->modify($fixture['document_date'])->format('Y-m-d'),
+            'valid_from' => ($fixture['from'] ?? null) === null
+                ? null
+                : $today->copy()->modify($fixture['from'])->format('Y-m-d'),
+            'valid_until' => ($fixture['until'] ?? null) === null
+                ? null
+                : $today->copy()->modify($fixture['until'])->format('Y-m-d'),
+            'description' => $number % 2 === 0
+                ? sprintf('Synthetic 09b fixture %02d used only for the isolated archive review.', $number)
+                : null,
+        ];
+
+        if (isset($fixture['subject'])) {
+            $payload['subject_type'] = $fixture['subject'][0];
+            $payload['subject_id'] = $fixture['subject'][1];
+        }
+
+        $file = $fixture['file'] === 'png'
+            ? phase09Upload('UAT-P09B-Document-'.$number.'.png', $samplePng)
+            : phase09Upload('UAT-P09B-Document-'.$number.'.pdf', phase09Pdf(9000 + $number));
+        $document = $archiveService->create($payload, $file, $operator);
+        @unlink($file->getRealPath());
+        $created++;
+        $documentIds[$number] = (int) $document['id'];
+    }
+
+    // Lifecycle: arsipkan dua dokumen dengan alasan (idempoten; tidak mengarsipkan massal).
+    $archivedApplied = 0;
+    foreach ($fixtures as $index => $fixture) {
+        if (! isset($fixture['archive'])) {
+            continue;
+        }
+        $document = App\Models\ArchiveDocument::find($documentIds[$index + 1]);
+        if ($document && $document->archived_at === null) {
+            $archiveService->archive((int) $document->id, $fixture['archive'], (int) $document->version, $archiver);
+            $archivedApplied++;
+        }
+    }
+
+    // Probe file: dijalankan ulang agar tetap destruktif tanpa menambah baris.
+    $disk = Illuminate\Support\Facades\Storage::disk((string) config('archives.attachment.disk'));
+    $probes = [];
+    foreach ($fixtures as $index => $fixture) {
+        if (! isset($fixture['probe'])) {
+            continue;
+        }
+        $number = $index + 1;
+        $document = App\Models\ArchiveDocument::find($documentIds[$number]);
+        $version = App\Models\ArchiveFileVersion::query()
+            ->where('archive_document_id', $document->id)
+            ->where('version_number', (int) $document->current_version)
+            ->firstOrFail();
+
+        if ($fixture['probe'] === 'missing') {
+            if ($disk->exists($version->path)) {
+                $disk->delete($version->path);
+            }
+            $probes[] = sprintf('P09B/ARCHIVE/%03d -> 404 (document %d, version v%d)', $number, $document->id, $version->version_number);
+
+            continue;
+        }
+
+        $contents = $disk->get($version->path);
+        if ($contents !== null && hash_equals((string) $version->checksum_sha256, hash('sha256', $contents))) {
+            $disk->put($version->path, $contents.'CORRUPTED');
+        }
+        $probes[] = sprintf('P09B/ARCHIVE/%03d -> 500 (document %d, version v%d)', $number, $document->id, $version->version_number);
+    }
+
+    // Riwayat akses sintetis untuk dua aktor (append-only; diisi sekali saja).
+    $request = Illuminate\Http\Request::create('http://127.0.0.1:18027/api/archives', 'GET', [], [], [], [
+        'REMOTE_ADDR' => '127.0.0.1',
+        'HTTP_USER_AGENT' => 'UAT-P09B synthetic access fixture',
+    ]);
+    /** @var App\Services\Archives\ArchiveAccessService $accessService */
+    $accessService = $app->make(App\Services\Archives\ArchiveAccessService::class);
+    $logFixtures = [
+        [12, App\Models\ArchiveAccessLog::ACTION_PREVIEW, $archiver],
+        [12, App\Models\ArchiveAccessLog::ACTION_DOWNLOAD, $auditor],
+        [13, App\Models\ArchiveAccessLog::ACTION_DOWNLOAD, $archiver],
+        [13, App\Models\ArchiveAccessLog::ACTION_PREVIEW, $auditor],
+        [13, App\Models\ArchiveAccessLog::ACTION_PREVIEW, $archiver],
+    ];
+
+    $logsCreated = 0;
+    foreach ($logFixtures as [$fixtureNumber, $action, $actor]) {
+        $documentId = $documentIds[$fixtureNumber];
+        $alreadyLogged = App\Models\ArchiveAccessLog::query()
+            ->where('archive_document_id', $documentId)
+            ->where('action', $action)
+            ->where('user_id', $actor->id)
+            ->exists();
+        if ($alreadyLogged) {
+            continue;
+        }
+        $document = App\Models\ArchiveDocument::findOrFail($documentId);
+        $version = App\Models\ArchiveFileVersion::query()
+            ->where('archive_document_id', $documentId)
+            ->where('version_number', (int) $document->current_version)
+            ->firstOrFail();
+        $accessService->record($document, $version, $action, $actor, $request);
+        $logsCreated++;
+    }
+
+    $byValidity = App\Models\ArchiveDocument::query()->get()
+        ->map(fn (App\Models\ArchiveDocument $document) => $document->validityStatus())
+        ->countBy();
+    $byStatus = App\Models\ArchiveDocument::query()->get()
+        ->map(fn (App\Models\ArchiveDocument $document) => $document->status())
+        ->countBy();
+
+    fwrite(STDOUT, '09a baseline preserved: '.$legacyCount.' documents with number P09/ARCHIVE/*; total archive documents now '
+        .App\Models\ArchiveDocument::count().' ('.$created.' created, '.$reused.' reused).'."\n");
+    fwrite(STDOUT, 'Version files: '.App\Models\ArchiveFileVersion::count().' total.'."\n");
+    fwrite(STDOUT, 'Archived transitions applied this run: '.$archivedApplied.'; by status: '
+        .$byStatus->map(fn ($count, $key) => $key.' '.$count)->implode(', ').".\n");
+    fwrite(STDOUT, 'By validity: '.$byValidity->map(fn ($count, $key) => $key.' '.$count)->implode(', ').".\n");
+    fwrite(STDOUT, 'Access log rows: '.App\Models\ArchiveAccessLog::count().' total ('.$logsCreated.' created this run) for uat.operator and uat.admin.'."\n");
+    fwrite(STDOUT, 'File probes: '.($probes === [] ? 'none' : implode('; ', $probes)).".\n");
+    fwrite(STDOUT, 'Dry-run review: php scripts/phase09-uat.php retention-dry-run (isolated runtime; read-only).'."\n");
+    fwrite(STDOUT, '09b fixtures ready. Start the API on 127.0.0.1:18027 and the SPA on 127.0.0.1:14027 for the browser review.'."\n");
+    exit(0);
+}
+
 if ($command === 'status') {
     $counts = [
         'users' => App\Models\User::withTrashed()->count(),
@@ -508,7 +714,13 @@ if ($command === 'status') {
     exit(0);
 }
 
-fwrite(STDERR, "Unknown command. Use init, prepare, prepare-archives, status, or start the HTTP server with this script.\n");
+if ($command === 'retention-dry-run') {
+    $exit = $kernel->call('app:archives-retention', ['--dry-run' => true]);
+    fwrite(STDOUT, $kernel->output());
+    exit($exit);
+}
+
+fwrite(STDERR, "Unknown command. Use init, prepare, prepare-archives, prepare-09b, retention-dry-run, status, or start the HTTP server with this script.\n");
 exit(2);
 
 function phase09Pdf(int $seed): string

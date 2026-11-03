@@ -870,12 +870,20 @@ it('protects archive endpoints with authentication, abilities, and scoped routes
     $this->getJson('/api/archives/1')->assertStatus(401);
     $this->getJson('/api/archives/1/versions')->assertStatus(401);
     $this->getJson('/api/archives/1/versions/1/download')->assertStatus(401);
+    $this->getJson('/api/archives/1/versions/1/preview')->assertStatus(401);
+    $this->getJson('/api/archives/1/access-logs')->assertStatus(401);
+    $this->getJson('/api/archives/tasks/expiring')->assertStatus(401);
+    $this->getJson('/api/archives/retention/report')->assertStatus(401);
+    $this->postJson('/api/archives/1/archive', ['archive_reason' => 'Synthetic retention reason.', 'expected_version' => 1])->assertStatus(401);
+    $this->postJson('/api/archives/1/restore', ['expected_version' => 1])->assertStatus(401);
 
     Sanctum::actingAs($this->teacher);
 
     $this->getJson('/api/archives/options')->assertStatus(403);
     $this->getJson('/api/archives')->assertStatus(403);
     $this->getJson('/api/archives/subjects/student')->assertStatus(403);
+    $this->getJson('/api/archives/tasks/expiring')->assertStatus(403);
+    $this->getJson('/api/archives/retention/report')->assertStatus(403);
     $this->post('/api/archives', array_merge(p09Payload(), ['file' => p09Pdf()]), ['Accept' => 'application/json'])
         ->assertStatus(403);
 
@@ -890,6 +898,7 @@ it('protects archive endpoints with authentication, abilities, and scoped routes
     $this->getJson('/api/archives/subjects/school')->assertStatus(404);
     $this->getJson("/api/archives/{$documentA['id']}/versions/2/download")->assertStatus(404);
     $this->getJson("/api/archives/{$documentA['id']}/versions/999/download")->assertStatus(404);
+    $this->getJson("/api/archives/{$documentA['id']}/versions/999/preview")->assertStatus(404);
 
     $routes = collect(Route::getRoutes()->getRoutes())
         ->filter(fn ($route) => str_starts_with($route->uri(), 'api/archives'));
@@ -898,11 +907,20 @@ it('protects archive endpoints with authentication, abilities, and scoped routes
         ->reject(fn (string $method) => $method === 'HEAD')
         ->unique()->sort()->values()->all();
 
-    expect($routes)->toHaveCount(9)
+    $uris = $routes->map(fn ($route) => $route->uri())->sort()->values()->all();
+
+    // 9 route 09a + 6 route 09b = 15; tidak ada endpoint pemusnahan data.
+    expect($routes)->toHaveCount(15)
+        ->and($uris)->toContain('api/archives/tasks/expiring')
+        ->and($uris)->toContain('api/archives/retention/report')
+        ->and($uris)->toContain('api/archives/{archive}/access-logs')
+        ->and($uris)->toContain('api/archives/{archive}/archive')
+        ->and($uris)->toContain('api/archives/{archive}/restore')
+        ->and($uris)->toContain('api/archives/{archive}/versions/{version}/preview')
         ->and($methods)->toBe(['GET', 'PATCH', 'POST', 'PUT'])
         ->and($routes->filter(fn ($route) => in_array('DELETE', $route->methods(), true)))->toBeEmpty()
-        ->and($routes->filter(fn ($route) => str_contains($route->uri(), 'preview')))->toBeEmpty()
-        ->and($routes->filter(fn ($route) => str_contains($route->uri(), 'restore')))->toBeEmpty();
+        ->and($routes->filter(fn ($route) => str_contains($route->uri(), 'purge')))->toBeEmpty()
+        ->and($routes->filter(fn ($route) => str_contains($route->uri(), 'destroy')))->toBeEmpty();
 });
 
 // T13 — download streaming headers, old versions, and missing files.

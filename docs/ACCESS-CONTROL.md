@@ -156,6 +156,17 @@ API mayoritas hanya auth:sanctum. Beberapa controller akun membedakan tipe secar
 - **UI**: menu **Archives** hanya untuk `archives.view`; route guard `requiresAbility: 'archives.view'`; tombol New/Edit/Add Version hanya bila `can.manage` server. Tombol tersembunyi bukan pengganti enforcement server.
 - **UAT**: `.uat-phase09` terisolasi (API 18027/SPA 14027, cookie `school_phase09_session`); akun `uat.archivist` khusus dibuat untuk menguji view-only tanpa ability domain; server dihentikan setelah verifikasi UAT dan data dipertahankan.
 
+## Implementasi Subfase 09b (retensi, akses aman, dan pengingat arsip)
+- **Ability sensitif baru `archives.purge`** (`group='archives'`, `is_sensitive=true`) ditambahkan ke `AbilityCatalog` dan migration `2029_09_02_000003_add_archive_purge_ability.php`, tetapi **tidak ditugaskan ke role mana pun** secara default (0 penugasan di `ability_role`, termasuk `admin-sistem`). Sesuai DEC-38 D6 Opsi A, tidak ada endpoint/command eksekusi pemusnahan data pada 09b; method `ArchiveDocumentPolicy::purge()` disiapkan untuk menegakkan `archives.purge` + `archives.manage` + ability domain bila fase mendatang mengotorisasi pemusnahan.
+- **Matriks izin 09b (D8)**:
+  - `GET /api/archives/{archive}/versions/{version}/preview` → middleware `archives.view` + policy `preview` (= `view`: `archives.view` + ability domain bila bertaut). Objek di luar domain tetap `404`.
+  - `GET /api/archives/{archive}/access-logs` → middleware `archives.view` + pengecekan visibilitas domain terlebih dahulu (`404` bila objek di luar domain aktor) + policy `accessLogs` (`audit.view` + `archives.view` + ability domain; `403` bila dokumen terlihat tetapi aktor tidak memegang `audit.view`, misalnya `operator-sekolah` default).
+  - `GET /api/archives/tasks/expiring` → middleware `archives.view`; hasil disaring otomatis oleh `applyVisibilityScope` sehingga aktor hanya menerima jumlah dan item dari dokumen umum + domain yang diizinkan, serta hanya dokumen `active` (`archived_at IS NULL`).
+  - `POST /api/archives/{archive}/archive` dan `POST /api/archives/{archive}/restore` → middleware `archives.manage` + policy `archive`/`unarchive` (`archives.manage` + ability domain). Objek luar domain `404`; peran view-only (`kepala-sekolah`, `wakil-kesiswaan`, `uat.archivist`) `403`. `delete` dan `forceDelete` tetap selalu `false`.
+  - `GET /api/archives/retention/report` → middleware `archives.manage` + policy `retentionReport` (`archives.manage`). Hanya menyajikan agregat kategori/jumlah/ukuran byte tanpa daftar judul atau PII lintas domain.
+- **Pemisahan tugas audit akses vs manajemen arsip**: Operator Sekolah (`archives.manage` tanpa `audit.view`) dapat mengelola siklus arsip dan melihat laporan retensi, tetapi ditolak `403` saat membaca `/access-logs`. Kepala Sekolah (`archives.view` + `audit.view` + seluruh `*.view` domain) dapat membaca `/access-logs` namun ditolak `403` untuk arsip/restore dan laporan retensi. Admin Sistem memegang keduanya tetapi tetap tidak memegang `archives.purge`.
+- **UI**: widget `ArchiveExpiryWidget.vue` di dashboard hanya dimuat bila aktor memegang `archives.view`; tab **Access History** di detail arsip hanya tampil bila `can.view_access_log`; tombol **Retention Policy** hanya tampil bila `can.view_retention`; tombol **Archive**/**Restore** mengikuti `can.archive`/`can.restore` dan status dokumen (`active`/`archived`).
+
 | Kemampuan | Admin | Operator | Kepala sekolah | Guru/wali kelas |
 |---|---|---|---|---|
 | users.manage / roles.manage | Ya | Tidak | Tidak | Tidak |

@@ -40,6 +40,38 @@ class ArchiveDocumentPolicy
         return $this->view($user, $archiveDocument);
     }
 
+    /**
+     * Preview inline memakai izin yang sama dengan download (DEC-38 D2).
+     */
+    public function preview(User $user, ArchiveDocument $archiveDocument): bool
+    {
+        return $this->download($user, $archiveDocument);
+    }
+
+    /**
+     * Riwayat akses dibaca pemegang audit.view selain archives.view + domain
+     * (DEC-38 D3); tidak ada ability baru.
+     */
+    public function accessLogs(User $user, ArchiveDocument $archiveDocument): bool
+    {
+        return $user->hasAbility((string) config('archives.access_log.ability'))
+            && $this->view($user, $archiveDocument);
+    }
+
+    /**
+     * Arsip/restore memakai archives.manage + ability domain (DEC-38 D5);
+     * delete/forceDelete tetap tidak pernah diizinkan.
+     */
+    public function archive(User $user, ArchiveDocument $archiveDocument): bool
+    {
+        return $this->update($user, $archiveDocument);
+    }
+
+    public function unarchive(User $user, ArchiveDocument $archiveDocument): bool
+    {
+        return $this->update($user, $archiveDocument);
+    }
+
     public function delete(User $user, ArchiveDocument $archiveDocument): bool
     {
         return false;

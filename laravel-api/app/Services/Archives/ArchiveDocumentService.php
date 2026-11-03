@@ -2,11 +2,13 @@
 
 namespace App\Services\Archives;
 
+use App\Models\ArchiveAccessLog;
 use App\Models\ArchiveDocument;
 use App\Models\ArchiveFileVersion;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -15,13 +17,14 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Orkestrasi metadata, versi file, pencarian lintas domain, dan unduhan
- * arsip (Fase 09a, DEC-37).
+ * arsip (Fase 09a, DEC-37; akses aman & siklus hidup 09b, DEC-38).
  */
 class ArchiveDocumentService
 {
     public function __construct(
         private readonly ArchiveFileService $files,
         private readonly ArchiveSubjectService $subjects,
+        private readonly ArchiveAccessService $access,
     ) {}
 
     /**
@@ -50,6 +53,36 @@ class ArchiveDocumentService
                 ->map(fn (string $label, string $value) => ['value' => $value, 'label' => $label])
                 ->values()
                 ->all(),
+            'statuses' => collect((array) config('archives.statuses'))
+                ->map(fn (string $label, string $value) => ['value' => $value, 'label' => $label])
+                ->values()
+                ->all(),
+            'access_log_actions' => collect((array) config('archives.access_log.actions'))
+                ->map(fn (string $label, string $value) => ['value' => $value, 'label' => $label])
+                ->values()
+                ->all(),
+            'expiring_task_limit' => [
+                'default' => (int) config('archives.expiring_task.default_limit'),
+                'max' => (int) config('archives.expiring_task.max_limit'),
+            ],
+            'archive_reason' => [
+                'min' => (int) config('archives.archive_reason.min'),
+                'max' => (int) config('archives.archive_reason.max'),
+            ],
+            'retention' => [
+                'unit' => (string) config('archives.retention.unit'),
+                'anchor' => (string) config('archives.retention.anchor'),
+                'periods' => collect((array) config('archives.retention.periods'))
+                    ->map(fn (array $period, string $category) => [
+                        'category' => $category,
+                        'label' => (string) config('archives.categories.'.$category, $category),
+                        'years' => $period['years'] === null ? null : (int) $period['years'],
+                        'description' => (string) ($period['label'] ?? 'Permanent'),
+                    ])
+                    ->values()
+                    ->all(),
+                'purge_enabled' => false,
+            ],
             'per_page_options' => config('archives.per_page_options'),
             'default_per_page' => (int) config('archives.default_per_page'),
             'search_max_length' => (int) config('archives.search_max_length'),
@@ -74,6 +107,8 @@ class ArchiveDocumentService
             'can' => [
                 'view' => true,
                 'manage' => $actor->hasAbility('archives.manage'),
+                'view_access_log' => $actor->hasAbility((string) config('archives.access_log.ability')),
+                'view_retention_report' => $actor->hasAbility('archives.manage'),
             ],
         ];
     }
@@ -126,10 +161,11 @@ class ArchiveDocumentService
     {
         $document = $this->findVisibleOrFail($documentId, $actor);
 
-        $document->loadCount('versions');
+        $document->loadCount(['versions', 'accessLogs']);
         $document->load([
             'creator:id,name',
             'updater:id,name',
+            'archiver:id,name',
             'latestVersion.uploader:id,name',
         ]);
 
@@ -234,6 +270,7 @@ class ArchiveDocumentService
 
             Gate::forUser($actor)->authorize('update', $document);
             $this->assertVersion($document, $expectedVersion);
+            $this->assertNotArchived($document, 'editing it');
             $this->assertSubjectUnchanged($data);
 
             $fields = [];
@@ -280,6 +317,7 @@ class ArchiveDocumentService
 
                 Gate::forUser($actor)->authorize('addVersion', $document);
                 $this->assertVersion($document, $expectedVersion);
+                $this->assertNotArchived($document, 'adding a new version');
 
                 $extension = $this->files->validateFile($file);
                 $metadata = $this->files->writeToDisk($document, $file, $extension);
@@ -348,7 +386,108 @@ class ArchiveDocumentService
         ];
     }
 
-    public function download(int $documentId, int $versionNumber, User $actor): StreamedResponse
+    public function download(int $documentId, int $versionNumber, User $actor, Request $request): StreamedResponse
+    {
+        [$document, $version] = $this->resolveVersion($documentId, $versionNumber, $actor);
+
+        $this->files->assertReadable($version);
+        $this->access->record($document, $version, ArchiveAccessLog::ACTION_DOWNLOAD, $actor, $request);
+
+        return $this->files->downloadResponse($version);
+    }
+
+    public function preview(int $documentId, int $versionNumber, User $actor, Request $request): StreamedResponse
+    {
+        [$document, $version] = $this->resolveVersion($documentId, $versionNumber, $actor);
+
+        $this->files->assertReadable($version);
+        $this->access->record($document, $version, ArchiveAccessLog::ACTION_PREVIEW, $actor, $request);
+
+        return $this->files->previewResponse($version);
+    }
+
+    /**
+     * Riwayat akses download/preview (DEC-38 D3): audit.view + archives.view
+     * + ability domain; objek di luar domain tetap 404.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return array<string, mixed>
+     */
+    public function accessLogs(int $documentId, array $filters, User $actor): array
+    {
+        $document = $this->findVisibleOrFail($documentId, $actor);
+
+        Gate::forUser($actor)->authorize('accessLogs', $document);
+
+        return $this->access->list($document, $filters);
+    }
+
+    /**
+     * Arsipkan dokumen (DEC-38 D5): alasan wajib, transaksi + lockForUpdate +
+     * expected_version; version dinaikkan sehingga tab lain menerima 409.
+     *
+     * @return array<string, mixed>
+     */
+    public function archive(int $documentId, string $reason, int $expectedVersion, User $actor): array
+    {
+        DB::transaction(function () use ($documentId, $reason, $expectedVersion, $actor) {
+            $document = $this->lockOrFail($documentId);
+
+            Gate::forUser($actor)->authorize('archive', $document);
+            $this->assertVersion($document, $expectedVersion);
+
+            if ($document->isArchived()) {
+                throw ValidationException::withMessages([
+                    'archived_at' => ['This archive document is already archived.'],
+                ]);
+            }
+
+            $document->archived_at = Carbon::now('Asia/Jakarta');
+            $document->archive_reason = trim($reason);
+            $document->archived_by = $actor->id;
+            $document->version = (int) $document->version + 1;
+            $document->updated_by = $actor->id;
+            $document->save();
+        });
+
+        return $this->show($documentId, $actor);
+    }
+
+    /**
+     * Pulihkan dokumen terarsip (DEC-38 D5). Versi file dan tautan subjek
+     * tidak disentuh; tidak ada arsip massal maupun arsip otomatis.
+     *
+     * @return array<string, mixed>
+     */
+    public function restore(int $documentId, int $expectedVersion, User $actor): array
+    {
+        DB::transaction(function () use ($documentId, $expectedVersion, $actor) {
+            $document = $this->lockOrFail($documentId);
+
+            Gate::forUser($actor)->authorize('unarchive', $document);
+            $this->assertVersion($document, $expectedVersion);
+
+            if (! $document->isArchived()) {
+                throw ValidationException::withMessages([
+                    'archived_at' => ['This archive document is not archived.'],
+                ]);
+            }
+
+            $document->archived_at = null;
+            $document->archive_reason = null;
+            $document->archived_by = null;
+            $document->version = (int) $document->version + 1;
+            $document->updated_by = $actor->id;
+            $document->save();
+        });
+
+        return $this->show($documentId, $actor);
+    }
+
+    /**
+     * @return array{0: ArchiveDocument, 1: ArchiveFileVersion}
+     */
+    private function resolveVersion(int $documentId, int $versionNumber, User $actor): array
     {
         $document = $this->findVisibleOrFail($documentId, $actor);
 
@@ -361,7 +500,16 @@ class ArchiveDocumentService
             $this->notFound('Archive version not found.');
         }
 
-        return $this->files->downloadResponse($version);
+        return [$document, $version];
+    }
+
+    private function assertNotArchived(ArchiveDocument $document, string $action): void
+    {
+        if ($document->isArchived()) {
+            throw ValidationException::withMessages([
+                'archived_at' => ['This archive document is archived. Restore it before '.$action.'.'],
+            ]);
+        }
     }
 
     private function findVisibleOrFail(int $documentId, User $actor): ArchiveDocument
@@ -401,8 +549,17 @@ class ArchiveDocumentService
         $subjectType = $filters['subject_type'] ?? null;
         $subjectId = $filters['subject_id'] ?? null;
         $validity = $filters['validity'] ?? null;
+        $status = $filters['status'] ?? ArchiveDocument::STATUS_ACTIVE;
         $dateFrom = $filters['date_from'] ?? null;
         $dateTo = $filters['date_to'] ?? null;
+
+        // Default daftar hanya dokumen aktif (DEC-38 D5); filter eksplisit
+        // sudah divalidasi controller terhadap whitelist config.
+        match ($status) {
+            ArchiveDocument::STATUS_ARCHIVED => $query->whereNotNull('archived_at'),
+            ArchiveDocument::STATUS_ACTIVE => $query->whereNull('archived_at'),
+            default => null,
+        };
 
         if ($search !== '') {
             $pattern = $this->likePattern($search);
@@ -484,6 +641,7 @@ class ArchiveDocumentService
     private function serializeSummary(ArchiveDocument $document, User $actor, ?array $subject): array
     {
         $gate = Gate::forUser($actor);
+        $archived = $document->isArchived();
 
         return [
             'id' => $document->id,
@@ -495,6 +653,7 @@ class ArchiveDocumentService
             'valid_from' => $document->valid_from?->format('Y-m-d'),
             'valid_until' => $document->valid_until?->format('Y-m-d'),
             'validity_status' => $document->validityStatus(),
+            'status' => $document->status(),
             'subject' => $subject,
             'current_version' => (int) $document->current_version,
             'versions_count' => (int) ($document->versions_count ?? $document->versions()->count()),
@@ -502,9 +661,14 @@ class ArchiveDocumentService
             'updated_at' => $document->updated_at?->toIso8601String(),
             'can' => [
                 'view' => $gate->allows('view', $document),
-                'update' => $gate->allows('update', $document),
-                'add_version' => $gate->allows('addVersion', $document),
+                // Dokumen terarsip tetap dapat dibaca tetapi read-only (D5).
+                'update' => ! $archived && $gate->allows('update', $document),
+                'add_version' => ! $archived && $gate->allows('addVersion', $document),
                 'download' => $gate->allows('download', $document),
+                'preview' => $gate->allows('preview', $document),
+                'archive' => ! $archived && $gate->allows('archive', $document),
+                'restore' => $archived && $gate->allows('unarchive', $document),
+                'view_access_log' => $gate->allows('accessLogs', $document),
             ],
         ];
     }
@@ -517,6 +681,13 @@ class ArchiveDocumentService
     {
         return array_merge($this->serializeSummary($document, $actor, $subject), [
             'description' => $document->description,
+            'archived_at' => $document->archived_at?->toIso8601String(),
+            'archive_reason' => $document->archive_reason,
+            'archived_by' => $document->archiver === null ? null : [
+                'id' => $document->archiver->id,
+                'name' => $document->archiver->name,
+            ],
+            'access_logs_count' => (int) ($document->access_logs_count ?? $document->accessLogs()->count()),
             'created_at' => $document->created_at?->toIso8601String(),
             'created_by' => $document->creator === null ? null : [
                 'id' => $document->creator->id,
