@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 11b — Persetujuan rencana laporan rekapitulasi sekolah dan rekonsiliasi Dapodik (DEC-43 APPROVED; DEC-12 CLOSED)
+- Type: Docs
+- Scope / fase: Pencatatan persetujuan pemilik atas rencana Subfase 11b (`D1–D10` sebagai `DEC-43 APPROVED`) dan penutupan gerbang `DEC-12 CLOSED`. Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `reports/feature-update/PHASE-11B-PLAN.md`, `docs/DECISIONS.md`, `roadmap/phases/PHASE-11-ANALYTICS.md`, `roadmap/ROADMAP.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: mencatat pernyataan pemilik **"Saya setuju D1-D10"** (2026-11-03 WIB) sebagai **DEC-43 APPROVED** di atas paket rencana `e49e2f4` (baseline audit `bb06d98`), menutup gerbang **DEC-12 CLOSED**, serta mengotorisasi implementasi Subfase 11b (langkah S1–S8).
+- Why: memisahkan commit persetujuan rencana pemilik dari commit implementasi kode sesuai aturan repositori.
+- Validation: **NOT RUN** — commit dokumentasi persetujuan rencana.
+- Notes / risks: implementasi kode Subfase 11b dikerjakan pada commit berikutnya.
+- Evidence: `reports/feature-update/PHASE-11B-PLAN.md`; paket rencana `e49e2f4`; baseline `bb06d98`.
+
 ## [2026-11-03] Fase 11b — Rencana laporan rekapitulasi sekolah, statistik multi-tahun, dan rekonsiliasi Dapodik (PLAN; DEC-43 PROPOSED; DEC-12 diajukan)
 - Type: Docs
 - Scope / fase: Penyusunan rencana teknis Fase 11 — Subfase 11b: Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data Dapodik (DEC-43 PROPOSED; DEC-12 PROPOSED FOR CLOSURE). Tidak ada kode aplikasi, migrasi database, atau mutasi data operasional pada entri ini.

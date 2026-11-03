@@ -4,10 +4,10 @@
 
 - **Subfase:** 11b — Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data Dapodik.
 - **Milestone Induk:** Fase 11 — Dashboard Operator dan Laporan.
-- **Usulan Keputusan Arsitektur:** **DEC-43 PROPOSED (D1–D10)** dan penutupan gerbang **DEC-12 CLOSED (Laporan Eksternal & Rekonsiliasi Berkas)**.
-- **Baseline Kode:** `main` pada commit [`bb06d98`](file:///D:/xampp-htdocs/app-administration_school) (pencatatan penerimaan pemilik Subfase 11a `#1–#18`).
-- **Status Rencana:** **PLAN — AWAITING OWNER APPROVAL (D1–D10)**.
-- **Status Implementasi:** **NOT RUN** (Tahap perancangan arsitektur dan dokumentasi; tidak ada kode aplikasi, migrasi database, model, controller, route, komponen Vue, atau mutasi data operasional yang dieksekusi sebelum persetujuan pemilik).
+- **Usulan Keputusan Arsitektur:** **DEC-43 APPROVED (D1–D10, 2026-11-03 WIB)** dan penutupan gerbang **DEC-12 CLOSED (Laporan Eksternal & Rekonsiliasi Berkas)**.
+- **Baseline Kode:** `main` pada commit [`bb06d98`](file:///D:/xampp-htdocs/app-administration_school) (pencatatan penerimaan pemilik Subfase 11a `#1–#18`). Paket rencana: `e49e2f4`.
+- **Status Rencana:** **PLAN APPROVED (DEC-43 APPROVED; D1–D10 DISETUJUI PEMILIK 2026-11-03 WIB)** berdasarkan pernyataan pemilik: *"Saya setuju D1-D10"*.
+- **Status Implementasi:** **IN PROGRESS (Langkah S1–S8 diotorisasi)**.
 
 ---
 

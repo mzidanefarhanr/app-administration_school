@@ -27,8 +27,8 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 ```
 
 ### 11b — Laporan dan rekonsiliasi
-- **Status implementasi (2026-11-03 WIB):** **PLAN — AWAITING OWNER APPROVAL (DEC-43 PROPOSED; D1–D10)** (`reports/feature-update/PHASE-11B-PLAN.md`). Belum ada kode implementasi (NOT RUN).
-Scope: Tren per tahun, mutasi/bantuan/kelengkapan; definisi aktif/pending/overdue; filter drilldown dan ekspor. Dapodik rekonsiliasi file jika dipilih, bukan sync otomatis (DEC-12 PROPOSED FOR CLOSURE).
+- **Status implementasi (2026-11-03 WIB):** **IN PROGRESS — DEC-43 APPROVED (D1–D10; `"Saya setuju D1-D10"`) & DEC-12 CLOSED** (`reports/feature-update/PHASE-11B-PLAN.md`). Implementasi langkah S1–S8 diotorisasi.
+Scope: Tren per tahun, mutasi/bantuan/kelengkapan; definisi aktif/pending/overdue; filter drilldown dan ekspor. Dapodik rekonsiliasi file jika dipilih, bukan sync otomatis (DEC-12 CLOSED).
 
 Kriteria penerimaan: Chart/list/export konsisten; hari batas dan periode jelas; perbedaan data terlihat tanpa auto-overwrite.
 

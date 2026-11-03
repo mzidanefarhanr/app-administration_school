@@ -1,6 +1,11 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Rencana Subfase 11b disusun — PLAN; DEC-43 PROPOSED; DEC-12 PROPOSED FOR CLOSURE)
+## Current checkpoint — 2026-11-03 (Rencana Subfase 11b DISETUJUI — DEC-43 APPROVED; DEC-12 CLOSED; implementasi diotorisasi)
+
+- **Status:** Pemilik menyatakan **"Saya setuju D1-D10"** (2026-11-03 WIB); dicatat sebagai **DEC-43 APPROVED** dan menutup gerbang **DEC-12 CLOSED**. Implementasi **Subfase 11b — Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data** diotorisasi sesuai `reports/feature-update/PHASE-11B-PLAN.md` (baseline `bb06d98`; paket rencana `e49e2f4`). **Subfase 11a tetap OWNER APPROVED (#1–#18, 2026-11-03 WIB; DEC-42 CLOSED)**, dan **Fase 10 tetap SELESAI LENGKAP & DITUTUP** (`2a36800`).
+- **Next:** Eksekusi S1–S8 Subfase 11b (Services, Controllers, Routes, Tests T1–T12, Vue components, lint, build, UAT probe), verifikasi penuh, dan siapkan `PHASE-11B-REPORT.md` serta `PHASE-11B-MANUAL-REVIEW.md`.
+
+## Previous checkpoint — 2026-11-03 (Rencana Subfase 11b disusun — PLAN; DEC-43 PROPOSED; DEC-12 PROPOSED FOR CLOSURE)
 
 - **Status:** Rencana rinci **Fase 11 — Subfase 11b: Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data** telah disusun di `reports/feature-update/PHASE-11B-PLAN.md` (baseline audit `bb06d98` di atas penutupan Subfase 11a) dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D10)**, usulan **DEC-43 PROPOSED**, dan pengajuan penutupan gerbang **DEC-12 (Laporan Eksternal & Rekonsiliasi Berkas)**. Paket ini **hanya dokumentasi**: tidak ada kode aplikasi, migration, model, service, controller, route, komponen Vue, fixture UAT 11b, atau eksekusi suite tes (`NOT RUN`), dan implementasi 11b **belum diotorisasi** sampai pemilik menyetujui **D1–D10**.
 - **Previous phase state:** **Subfase 11a telah OWNER APPROVED (#1–#18, 2026-11-03 WIB) dan SELESAI LENGKAP & DITUTUP** (`2b7e8a5`). Port 18028/14028 bebas listener (`PORTS_18028_14028_FREE`).
