@@ -35,6 +35,7 @@ import { useToast } from 'primevue/usetoast';
 import { getChangeDetail, getChangeDetails } from '@/utils/diff';
 import { useUniqueValidation } from '@/utils/useUniqueValidation';
 import { enrichReferenceResponse } from '@/utils/referenceLabels.mjs';
+import { i18n } from '@/i18n';
 
 /**
  * @param {Object} config
@@ -54,7 +55,7 @@ import { enrichReferenceResponse } from '@/utils/referenceLabels.mjs';
  * @param {string}   [config.cat2_fk_id]       - FK id field to set on save, e.g. 'status_user_id'
  */
 export function useResourceManager(config) {
-    const { endpoint, endpoints = [], menuLabel, menuLabelPlural, fieldLabels = {}, uniqueFields = [], uniqueMinLengths = [3, 3, 3, 3], requiredFields = [], fkFields = [] } = config;
+    const { endpoint, endpoints = [], menuLabel, menuLabelPlural, menuLabelKey, menuLabelPluralKey, fieldLabels = {}, uniqueFields = [], uniqueMinLengths = [3, 3, 3, 3], requiredFields = [], fkFields = [] } = config;
 
     const toast = useToast();
     const useAuthStore = authStore();
@@ -63,9 +64,9 @@ export function useResourceManager(config) {
 
     const manyDatas = ref([]);
     const manyDatas_cat1 = ref([]);
-    const status_educations = ref([
-        { name: 'Negeri', display_name: 'Public' },
-        { name: 'Swasta', display_name: 'Private' }
+    const status_educations = computed(() => [
+        { name: 'Negeri', display_name: i18n.locale.value === 'en' ? 'Public' : 'Negeri' },
+        { name: 'Swasta', display_name: i18n.locale.value === 'en' ? 'Private' : 'Swasta' }
     ]);
 
     // ── Secondary data sources (fully dynamic — no upper limit) ───────────────
@@ -79,8 +80,18 @@ export function useResourceManager(config) {
 
     const loading = ref(true);
     const submitted = ref(false);
-    const entityLabel = ref('');
-    const entityLabelPlural = ref('');
+    const entityLabel = computed(() => {
+        if (menuLabelKey && i18n.te && i18n.te(menuLabelKey)) {
+            return i18n.t(menuLabelKey);
+        }
+        return menuLabel || '';
+    });
+    const entityLabelPlural = computed(() => {
+        if (menuLabelPluralKey && i18n.te && i18n.te(menuLabelPluralKey)) {
+            return i18n.t(menuLabelPluralKey);
+        }
+        return menuLabelPlural || '';
+    });
 
     const EditOrNewDialog = ref(false);
     const deleteDialog = ref(false);
@@ -174,8 +185,6 @@ export function useResourceManager(config) {
         // Identitas sesi dari kontrak ringan check-auth (bukan daftar /api/users).
         await useAuthStore.getUser();
         saveUser.value = useAuthStore.identity;
-        entityLabel.value = menuLabel;
-        entityLabelPlural.value = menuLabelPlural;
         await fetchDataAll();
     };
 
