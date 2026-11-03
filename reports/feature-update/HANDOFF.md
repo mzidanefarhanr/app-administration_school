@@ -1,6 +1,11 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Rencana Subfase 11c disusun — PLAN; DEC-44 PROPOSED)
+## Current checkpoint — 2026-11-03 (Rencana Subfase 11c DISETUJUI — DEC-44 APPROVED; implementasi diotorisasi)
+
+- **Status:** Pemilik menyatakan **"Saya setuju D1-D10"** (2026-11-03 WIB); dicatat sebagai **DEC-44 APPROVED**. Implementasi **Subfase 11c — Tugas Operasional dan Pengingat Internal Operator** diotorisasi sesuai `reports/feature-update/PHASE-11C-PLAN.md` (baseline `3cf80cf`; paket rencana `38e5856`). **Subfase 11a & 11b tetap OWNER APPROVED (#1–#18, 2026-11-03 WIB; DEC-42 & DEC-43 CLOSED; DEC-12 CLOSED)**, dan **Fase 10 tetap SELESAI LENGKAP & DITUTUP** (`2a36800`).
+- **Next:** Eksekusi S1–S8 Subfase 11c (Migration, Models, Services, Controllers, Routes, Tests T1–T12, Vue components, lint, build, UAT probe), verifikasi penuh, dan siapkan `PHASE-11C-REPORT.md` serta `PHASE-11C-MANUAL-REVIEW.md`.
+
+## Previous checkpoint — 2026-11-03 (Rencana Subfase 11c disusun — PLAN; DEC-44 PROPOSED)
 
 - **Status:** Rencana rinci **Fase 11 — Subfase 11c: Tugas Operasional dan Pengingat Internal Operator** telah disusun di `reports/feature-update/PHASE-11C-PLAN.md` (baseline audit `3cf80cf` di atas penutupan lengkap Subfase 11b) dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D10)** dan usulan **DEC-44 PROPOSED**. Paket ini **hanya dokumentasi**: tidak ada kode aplikasi, migration, model, service, controller, route, komponen Vue, fixture UAT 11c, atau eksekusi suite tes (`NOT RUN`), dan implementasi 11c **belum diotorisasi** sampai pemilik menyetujui **D1–D10**.
 - **Previous phase state:** **Subfase 11a & 11b telah OWNER APPROVED (#1–#18, 2026-11-03 WIB) dan SELESAI LENGKAP & DITUTUP** (`78a2c28`, `3cf80cf`). Port 18028/14028 bebas listener (`PORTS_18028_14028_FREE`). DEC-12 CLOSED.
