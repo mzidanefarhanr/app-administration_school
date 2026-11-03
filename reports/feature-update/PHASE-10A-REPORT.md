@@ -1,8 +1,8 @@
 # Laporan Subfase 10a — Penugasan dan Jadwal Pembelajaran
 
-Tanggal: implementasi dan verifikasi agen 2026-11-03 WIB. Branch: `main`. Baseline induk: `b515cb1` (pencatatan DEC-39 APPROVED di atas paket rencana `a8264ad` dan baseline 09b `f185ca6`). Status teknis: **IMPLEMENTED — agent-verified (2026-11-03)**. Status review pemilik: **PENDING (#1–#18 di `reports/feature-update/PHASE-10A-MANUAL-REVIEW.md`)**.
+Tanggal: implementasi dan verifikasi agen 2026-11-03 WIB; penerimaan manual pemilik 2026-11-03 WIB. Branch: `main`. Baseline induk: `b515cb1` (pencatatan DEC-39 APPROVED di atas paket rencana `a8264ad` dan baseline 09b `f185ca6`); paket implementasi & review: `c8be397`. Status teknis: **IMPLEMENTED — agent-verified (2026-11-03)**. Status review pemilik: **APPROVED (#1–#18, 2026-11-03 WIB; pernyataan `"Pengujian nomor 1-18 sudah berhasil dan saya approved."`)**.
 Keputusan pemilik: **DEC-39 APPROVED** (D1–D11, 2026-11-03 WIB; pernyataan **"Saya setuju D1-D11."**); **DEC-10 CLOSED** melalui D3, D5, dan D8.
-Otorisasi: implementasi **Subfase 10a** sesuai `reports/feature-update/PHASE-10-PLAN.md` (S0–S8). Fase 09 (09a + 09b) tetap **OWNER APPROVED (#1–#18, 2026-11-03 WIB)**. Subfase **10b** dan **10c** belum diotorisasi.
+Otorisasi: implementasi **Subfase 10a** sesuai `reports/feature-update/PHASE-10-PLAN.md` (S0–S8) telah diterima pemilik. Fase 09 (09a + 09b) tetap **OWNER APPROVED (#1–#18, 2026-11-03 WIB)**. Subfase **10b** dan **10c** menunggu persetujuan rencana terpisah.
 
 ## 1. Outcome dan cakupan
 
@@ -138,4 +138,4 @@ Kontrak **13 endpoint baru `/api/teaching/*`** (detail lengkap di `docs/API-CONT
 
 - Server UAT `.uat-phase10` (`127.0.0.1:18028`) **telah dihentikan pada 2026-11-03 WIB** sesuai kebijakan `DEC-27` segera setelah verifikasi HTTP agen selesai: proses PHP API (PID `3332`) telah dihentikan, port `18028` dan `14028` terverifikasi bebas listener, layanan Apache/MariaDB operasional tidak disentuh, dan seluruh data `.uat-phase10` (`101` penugasan, `121` jadwal, `6` pengecualian kalender, `18` pegawai, `7` akun) dipertahankan utuh.
 - Perintah untuk menyalakan kembali server UAT `.uat-phase10` saat pemilik ingin menjalankan checklist manual `#1–#18`, serta perintah untuk menghentikannya kembali, tercantum lengkap di `reports/feature-update/PHASE-10A-MANUAL-REVIEW.md`.
-- **Menunggu review manual pemilik (`#1–#18`)** atas Subfase 10a sebelum menyusun rencana rinci **Subfase 10b (Sesi, Jurnal Mengajar, dan Absensi Per Sesi)**.
+- **Penerimaan manual pemilik (`#1–#18` APPROVED, 2026-11-03 WIB)**: pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."**; agen tidak mengulang skenario dan item NOT RUN tetap NOT RUN. Port `18028` dan `14028` diverifikasi ulang bebas listener (`PORTS_18028_14028_FREE`), `.uat-phase10` (`101` penugasan, `121` jadwal, `6` exception) dipertahankan sesuai `DEC-27`, serta Apache dan MariaDB tidak disentuh. Langkah berikutnya adalah menyusun rencana rinci **Subfase 10b (Sesi dan Jurnal Mengajar)**.

@@ -2,10 +2,10 @@
 
 - **Tanggal:** 2026-11-03 (WIB)
 - **Cabang:** `main`
-- **Baseline audit:** `f185ca6` (pencatatan penerimaan pemilik Subfase 09b `#1–#18` di atas implementasi `51002e6`); paket rencana: `a8264ad`
-- **Status:** **PLAN APPROVED — DEC-39 APPROVED (2026-11-03 WIB, berdasarkan pernyataan pemilik `"Saya setuju D1-D11."`); implementasi Subfase 10a diotorisasi; `DEC-10` CLOSED melalui D3, D5, dan D8**
-- **Keputusan:** **DEC-39 (APPROVED, 2026-11-03 WIB)** — Arsitektur Subfase 10a Penugasan Mengajar, Jadwal Mingguan + Deteksi Bentrok, Exception Kalender (`holiday`/`cancelled`/`rescheduled`), dan penyelesaian gerbang **`DEC-10`**
-- **Cakupan langkah ini:** Persetujuan rencana D1–D11 dicatat terlebih dahulu; implementasi S1–S8 dieksekusi setelah commit persetujuan ini.
+- **Baseline audit:** `f185ca6` (pencatatan penerimaan pemilik Subfase 09b `#1–#18` di atas implementasi `51002e6`); paket rencana: `a8264ad`; persetujuan: `b515cb1`; paket implementasi & review: `c8be397`
+- **Status:** **IMPLEMENTED & OWNER APPROVED — DEC-39 APPROVED (2026-11-03 WIB, `"Saya setuju D1-D11."`); `DEC-10` CLOSED melalui D3, D5, dan D8; Subfase 10a diimplementasikan (`c8be397`) dan diterima pemilik `#1–#18` (2026-11-03 WIB, `"Pengujian nomor 1-18 sudah berhasil dan saya approved."`)**
+- **Keputusan:** **DEC-39 (APPROVED, IMPLEMENTED & OWNER APPROVED #1–#18, 2026-11-03 WIB)** — Arsitektur Subfase 10a Penugasan Mengajar, Jadwal Mingguan + Deteksi Bentrok, Exception Kalender (`holiday`/`cancelled`/`rescheduled`), dan penyelesaian gerbang **`DEC-10`**
+- **Cakupan langkah ini:** Subfase 10a telah selesai diimplementasikan dan diterima pemilik (`PHASE-10A-REPORT.md`, `PHASE-10A-MANUAL-REVIEW.md`).
 
 ---
 

@@ -2,13 +2,13 @@
 
 Subfase: 10a — penugasan mengajar (`teaching_assignments`), jadwal mingguan dengan deteksi bentrok tiga dimensi (`teaching_schedules` — guru, kelas, ruangan), dan pengecualian kalender (`teaching_schedule_exceptions` — `holiday`, `cancelled`, `rescheduled`).
 Keputusan: **DEC-39 APPROVED** (D1–D11, 2026-11-03 WIB; **"Saya setuju D1-D11."**; **DEC-10 CLOSED** melalui D3, D5, dan D8). Laporan teknis: `reports/feature-update/PHASE-10A-REPORT.md`; rencana: `reports/feature-update/PHASE-10-PLAN.md`.
-Baseline induk: `main` pada `b515cb1` (pencatatan DEC-39 APPROVED di atas paket rencana `a8264ad` dan baseline 09b `f185ca6`). Status teknis: **IMPLEMENTED — agent-verified (2026-11-03)**. Status review pemilik: **PENDING (#1–#18)**.
+Baseline induk: `main` pada `b515cb1` (pencatatan DEC-39 APPROVED di atas paket rencana `a8264ad` dan baseline 09b `f185ca6`); paket implementasi & review: `c8be397`. Status teknis: **IMPLEMENTED — agent-verified (2026-11-03)**. Status review pemilik: **APPROVED (#1–#18, 2026-11-03 WIB)**.
 
 ## Status penerimaan pemilik
 
-- **PENDING (#1–#18)** — menunggu pemeriksaan manual pemilik atas daftar uji `#1–#18` di bawah ini.
-- Server UAT `.uat-phase10` (`127.0.0.1:18028` dan `127.0.0.1:14028`) **telah dihentikan oleh agen pada 2026-11-03 WIB** segera setelah verifikasi teknis selesai sesuai kebijakan `DEC-27`: port `18028` dan `14028` bebas listener, data `.uat-phase10` dipertahankan utuh, dan layanan Apache/MariaDB tidak disentuh.
-- Batas: review 10a tidak mengotorisasi Subfase 10b/10c, merge/deploy/force-push, migrasi database operasional/MariaDB, perubahan dependency/lockfile, atau perubahan service/`.env`.
+- **APPROVED (#1–#18, 2026-11-03 WIB)** — pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."**; agen tidak mengulang skenario manual dan item NOT RUN tetap NOT RUN.
+- Server UAT `.uat-phase10` (`127.0.0.1:18028` dan `127.0.0.1:14028`) **telah dihentikan oleh agen pada 2026-11-03 WIB** segera setelah verifikasi teknis selesai dan diverifikasi ulang setelah penerimaan sesuai kebijakan `DEC-27`: port `18028` dan `14028` bebas listener (`PORTS_18028_14028_FREE`), data `.uat-phase10` dipertahankan utuh (`101` penugasan, `121` jadwal, `6` exception), dan layanan Apache/MariaDB tidak disentuh.
+- Batas: penerimaan 10a tidak mengotorisasi implementasi Subfase 10b/10c tanpa persetujuan rencana terpisah, merge/deploy/force-push, migrasi database operasional/MariaDB, perubahan dependency/lockfile, atau perubahan service/`.env`.
 
 ## Lingkungan UAT (terisolasi)
 

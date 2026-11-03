@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 10a — Penerimaan manual pemilik #1–#18 (OWNER APPROVED; UAT stopped)
+- Type: Docs
+- Scope / fase: Penerimaan manual Subfase 10a. Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `reports/feature-update/PHASE-10A-REPORT.md`, `reports/feature-update/PHASE-10A-MANUAL-REVIEW.md`, `reports/feature-update/PHASE-10-PLAN.md`, `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `docs/TESTING.md`, `roadmap/ROADMAP.md`, `roadmap/phases/PHASE-10-TEACHING.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: mencatat pernyataan pemilik **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** (2026-11-03 WIB) sebagai penerimaan checklist 10a **#1–#18**; status DEC-39 menjadi IMPLEMENTED + OWNER APPROVED; paket review dicatat sebagai **`c8be397`** di `origin/main`; DEC-10 tetap CLOSED; Fase 09 tetap OWNER APPROVED (`f185ca6`).
+- Why: penerimaan manual pemilik dicatat terpisah dari commit implementasi (`c8be397`) sesuai aturan repo dan menjadi gate penyusunan rencana subfase berikutnya.
+- Validation: **NOT RUN** — tidak ada tes/build/Pint/ESLint/browser ulang; agen tidak mengulang skenario manual dan item NOT RUN tetap NOT RUN. Verifikasi operasional read-only: port **18028/14028 bebas** (`PORTS_18028_14028_FREE`), `.uat-phase10` (`101` penugasan, `121` jadwal, `6` exception) dipertahankan, Apache/MariaDB tidak disentuh.
+- Notes / risks: penerimaan 10a tidak mengotorisasi implementasi Subfase 10b/10c tanpa persetujuan rencana terpisah, merge/deploy/force-push, migrasi DB operasional/MariaDB, atau perubahan dependency/lockfile/service/`.env`.
+- Evidence: `reports/feature-update/PHASE-10A-REPORT.md`; `reports/feature-update/PHASE-10A-MANUAL-REVIEW.md`; paket review `c8be397`; baseline `b515cb1`.
+
 ## [2026-11-03] Fase 10a — Penugasan mengajar, jadwal mingguan, dan pengecualian kalender (IMPLEMENTED; agent-verified; review pemilik PENDING)
 - Type: Feature
 - Scope / fase: Subfase **10a — penugasan mengajar (`teaching_assignments`), slot jadwal mingguan (`teaching_schedules`), dan pengecualian kalender (`teaching_schedule_exceptions`)** (`DEC-39 APPROVED`; `DEC-10 CLOSED`). Subfase 10b (sesi & jurnal) dan 10c (laporan belum mengisi jurnal) tidak termasuk dalam entri ini.
