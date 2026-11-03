@@ -2,10 +2,10 @@
 
 - **Tanggal:** 2026-11-03 (WIB)
 - **Cabang:** `main`
-- **Baseline audit:** `f185ca6` (pencatatan penerimaan pemilik Subfase 09b `#1–#18` di atas implementasi `51002e6`)
-- **Status:** **PLAN — AWAITING OWNER APPROVAL (`D1–D11`)**
-- **Usulan keputusan:** **DEC-39 (PROPOSED)** — Arsitektur Subfase 10a Penugasan Mengajar, Jadwal Mingguan + Deteksi Bentrok, Exception Kalender (`holiday`/`cancelled`/`rescheduled`), dan penyelesaian gerbang **`DEC-10`**
-- **Cakupan langkah ini:** Hanya audit fakta kode dan penyusunan rencana. **Tidak ada** perubahan aplikasi, migration, model, service, controller, route, komponen Vue, fixture UAT, atau eksekusi suite tes pada langkah rencana ini (`NOT RUN`).
+- **Baseline audit:** `f185ca6` (pencatatan penerimaan pemilik Subfase 09b `#1–#18` di atas implementasi `51002e6`); paket rencana: `a8264ad`
+- **Status:** **PLAN APPROVED — DEC-39 APPROVED (2026-11-03 WIB, berdasarkan pernyataan pemilik `"Saya setuju D1-D11."`); implementasi Subfase 10a diotorisasi; `DEC-10` CLOSED melalui D3, D5, dan D8**
+- **Keputusan:** **DEC-39 (APPROVED, 2026-11-03 WIB)** — Arsitektur Subfase 10a Penugasan Mengajar, Jadwal Mingguan + Deteksi Bentrok, Exception Kalender (`holiday`/`cancelled`/`rescheduled`), dan penyelesaian gerbang **`DEC-10`**
+- **Cakupan langkah ini:** Persetujuan rencana D1–D11 dicatat terlebih dahulu; implementasi S1–S8 dieksekusi setelah commit persetujuan ini.
 
 ---
 

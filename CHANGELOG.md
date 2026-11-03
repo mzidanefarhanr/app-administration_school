@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 10a — Persetujuan rencana penugasan dan jadwal pembelajaran (DEC-39 APPROVED; DEC-10 CLOSED)
+- Type: Docs
+- Scope / fase: Pencatatan persetujuan pemilik atas rencana Subfase 10a (`D1–D11` sebagai `DEC-39 APPROVED`) dan penutupan gerbang `DEC-10`. Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `reports/feature-update/PHASE-10-PLAN.md`, `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `roadmap/phases/PHASE-10-TEACHING.md`, `roadmap/ROADMAP.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: mencatat pernyataan pemilik **"Saya setuju D1-D11."** (2026-11-03 WIB) sebagai **DEC-39 APPROVED** di atas paket rencana `a8264ad` (baseline `f185ca6`), menutup **DEC-10** melalui D3, D5, dan D8, serta mengotorisasi implementasi Subfase 10a (S1–S8).
+- Why: memisahkan commit persetujuan rencana pemilik dari commit implementasi kode sesuai aturan repositori.
+- Validation: **NOT RUN** — commit dokumentasi persetujuan rencana.
+- Notes / risks: implementasi kode Subfase 10a dikerjakan pada commit berikutnya.
+- Evidence: `reports/feature-update/PHASE-10-PLAN.md`; paket rencana `a8264ad`; baseline `f185ca6`.
+
 ## [2026-11-03] Fase 10a — Rencana penugasan dan jadwal pembelajaran (PLAN; DEC-39 PROPOSED; DEC-10 diajukan)
 - Type: Docs
 - Scope / fase: Penyusunan rencana rinci Subfase 10a (`reports/feature-update/PHASE-10-PLAN.md`, `DEC-39 PROPOSED`, penyelesaian gerbang `DEC-10`). Tidak ada perubahan kode aplikasi, migration, model, service, controller, route, komponen Vue, fixture UAT, atau eksekusi suite tes pada entri ini (`NOT RUN`).

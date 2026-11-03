@@ -1,7 +1,7 @@
 # Fase 10 — Administrasi pembelajaran
 
-Status teknis: **10a PLAN — AWAITING OWNER APPROVAL (D1–D11; DEC-39 PROPOSED; DEC-10 proposed resolution)**; **10b–10c NOT STARTED**. Status review: **10a PLAN AWAITING OWNER APPROVAL (D1–D11)**; **10b–10c PENDING**. Semua tes/browser/manual: **NOT RUN** (tahap rencana).
-Dependensi: 04,06; DEC-10 (usulan penyelesaian di `DEC-39` D3/D5/D8). Baseline rencana 10a: `f185ca6` (penerimaan pemilik 09b `#1–#18` di atas implementasi `51002e6`); rencana lengkap di `reports/feature-update/PHASE-10-PLAN.md`.
+Status teknis: **10a PLAN APPROVED — DEC-39 APPROVED (2026-11-03 WIB, `"Saya setuju D1-D11."`); implementasi 10a diotorisasi; DEC-10 CLOSED**; **10b–10c NOT STARTED**. Status review: **10a PLAN APPROVED (D1–D11); implementasi belum diverifikasi pada checkpoint ini**; **10b–10c PENDING**. Semua tes/browser/manual: **NOT RUN** pada checkpoint persetujuan rencana ini.
+Dependensi: 04,06; DEC-10 (**CLOSED** melalui `DEC-39` D3/D5/D8). Baseline rencana 10a: `f185ca6`; paket rencana: `a8264ad`; rencana lengkap di `reports/feature-update/PHASE-10-PLAN.md`.
 
 ## Tujuan dan scope
 Administrasi pembelajaran. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Tidak ada pekerjaan implementasi yang telah dilakukan dalam penyusunan dokumen ini.
@@ -9,7 +9,7 @@ Administrasi pembelajaran. Kerjakan satu subfase per instruksi pemilik; jangan m
 ## Subfase
 
 ### 10a — Penugasan dan jadwal
-- **Status rencana (2026-11-03 WIB):** **PLAN — AWAITING OWNER APPROVAL (D1–D11; DEC-39 PROPOSED)** di `reports/feature-update/PHASE-10-PLAN.md` (baseline `f185ca6`). Menunggu keputusan pemilik atas `D1–D11` (termasuk penyelesaian `DEC-10`) sebelum implementasi kode/migration/tes dimulai.
+- **Status rencana (2026-11-03 WIB):** **PLAN APPROVED — DEC-39 APPROVED (D1–D11; `"Saya setuju D1-D11."`; DEC-10 CLOSED)** di `reports/feature-update/PHASE-10-PLAN.md` (baseline `f185ca6`, paket rencana `a8264ad`). Implementasi Subfase 10a diotorisasi.
 Scope: Relasi banyak guru-matpel-rombel-periode; timetable/hari/jam/ruang bila diperlukan; bentrok guru/rombel/ruang; libur/cancel/reschedule.
 
 Kriteria penerimaan: Guru dapat beberapa penugasan; bentrok nyata ditolak; exception jadwal tidak menghasilkan tugas palsu.

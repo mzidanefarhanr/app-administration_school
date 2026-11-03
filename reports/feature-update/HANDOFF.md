@@ -1,6 +1,11 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Rencana Subfase 10a disusun — PLAN; DEC-39 PROPOSED; DEC-10 diajukan)
+## Current checkpoint — 2026-11-03 (Rencana Subfase 10a DISETUJUI — DEC-39 APPROVED; DEC-10 CLOSED; implementasi diotorisasi)
+
+- **Status:** pemilik menyatakan **"Saya setuju D1-D11."** (2026-11-03 WIB); dicatat sebagai **DEC-39 APPROVED** dan menutup gerbang **DEC-10** melalui D3, D5, dan D8. Implementasi **Subfase 10a — Penugasan dan jadwal pembelajaran** diotorisasi sesuai `reports/feature-update/PHASE-10-PLAN.md` (baseline **`f185ca6`**; paket rencana **`a8264ad`**). **Fase 09 (09a & 09b) tetap DITERIMA PEMILIK & DITUTUP LENGKAP** (`f185ca6`).
+- **Next:** eksekusi S1–S8 Subfase 10a, verifikasi penuh, dan siapkan `PHASE-10A-REPORT.md` serta `PHASE-10A-MANUAL-REVIEW.md`.
+
+## Previous checkpoint — 2026-11-03 (Rencana Subfase 10a disusun — PLAN; DEC-39 PROPOSED; DEC-10 diajukan)
 
 - **Status:** rencana rinci **Fase 10 — Subfase 10a: Penugasan dan jadwal pembelajaran** telah disusun di `reports/feature-update/PHASE-10-PLAN.md` (baseline audit **`f185ca6`** di atas paket implementasi 09b `51002e6`) dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D11)** dan usulan **DEC-39 PROPOSED** (sekaligus penyelesaian gerbang **DEC-10** melalui D3, D5, dan D8). Paket ini **hanya dokumentasi**: tidak ada kode aplikasi, migration, model, service, controller, route, komponen Vue, fixture UAT, atau eksekusi suite tes (`NOT RUN`), dan implementasi 10a **belum diotorisasi** sampai pemilik menyetujui **D1–D11**.
 - **Previous phase state:** **Fase 09 (09a & 09b) tetap DITERIMA PEMILIK & DITUTUP LENGKAP** (`f185ca6`, checklist `#1–#18` APPROVED 2026-11-03 WIB; server UAT `.uat-phase09` `18027`/`14027` sudah dihentikan sesuai DEC-27 dan data dipertahankan).
