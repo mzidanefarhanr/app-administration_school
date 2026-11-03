@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 68" role="img" aria-label="Sekolario, school management system">
+  <title>Sekolario</title>
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600&amp;display=swap');
+    </style>
+  </defs>
+
+  <!-- Ikon mark -->
+  <rect x="10" y="10" width="48" height="48" rx="12" fill="#059669"/>
+  <rect x="28" y="22" width="22" height="4.5" rx="2.25" fill="#ffffff"/>
+  <rect x="24" y="30.75" width="22" height="4.5" rx="2.25" fill="#ffffff"/>
+  <rect x="20" y="39.5" width="22" height="4.5" rx="2.25" fill="#ffffff"/>
+
+  <!-- Wordmark -->
+  <text
+    x="72" y="38"
+    font-family="'Plus Jakarta Sans', Inter, system-ui, sans-serif"
+    font-size="26" font-weight="600" letter-spacing="-0.5"
+  ><tspan fill="#059669">S</tspan><tspan fill="#0f172a">ekolario</tspan></text>
+
+  <!-- Tagline singkat tanpa akronim -->
+  <text
+    x="73" y="53"
+    font-family="'Plus Jakarta Sans', Inter, system-ui, sans-serif"
+    font-size="8" font-weight="400" letter-spacing="1.8"
+    fill="#475569"
+  >SCHOOL MANAGEMENT SYSTEM</text>
+</svg>

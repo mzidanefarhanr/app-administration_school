@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 268 68" role="img" aria-label="Sekolario, sistem administrasi sekolah">
+  <title>Sekolario</title>
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600&amp;display=swap');
+    </style>
+  </defs>
+
+  <!-- Ikon mark: kotak gelap + tiga bar putih -->
+  <rect x="10" y="10" width="48" height="48" rx="12" fill="#0f172a"/>
+  <!-- Bar tengah dibedakan lewat opacity untuk kesan depth -->
+  <rect x="28" y="22" width="22" height="4.5" rx="2.25" fill="#ffffff"/>
+  <rect x="24" y="30.75" width="22" height="4.5" rx="2.25" fill="#ffffff" opacity="0.6"/>
+  <rect x="20" y="39.5" width="22" height="4.5" rx="2.25" fill="#ffffff" opacity="0.35"/>
+
+  <!-- Wordmark monokrom gelap -->
+  <text
+    x="72" y="38"
+    font-family="'Plus Jakarta Sans', Inter, system-ui, sans-serif"
+    font-size="26" font-weight="600" letter-spacing="-0.5"
+    fill="#0f172a"
+  >Sekolario</text>
+
+  <!-- Tagline -->
+  <text
+    x="73" y="53"
+    font-family="'Plus Jakarta Sans', Inter, system-ui, sans-serif"
+    font-size="8" font-weight="400" letter-spacing="1.8"
+    fill="#0f172a" opacity="0.55"
+  >SISTEM ADMINISTRASI SEKOLAH</text>
+</svg>
