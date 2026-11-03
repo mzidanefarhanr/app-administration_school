@@ -1,6 +1,21 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Subfase 13b OWNER APPROVED #1–#18; SUBFASE 13B SELESAI LENGKAP & DITUTUP; Rencana Subfase 13c DISUSUN — DEC-50 PROPOSED)
+## Current checkpoint — 2026-11-03 (Subfase 13c IMPLEMENTED & DIVERIFIKASI AGEN — TAG v1.0.0 DITERBITKAN — AWAITING OWNER REVIEW #1–#18; DEC-50 IMPLEMENTED)
+
+- **Status:** Subfase **13c — Rilis dan Handoff Operasional** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`2a4abc7`** (dokumentasi persetujuan rencana `DEC-50 APPROVED` via instruksi pemilik: *"Saya setuju D1-D8"*). Tag rilis Git **`v1.0.0`** telah diterbitkan. Paket implementasi dilaporkan di `reports/feature-update/PHASE-13C-REPORT.md` dan checklist pengujian manual akhir pemilik disediakan di `reports/feature-update/PHASE-13C-MANUAL-REVIEW.md` (#1–#18).
+- **Implementasi yang diselesaikan (S1–S8):**
+  1. Verifikasi kelengkapan bundel rilis statis `vue-app/dist` dan keutuhan backend API Laravel 11.
+  2. Penerbitan Git annotated release tag `v1.0.0`.
+  3. Dokumen panduan teknis `docs/DEPLOYMENT_GUIDE.md` (Dual-Mode: LAN Lokal Sekolah vs Cloud VPS Online).
+  4. Dokumen catatan rilis resmi `docs/RELEASE_NOTES_v1.0.md` (10 modul sekolah siap pakai, keamanan PII, batasan sistem, rekomendasi v1.1+).
+  5. Prosedur inisialisasi lapangan & bootstrap superadmin `php artisan app:bootstrap-admin`.
+  6. Pre-use smoke test checklist lapangan $\le 10$ detik.
+  7. Paket serah terima operasional: rekapitulasi paripurna seluruh 14 fase pengembangan (Fase 00 s.d. Fase 13) dan inventaris 8 dokumen kunci.
+  8. Kepatuhan DEC-27: port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`). Apache dan MariaDB operasional tidak disentuh. Zero schema change.
+- **Server UAT:** Server UAT port `18028` dan `14028` diverifikasi bebas listener (`PORTS_18028_14028_FREE`). Apache dan MariaDB operasional tidak disentuh.
+- **Next:** Pemilik menguji checklist manual akhir #1–#18 pada `reports/feature-update/PHASE-13C-MANUAL-REVIEW.md` dan memberikan pengesahan akhir proyek bila sesuai.
+
+## Previous checkpoint — 2026-11-03 (Subfase 13b OWNER APPROVED #1–#18; SUBFASE 13B SELESAI LENGKAP & DITUTUP; Rencana Subfase 13c DISUSUN — DEC-50 PROPOSED)
 
 - **Status:** Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** (2026-11-03 WIB); checklist manual Subfase 13b **#1–#18 APPROVED**. **Subfase 13b — Kesiapan Rilis (Release Readiness)** resmi **SELESAI LENGKAP & DITUTUP** (`dcc607b`). **DEC-49 disahkan menjadi APPROVED & CLOSED**. Port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
 - **Perencanaan Subfase 13c:** Rencana teknis rinci untuk **Subfase 13c: Rilis dan Handoff Operasional** telah disusun di `reports/feature-update/PHASE-13C-PLAN.md` dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D8)** dan usulan **DEC-50 PROPOSED**. Dokumen ini menjawab pertanyaan pemilik mengenai makna rilis siap pakai (*Golden Master*) vs model target deployment (On-Premise LAN Sekolah vs Cloud VPS Online), tag rilis Git `v1.0.0`, panduan langkah deployment lapangan, pre-use smoke test checklist, paket handoff serah terima sistem, daftar known issues & batasan v1.0, serta checklist review manual akhir #1–#18.

@@ -1,6 +1,22 @@
 # Konteks proyek
 
-## Current addendum — 2026-11-03 (Subfase 13b OWNER APPROVED #1–#18; SUBFASE 13B SELESAI LENGKAP & DITUTUP; Rencana Subfase 13c DISUSUN — DEC-50 PROPOSED)
+## Current addendum — 2026-11-03 (Subfase 13c IMPLEMENTED & DIVERIFIKASI AGEN; TAG v1.0.0 DITERBITKAN; AWAITING OWNER REVIEW #1–#18; DEC-50 IMPLEMENTED)
+
+Pernyataan pemilik **"Saya setuju D1-D8"** (2026-11-03 WIB) dicatat sebagai **DEC-50 APPROVED**; implementasi **Subfase 13c — Rilis dan Handoff Operasional** diotorisasi dan telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`2a4abc7`**, dengan laporan implementasi di `reports/feature-update/PHASE-13C-REPORT.md` dan paket review manual akhir di `reports/feature-update/PHASE-13C-MANUAL-REVIEW.md` (#1–#18). Tag rilis Git **`v1.0.0`** telah diterbitkan. Disampaikan:
+- **Penerbitan Rilis & Panduan Deployment:**
+  1. Tag Git resmi bertanda `v1.0.0` diterbitkan pada repositori.
+  2. Panduan instalasi komprehensif Dual-Mode (LAN Lokal Sekolah vs Cloud VPS Online) di `docs/DEPLOYMENT_GUIDE.md`.
+  3. Catatan rilis resmi di `docs/RELEASE_NOTES_v1.0.md` merangkum 10 modul siap pakai, perlindungan privasi PII, transparansi batasan sistem, dan saran pengembangan masa depan (v1.1+).
+  4. SOP bootstrap superadmin perdana `php artisan app:bootstrap-admin` dan pre-use smoke test $\le 10$ detik.
+- **Serah Terima Paripurna Proyek:**
+  - Seluruh 14 fase pengembangan (Fase 00 s.d. Fase 13) tercatat **100% COMPLETE & CLOSED**.
+  - Inventaris 8 dokumen operasional kunci siap diserahkan kepada staf IT sekolah.
+- **Verifikasi & Kualitas:**
+  - Status port DEC-27: port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
+  - MariaDB operasional port 3306 dan Apache port 80/443 tidak disentuh. Zero schema change.
+- **Status:** Menunggu review manual akhir pemilik checklist #1–#18 di `reports/feature-update/PHASE-13C-MANUAL-REVIEW.md`.
+
+## Previous addendum — 2026-11-03 (Subfase 13b OWNER APPROVED #1–#18; SUBFASE 13B SELESAI LENGKAP & DITUTUP; Rencana Subfase 13c DISUSUN — DEC-50 PROPOSED)
 
 Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** (2026-11-03 WIB); checklist manual Subfase 13b **#1–#18 APPROVED**. **Subfase 13b — Kesiapan Rilis (Release Readiness)** resmi **SELESAI LENGKAP & DITUTUP** (`dcc607b`). **DEC-49 disahkan menjadi APPROVED & CLOSED**. Port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
 

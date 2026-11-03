@@ -1,6 +1,19 @@
 # Indeks laporan pengembangan
 
-## Current checkpoint — 2026-11-03 (Subfase 13b OWNER APPROVED #1–#18; SUBFASE 13B SELESAI LENGKAP & DITUTUP; Rencana Subfase 13c DISUSUN — DEC-50 PROPOSED)
+## Current checkpoint — 2026-11-03 (Subfase 13c IMPLEMENTED & DIVERIFIKASI AGEN; DEC-50 IMPLEMENTED; TAG v1.0.0 DITERBITKAN; MENUNGGU REVIEW MANUAL AKHIR PEMILIK #1–#18)
+
+Subfase **13c — Rilis dan Handoff Operasional** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`2a4abc7`** (dokumentasi persetujuan rencana `DEC-50 APPROVED` via instruksi pemilik: *"Saya setuju D1-D8"*). Seluruh implementasi S1–S8 selesai:
+1. Verifikasi akhir bundel aset statis antarmuka Vue SPA (`vue-app/dist`) dan backend API Laravel 11 bebas dari error sintaks atau rute yatim.
+2. Penerbitan tag Git resmi **`v1.0.0`** bertanda (*annotated release tag*) pada repositori resmi.
+3. Penyusunan panduan deployment operasional komprehensif Dual-Mode (Bagian A: On-Premise LAN Sekolah, Bagian B: Cloud VPS Online, Bagian C: Inisialisasi Bersama) di `docs/DEPLOYMENT_GUIDE.md`.
+4. Penerbitan Catatan Rilis Resmi v1.0.0 di `docs/RELEASE_NOTES_v1.0.md` yang merangkum ketersediaan 10 domain modul sekolah siap pakai, proteksi privasi PII, transparansi batasan Dapodik CSV lokal, dan rekomendasi v1.1+.
+5. SOP inisialisasi lapangan & pembentukan superadmin aman via CLI `php artisan app:bootstrap-admin`.
+6. Pre-use smoke test checklist lapangan $\le 10$ detik untuk validasi kesehatan pasca-instalasi di server sekolah.
+7. Paket serah terima operasional (*Handoff Package*) yang merekapitulasi penutupan seluruh 14 fase pengembangan aplikasi (Fase 00 s.d. Fase 13) dan inventaris 8 dokumen kunci.
+8. Kepatuhan DEC-27: port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`), Apache 80/443 & MariaDB 3306 tidak disentuh. Zero schema change.
+Dokumen laporan rinci: **`PHASE-13C-REPORT.md`**; checklist review manual pemilik: **`PHASE-13C-MANUAL-REVIEW.md`** (#1–#18). Menunggu review manual akhir pemilik.
+
+## Previous checkpoint — 2026-11-03 (Subfase 13b OWNER APPROVED #1–#18; SUBFASE 13B SELESAI LENGKAP & DITUTUP; Rencana Subfase 13c DISUSUN — DEC-50 PROPOSED)
 
 Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** (2026-11-03 WIB); checklist manual Subfase 13b **#1–#18 APPROVED**. **Subfase 13b — Kesiapan Rilis (Release Readiness)** resmi **SELESAI LENGKAP & DITUTUP** (`dcc607b`). **DEC-49 disahkan menjadi APPROVED & CLOSED**. Port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
 

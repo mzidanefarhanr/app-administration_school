@@ -18,6 +18,70 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 ## Entries
 ## Entries
 
+## [2026-11-03] Fase 13c — Rilis resmi v1.0.0, panduan deployment dual-mode, release notes, dan serah terima operasional (DEC-50 IMPLEMENTED)
+- Type: Feature | Docs | Release Readiness | Project Sign-Off
+- Scope / fase: Fase 13 — Subfase 13c: Rilis dan Handoff Operasional (DEC-50 IMPLEMENTED; Penutupan Milestone 13 & Seluruh Roadmap).
+- Files touched:
+  - `docs/DEPLOYMENT_GUIDE.md` (panduan komprehensif deployment Dual-Mode: On-Premise LAN Lokal Sekolah & Cloud VPS Online)
+  - `docs/RELEASE_NOTES_v1.0.md` (catatan rilis resmi v1.0.0: cakupan 10 modul siap pakai, PII redaction, batasan sistem, rekomendasi v1.1+)
+  - `reports/feature-update/PHASE-13C-REPORT.md` (laporan eksekutif serah terima rilis Subfase 13c)
+  - `reports/feature-update/PHASE-13C-MANUAL-REVIEW.md` (panduan review manual akhir pemilik #1–#18)
+  - `docs/DECISIONS.md` (DEC-50 disahkan menjadi APPROVED & IMPLEMENTED)
+  - `reports/feature-update/PHASE-13C-PLAN.md` (status APPROVED & IMPLEMENTED)
+  - `roadmap/phases/PHASE-13-QA-RELEASE.md` (Subfase 13c IMPLEMENTED & AWAITING OWNER REVIEW #1–#18)
+  - `roadmap/ROADMAP.md` (addendum implementasi Subfase 13c dan pembaruan tabel roadmap)
+  - `reports/feature-update/INDEX.md` (checkpoint pembaruan Subfase 13c)
+  - `reports/feature-update/HANDOFF.md` (checkpoint handoff Subfase 13c)
+  - `PROJECT_CONTEXT.md` (addendum kontekstual implementasi Subfase 13c)
+- What changed:
+  1. Menerbitkan tag rilis Git resmi **`v1.0.0`** bertanda (*annotated release tag*) pada repositori: `git tag -a v1.0.0 -m "Release v1.0.0: Sistem Administrasi Sekolah Siap Produksi"`.
+  2. Menyusun dokumen `docs/DEPLOYMENT_GUIDE.md` yang memuat panduan deployment lapangan langkah-demi-langkah Dual-Mode: Bagian A (On-Premise LAN Sekolah via XAMPP/Windows Server & Task Scheduler), Bagian B (Cloud VPS Ubuntu 22.04 LTS via Nginx, SSL Let's Encrypt, Supervisor, dan Cron), Bagian C (Inisialisasi Bersama: `.env`, migrasi, `app:bootstrap-admin`, optimasi cache), dan Bagian D (Pre-Use Smoke Test Checklist $\le 10$ detik).
+  3. Menyusun dokumen `docs/RELEASE_NOTES_v1.0.md` yang merangkum ketersediaan 10 modul domain sekolah siap pakai, fitur keamanan data (PII redaction otomatis, correlation ID tracking, backup AES-256), batasan wajar sistem (Dapodik CSV lokal semi-otomatis, notifikasi in-app), dan rekomendasi roadmap masa depan (Portal Ortu/Siswa v1.1, WA Bot v1.2, Rapor Digital v2.0).
+  4. Merangkum rekapitulasi paripurna seluruh 14 fase pengembangan aplikasi (Fase 00 s.d. Fase 13) di `reports/feature-update/PHASE-13C-REPORT.md` di mana seluruh fase telah selesai 100% dan terverifikasi.
+  5. Menyerahkan inventaris 8 dokumen operasional kunci bagi staf IT sekolah.
+  6. Menegakkan kepatuhan port DEC-27: port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`), Apache 80/443 dan MariaDB 3306 tidak disentuh, dan zero schema change.
+- Why: Memenuhi instruksi pemilik yang menyetujui D1–D8 pada DEC-50 untuk pelaksanaan Subfase 13c (Rilis dan Handoff Operasional).
+- Validation:
+  - Verifikasi tag Git `v1.0.0` pada repositori.
+  - Verifikasi kelengkapan berkas panduan `docs/DEPLOYMENT_GUIDE.md` dan `docs/RELEASE_NOTES_v1.0.md`.
+  - Verifikasi bundel aset frontend `vue-app/dist/` (665 modul, index.html, assets/).
+  - Verifikasi suite tes otomatis backup/restore drill (43/43 pass).
+  - Status port 18028 dan 14028 terverifikasi bebas listener (`PORTS_18028_14028_FREE`).
+- Evidence: `reports/feature-update/PHASE-13C-REPORT.md`; `reports/feature-update/PHASE-13C-MANUAL-REVIEW.md` (#1–#18); tag Git `v1.0.0`.
+## Entries
+## Entries
+
+## [2026-11-03] Fase 13c — Rilis resmi v1.0.0, panduan deployment dual-mode, release notes, dan serah terima operasional (DEC-50 IMPLEMENTED)
+- Type: Feature | Docs | Release Readiness | Project Sign-Off
+- Scope / fase: Fase 13 — Subfase 13c: Rilis dan Handoff Operasional (DEC-50 IMPLEMENTED; Penutupan Milestone 13 & Seluruh Roadmap).
+- Files touched:
+  - `docs/DEPLOYMENT_GUIDE.md` (panduan komprehensif deployment Dual-Mode: On-Premise LAN Lokal Sekolah & Cloud VPS Online)
+  - `docs/RELEASE_NOTES_v1.0.md` (catatan rilis resmi v1.0.0: cakupan 10 modul siap pakai, PII redaction, batasan sistem, rekomendasi v1.1+)
+  - `reports/feature-update/PHASE-13C-REPORT.md` (laporan eksekutif serah terima rilis Subfase 13c)
+  - `reports/feature-update/PHASE-13C-MANUAL-REVIEW.md` (panduan review manual akhir pemilik #1–#18)
+  - `docs/DECISIONS.md` (DEC-50 disahkan menjadi APPROVED & IMPLEMENTED)
+  - `reports/feature-update/PHASE-13C-PLAN.md` (status APPROVED & IMPLEMENTED)
+  - `roadmap/phases/PHASE-13-QA-RELEASE.md` (Subfase 13c IMPLEMENTED & AWAITING OWNER REVIEW #1–#18)
+  - `roadmap/ROADMAP.md` (addendum implementasi Subfase 13c dan pembaruan tabel roadmap)
+  - `reports/feature-update/INDEX.md` (checkpoint pembaruan Subfase 13c)
+  - `reports/feature-update/HANDOFF.md` (checkpoint handoff Subfase 13c)
+  - `PROJECT_CONTEXT.md` (addendum kontekstual implementasi Subfase 13c)
+- What changed:
+  1. Menerbitkan tag rilis Git resmi **`v1.0.0`** bertanda (*annotated release tag*) pada repositori: `git tag -a v1.0.0 -m "Release v1.0.0: Sistem Administrasi Sekolah Siap Produksi"`.
+  2. Menyusun dokumen `docs/DEPLOYMENT_GUIDE.md` yang memuat panduan deployment lapangan langkah-demi-langkah Dual-Mode: Bagian A (On-Premise LAN Sekolah via XAMPP/Windows Server & Task Scheduler), Bagian B (Cloud VPS Ubuntu 22.04 LTS via Nginx, SSL Let's Encrypt, Supervisor, dan Cron), Bagian C (Inisialisasi Bersama: `.env`, migrasi, `app:bootstrap-admin`, optimasi cache), dan Bagian D (Pre-Use Smoke Test Checklist $\le 10$ detik).
+  3. Menyusun dokumen `docs/RELEASE_NOTES_v1.0.md` yang merangkum ketersediaan 10 modul domain sekolah siap pakai, fitur keamanan data (PII redaction otomatis, correlation ID tracking, backup AES-256), batasan wajar sistem (Dapodik CSV lokal semi-otomatis, notifikasi in-app), dan rekomendasi roadmap masa depan (Portal Ortu/Siswa v1.1, WA Bot v1.2, Rapor Digital v2.0).
+  4. Merangkum rekapitulasi paripurna seluruh 14 fase pengembangan aplikasi (Fase 00 s.d. Fase 13) di `reports/feature-update/PHASE-13C-REPORT.md` di mana seluruh fase telah selesai 100% dan terverifikasi.
+  5. Menyerahkan inventaris 8 dokumen operasional kunci bagi staf IT sekolah.
+  6. Menegakkan kepatuhan port DEC-27: port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`), Apache 80/443 dan MariaDB 3306 tidak disentuh, dan zero schema change.
+- Why: Memenuhi instruksi pemilik yang menyetujui D1–D8 pada DEC-50 untuk pelaksanaan Subfase 13c (Rilis dan Handoff Operasional).
+- Validation:
+  - Verifikasi tag Git `v1.0.0` pada repositori.
+  - Verifikasi kelengkapan berkas panduan `docs/DEPLOYMENT_GUIDE.md` dan `docs/RELEASE_NOTES_v1.0.md`.
+  - Verifikasi bundel aset frontend `vue-app/dist/` (665 modul, index.html, assets/).
+  - Verifikasi suite tes otomatis backup/restore drill (43/43 pass).
+  - Status port 18028 dan 14028 terverifikasi bebas listener (`PORTS_18028_14028_FREE`).
+- Evidence: `reports/feature-update/PHASE-13C-REPORT.md`; `reports/feature-update/PHASE-13C-MANUAL-REVIEW.md` (#1–#18); tag Git `v1.0.0`.
+
 ## [2026-11-03] Fase 13b: penerimaan manual pemilik checklist #1–#18 (SUBFASE 13B SELESAI LENGKAP & DITUTUP); usulan rencana Subfase 13c (DEC-50 PROPOSED)
 - Type: Docs | Release Readiness | Project Sign-Off
 - Scope / fase: Fase 13 — Subfase 13b selesai dan ditutup; perencanaan Subfase 13c (DEC-50 PROPOSED).
@@ -45,6 +109,70 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 - Evidence: `reports/feature-update/PHASE-13C-PLAN.md`; commit perencanaan.
 ## Entries
 ## Entries
+
+## [2026-11-03] Fase 13c — Rilis resmi v1.0.0, panduan deployment dual-mode, release notes, dan serah terima operasional (DEC-50 IMPLEMENTED)
+- Type: Feature | Docs | Release Readiness | Project Sign-Off
+- Scope / fase: Fase 13 — Subfase 13c: Rilis dan Handoff Operasional (DEC-50 IMPLEMENTED; Penutupan Milestone 13 & Seluruh Roadmap).
+- Files touched:
+  - `docs/DEPLOYMENT_GUIDE.md` (panduan komprehensif deployment Dual-Mode: On-Premise LAN Lokal Sekolah & Cloud VPS Online)
+  - `docs/RELEASE_NOTES_v1.0.md` (catatan rilis resmi v1.0.0: cakupan 10 modul siap pakai, PII redaction, batasan sistem, rekomendasi v1.1+)
+  - `reports/feature-update/PHASE-13C-REPORT.md` (laporan eksekutif serah terima rilis Subfase 13c)
+  - `reports/feature-update/PHASE-13C-MANUAL-REVIEW.md` (panduan review manual akhir pemilik #1–#18)
+  - `docs/DECISIONS.md` (DEC-50 disahkan menjadi APPROVED & IMPLEMENTED)
+  - `reports/feature-update/PHASE-13C-PLAN.md` (status APPROVED & IMPLEMENTED)
+  - `roadmap/phases/PHASE-13-QA-RELEASE.md` (Subfase 13c IMPLEMENTED & AWAITING OWNER REVIEW #1–#18)
+  - `roadmap/ROADMAP.md` (addendum implementasi Subfase 13c dan pembaruan tabel roadmap)
+  - `reports/feature-update/INDEX.md` (checkpoint pembaruan Subfase 13c)
+  - `reports/feature-update/HANDOFF.md` (checkpoint handoff Subfase 13c)
+  - `PROJECT_CONTEXT.md` (addendum kontekstual implementasi Subfase 13c)
+- What changed:
+  1. Menerbitkan tag rilis Git resmi **`v1.0.0`** bertanda (*annotated release tag*) pada repositori: `git tag -a v1.0.0 -m "Release v1.0.0: Sistem Administrasi Sekolah Siap Produksi"`.
+  2. Menyusun dokumen `docs/DEPLOYMENT_GUIDE.md` yang memuat panduan deployment lapangan langkah-demi-langkah Dual-Mode: Bagian A (On-Premise LAN Sekolah via XAMPP/Windows Server & Task Scheduler), Bagian B (Cloud VPS Ubuntu 22.04 LTS via Nginx, SSL Let's Encrypt, Supervisor, dan Cron), Bagian C (Inisialisasi Bersama: `.env`, migrasi, `app:bootstrap-admin`, optimasi cache), dan Bagian D (Pre-Use Smoke Test Checklist $\le 10$ detik).
+  3. Menyusun dokumen `docs/RELEASE_NOTES_v1.0.md` yang merangkum ketersediaan 10 modul domain sekolah siap pakai, fitur keamanan data (PII redaction otomatis, correlation ID tracking, backup AES-256), batasan wajar sistem (Dapodik CSV lokal semi-otomatis, notifikasi in-app), dan rekomendasi roadmap masa depan (Portal Ortu/Siswa v1.1, WA Bot v1.2, Rapor Digital v2.0).
+  4. Merangkum rekapitulasi paripurna seluruh 14 fase pengembangan aplikasi (Fase 00 s.d. Fase 13) di `reports/feature-update/PHASE-13C-REPORT.md` di mana seluruh fase telah selesai 100% dan terverifikasi.
+  5. Menyerahkan inventaris 8 dokumen operasional kunci bagi staf IT sekolah.
+  6. Menegakkan kepatuhan port DEC-27: port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`), Apache 80/443 dan MariaDB 3306 tidak disentuh, dan zero schema change.
+- Why: Memenuhi instruksi pemilik yang menyetujui D1–D8 pada DEC-50 untuk pelaksanaan Subfase 13c (Rilis dan Handoff Operasional).
+- Validation:
+  - Verifikasi tag Git `v1.0.0` pada repositori.
+  - Verifikasi kelengkapan berkas panduan `docs/DEPLOYMENT_GUIDE.md` dan `docs/RELEASE_NOTES_v1.0.md`.
+  - Verifikasi bundel aset frontend `vue-app/dist/` (665 modul, index.html, assets/).
+  - Verifikasi suite tes otomatis backup/restore drill (43/43 pass).
+  - Status port 18028 dan 14028 terverifikasi bebas listener (`PORTS_18028_14028_FREE`).
+- Evidence: `reports/feature-update/PHASE-13C-REPORT.md`; `reports/feature-update/PHASE-13C-MANUAL-REVIEW.md` (#1–#18); tag Git `v1.0.0`.
+## Entries
+## Entries
+
+## [2026-11-03] Fase 13c — Rilis resmi v1.0.0, panduan deployment dual-mode, release notes, dan serah terima operasional (DEC-50 IMPLEMENTED)
+- Type: Feature | Docs | Release Readiness | Project Sign-Off
+- Scope / fase: Fase 13 — Subfase 13c: Rilis dan Handoff Operasional (DEC-50 IMPLEMENTED; Penutupan Milestone 13 & Seluruh Roadmap).
+- Files touched:
+  - `docs/DEPLOYMENT_GUIDE.md` (panduan komprehensif deployment Dual-Mode: On-Premise LAN Lokal Sekolah & Cloud VPS Online)
+  - `docs/RELEASE_NOTES_v1.0.md` (catatan rilis resmi v1.0.0: cakupan 10 modul siap pakai, PII redaction, batasan sistem, rekomendasi v1.1+)
+  - `reports/feature-update/PHASE-13C-REPORT.md` (laporan eksekutif serah terima rilis Subfase 13c)
+  - `reports/feature-update/PHASE-13C-MANUAL-REVIEW.md` (panduan review manual akhir pemilik #1–#18)
+  - `docs/DECISIONS.md` (DEC-50 disahkan menjadi APPROVED & IMPLEMENTED)
+  - `reports/feature-update/PHASE-13C-PLAN.md` (status APPROVED & IMPLEMENTED)
+  - `roadmap/phases/PHASE-13-QA-RELEASE.md` (Subfase 13c IMPLEMENTED & AWAITING OWNER REVIEW #1–#18)
+  - `roadmap/ROADMAP.md` (addendum implementasi Subfase 13c dan pembaruan tabel roadmap)
+  - `reports/feature-update/INDEX.md` (checkpoint pembaruan Subfase 13c)
+  - `reports/feature-update/HANDOFF.md` (checkpoint handoff Subfase 13c)
+  - `PROJECT_CONTEXT.md` (addendum kontekstual implementasi Subfase 13c)
+- What changed:
+  1. Menerbitkan tag rilis Git resmi **`v1.0.0`** bertanda (*annotated release tag*) pada repositori: `git tag -a v1.0.0 -m "Release v1.0.0: Sistem Administrasi Sekolah Siap Produksi"`.
+  2. Menyusun dokumen `docs/DEPLOYMENT_GUIDE.md` yang memuat panduan deployment lapangan langkah-demi-langkah Dual-Mode: Bagian A (On-Premise LAN Sekolah via XAMPP/Windows Server & Task Scheduler), Bagian B (Cloud VPS Ubuntu 22.04 LTS via Nginx, SSL Let's Encrypt, Supervisor, dan Cron), Bagian C (Inisialisasi Bersama: `.env`, migrasi, `app:bootstrap-admin`, optimasi cache), dan Bagian D (Pre-Use Smoke Test Checklist $\le 10$ detik).
+  3. Menyusun dokumen `docs/RELEASE_NOTES_v1.0.md` yang merangkum ketersediaan 10 modul domain sekolah siap pakai, fitur keamanan data (PII redaction otomatis, correlation ID tracking, backup AES-256), batasan wajar sistem (Dapodik CSV lokal semi-otomatis, notifikasi in-app), dan rekomendasi roadmap masa depan (Portal Ortu/Siswa v1.1, WA Bot v1.2, Rapor Digital v2.0).
+  4. Merangkum rekapitulasi paripurna seluruh 14 fase pengembangan aplikasi (Fase 00 s.d. Fase 13) di `reports/feature-update/PHASE-13C-REPORT.md` di mana seluruh fase telah selesai 100% dan terverifikasi.
+  5. Menyerahkan inventaris 8 dokumen operasional kunci bagi staf IT sekolah.
+  6. Menegakkan kepatuhan port DEC-27: port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`), Apache 80/443 dan MariaDB 3306 tidak disentuh, dan zero schema change.
+- Why: Memenuhi instruksi pemilik yang menyetujui D1–D8 pada DEC-50 untuk pelaksanaan Subfase 13c (Rilis dan Handoff Operasional).
+- Validation:
+  - Verifikasi tag Git `v1.0.0` pada repositori.
+  - Verifikasi kelengkapan berkas panduan `docs/DEPLOYMENT_GUIDE.md` dan `docs/RELEASE_NOTES_v1.0.md`.
+  - Verifikasi bundel aset frontend `vue-app/dist/` (665 modul, index.html, assets/).
+  - Verifikasi suite tes otomatis backup/restore drill (43/43 pass).
+  - Status port 18028 dan 14028 terverifikasi bebas listener (`PORTS_18028_14028_FREE`).
+- Evidence: `reports/feature-update/PHASE-13C-REPORT.md`; `reports/feature-update/PHASE-13C-MANUAL-REVIEW.md` (#1–#18); tag Git `v1.0.0`.
 
 ## [2026-11-03] Fase 13b: penerimaan manual pemilik checklist #1–#18 (SUBFASE 13B SELESAI LENGKAP & DITUTUP); usulan rencana Subfase 13c (DEC-50 PROPOSED)
 - Type: Docs | Release Readiness | Project Sign-Off
