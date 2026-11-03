@@ -2,10 +2,10 @@
 
 - **Tanggal:** 2026-11-03 (WIB)
 - **Cabang:** `main`
-- **Baseline audit:** `a304df8` (pencatatan penerimaan pemilik Subfase 10a `#1–#18` di atas paket implementasi `c8be397`)
-- **Status:** **PLAN — AWAITING OWNER APPROVAL (`D1–D9`)**
-- **Usulan keputusan:** **DEC-40 (PROPOSED)** — Arsitektur Subfase 10b Sesi Pembelajaran Efektif, Jurnal Mengajar (`teaching_journals`), Otorisasi `Own Assignment` vs `teaching.manage`, Idempotent Retry, dan Jendela Waktu Pengisian (`DEC-10`)
-- **Cakupan langkah ini:** **Hanya penyusunan rencana dan sinkronisasi dokumentasi status.** Belum ada migration, model, service, controller, route, komponen Vue, fixture UAT 10b, atau eksekusi suite tes yang dijalankan untuk 10b pada paket ini (`NOT RUN`). Implementasi kode 10b belum diotorisasi sampai pemilik menyetujui `D1–D9`.
+- **Baseline audit:** `a304df8` (pencatatan penerimaan pemilik Subfase 10a `#1–#18` di atas paket implementasi `c8be397`); paket rencana: `8ce345b`
+- **Status:** **PLAN APPROVED — DEC-40 APPROVED (2026-11-03 WIB, berdasarkan pernyataan pemilik `"Saya setuju D1-D9"`); implementasi Subfase 10b diotorisasi**
+- **Keputusan:** **DEC-40 (APPROVED, 2026-11-03 WIB)** — Arsitektur Subfase 10b Sesi Pembelajaran Efektif, Jurnal Mengajar (`teaching_journals`), Otorisasi `Own Assignment` vs `teaching.manage`, Idempotent Retry, dan Jendela Waktu Pengisian (`DEC-10`)
+- **Cakupan langkah ini:** Persetujuan rencana D1–D9 dicatat terlebih dahulu; implementasi S1–S7 dieksekusi setelah commit persetujuan ini.
 
 ---
 

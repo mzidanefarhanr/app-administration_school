@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 10b — Persetujuan rencana sesi dan jurnal pembelajaran (DEC-40 APPROVED)
+- Type: Docs
+- Scope / fase: Pencatatan persetujuan pemilik atas rencana Subfase 10b (`D1–D9` sebagai `DEC-40 APPROVED`). Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `reports/feature-update/PHASE-10B-PLAN.md`, `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `roadmap/phases/PHASE-10-TEACHING.md`, `roadmap/ROADMAP.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: mencatat pernyataan pemilik **"Saya setuju D1-D9"** (2026-11-03 WIB) sebagai **DEC-40 APPROVED** di atas paket rencana `8ce345b` (baseline `a304df8`), serta mengotorisasi implementasi Subfase 10b (S1–S7).
+- Why: memisahkan commit persetujuan rencana pemilik dari commit implementasi kode sesuai aturan repositori.
+- Validation: **NOT RUN** — commit dokumentasi persetujuan rencana.
+- Notes / risks: implementasi kode Subfase 10b dikerjakan pada commit berikutnya.
+- Evidence: `reports/feature-update/PHASE-10B-PLAN.md`; paket rencana `8ce345b`; baseline `a304df8`.
+
 ## [2026-11-03] Fase 10b — Rencana sesi dan jurnal pembelajaran (PLAN; DEC-40 PROPOSED)
 - Type: Docs
 - Scope / fase: Penyusunan rencana rinci Subfase 10b (`reports/feature-update/PHASE-10B-PLAN.md`, `DEC-40 PROPOSED`). Tidak ada perubahan kode aplikasi, migration, model, service, controller, route, komponen Vue, fixture UAT 10b, atau eksekusi suite tes pada entri ini (`NOT RUN`).
