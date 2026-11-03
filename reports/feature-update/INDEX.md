@@ -1,6 +1,10 @@
 # Indeks laporan pengembangan
 
-## Current checkpoint — 2026-11-03 (Subfase 10c OWNER APPROVED #1–#18; Fase 10 SELESAI LENGKAP & DITUTUP)
+## Current checkpoint — 2026-11-03 (Rencana Subfase 11a disusun — PLAN; DEC-42 PROPOSED)
+
+Rencana rinci **Fase 11 — Subfase 11a: Ganti widget demo** telah disusun di **`PHASE-11A-PLAN.md`** (baseline **`2a36800`** di atas pencatatan penerimaan 10c dan penutupan Fase 10) dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D10)** dan usulan **DEC-42 PROPOSED**. Paket ini **hanya dokumentasi**: tidak ada kode aplikasi, migration, model, service, controller, route, komponen Vue, fixture UAT 11a, atau eksekusi suite tes (`NOT RUN`), dan implementasi 11a **belum diotorisasi** sampai pemilik menyetujui **D1–D10**. **Seluruh subfase Fase 10 (10a, 10b, 10c) tetap OWNER APPROVED dan Fase 10 SELESAI LENGKAP & DITUTUP** (`2a36800`). Usulan 11a mencakup: penggantian 6 widget demo template Sakai PrimeVue dengan widget operasional nyata; endpoint agregasi terpadu `GET /api/dashboard/overview` berbasis ability; endpoint antrean tugas tertunda `GET /api/dashboard/pending-tasks`; endpoint grafik distribusi `GET /api/dashboard/charts`; dashboard adaptif peran; eliminasi mock `ProductService.js`; zero schema change; serta UAT terisolasi dengan server dihentikan per DEC-27. Detail: **`PHASE-11A-PLAN.md`**.
+
+## Previous checkpoint — 2026-11-03 (Subfase 10c OWNER APPROVED #1–#18; Fase 10 SELESAI LENGKAP & DITUTUP)
 
 Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** (2026-11-03 WIB); checklist manual 10c **#1–#18 APPROVED**. **Subfase 10c — Laporan belum mengisi jurnal** tetap **IMPLEMENTED & DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`122e044`** (paket review **`96db43b`**). Agen tidak mengulang skenario dan item NOT RUN tetap NOT RUN; penerimaan dicatat pada commit dokumentasi terpisah. Dengan diterimanya 10c, **Fase 10 (Administrasi Pembelajaran: 10a, 10b, 10c) resmi SELESAI LENGKAP & DITUTUP**. Port 18028/14028 bebas listener (`PORTS_18028_14028_FREE`), `.uat-phase10` dipertahankan. Fase berikutnya: **Fase 11 — Dashboard Operator dan Laporan**.
 

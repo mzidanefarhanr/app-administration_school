@@ -1,7 +1,7 @@
 # Fase 11 — Dashboard operator dan laporan
 
-Status teknis: NOT STARTED. Status review: PENDING. Semua tes/browser/manual: NOT RUN.
-Dependensi: Modul sumber 03–10; boleh bertahap setelah sumber siap. Baseline rencana: b02a87f; audit ulang HEAD saat pelaksanaan.
+Status teknis: **11a PLAN — AWAITING OWNER APPROVAL (D1–D10; DEC-42 PROPOSED, 2026-11-03 WIB)**. Status review: **PENDING OWNER REVIEW (D1–D10)**. Semua tes/browser/manual: **NOT RUN** (langkah perencanaan; implementasi S1–S8 belum diotorisasi).
+Dependensi: Modul sumber 03–10; boleh bertahap setelah sumber siap. Baseline rencana: `2a36800` (pencatatan penerimaan pemilik Subfase 10c `#1–#18` dan penutupan Fase 10); paket rencana 11a: `reports/feature-update/PHASE-11A-PLAN.md`.
 
 ## Tujuan dan scope
 Dashboard operator dan laporan. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Tidak ada pekerjaan implementasi yang telah dilakukan dalam penyusunan dokumen ini.
@@ -9,6 +9,7 @@ Dashboard operator dan laporan. Kerjakan satu subfase per instruksi pemilik; jan
 ## Subfase
 
 ### 11a — Ganti widget demo
+- **Status implementasi (2026-11-03 WIB):** **PLAN — AWAITING OWNER APPROVAL (D1–D10; DEC-42 PROPOSED)** (`reports/feature-update/PHASE-11A-PLAN.md`). Implementasi kode langkah S1–S8 belum dimulai.
 Scope: Statistik siswa/guru/rombel, data kurang lengkap, surat overdue/pending, izin pending, jurnal missing, backup terakhir; tiap widget mengikuti ability.
 
 Kriteria penerimaan: Tidak ada Orders/Revenue/data sample; angka nyata dengan scope; widget tanpa izin tidak query/ungkap data.

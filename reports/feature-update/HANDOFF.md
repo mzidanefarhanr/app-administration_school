@@ -1,6 +1,23 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Subfase 10c OWNER APPROVED #1–#18; Fase 10 SELESAI LENGKAP & DITUTUP)
+## Current checkpoint — 2026-11-03 (Rencana Subfase 11a disusun — PLAN; DEC-42 PROPOSED)
+
+- **Status:** Rencana rinci **Fase 11 — Subfase 11a: Ganti widget demo** telah disusun di `reports/feature-update/PHASE-11A-PLAN.md` (baseline audit **`2a36800`** di atas penutupan lengkap Fase 10) dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D10)** dan usulan **DEC-42 PROPOSED**. Paket ini **hanya dokumentasi**: tidak ada kode aplikasi, migration, model, service, controller, route, komponen Vue, fixture UAT 11a, atau eksekusi suite tes (`NOT RUN`), dan implementasi 11a **belum diotorisasi** sampai pemilik menyetujui **D1–D10**.
+- **Previous phase state:** **Fase 10 (10a, 10b, 10c) telah SELESAI LENGKAP & DITUTUP** (`2a36800`). Port 18028/14028 bebas listener (`PORTS_18028_14028_FREE`).
+- **Proposed 11a scope (`D1–D10`):**
+  1. **D1 — Cakupan:** Kerjakan **11a** saja (ganti widget demo Sakai PrimeVue dengan widget operasional nyata dari modul 01–10); non-goals: AI forecasting, pengiriman notifikasi otomatis WA/email, mutasi data langsung dari dashboard.
+  2. **D2 — Tanpa Migrasi Database Baru:** Subfase 11a bersifat murni analitik dan agregasi pembacaan (read-only); seluruh data bersumber dari tabel yang sudah ada pada modul 01–10. Zero schema change.
+  3. **D3 — Endpoint Agregasi Terpadu Berbasis Kemampuan (`GET /api/dashboard/overview`):** Mengembalikan metrik ringkasan yang difilter di sisi server berdasarkan ability pengguna (academic, employees, data_quality, letters, leaves, teaching, archives, system); section tanpa izin bernilai null/tidak dikirim.
+  4. **D4 — Endpoint Antrean Tugas Tertunda (`GET /api/dashboard/pending-tasks`):** Mengembalikan daftar tugas yang membutuhkan perhatian pengguna (surat keluar/izin submitted, surat masuk belum disposisi, jurnal missing within grace untuk guru / overdue untuk operator, arsip kedaluwarsa).
+  5. **D5 — Endpoint Grafik Distribusi Operasional (`GET /api/dashboard/charts`):** Mengembalikan statistik siswa per tingkat/gender dan tren kepatuhan jurnal mengajar bulanan.
+  6. **D6 — Penggantian Komponen Frontend:** Menggantikan `StatsWidget.vue` (Orders/Revenue) dengan `OperationalStatsWidget.vue`, `RecentSalesWidget.vue` dengan `PendingTasksWidget.vue`, `BestSellingWidget.vue` dengan `DataQualityOverviewWidget.vue`, `ChartDataWidget_1.vue` dengan `StudentDistributionChartWidget.vue`, `RevenueStreamWidget.vue` dengan `TeachingComplianceChartWidget.vue`, `NotificationsWidget.vue` dengan `SystemOverviewWidget.vue`; mempertahankan `ArchiveExpiryWidget.vue` dan `ListUsersOnlineWidget.vue`.
+  7. **D7 — Tampilan Adaptif Peran (Role-Adaptive Dashboard):** Tampilan menyesuaikan secara dinamis untuk peran admin-sistem, operator-sekolah, kepala-sekolah, wakil-kesiswaan, guru, dan staff; widget tanpa izin disembunyikan rapi.
+  8. **D8 — Ketahanan Performa:** Kueri agregasi SQL terindeks, waktu respon $< 100$ ms, tanpa memuat seluruh model ke memori.
+  9. **D9 — Eliminasi Penuh Aset Demo:** Menghapus impor `ProductService.js` dan sisa teks toko/dollar pada dashboard.
+  10. **D10 — UAT Terisolasi & Verifikasi Tanpa Sentuh Server Operasional:** Pengujian probe HTTP lintas peran pada dataset UAT terisolasi; server UAT (port 18028/14028) dihentikan per DEC-27. MariaDB dan Apache operasional tidak disentuh.
+- **Next:** Pemilik meninjau `reports/feature-update/PHASE-11A-PLAN.md` dan memberikan persetujuan atas **D1–D10** (mis. *"Saya setuju D1-D10"*). Jangan mulai implementasi kode sebelum disetujui.
+
+## Previous checkpoint — 2026-11-03 (Subfase 10c OWNER APPROVED #1–#18; Fase 10 SELESAI LENGKAP & DITUTUP)
 
 - **Status:** Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** (2026-11-03 WIB); checklist manual 10c **#1–#18 APPROVED**. Subfase 10c remains **IMPLEMENTED, agent-verified** above `main` @ baseline **`122e044`** under **DEC-41 APPROVED**; review package **`96db43b`** (pushed to `origin/main`); acceptance is recorded in a separate documentation commit. **Seluruh subfase Fase 10 (10a, 10b, 10c) kini OWNER APPROVED — FASE 10 SELESAI LENGKAP & DITUTUP**.
 - **Server UAT:** Server UAT `.uat-phase10` pada port `18028` dan `14028` diverifikasi tetap bebas listener (`PORTS_18028_14028_FREE`). Data `.uat-phase10` dipertahankan. Apache dan MariaDB operasional tidak disentuh.

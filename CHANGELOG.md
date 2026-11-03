@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 11a — Rencana ganti widget demo dashboard operasional (PLAN; DEC-42 PROPOSED)
+- Type: Docs
+- Scope / fase: Penyusunan rencana teknis Fase 11 — Subfase 11a: Ganti Widget Demo Dashboard Operasional (DEC-42 PROPOSED). Tidak ada kode aplikasi, migrasi database, atau mutasi data operasional pada entri ini.
+- Files touched: `reports/feature-update/PHASE-11A-PLAN.md`, `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `roadmap/phases/PHASE-11-ANALYTICS.md`, `roadmap/ROADMAP.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: menyusun rencana komprehensif Subfase 11a untuk menggantikan seluruh widget demo template Sakai PrimeVue (Orders, Revenue, Customers, Recent Sales USD, Best Selling, mock charts) dengan widget operasional nyata berbasis data riil lintas modul 01–10; merumuskan 10 usulan keputusan DEC-42 (D1–D10) mencakup endpoint `GET /api/dashboard/overview`, `pending-tasks`, `charts`, penyaringan ability di server, penggantian 6 komponen Vue, role-adaptive dashboard, eliminasi `ProductService.js`, zero schema change, serta UAT terisolasi.
+- Why: memenuhi prasyarat gerbang perencanaan repositori sebelum implementasi kode dimulai, serta meminta persetujuan pemilik atas usulan arsitektur D1–D10.
+- Validation: **NOT RUN** — entri dokumen perencanaan; implementasi kode belum dimulai.
+- Notes / risks: Tidak menyentuh MariaDB operasional port 3306 atau Apache port 80/443. Menunggu review dan persetujuan pemilik atas usulan D1–D10.
+- Evidence: `reports/feature-update/PHASE-11A-PLAN.md`.
+
 ## [2026-11-03] Fase 10c — Penerimaan manual pemilik checklist #1–#18; Fase 10 SELESAI LENGKAP & DITUTUP
 - Type: Docs
 - Scope / fase: Pencatatan penerimaan pemilik atas Subfase 10c (checklist #1–#18) dan penutupan lengkap Fase 10 (Administrasi Pembelajaran). Tidak ada perubahan kode aplikasi pada entri ini.
