@@ -52,9 +52,11 @@ use App\Http\Controllers\StudentRombelController;
 use App\Http\Controllers\StudentStatusController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TeachingAssignmentController;
+use App\Http\Controllers\TeachingJournalController;
 use App\Http\Controllers\TeachingOptionController;
 use App\Http\Controllers\TeachingScheduleController;
 use App\Http\Controllers\TeachingScheduleExceptionController;
+use App\Http\Controllers\TeachingSessionController;
 use App\Http\Controllers\TypeUserController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VillageController;
@@ -405,6 +407,20 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::delete('/exceptions/{teachingScheduleException}', [TeachingScheduleExceptionController::class, 'destroy'])
             ->whereNumber('teachingScheduleException')
             ->middleware('can:teaching.manage');
+
+        // Fase 10b (DEC-40) — sesi harian & jurnal pembelajaran.
+        Route::get('/sessions', [TeachingSessionController::class, 'index'])
+            ->middleware('can:teaching.view');
+        Route::get('/journals', [TeachingJournalController::class, 'index'])
+            ->middleware('can:teaching.view');
+        Route::get('/journals/{teachingJournal}', [TeachingJournalController::class, 'show'])
+            ->whereNumber('teachingJournal')
+            ->middleware('can:teaching.view');
+        Route::post('/journals', [TeachingJournalController::class, 'store'])
+            ->middleware('can:teaching.view');
+        Route::match(['put', 'patch'], '/journals/{teachingJournal}', [TeachingJournalController::class, 'update'])
+            ->whereNumber('teachingJournal')
+            ->middleware('can:teaching.view');
     });
 
     // Fase 01a — penegakan kemampuan pada endpoint master/referensi.

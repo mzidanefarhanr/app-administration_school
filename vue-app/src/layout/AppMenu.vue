@@ -76,6 +76,7 @@ const model = ref([
         requires: 'teaching.view',
         items: [
             { label: 'Assignments & Timetable', icon: 'pi pi-fw pi-calendar-clock', to: '/public/teaching/schedules', requires: 'teaching.view' },
+            { label: 'Sessions & Journals', icon: 'pi pi-fw pi-book', to: '/public/teaching/journals', requires: 'teaching.view' },
         ]
     },
     {

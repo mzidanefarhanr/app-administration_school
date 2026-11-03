@@ -69,4 +69,20 @@ return [
     | the school year is unlocked.
     */
     'journal_grace_days' => 7,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Teaching Journal Delivery Methods (DEC-40 D3 / D7)
+    |--------------------------------------------------------------------------
+    */
+    'journal_methods' => [
+        'lecture' => 'Lecture',
+        'discussion' => 'Discussion',
+        'practicum' => 'Practicum',
+        'demonstration' => 'Demonstration',
+        'project' => 'Project',
+        'assignment' => 'Assignment',
+        'assessment' => 'Assessment',
+        'other' => 'Other',
+    ],
 ];

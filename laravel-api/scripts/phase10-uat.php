@@ -634,6 +634,265 @@ if ($command === 'prepare-teaching') {
     exit(0);
 }
 
+if ($command === 'prepare-journals') {
+    $exit = $kernel->call('migrate', ['--force' => true]);
+    fwrite(STDOUT, $kernel->output());
+    if ($exit !== 0) {
+        exit($exit);
+    }
+
+    $password = trim((string) file_get_contents($runtime.'/account-password.txt'));
+    $operator = App\Models\User::where('username', 'uat.operator')->first();
+    $admin = App\Models\User::where('username', 'uat.admin')->first();
+    $guru1 = App\Models\User::where('username', 'uat.guru')->first();
+    $guruRole = App\Models\Role::where('slug', 'guru')->first();
+    $userType = App\Models\TypeUser::where('name', 'User')->first();
+    $activeStatus = App\Models\StatusUser::where('name', 'Aktif')->first();
+
+    if (! $operator || ! $admin || ! $guru1 || ! $guruRole || ! $userType || ! $activeStatus) {
+        throw new RuntimeException('Run prepare and prepare-teaching first before prepare-journals.');
+    }
+
+    // 1. Pastikan akun guru kedua (uat.guru2) tersedia dan ditautkan ke UAT-P10 Teacher 02.
+    $guru2 = App\Models\User::withTrashed()->firstOrNew(['username' => 'uat.guru2']);
+    $guru2->fill([
+        'name' => 'UAT Guru 02',
+        'email' => 'uat.guru2@uat.local',
+        'email_verified_at' => now(),
+        'password' => bcrypt($password),
+        'nik' => '9000000000000009',
+        'type_user_id' => $userType->id,
+        'status_user_id' => $activeStatus->id,
+        'first_login_at' => 0,
+        'status_active' => true,
+    ]);
+    $guru2->deleted_at = null;
+    $guru2->save();
+    $guru2->roles()->sync([$guruRole->id]);
+
+    $teacher01 = App\Models\Employee::where('name', 'UAT-P10 Teacher 01')->firstOrFail();
+    $teacher02 = App\Models\Employee::where('name', 'UAT-P10 Teacher 02')->firstOrFail();
+
+    if ((int) $teacher01->user_id !== (int) $guru1->id) {
+        $teacher01->user_id = $guru1->id;
+        $teacher01->save();
+    }
+    if ((int) $teacher02->user_id !== (int) $guru2->id) {
+        $teacher02->user_id = $guru2->id;
+        $teacher02->save();
+    }
+
+    $activeYear = App\Models\SchoolYear::where('name', '2026/2027')->firstOrFail();
+    $lockedYear = App\Models\SchoolYear::where('name', '2024/2025')->firstOrFail();
+    $sem1 = App\Models\Semester::where('name', 'Semester I')->firstOrFail();
+
+    $journalsCreated = 0;
+    $journalsReused = 0;
+
+    // 2. 1 Jurnal historis di tahun ajaran terkunci 2024/2025 (Senin, 2024-10-07).
+    $lockedSchedule = App\Models\TeachingSchedule::query()
+        ->with('assignment')
+        ->whereHas('assignment', fn ($q) => $q->where('school_year_id', $lockedYear->id))
+        ->firstOrFail();
+
+    $existingLockedJournal = App\Models\TeachingJournal::query()
+        ->where('teaching_schedule_id', $lockedSchedule->id)
+        ->whereDate('session_date', '2024-10-07')
+        ->first();
+
+    if ($existingLockedJournal) {
+        $journalsReused++;
+    } else {
+        App\Models\TeachingJournal::create([
+            'school_year_id' => $lockedYear->id,
+            'semester_id' => $sem1->id,
+            'teaching_assignment_id' => $lockedSchedule->teaching_assignment_id,
+            'teaching_schedule_id' => $lockedSchedule->id,
+            'teaching_schedule_exception_id' => null,
+            'school_rombel_id' => $lockedSchedule->assignment->school_rombel_id,
+            'subject_id' => $lockedSchedule->assignment->subject_id,
+            'session_date' => '2024-10-07',
+            'source_type' => App\Models\TeachingJournal::SOURCE_REGULAR,
+            'period_start' => $lockedSchedule->period_start,
+            'period_end' => $lockedSchedule->period_end,
+            'scheduled_start_time' => $lockedSchedule->start_time,
+            'scheduled_end_time' => $lockedSchedule->end_time,
+            'actual_start_time' => $lockedSchedule->start_time,
+            'actual_end_time' => $lockedSchedule->end_time,
+            'room' => $lockedSchedule->room,
+            'assigned_employee_id' => $lockedSchedule->assignment->employee_id,
+            'teacher_employee_id' => $lockedSchedule->assignment->employee_id,
+            'topic' => 'UAT-P10 Arsip Jurnal Matematika 2024/2025',
+            'method' => 'lecture',
+            'summary' => 'Jurnal historis pada tahun ajaran 2024/2025 yang telah dikunci (read-only archive).',
+            'notes' => 'Tidak dapat diubah karena tahun ajaran terkunci.',
+            'version' => 1,
+            'created_by' => $admin->id,
+            'updated_by' => $admin->id,
+        ]);
+        $journalsCreated++;
+    }
+
+    // 3. 1 Jurnal sesi rescheduled pada Sabtu, 2026-09-12 (Sejarah Indonesia X-MIPA-1 dengan guru pengganti Teacher 11).
+    $rescheduledExc = App\Models\TeachingScheduleException::query()
+        ->with('schedule.assignment')
+        ->where('school_year_id', $activeYear->id)
+        ->where('exception_type', App\Models\TeachingScheduleException::TYPE_RESCHEDULED)
+        ->whereDate('exception_date', '2026-09-10')
+        ->whereDate('rescheduled_date', '2026-09-12')
+        ->firstOrFail();
+
+    $existingReschedJournal = App\Models\TeachingJournal::query()
+        ->where('teaching_schedule_id', $rescheduledExc->teaching_schedule_id)
+        ->whereDate('session_date', '2026-09-12')
+        ->first();
+
+    if ($existingReschedJournal) {
+        $journalsReused++;
+    } else {
+        $sched = $rescheduledExc->schedule;
+        $assn = $sched->assignment;
+        $effectiveTeacherId = $rescheduledExc->substitute_employee_id ?? $assn->employee_id;
+
+        App\Models\TeachingJournal::create([
+            'school_year_id' => $activeYear->id,
+            'semester_id' => $sem1->id,
+            'teaching_assignment_id' => $assn->id,
+            'teaching_schedule_id' => $sched->id,
+            'teaching_schedule_exception_id' => $rescheduledExc->id,
+            'school_rombel_id' => $assn->school_rombel_id,
+            'subject_id' => $assn->subject_id,
+            'session_date' => '2026-09-12',
+            'source_type' => App\Models\TeachingJournal::SOURCE_RESCHEDULED,
+            'period_start' => $rescheduledExc->rescheduled_period_start,
+            'period_end' => $rescheduledExc->rescheduled_period_end,
+            'scheduled_start_time' => $rescheduledExc->rescheduled_start_time,
+            'scheduled_end_time' => $rescheduledExc->rescheduled_end_time,
+            'actual_start_time' => $rescheduledExc->rescheduled_start_time,
+            'actual_end_time' => $rescheduledExc->rescheduled_end_time,
+            'room' => $rescheduledExc->rescheduled_room ?? $sched->room,
+            'assigned_employee_id' => $assn->employee_id,
+            'teacher_employee_id' => $effectiveTeacherId,
+            'topic' => 'UAT-P10 Kelas Pengganti Sejarah Indonesia (Pergerakan Nasional)',
+            'method' => 'discussion',
+            'summary' => 'Diskusi kelompok pada sesi pengganti hari Sabtu bersama guru pengganti.',
+            'notes' => 'Sesi pengganti dari jadwal Kamis 2026-09-10.',
+            'correction_reason' => 'Pencatatan terverifikasi oleh operator untuk sesi pengganti bulan September.',
+            'corrected_by' => $operator->id,
+            'corrected_at' => now(),
+            'version' => 1,
+            'created_by' => $operator->id,
+            'updated_by' => $operator->id,
+        ]);
+        $journalsCreated++;
+    }
+
+    // 4. 64 Jurnal reguler sintetis pada Oktober 2026 (Senin..Jumat: 2026-10-05..2026-10-09 & 2026-10-12..2026-10-15)
+    // untuk kelas X-MIPA-1, X-MIPA-2, X-IPS-1, X-IPS-2 (2 slot/hari x 4 kelas = 8 jurnal/hari x 8 hari = 64 jurnal).
+    // Seluruh sesi pada minggu berjalan (mis. 2026-10-26..2026-11-03) dibiarkan terbuka agar dapat diuji pengisiannya.
+    $targetClassNames = [
+        'UAT-P10 X-MIPA-1',
+        'UAT-P10 X-MIPA-2',
+        'UAT-P10 X-IPS-1',
+        'UAT-P10 X-IPS-2',
+    ];
+    $targetClassIds = App\Models\SchoolRombel::query()
+        ->where('school_year_id', $activeYear->id)
+        ->whereIn('name', $targetClassNames)
+        ->orderBy('id')
+        ->pluck('id')
+        ->all();
+
+    $octoberDates = [
+        '2026-10-05', // Mon
+        '2026-10-06', // Tue
+        '2026-10-07', // Wed
+        '2026-10-08', // Thu
+        '2026-10-09', // Fri
+        '2026-10-12', // Mon
+        '2026-10-13', // Tue
+        '2026-10-14', // Wed
+    ];
+
+    $methods = ['lecture', 'discussion', 'practicum', 'demonstration', 'project', 'assignment', 'assessment'];
+    $seq = 0;
+
+    foreach ($octoberDates as $dateStr) {
+        $isoDay = Carbon\Carbon::parse($dateStr)->dayOfWeekIso;
+        $daySchedules = App\Models\TeachingSchedule::query()
+            ->with(['assignment.schoolRombel', 'assignment.subject'])
+            ->where('day_of_week', $isoDay)
+            ->where('status', App\Models\TeachingSchedule::STATUS_ACTIVE)
+            ->whereHas('assignment', function ($q) use ($activeYear, $sem1, $targetClassIds) {
+                $q->where('school_year_id', $activeYear->id)
+                    ->where('semester_id', $sem1->id)
+                    ->whereIn('school_rombel_id', $targetClassIds);
+            })
+            ->orderBy('id')
+            ->get();
+
+        foreach ($daySchedules as $sched) {
+            $seq++;
+            $assn = $sched->assignment;
+            $method = $methods[($seq - 1) % count($methods)];
+
+            $existing = App\Models\TeachingJournal::query()
+                ->where('teaching_schedule_id', $sched->id)
+                ->whereDate('session_date', $dateStr)
+                ->first();
+
+            if ($existing) {
+                $journalsReused++;
+
+                continue;
+            }
+
+            $isCorrected = $seq <= 6;
+            App\Models\TeachingJournal::create([
+                'school_year_id' => $activeYear->id,
+                'semester_id' => $sem1->id,
+                'teaching_assignment_id' => $assn->id,
+                'teaching_schedule_id' => $sched->id,
+                'teaching_schedule_exception_id' => null,
+                'school_rombel_id' => $assn->school_rombel_id,
+                'subject_id' => $assn->subject_id,
+                'session_date' => $dateStr,
+                'source_type' => App\Models\TeachingJournal::SOURCE_REGULAR,
+                'period_start' => $sched->period_start,
+                'period_end' => $sched->period_end,
+                'scheduled_start_time' => $sched->start_time,
+                'scheduled_end_time' => $sched->end_time,
+                'actual_start_time' => $sched->start_time,
+                'actual_end_time' => $sched->end_time,
+                'room' => $sched->room,
+                'assigned_employee_id' => $assn->employee_id,
+                'teacher_employee_id' => $assn->employee_id,
+                'topic' => sprintf('UAT-P10 Pertemuan #%02d %s (%s)', $seq, $assn->subject->name, $assn->schoolRombel->name),
+                'method' => $method,
+                'summary' => sprintf(
+                    'Pelaksanaan pembelajaran %s di kelas %s pada tanggal %s berjalan tertib sesuai RPP.',
+                    $assn->subject->name,
+                    $assn->schoolRombel->name,
+                    $dateStr
+                ),
+                'notes' => $seq % 3 === 0 ? 'Evaluasi formatif diberikan di akhir sesi.' : null,
+                'correction_reason' => $isCorrected ? 'Backfill terverifikasi operator untuk rekap awal Oktober 2026.' : null,
+                'corrected_by' => $isCorrected ? $operator->id : null,
+                'corrected_at' => $isCorrected ? now() : null,
+                'version' => 1,
+                'created_by' => $isCorrected ? $operator->id : $guru1->id,
+                'updated_by' => $isCorrected ? $operator->id : $guru1->id,
+            ]);
+            $journalsCreated++;
+        }
+    }
+
+    fwrite(STDOUT, 'Teaching journals: '.App\Models\TeachingJournal::count()." total ({$journalsCreated} created, {$journalsReused} reused).\n");
+    fwrite(STDOUT, 'Linked teacher accounts: uat.guru -> '.$teacher01->name.' (id '.$teacher01->id.'), uat.guru2 -> '.$teacher02->name.' (id '.$teacher02->id.").\n");
+    fwrite(STDOUT, 'Phase 10b journal fixtures ready.'."\n");
+    exit(0);
+}
+
 if ($command === 'status') {
     $counts = [
         'users' => App\Models\User::withTrashed()->count(),
@@ -646,6 +905,7 @@ if ($command === 'status') {
         'teaching_assignments' => App\Models\TeachingAssignment::count(),
         'teaching_schedules' => App\Models\TeachingSchedule::count(),
         'teaching_schedule_exceptions' => App\Models\TeachingScheduleException::count(),
+        'teaching_journals' => Illuminate\Support\Facades\Schema::hasTable('teaching_journals') ? App\Models\TeachingJournal::count() : 0,
     ];
 
     fwrite(STDOUT, 'Environment: '.$app->environment().'; database: '.config('database.connections.sqlite.database')."\n");
@@ -655,5 +915,5 @@ if ($command === 'status') {
     exit(0);
 }
 
-fwrite(STDERR, "Unknown command. Use init, prepare, prepare-teaching, status, or start the HTTP server with this script.\n");
+fwrite(STDERR, "Unknown command. Use init, prepare, prepare-teaching, prepare-journals, status, or start the HTTP server with this script.\n");
 exit(2);

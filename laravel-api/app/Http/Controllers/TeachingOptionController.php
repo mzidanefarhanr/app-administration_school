@@ -8,11 +8,16 @@ use App\Models\SchoolRombel;
 use App\Models\SchoolYear;
 use App\Models\Semester;
 use App\Models\Subject;
+use App\Services\TeachingSessionJournalService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class TeachingOptionController extends Controller
 {
+    public function __construct(
+        private readonly TeachingSessionJournalService $journalService
+    ) {}
+
     public function __invoke(Request $request): JsonResponse
     {
         $settings = AcademicSetting::find(AcademicSetting::SINGLETON_ID);
@@ -100,21 +105,43 @@ class TeachingOptionController extends Controller
             ])
             ->values();
 
-        $actorEmployeeId = $request->user()
-            ? Employee::query()->where('user_id', $request->user()->id)->value('id')
-            : null;
+        $journalMethods = collect(config('teaching.journal_methods', []))
+            ->map(fn (string $label, string $value) => [
+                'value' => $value,
+                'label' => $label,
+            ])
+            ->values();
+
+        $journalSourceTypes = collect(config('teaching.journal_source_types', []))
+            ->map(fn (string $label, string $value) => [
+                'value' => $value,
+                'label' => $label,
+            ])
+            ->values();
+
+        $user = $request->user();
+        $selfEmployee = $this->journalService->resolveSelfEmployee($user);
+        $actorEmployeeId = $selfEmployee?->id
+            ?? ($user ? Employee::query()->where('user_id', $user->id)->value('id') : null);
+        $todayWib = $this->journalService->todayWib();
+        $graceDeadlineDate = $this->journalService->graceDeadlineDate($todayWib);
 
         return response()->json([
             'success' => true,
             'message' => 'Teaching options retrieved.',
             'data' => [
                 'can' => [
-                    'view' => $request->user()?->hasAbility('teaching.view') ?? false,
-                    'manage' => $request->user()?->hasAbility('teaching.manage') ?? false,
+                    'view' => $user?->hasAbility('teaching.view') ?? false,
+                    'manage' => $user?->hasAbility('teaching.manage') ?? false,
+                    'create_journals' => ($user?->hasAbility('teaching.manage') ?? false)
+                        || (($user?->hasAbility('teaching.view') ?? false) && $selfEmployee !== null),
+                    'update_journals' => ($user?->hasAbility('teaching.manage') ?? false)
+                        || (($user?->hasAbility('teaching.view') ?? false) && $selfEmployee !== null),
                 ],
                 'active_school_year_id' => $settings?->active_school_year_id ? (int) $settings->active_school_year_id : null,
                 'active_semester_id' => $settings?->active_semester_id ? (int) $settings->active_semester_id : null,
                 'actor_employee_id' => $actorEmployeeId !== null ? (int) $actorEmployeeId : null,
+                'self_employee' => $this->journalService->serializeSelfEmployee($selfEmployee),
                 'school_years' => $schoolYears,
                 'semesters' => $semesters,
                 'rombels' => $rombels,
@@ -123,7 +150,11 @@ class TeachingOptionController extends Controller
                 'days_of_week' => $daysOfWeek,
                 'period_presets' => $periodPresets,
                 'exception_types' => $exceptionTypes,
-                'journal_grace_days' => (int) config('teaching.journal_grace_days', 7),
+                'journal_methods' => $journalMethods,
+                'journal_source_types' => $journalSourceTypes,
+                'journal_grace_days' => $this->journalService->graceDays(),
+                'today_wib' => $todayWib,
+                'grace_deadline_date' => $graceDeadlineDate,
             ],
         ]);
     }

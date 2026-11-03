@@ -95,6 +95,11 @@ class TeachingAssignment extends Model
         return $this->hasMany(TeachingSchedule::class, 'teaching_assignment_id');
     }
 
+    public function journals(): HasMany
+    {
+        return $this->hasMany(TeachingJournal::class, 'teaching_assignment_id');
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by')->withTrashed();

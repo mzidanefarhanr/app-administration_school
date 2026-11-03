@@ -6,6 +6,7 @@ use App\Traits\Loggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TeachingScheduleException extends Model
 {
@@ -104,6 +105,11 @@ class TeachingScheduleException extends Model
     public function substituteEmployee(): BelongsTo
     {
         return $this->belongsTo(Employee::class, 'substitute_employee_id')->withTrashed();
+    }
+
+    public function journals(): HasMany
+    {
+        return $this->hasMany(TeachingJournal::class, 'teaching_schedule_exception_id');
     }
 
     public function creator(): BelongsTo

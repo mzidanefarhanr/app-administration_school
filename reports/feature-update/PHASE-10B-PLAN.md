@@ -2,10 +2,10 @@
 
 - **Tanggal:** 2026-11-03 (WIB)
 - **Cabang:** `main`
-- **Baseline audit:** `a304df8` (pencatatan penerimaan pemilik Subfase 10a `#1–#18` di atas paket implementasi `c8be397`); paket rencana: `8ce345b`
-- **Status:** **PLAN APPROVED — DEC-40 APPROVED (2026-11-03 WIB, berdasarkan pernyataan pemilik `"Saya setuju D1-D9"`); implementasi Subfase 10b diotorisasi**
-- **Keputusan:** **DEC-40 (APPROVED, 2026-11-03 WIB)** — Arsitektur Subfase 10b Sesi Pembelajaran Efektif, Jurnal Mengajar (`teaching_journals`), Otorisasi `Own Assignment` vs `teaching.manage`, Idempotent Retry, dan Jendela Waktu Pengisian (`DEC-10`)
-- **Cakupan langkah ini:** Persetujuan rencana D1–D9 dicatat terlebih dahulu; implementasi S1–S7 dieksekusi setelah commit persetujuan ini.
+- **Baseline audit:** `a304df8` (pencatatan penerimaan pemilik Subfase 10a `#1–#18` di atas paket implementasi `c8be397`); paket rencana: `8ce345b`; persetujuan rencana: `1c2c48c`
+- **Status:** **IMPLEMENTED — agent-verified (2026-11-03 WIB) di bawah DEC-40 APPROVED (`"Saya setuju D1-D9"`); menunggu review manual pemilik (#1–#18 di `PHASE-10B-MANUAL-REVIEW.md`)**
+- **Keputusan:** **DEC-40 (APPROVED, 2026-11-03 WIB; IMPLEMENTED 2026-11-03 WIB)** — Arsitektur Subfase 10b Sesi Pembelajaran Efektif, Jurnal Mengajar (`teaching_journals`), Otorisasi `Own Assignment` vs `teaching.manage`, Idempotent Retry, dan Jendela Waktu Pengisian (`DEC-10`)
+- **Cakupan langkah ini:** Seluruh langkah `S0–S7` telah dieksekusi dan diverifikasi agen; laporan teknis tersedia di `reports/feature-update/PHASE-10B-REPORT.md` dan panduan review manual pemilik di `reports/feature-update/PHASE-10B-MANUAL-REVIEW.md`.
 
 ---
 

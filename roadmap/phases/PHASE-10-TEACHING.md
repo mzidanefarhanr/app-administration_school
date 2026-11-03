@@ -1,7 +1,7 @@
 # Fase 10 — Administrasi pembelajaran
 
-Status teknis: **10a IMPLEMENTED — agent-verified (`c8be397`) & OWNER APPROVED #1–#18 (`a304df8`, 2026-11-03 WIB)**; **10b PLAN APPROVED (`DEC-40 APPROVED` 2026-11-03 WIB `"Saya setuju D1-D9"`, implementasi diotorisasi)**; **10c NOT STARTED**. Status review: **10a OWNER APPROVED (#1–#18, 2026-11-03 WIB; `"Pengujian nomor 1-18 sudah berhasil dan saya approved."`)**; **10b PLAN APPROVED (`D1–D9` APPROVED 2026-11-03 WIB)**; **10c PENDING**. Bukti 10a: `TeachingScheduleApiTest` **6 tes / 116 assertions PASS (6,57 s)**, regresi Academic+Access+Archives **147 tes / 2.002 assertions PASS (199,60 s)**, Pint **26 file PASS**, **13 route `/api/teaching/*`**, ESLint **0 error**, `npm run build` **PASS (35,86 s)**, UAT `.uat-phase10` (`18028`/`14028`) **101 penugasan / 121 jadwal / 6 exception** (idempoten, probe HTTP lintas peran/bentrok/`409`/locked year PASS, server dihentikan sesuai DEC-27); otomasi klik browser visual/screenshot & race MariaDB multi-proses **NOT RUN**.
-Dependensi: 04,06; DEC-10 (**CLOSED** melalui `DEC-39` D3/D5/D8). Baseline rencana 10a: `f185ca6`; paket rencana 10a: `a8264ad`; persetujuan 10a: `b515cb1`; paket implementasi & review 10a: `c8be397`; penerimaan 10a: `a304df8`; paket rencana 10b: `8ce345b` (`reports/feature-update/PHASE-10B-PLAN.md`, `DEC-40 APPROVED`).
+Status teknis: **10a IMPLEMENTED — agent-verified (`c8be397`) & OWNER APPROVED #1–#18 (`a304df8`, 2026-11-03 WIB)**; **10b IMPLEMENTED — agent-verified (2026-11-03 WIB, `DEC-40 APPROVED`)**; **10c NOT STARTED**. Status review: **10a OWNER APPROVED (#1–#18, 2026-11-03 WIB; `"Pengujian nomor 1-18 sudah berhasil dan saya approved."`)**; **10b PENDING OWNER MANUAL REVIEW (#1–#18 di `reports/feature-update/PHASE-10B-MANUAL-REVIEW.md`)**; **10c PENDING**. Bukti 10a: `TeachingScheduleApiTest` **6 tes / 116 assertions PASS (6,57 s)**, regresi Academic+Access+Archives **147 tes / 2.002 assertions PASS (199,60 s)**, Pint **26 file PASS**, **13 route `/api/teaching/*`**, ESLint **0 error**, `npm run build` **PASS (35,86 s)**, UAT `.uat-phase10` (`18028`/`14028`) **101 penugasan / 121 jadwal / 6 exception**. Bukti 10b: `TeachingJournalApiTest` + `TeachingScheduleApiTest` **18 tes / 264 assertions PASS (17,53 s)** (`TeachingJournalApiTest` 12 tes / 148 assertions + `TeachingScheduleApiTest` 6 tes / 116 assertions), regresi Academic+Access+Archives **147 tes / 2.002 assertions PASS (195,54 s)**, Pint **17 file PASS**, **18 route `/api/teaching/*`**, ESLint **0 error**, `npm run build` **PASS (1m 3s)**, UAT `.uat-phase10` (`prepare-journals` idempoten: **8 akun termasuk `uat.guru2` / 66 jurnal mengajar**, probe HTTP lintas peran/own-assignment `403`/idempotent replay `200`/`409`/holiday exclusion PASS, server dihentikan sesuai DEC-27); otomasi klik browser visual/screenshot & race MariaDB multi-proses **NOT RUN**.
+Dependensi: 04,06; DEC-10 (**CLOSED** melalui `DEC-39` D3/D5/D8). Baseline rencana 10a: `f185ca6`; paket rencana 10a: `a8264ad`; persetujuan 10a: `b515cb1`; paket implementasi & review 10a: `c8be397`; penerimaan 10a: `a304df8`; paket rencana 10b: `8ce345b`; persetujuan 10b: `1c2c48c` (`reports/feature-update/PHASE-10B-PLAN.md`, `DEC-40 APPROVED`).
 
 ## Tujuan dan scope
 Administrasi pembelajaran. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Tidak ada pekerjaan implementasi yang telah dilakukan dalam penyusunan dokumen ini.
@@ -28,7 +28,7 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 ```
 
 ### 10b — Sesi dan jurnal
-- **Status rencana (2026-11-03 WIB):** **PLAN APPROVED — DEC-40 APPROVED (`"Saya setuju D1-D9"`, 2026-11-03 WIB; paket rencana `8ce345b` di `reports/feature-update/PHASE-10B-PLAN.md`; baseline `a304df8`)**. Implementasi Subfase 10b diotorisasi.
+- **Status implementasi (2026-11-03 WIB):** **IMPLEMENTED — agent-verified (2026-11-03 WIB); review manual pemilik PENDING (#1–#18 di `reports/feature-update/PHASE-10B-MANUAL-REVIEW.md`)** (`reports/feature-update/PHASE-10B-REPORT.md`). Disahkan melalui **DEC-40 APPROVED (D1–D9; `"Saya setuju D1-D9"`)** di atas baseline `1c2c48c` (paket rencana `8ce345b`, baseline 10a `a304df8`).
 Scope: Definisikan sesi yang dijadwalkan/berlangsung, jurnal materi/catatan/waktu dan guru; satu jurnal aktif per sesi; own assignment; koreksi admin berizin.
 
 Kriteria penerimaan: Guru kelas lain ditolak; jurnal tersimpan; retry tidak dobel; periode locked dihormati.
@@ -79,9 +79,9 @@ DATABASE; REQUIREMENTS; ACCESS-CONTROL; API-CONTRACTS; DECISIONS; CHANGELOG; lap
 “Belum isi jurnal” tidak bisa dihitung hanya dari daftar guru; perlu sumber expected session yang jelas.
 
 ## Syarat keluar subfase
-- [x] Scope selesai atau partial/blocker dijelaskan (10a selesai dan diverifikasi agen; 10b/10c belum dimulai).
+- [x] Scope selesai atau partial/blocker dijelaskan (10a selesai dan diterima pemilik; 10b selesai dan diverifikasi agen; 10c belum dimulai).
 - [x] Kontrak request/response/schema/permission yang berubah didokumentasikan (`DATABASE.md`, `ACCESS-CONTROL.md`, `API-CONTRACTS.md`, `TESTING.md`).
-- [x] Uji relevan benar-benar dijalankan atau NOT RUN dengan alasan (`PHASE-10A-REPORT.md`).
-- [x] Checklist manual tersedia bila dibutuhkan (`PHASE-10A-MANUAL-REVIEW.md` #1–#18); persetujuan dicatat hanya setelah jawaban pemilik.
+- [x] Uji relevan benar-benar dijalankan atau NOT RUN dengan alasan (`PHASE-10A-REPORT.md`, `PHASE-10B-REPORT.md`).
+- [x] Checklist manual tersedia bila dibutuhkan (`PHASE-10A-MANUAL-REVIEW.md` #1–#18 APPROVED; `PHASE-10B-MANUAL-REVIEW.md` #1–#18 PENDING); persetujuan dicatat hanya setelah jawaban pemilik.
 - [x] SHA/working tree, known issues dan langkah berikutnya dicatat.
-- [x] Scope berikutnya diusulkan (10b), belum dijalankan tanpa instruksi.
+- [x] Scope berikutnya diusulkan (10c setelah 10b diterima), belum dijalankan tanpa instruksi.

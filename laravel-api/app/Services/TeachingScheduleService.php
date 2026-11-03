@@ -8,6 +8,7 @@ use App\Models\SchoolYear;
 use App\Models\Semester;
 use App\Models\Subject;
 use App\Models\TeachingAssignment;
+use App\Models\TeachingJournal;
 use App\Models\TeachingSchedule;
 use App\Models\TeachingScheduleException;
 use Carbon\Carbon;
@@ -171,6 +172,15 @@ class TeachingScheduleService
                 ]);
             }
 
+            $journalCount = TeachingJournal::where('teaching_assignment_id', $assignment->id)->count();
+            if ($journalCount > 0) {
+                throw ValidationException::withMessages([
+                    'id' => [
+                        "This teaching assignment already has {$journalCount} recorded teaching journal(s) and cannot be deleted. Set the assignment to inactive instead.",
+                    ],
+                ]);
+            }
+
             $assignment->delete();
         });
     }
@@ -270,13 +280,14 @@ class TeachingScheduleService
             $status = $data['status'] ?? $schedule->status;
 
             $hasExceptions = TeachingScheduleException::where('teaching_schedule_id', $schedule->id)->exists();
-            if ($hasExceptions && (
+            $hasJournals = TeachingJournal::where('teaching_schedule_id', $schedule->id)->exists();
+            if (($hasExceptions || $hasJournals) && (
                 $targetAssignmentId !== (int) $schedule->teaching_assignment_id
                 || $dayOfWeek !== (int) $schedule->day_of_week
             )) {
                 throw ValidationException::withMessages([
                     'day_of_week' => [
-                        'The teaching assignment or day of week cannot be changed because this schedule slot already has calendar exceptions.',
+                        'The teaching assignment or day of week cannot be changed because this schedule slot already has calendar exceptions or recorded teaching journals.',
                     ],
                 ]);
             }
@@ -329,6 +340,15 @@ class TeachingScheduleService
                 throw ValidationException::withMessages([
                     'id' => [
                         "This schedule slot is referenced by {$exceptionCount} calendar exception(s) and cannot be deleted. Remove the exceptions first or set the slot to inactive.",
+                    ],
+                ]);
+            }
+
+            $journalCount = TeachingJournal::where('teaching_schedule_id', $schedule->id)->count();
+            if ($journalCount > 0) {
+                throw ValidationException::withMessages([
+                    'id' => [
+                        "This schedule slot already has {$journalCount} recorded teaching journal(s) and cannot be deleted. Set the slot to inactive instead.",
                     ],
                 ]);
             }
@@ -422,6 +442,19 @@ class TeachingScheduleService
                 (int) $exception->id
             );
 
+            $hasLinkedJournal = TeachingJournal::where('teaching_schedule_exception_id', $exception->id)->exists();
+            if ($hasLinkedJournal && (
+                $normalized['exception_type'] !== $exception->exception_type
+                || (int) ($normalized['teaching_schedule_id'] ?? 0) !== (int) ($exception->teaching_schedule_id ?? 0)
+                || $normalized['rescheduled_date'] !== $exception->rescheduled_date?->toDateString()
+            )) {
+                throw ValidationException::withMessages([
+                    'rescheduled_date' => [
+                        'Cannot change the exception type, schedule slot, or rescheduled date because a teaching journal has already been recorded for this rescheduled session.',
+                    ],
+                ]);
+            }
+
             $exception->fill(array_merge($normalized, [
                 'version' => (int) $exception->version + 1,
                 'updated_by' => $actorId,
@@ -438,6 +471,15 @@ class TeachingScheduleService
             $this->lockAndValidateWritableSchoolYear((int) $snapshot->school_year_id);
 
             $exception = TeachingScheduleException::whereKey($snapshot->id)->lockForUpdate()->firstOrFail();
+
+            if (TeachingJournal::where('teaching_schedule_exception_id', $exception->id)->exists()) {
+                throw ValidationException::withMessages([
+                    'id' => [
+                        'This calendar exception cannot be deleted because a teaching journal has already been recorded for its rescheduled session.',
+                    ],
+                ]);
+            }
+
             $exception->delete();
         });
     }
@@ -577,6 +619,24 @@ class TeachingScheduleService
                 ]);
             }
 
+            $existingJournalOnHoliday = TeachingJournal::query()
+                ->where('school_year_id', $schoolYear->id)
+                ->where('semester_id', $semesterId)
+                ->whereDate('session_date', $exceptionDate)
+                ->when(
+                    $rombelId !== null,
+                    fn ($q) => $q->where('school_rombel_id', $rombelId)
+                )
+                ->exists();
+
+            if ($existingJournalOnHoliday) {
+                throw ValidationException::withMessages([
+                    'exception_date' => [
+                        "Cannot mark {$exceptionDate} as a holiday because one or more teaching journals have already been recorded on that date.",
+                    ],
+                ]);
+            }
+
             return [
                 'school_year_id' => $schoolYear->id,
                 'semester_id' => $semesterId,
@@ -643,6 +703,26 @@ class TeachingScheduleService
             throw ValidationException::withMessages([
                 'exception_date' => [
                     'An exception for this schedule slot on the selected date already exists.',
+                ],
+            ]);
+        }
+
+        $existingSlotJournal = TeachingJournal::query()
+            ->where('teaching_schedule_id', $schedule->id)
+            ->whereDate('session_date', $exceptionDate)
+            ->when(
+                $ignoreExceptionId !== null,
+                fn ($q) => $q->where(function ($sub) use ($ignoreExceptionId) {
+                    $sub->whereNull('teaching_schedule_exception_id')
+                        ->orWhere('teaching_schedule_exception_id', '!=', $ignoreExceptionId);
+                })
+            )
+            ->exists();
+
+        if ($existingSlotJournal) {
+            throw ValidationException::withMessages([
+                'exception_date' => [
+                    "Cannot mark {$exceptionDate} as {$type} because a teaching journal has already been recorded for this schedule slot on {$exceptionDate}.",
                 ],
             ]);
         }
