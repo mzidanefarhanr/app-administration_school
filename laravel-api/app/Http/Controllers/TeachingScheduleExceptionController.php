@@ -15,7 +15,19 @@ class TeachingScheduleExceptionController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $perPage = min(max((int) $request->input('per_page', 20), 5), 200);
+        $validated = $request->validate([
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'page' => ['nullable', 'integer', 'min:1'],
+            'school_year_id' => ['nullable', 'integer'],
+            'semester_id' => ['nullable', 'integer'],
+            'exception_type' => ['nullable', 'string', 'max:30'],
+            'school_rombel_id' => ['nullable', 'integer'],
+            'employee_id' => ['nullable', 'integer'],
+            'date_from' => ['nullable', 'date_format:Y-m-d'],
+            'date_to' => ['nullable', 'date_format:Y-m-d'],
+        ]);
+
+        $perPage = (int) ($validated['per_page'] ?? 20);
 
         $query = TeachingScheduleException::query()
             ->with([

@@ -1,6 +1,21 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Subfase 11c OWNER APPROVED #1–#18; Subfase 11c & Fase 11 SELESAI LENGKAP & DITUTUP)
+## Current checkpoint — 2026-11-03 (Subfase 12a IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-45 IMPLEMENTED; Rencana Subfase 12b DISUSUN — DEC-46 PROPOSED)
+
+- **Status:** Subfase **12a — Pagination, Query Performance, dan Pengendalian Beban** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`9a7eeb6`** (dokumentasi persetujuan rencana `DEC-45 APPROVED`). Paket implementasi dilaporkan di `reports/feature-update/PHASE-12A-REPORT.md` dan checklist pengujian manual pemilik disediakan di `reports/feature-update/PHASE-12A-MANUAL-REVIEW.md` (#1–#18). Bersamaan dengan itu, rencana teknis untuk subfase berikutnya telah disusun di `reports/feature-update/PHASE-12B-PLAN.md` dengan usulan **DEC-46 PROPOSED (D1–D10)**.
+- **Implementasi yang diselesaikan (S1–S8):**
+  1. Migrasi aditif indeks komposit `2029_12_01_000001_add_performance_composite_indexes.php` dengan indeks komposit tabel `students`, `student_rombels`, `employees`, `letters`, `letter_dispositions`, `leave_requests`, `archive_documents`, dan `operator_reminders`.
+  2. Penguncian batas keras server-side pagination `per_page <= 100` pada 11 endpoint daftar aktif (`ActivityController`, `TeachingAssignmentController`, `TeachingScheduleController`, `TeachingScheduleExceptionController`, dll.); request `per_page > 100` ditolak otomatis dengan validasi `422 Unprocessable Entity`.
+  3. Eager loading terencana bebas masalah N+1 query pada pemuatan relasi anak kesiswaan, kepegawaian, persuratan, perizinan, dan arsip dokumen.
+  4. Pengendalian memori ekspor CSV streaming dengan generator `StreamedResponse`, BOM UTF-8 (`\xEF\xBB\xBF`), dan sanitasi formula spreadsheet.
+  5. Penerapan debounce seragam 300 ms pada antarmuka pencarian tabel Vue (`TasksView.vue`, dll.).
+  6. Suite feature test performa `QueryPerformanceTest.php`: 6/6 PASS (62 assertions) memvalidasi hard-limit 100, $O(1)$ query scaling invariance, budget kueri dashboard pending-tasks $\le 10$, dan memory-safe CSV streaming.
+  7. Kualitas: Pint PASS (0 issues), Vite build clean (29.79s), probe UAT `scripts/phase10-uat.php probe-performance` 5/5 PROBES PASSED.
+  8. Port isolation DEC-27: port 18028 dan 14028 dipastikan bebas listener (`PORTS_18028_14028_FREE`).
+- **Server UAT:** Server UAT port `18028` dan `14028` diverifikasi bebas listener (`PORTS_18028_14028_FREE`). Apache dan MariaDB operasional tidak disentuh.
+- **Next:** Pemilik menguji checklist manual #1–#18 pada `reports/feature-update/PHASE-12A-MANUAL-REVIEW.md` dan/atau meninjau rencana Subfase 12b (DEC-46: D1–D10) pada `reports/feature-update/PHASE-12B-PLAN.md`.
+
+## Previous checkpoint — 2026-11-03 (Subfase 11c OWNER APPROVED #1–#18; Subfase 11c & Fase 11 SELESAI LENGKAP & DITUTUP)
 
 - **Status:** Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual 11c **#1–#18 APPROVED**. Subfase **11c — Tugas Operasional dan Pengingat Internal Operator** resmi **SELESAI LENGKAP & DITUTUP** (`8ae6979`). DEC-44 disahkan menjadi **APPROVED & CLOSED**. Dengan disetujuinya seluruh subfase 11a, 11b, dan 11c, **FASE 11 (Dashboard Operator dan Laporan) RESMI SELESAI LENGKAP & DITUTUP**.
 - **Server UAT:** Server UAT `.uat-phase10` pada port `18028` dan `14028` diverifikasi bebas listener (`PORTS_18028_14028_FREE`). Data `.uat-phase10` dipertahankan. Apache dan MariaDB operasional tidak disentuh.

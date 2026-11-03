@@ -1,6 +1,26 @@
 # Konteks proyek
 
-## Current addendum — 2026-11-03 (Subfase 11c OWNER APPROVED #1–#18; Subfase 11c & Fase 11 SELESAI LENGKAP & DITUTUP)
+## Current addendum — 2026-11-03 (Subfase 12a IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18; DEC-45 IMPLEMENTED; Rencana Subfase 12b DISUSUN — DEC-46 PROPOSED)
+
+Subfase **12a — Pagination, Query Performance, dan Pengendalian Beban** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`9a7eeb6`** (dokumentasi persetujuan rencana `DEC-45 APPROVED`). Disampaikan:
+- **Backend Migrations, Optimizations & Hardening:**
+  1. Migrasi `2029_12_01_000001_add_performance_composite_indexes.php`: menambahkan indeks komposit terukur pada tabel `students`, `student_rombels`, `employees`, `letters`, `letter_dispositions`, `leave_requests`, `archive_documents`, dan `operator_reminders`.
+  2. Penguncian batas keras paginasi `per_page <= 100` pada 11 endpoint daftar aktif dengan penolakan `422 Unprocessable Entity` bila `per_page > 100`.
+  3. Audit dan optimalisasi eager loading terencana bebas N+1 problem.
+  4. Invarian penskalaan kueri $O(1)$: kueri SQL konstan saat data bertambah dari 5 ke 25 item.
+  5. Pengendalian memori ekspor CSV melalui streaming generator `StreamedResponse` ber-BOM UTF-8 dan formula sanitization.
+- **Frontend Enhancements:**
+  1. Penerapan debounce seragam 300 ms pada antarmuka pencarian tabel Vue (`TasksView.vue`, dll.) untuk mencegah query flooding.
+- **Verifikasi & Kualitas:**
+  - 6 tes feature `QueryPerformanceTest.php` PASS (62 assertions).
+  - Laravel Pint: PASS (0 issues).
+  - Vite build: PASS (code 0, 29.79s).
+  - UAT probe: `scripts/phase10-uat.php probe-performance` 5/5 probes PASS.
+  - Server UAT port 18028 dan 14028 bebas per DEC-27 (`PORTS_18028_14028_FREE`).
+  - MariaDB operasional port 3306 dan Apache port 80/443 tidak disentuh.
+- **Status:** Menunggu review manual pemilik checklist #1–#18 di `reports/feature-update/PHASE-12A-MANUAL-REVIEW.md`. Rencana Subfase 12b disusun di `reports/feature-update/PHASE-12B-PLAN.md` (DEC-46 PROPOSED).
+
+## Previous addendum — 2026-11-03 (Subfase 11c OWNER APPROVED #1–#18; Subfase 11c & Fase 11 SELESAI LENGKAP & DITUTUP)
 
 Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual 11c **#1–#18 APPROVED**. **Subfase 11c — Tugas Operasional dan Pengingat Internal Operator** resmi **SELESAI LENGKAP & DITUTUP** (`8ae6979`). **DEC-44 disahkan menjadi APPROVED & CLOSED**. Dengan disetujuinya seluruh subfase 11a, 11b, dan 11c, **FASE 11 (Dashboard Operator dan Laporan) RESMI SELESAI LENGKAP & DITUTUP**. Port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`). Tonggak aktif bergeser ke persiapan perencanaan **Fase 12 — Performa, Observability dan Konsistensi** (Subfase 12a: Pagination dan Query).
 

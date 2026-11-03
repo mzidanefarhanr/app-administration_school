@@ -15,8 +15,24 @@ class TeachingScheduleController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $viewMode = (string) $request->input('view_mode', 'list');
-        $perPage = min(max((int) $request->input('per_page', 50), 5), 300);
+        $validated = $request->validate([
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'page' => ['nullable', 'integer', 'min:1'],
+            'view_mode' => ['nullable', 'string', 'in:list,matrix'],
+            'teaching_assignment_id' => ['nullable', 'integer'],
+            'day_of_week' => ['nullable', 'integer', 'between:1,7'],
+            'status' => ['nullable', 'string', 'max:20'],
+            'room' => ['nullable', 'string', 'max:60'],
+            'school_year_id' => ['nullable', 'integer'],
+            'semester_id' => ['nullable', 'integer'],
+            'school_rombel_id' => ['nullable', 'integer'],
+            'subject_id' => ['nullable', 'integer'],
+            'employee_id' => ['nullable', 'integer'],
+            'search' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $viewMode = (string) ($validated['view_mode'] ?? 'list');
+        $perPage = (int) ($validated['per_page'] ?? 50);
 
         $query = TeachingSchedule::query()
             ->with([

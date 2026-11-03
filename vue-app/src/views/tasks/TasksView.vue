@@ -168,9 +168,16 @@ const onTabChange = (newTab) => {
     loadTasks();
 };
 
+let searchDebounceTimer = null;
 const onSearchInput = () => {
+    if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
     pagination.value.current_page = 1;
     loadTasks();
+};
+
+const onSearchDebounce = () => {
+    if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(onSearchInput, 300);
 };
 
 const resetFilters = () => {
@@ -479,7 +486,7 @@ onMounted(async () => {
                 <div class="w-full md:w-72">
                     <IconField icon-position="left">
                         <InputIcon class="pi pi-search" />
-                        <InputText v-model="filters.search" placeholder="Cari judul atau uraian..." class="w-full" size="small" @keyup.enter="onSearchInput" />
+                        <InputText v-model="filters.search" placeholder="Cari judul atau uraian..." class="w-full" size="small" @input="onSearchDebounce" @keyup.enter="onSearchInput" />
                     </IconField>
                 </div>
             </div>

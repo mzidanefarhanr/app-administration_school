@@ -16,7 +16,19 @@ class TeachingAssignmentController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $perPage = min(max((int) $request->input('per_page', 20), 5), 200);
+        $validated = $request->validate([
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'page' => ['nullable', 'integer', 'min:1'],
+            'school_year_id' => ['nullable', 'integer'],
+            'semester_id' => ['nullable', 'integer'],
+            'school_rombel_id' => ['nullable', 'integer'],
+            'subject_id' => ['nullable', 'integer'],
+            'employee_id' => ['nullable', 'integer'],
+            'status' => ['nullable', 'string', 'max:20'],
+            'search' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $perPage = (int) ($validated['per_page'] ?? 20);
 
         $query = TeachingAssignment::query()
             ->with([

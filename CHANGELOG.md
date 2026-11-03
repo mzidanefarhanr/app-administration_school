@@ -17,6 +17,38 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 12a — Optimasi pagination, query performance, dan pengendalian beban (DEC-45 IMPLEMENTED)
+- Type: Feature | Schema Change | Performance
+- Scope / fase: Fase 12 — Subfase 12a: Pagination, Query Performance, dan Pengendalian Beban (DEC-45 IMPLEMENTED).
+- Files touched:
+  - `laravel-api/database/migrations/2029_12_01_000001_add_performance_composite_indexes.php` (indeks komposit aditif)
+  - `laravel-api/app/Http/Controllers/ActivityController.php` (validasi per_page <= 100)
+  - `laravel-api/app/Http/Controllers/TeachingAssignmentController.php` (validasi per_page <= 100)
+  - `laravel-api/app/Http/Controllers/TeachingScheduleController.php` (validasi per_page <= 100)
+  - `laravel-api/app/Http/Controllers/TeachingScheduleExceptionController.php` (validasi per_page <= 100)
+  - `vue-app/src/views/tasks/TasksView.vue` (debounce pencarian 300 ms)
+  - `laravel-api/tests/Feature/Performance/QueryPerformanceTest.php` (6 tes performa, 62 assertions)
+  - `laravel-api/scripts/phase10-uat.php` (handler probe-performance)
+  - `docs/DECISIONS.md`, `roadmap/phases/PHASE-12-PERFORMANCE.md`, `roadmap/ROADMAP.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+  - `reports/feature-update/PHASE-12A-REPORT.md`, `reports/feature-update/PHASE-12A-MANUAL-REVIEW.md`, `reports/feature-update/PHASE-12B-PLAN.md`.
+- What changed:
+  1. Migrasi aditif penambahan indeks komposit database pada tabel `students`, `student_rombels`, `employees`, `letters`, `letter_dispositions`, `leave_requests`, `archive_documents`, dan `operator_reminders`.
+  2. Standarisasi dan penguncian paginasi server-side `per_page <= 100` pada 11 endpoint daftar aktif dengan respons 422 jika melebihi batas kuota.
+  3. Audit eager loading selektif bebas N+1 query.
+  4. Pengendalian memori streaming CSV export ber-BOM UTF-8 dan formula sanitization.
+  5. Debounce seragam 300 ms pada input filter pencarian Vue.
+  6. Penyusunan rencana Subfase 12b (Background Jobs, Queue Resilience & Error Handling) dengan DEC-46 PROPOSED (D1–D10).
+- Why: Menjamin efisiensi kueri database pada volume data besar, mencegah resource exhaustion akibat unbounded pagination, dan menjaga konsistensi latensi server-side <= 150 ms.
+- Validation:
+  - `php artisan test tests/Feature/Performance/QueryPerformanceTest.php`: 6 passed (62 assertions).
+  - `php scripts/phase10-uat.php probe-performance`: 5/5 probes passed (query count & time budget verified).
+  - Laravel Pint: 0 issues (PASS).
+  - Vite build: built clean in 29.79s (code 0).
+  - Ports 18028 and 14028 verified free per DEC-27.
+- Notes / risks: Tidak menyentuh MariaDB operasional port 3306 atau Apache port 80/443. Seluruh migrasi bersifat aditif murni dengan safe rollback.
+- Evidence: `reports/feature-update/PHASE-12A-REPORT.md`; `reports/feature-update/PHASE-12A-MANUAL-REVIEW.md`; `reports/feature-update/PHASE-12B-PLAN.md`.
+
+
 ## [2026-11-03] Fase 11c — Penerimaan manual pemilik checklist #1–#18; Subfase 11c & Fase 11 SELESAI LENGKAP & DITUTUP
 - Type: Docs
 - Scope / fase: Pencatatan penerimaan pemilik atas Subfase 11c (checklist #1–#18) dan penutupan lengkap Subfase 11c serta Fase 11. Tidak ada perubahan kode aplikasi pada entri ini.

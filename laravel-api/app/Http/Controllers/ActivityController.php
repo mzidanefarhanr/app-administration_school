@@ -17,9 +17,16 @@ class ActivityController extends Controller
     {
         $this->authorize('audit.view');
 
+        $validated = $request->validate([
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ]);
+
+        $perPage = (int) ($validated['per_page'] ?? 50);
+
         $activities = Activity::with(['user:id,name,username'])
             ->latest()
-            ->paginate($request->integer('per_page', 50));
+            ->paginate($perPage);
 
         return new StatusResource(true, 'List Data Activities', $activities);
     }

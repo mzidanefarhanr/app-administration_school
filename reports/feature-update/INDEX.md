@@ -1,6 +1,10 @@
 # Indeks laporan pengembangan
 
-## Current checkpoint — 2026-11-03 (Subfase 11c OWNER APPROVED #1–#18; Subfase 11c & Fase 11 SELESAI LENGKAP & DITUTUP)
+## Current checkpoint — 2026-11-03 (Subfase 12a IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-45 IMPLEMENTED; Rencana Subfase 12b DISUSUN — DEC-46 PROPOSED)
+
+Subfase **12a — Pagination, Query Performance, dan Pengendalian Beban** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`9a7eeb6`** (dokumentasi persetujuan rencana `DEC-45 APPROVED`). Seluruh implementasi S1–S8 selesai: migrasi aditif indeks komposit `2029_12_01_000001_add_performance_composite_indexes.php`, penguncian batas paginasi server-side `per_page <= 100` pada 11 endpoint daftar aktif (nilai > 100 ditolak 422), eager loading terencana bebas N+1 query, verifikasi invarian penskalaan kueri $O(1)$, memory-safe streaming CSV export ber-BOM UTF-8, debounce seragam 300 ms pada antarmuka pencarian tabel Vue, 6 tes feature `QueryPerformanceTest` (62 assertions), Pint PASS (0 issues), build Vite PASS, dan 5 probe UAT `probe-performance` PASS. Port 18028/14028 dihentikan sesuai DEC-27. Dokumen laporan rinci: **`PHASE-12A-REPORT.md`**; checklist review manual pemilik: **`PHASE-12A-MANUAL-REVIEW.md`** (#1–#18). Bersamaan dengan ini, rencana teknis rinci untuk subfase berikutnya telah disusun di **`PHASE-12B-PLAN.md`** dengan usulan **DEC-46 PROPOSED (D1–D10)**.
+
+## Previous checkpoint — 2026-11-03 (Subfase 11c OWNER APPROVED #1–#18; Subfase 11c & Fase 11 SELESAI LENGKAP & DITUTUP)
 
 Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual 11c **#1–#18 APPROVED**. **Subfase 11c — Tugas Operasional dan Pengingat Internal Operator** resmi **SELESAI LENGKAP & DITUTUP** (`8ae6979`). **DEC-44 disahkan menjadi APPROVED & CLOSED**. Dengan disetujuinya seluruh subfase 11a, 11b, dan 11c, **FASE 11 (Dashboard Operator dan Laporan) RESMI SELESAI LENGKAP & DITUTUP**. Port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`). Tonggak aktif bergeser ke persiapan perencanaan **Fase 12 — Performa, Observability dan Konsistensi** (Subfase 12a: Pagination dan Query).
 
