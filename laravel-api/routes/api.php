@@ -54,6 +54,7 @@ use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TeachingAssignmentController;
 use App\Http\Controllers\TeachingJournalController;
 use App\Http\Controllers\TeachingOptionController;
+use App\Http\Controllers\TeachingReportController;
 use App\Http\Controllers\TeachingScheduleController;
 use App\Http\Controllers\TeachingScheduleExceptionController;
 use App\Http\Controllers\TeachingSessionController;
@@ -420,6 +421,12 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
             ->middleware('can:teaching.view');
         Route::match(['put', 'patch'], '/journals/{teachingJournal}', [TeachingJournalController::class, 'update'])
             ->whereNumber('teachingJournal')
+            ->middleware('can:teaching.view');
+
+        // Fase 10c (DEC-41) — laporan belum mengisi jurnal & ekspor CSV.
+        Route::get('/reports/missing-journals', [TeachingReportController::class, 'missingJournals'])
+            ->middleware('can:teaching.view');
+        Route::get('/reports/missing-journals/export', [TeachingReportController::class, 'exportMissingJournals'])
             ->middleware('can:teaching.view');
     });
 

@@ -17,6 +17,50 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 10c — Laporan belum mengisi jurnal, rekap kepatuhan guru, dan ekspor CSV (DEC-41 IMPLEMENTED)
+- Type: Feature
+- Scope / fase: Fase 10 — Subfase 10c: Laporan Belum Mengisi Jurnal (DEC-41 IMPLEMENTED).
+- Files touched:
+  - `laravel-api/app/Services/TeachingReportService.php` (new)
+  - `laravel-api/app/Http/Requests/TeachingReportIndexRequest.php` (new)
+  - `laravel-api/app/Http/Controllers/TeachingReportController.php` (new)
+  - `laravel-api/routes/api.php`
+  - `laravel-api/tests/Feature/Teaching/TeachingReportApiTest.php` (new)
+  - `laravel-api/tests/Feature/Teaching/TeachingJournalApiTest.php`
+  - `laravel-api/tests/Feature/Teaching/TeachingScheduleApiTest.php`
+  - `laravel-api/scripts/phase10-uat.php`
+  - `vue-app/src/views/teaching/TeachingReportsView.vue` (new)
+  - `vue-app/src/router/index.js`
+  - `vue-app/src/layout/AppMenu.vue`
+  - `reports/feature-update/PHASE-10C-REPORT.md` (new)
+  - `reports/feature-update/PHASE-10C-MANUAL-REVIEW.md` (new)
+  - `docs/DECISIONS.md`
+  - `docs/REQUIREMENTS.md`
+  - `docs/API-CONTRACTS.md`
+  - `docs/ACCESS-CONTROL.md`
+  - `docs/DATABASE.md`
+  - `docs/TESTING.md`
+  - `roadmap/phases/PHASE-10-TEACHING.md`
+  - `roadmap/ROADMAP.md`
+  - `reports/feature-update/INDEX.md`
+  - `reports/feature-update/HANDOFF.md`
+  - `PROJECT_CONTEXT.md`
+  - `CHANGELOG.md`
+- What changed:
+  - Backend: membuat `TeachingReportService` untuk analitik kepatuhan mengajar on-the-fly, aturan denominator eksak (exclude holiday, cancelled, rescheduled_out; include rescheduled in; guru tanpa sesi dikecualikan dari missing), segmentasi status `missing_within_grace` ($\le 7$ hari WIB) vs `missing_overdue` ($> 7$ hari WIB), KPI ringkasan, rekap per guru, drilldown berpaginasi, batas rentang tanggal maks 90 hari, dan streaming CSV export ber-BOM UTF-8 (`\xEF\xBB\xBF`) dengan header `X-Content-Type-Options: nosniff`.
+  - HTTP & RBAC: form request `TeachingReportIndexRequest`, controller `TeachingReportController`, 2 API routes di bawah `/api/teaching/reports/*` (`/missing-journals` dan `/export`) dengan guard `can:teaching.view` (total menjadi 20 route `/api/teaching/*`). Guru dibatasi secara ketat ke data sendiri (`scope=mine`), akses guru lain ditolak `403`.
+  - Frontend: `TeachingReportsView.vue` di route `/public/teaching/reports` (alias `/teaching/reports`, menu `Teaching -> Journal Reports`) dengan bilah filter & preset rentang cepat (7D, 30D, Bulan Ini), kartu ringkasan KPI, 2 tab (Rekap Kepatuhan Guru & Rincian Sesi Belum Mengisi dengan tombol aksi langsung pengisian jurnal), dan tombol ekspor CSV.
+  - Pengujian & Kualitas: 14 tes feature `TeachingReportApiTest` (`T1–T14` / 72 assertions PASS), suite Teaching gabungan 32 tes / 336 assertions PASS, suite regresi 147 tes / 2.002 assertions PASS (total backend 179 tes / 2.338 assertions PASS), Pint 7 file PASS, ESLint 0 error, build Vite PASS (31.50s), dan 5 probe HTTP UAT `.uat-phase10` PASS. Server UAT dihentikan sesuai DEC-27.
+- Why: memenuhi kebutuhan pelaporan dan pemantauan kepatuhan pengisian jurnal guru bagi pimpinan sekolah dan operator, serta memudahkan guru melacak sesi mengajar yang belum diisi jurnalnya secara mandiri dalam grace window.
+- Validation:
+  - Pest test: `TeachingReportApiTest` (14 passed / 72 assertions), full Teaching (32 passed / 336 assertions), regressions (147 passed / 2.002 assertions) → **179 passed / 2.338 assertions**.
+  - Pint: **PASS (7 files)**.
+  - ESLint: **0 errors, 0 warnings**.
+  - Vite build: **PASS (31.50s)**.
+  - UAT `.uat-phase10`: 5 HTTP probes PASS via `php scripts/phase10-uat.php probe-reports`. Ports 18028 and 14028 confirmed free.
+- Notes / risks: Zero schema change. Tidak menyentuh MariaDB port 3306 atau Apache port 80/443. Menunggu review manual pemilik checklist #1–#18.
+- Evidence: `reports/feature-update/PHASE-10C-REPORT.md`, `reports/feature-update/PHASE-10C-MANUAL-REVIEW.md`.
+
 ## [2026-11-03] Fase 10c — Persetujuan rencana laporan belum mengisi jurnal (DEC-41 APPROVED)
 - Type: Docs
 - Scope / fase: Pencatatan persetujuan pemilik atas rencana Subfase 10c (`D1–D9` sebagai `DEC-41 APPROVED`). Tidak ada perubahan kode aplikasi pada entri ini.

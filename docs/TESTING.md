@@ -174,6 +174,20 @@ Storage uji memakai fake/temp disk; backup/restore mengarah ke target test, tida
 - **NOT RUN:** suite penuh PHPUnit tanpa filter (karena `MariaDbIntegrationTest`); otomasi klik browser interaktif / screenshot visual (diserahkan ke checklist manual pemilik `#1–#18` di `PHASE-10B-MANUAL-REVIEW.md`); race condition MariaDB/InnoDB multi-proses nyata; Subfase 10c (belum diotorisasi).
 - **Review manual pemilik: APPROVED (#1–#18, 2026-11-03 WIB)** berdasarkan pernyataan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** (`reports/feature-update/PHASE-10B-MANUAL-REVIEW.md`; paket review **`df9f925`**). Agen tidak mengulang skenario dan item NOT RUN tetap NOT RUN. Port `18028` dan `14028` diverifikasi ulang tetap bebas, `.uat-phase10` dipertahankan.
 
+## Bukti Subfase 10c (2026-11-03 WIB)
+- Suite baru `Tests\Feature\Teaching\TeachingReportApiTest` + regresi `TeachingJournalApiTest` & `TeachingScheduleApiTest` (SQLite in-memory): **32 passed (336 assertions) in 28.88s** (`TeachingReportApiTest`: **14 passed / 72 assertions** mencakup skenario `T1–T14`; `TeachingJournalApiTest`: **12 passed / 148 assertions**; `TeachingScheduleApiTest`: **6 passed / 116 assertions**) — menguji pendaftaran **20 route `/api/teaching/*`**, RBAC laporan (`guest` 401, `inactive` 403, `staff` 403, `kepala-sekolah` 200 sekolah-penuh, `guru` terisolasi `scope=mine` dan ditolak `403` saat mengakses guru lain), aturan denominator kepatuhan (mengecualikan `holiday`, `cancelled`, dan `rescheduled_out`; menyertakan `rescheduled` pengganti ke guru pengganti; guru dengan 0 sesi terjadwal tidak dianggap belum mengisi), segmentasi status sesi missing (`missing_within_grace` $\le 7$ hari WIB vs `missing_overdue` $> 7$ hari WIB), batas rentang tanggal maks 90 hari (`422` bila melebihi), filter rombel/matpel/guru, drilldown berpaginasi, streaming ekspor CSV ber-BOM UTF-8 (`\xEF\xBB\xBF`) dengan `nosniff`, serta pembatasan baris ekspor bagi guru.
+- Suite regresi lintas modul (`Tests\Feature\Academic`, `Tests\Feature\Access`, `Tests\Feature\Archives`): **147 passed (2,002 assertions) in 189.73s**. Total backend terverifikasi: **179 passed / 2,338 assertions**.
+- Pint pada seluruh 7 file PHP baru/berubah: **PASS (7 files)**; `php artisan route:list --path=teaching` → **20 routes**.
+- Frontend: `npx eslint src/views/teaching/TeachingReportsView.vue src/router/index.js src/layout/AppMenu.vue` **0 errors, 0 warnings**; `npm run build` **PASS (31.50s)** (`dist/assets/TeachingReportsView-C-q0cLOi.js 32.23 kB`).
+- UAT terisolasi `.uat-phase10` (perintah baru `probe-reports` pada `scripts/phase10-uat.php` terhadap database `.uat-phase10/database.sqlite`; API `127.0.0.1:18028`; SPA `127.0.0.1:14028`; cookie `school_phase10_session`): mengeksekusi 5 probe HTTP nyata:
+  1. Admin sekolah `uat.admin`: 540 expected sessions, 64 recorded, 476 missing, compliance rate 11.9% (status 200).
+  2. Guru `uat.guru`: otomatis dipaksa `scope=mine` ke guru ID 1, expected 36 sessions, 4 recorded, 32 missing, compliance rate 11.1% (status 200).
+  3. Guru `uat.guru` mencoba akses guru lain `employee_id=2`: ditolak dengan status **403 Forbidden** (pesan: "You are only authorized to view your own teaching compliance reports.").
+  4. Pimpinan `uat.kepsek`: melihat rekap sekolah 540 sessions (status 200).
+  5. Ekspor CSV: streaming download berhasil dengan status 200, UTF-8 BOM `\xEF\xBB\xBF`, header `X-Content-Type-Options: nosniff`, dan `Content-Disposition: attachment; filename="missing-teaching-journals-2026-11-03.csv"`.
+- Penghentian server UAT (DEC-27): port `18028` dan `14028` diverifikasi ulang bebas listener (`PORTS_18028_14028_FREE`); data `.uat-phase10` dipertahankan untuk review manual pemilik `#1–#18`.
+- **NOT RUN:** suite penuh PHPUnit tanpa filter (karena `MariaDbIntegrationTest`); otomasi browser visual/screenshot (diserahkan ke checklist manual pemilik `#1–#18` di `PHASE-10C-MANUAL-REVIEW.md`); race condition MariaDB/InnoDB multi-proses nyata; Fase 11+ (belum diotorisasi).
+
 ## Matriks minimum per perubahan
 | Area | Kasus wajib |
 |---|---|

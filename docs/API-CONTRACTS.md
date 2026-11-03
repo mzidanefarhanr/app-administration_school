@@ -560,7 +560,7 @@ Frontend 10a: `TeachingSchedulesView.vue`, `router/index.js`, `AppMenu.vue`.
 
 ## Perubahan Subfase 10b (DEC-40 / DEC-10) — sesi harian & jurnal pembelajaran
 
-**5 route baru** di `/api/teaching/*` (total **18 route `/api/teaching/*`**), ditambah perluasan additive pada `GET /api/teaching/options`. Tanpa ability baru: menggunakan `teaching.view`, `teaching.manage`, dan tautan `employees.user_id` (`Pendidik` aktif).
+**5 route baru** di `/api/teaching/*` (total 18 route; sejak 10c tersedia 2 route laporan (`/reports/missing-journals` dan `/reports/missing-journals/export`) — total **20 route `/api/teaching/*`**), ditambah perluasan additive pada `GET /api/teaching/options`. Tanpa ability baru: menggunakan `teaching.view`, `teaching.manage`, dan tautan `employees.user_id` (`Pendidik` aktif).
 
 | Method | Endpoint | Izin | Perilaku |
 |---|---|---|---|
@@ -576,6 +576,20 @@ Frontend 10a: `TeachingSchedulesView.vue`, `router/index.js`, `AppMenu.vue`.
 - **UI**: `/public/teaching/journals` (alias `/teaching/journals`, menu **Teaching → Sessions & Journals**, guard `teaching.view`) dengan 2 tab (**Daily Sessions Worklist** dan **Recorded Journals History**) serta dialog Fill/Edit/View Journal + `409` **Reload Latest**.
 
 Frontend 10b: `TeachingJournalsView.vue`, `router/index.js`, `AppMenu.vue`.
+
+## Perubahan Subfase 10c (DEC-41) — laporan belum mengisi jurnal, rekap kepatuhan guru, dan ekspor CSV
+
+**2 route baru** di `/api/teaching/reports/*` (total menjadi **20 route `/api/teaching/*`**). Menggunakan middleware `can:teaching.view`.
+
+| Method | Endpoint | Izin | Perilaku |
+|---|---|---|---|
+| GET | `/api/teaching/reports/missing-journals` | `teaching.view` | Laporan kepatuhan pengisian jurnal dan drilldown sesi belum terisi: filter `school_year_id`, `semester_id`, `date_from`, `date_to` (rentang maks. 90 hari, default 30 hari terakhir s.d. hari ini WIB), `employee_id`, `school_rombel_id`, `subject_id`, `status` (`all|missing_within_grace|missing_overdue`), `scope` (`mine|all`), `tab` (`summary|drilldown`), `page`, `per_page` (10..100 default 25). Mengembalikan: `summary` (`total_teachers`, `expected_sessions`, `recorded_journals`, `missing_journals`, `missing_within_grace`, `missing_overdue`, `compliance_rate`), `teachers[]` (rekap per guru: `employee_id`, `employee_name`, `nuptk`, `expected_sessions`, `recorded_journals`, `missing_journals`, `missing_within_grace`, `missing_overdue`, `compliance_rate`), `drilldown` (paginasi sesi missing beserta status `missing_within_grace` $\le 7$ hari vs `missing_overdue` $> 7$ hari dan flag `can_record`), serta `meta` (`applied_filters`, `today_wib`, `grace_threshold_date`, `max_range_days = 90`). Aturan denominator: `expected_sessions` mengecualikan sesi `holiday`, `cancelled`, dan `rescheduled_out`; sesi pengganti `rescheduled` masuk ke penyebut guru pengganti; guru dengan 0 sesi terjadwal tidak dianggap belum mengisi (`expected_sessions = 0`, `missing_journals = 0`). Otorisasi: guru tanpa `teaching.manage` dipaksa `scope=mine`; permintaan data guru lain ditolak `403`. |
+| GET | `/api/teaching/reports/missing-journals/export` | `teaching.view` | Streaming unduhan CSV dengan UTF-8 BOM (`\xEF\xBB\xBF`), header aman `X-Content-Type-Options: nosniff`, `Content-Disposition: attachment; filename="missing-teaching-journals-YYYY-MM-DD.csv"`, memuat 11 kolom: No, Tanggal Sesi, Hari, Jam/Periode, Kelas, Mata Pelajaran, Guru Pengampu, Guru Efektif, Status Sesi, Batas Grace Period (WIB), Catatan/Jadwal. Menghormati filter dan otorisasi yang sama dengan endpoint laporan (guru hanya mengekspor sesinya sendiri). |
+
+- **Zero schema change**: murni lapisan analitik dan agregasi deterministik berbasis `TeachingReportService` dari tabel 10a dan 10b (`teaching_assignments`, `teaching_schedules`, `teaching_schedule_exceptions`, `teaching_journals`).
+- **UI**: `/public/teaching/reports` (alias `/teaching/reports`, menu **Teaching → Journal Reports**, guard `teaching.view`) dengan bilah filter & preset cepat (7 Hari, 30 Hari, Bulan Ini), kartu ringkasan KPI, 2 tab (**Teacher Compliance Summary** dan **Missing Sessions Drilldown** dengan tombol aksi langsung pengisian jurnal 10b), serta tombol **Export CSV**.
+
+Frontend 10c: `TeachingReportsView.vue`, `router/index.js`, `AppMenu.vue`.
 
 ## Aktual
 

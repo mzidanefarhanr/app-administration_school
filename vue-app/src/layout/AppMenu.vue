@@ -14,7 +14,7 @@ const model = ref([
         requires: null,
         items: [
             { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' },
-            { label: 'School Profile', icon: 'pi pi-fw pi-building-columns', to: '/public/schoolprofile' },
+            { label: 'School Profile', icon: 'pi pi-fw pi-building-columns', to: '/public/schoolprofile' }
         ]
     },
     {
@@ -25,7 +25,7 @@ const model = ref([
             { label: 'Education Schools', icon: 'pi pi-fw pi-building-columns', to: '/public/educationschools' },
             { label: 'Phase Status', icon: 'pi pi-fw pi-building', to: '/public/phasestatuses', class: 'rotated-icon' },
             { label: 'Professions', icon: 'pi pi-fw pi-briefcase', to: '/public/professions', class: 'rotated-icon' },
-            { label: 'Student Majors', icon: 'pi pi-fw pi-calendar', to: '/public/studentmajors', class: 'rotated-icon' },
+            { label: 'Student Majors', icon: 'pi pi-fw pi-calendar', to: '/public/studentmajors', class: 'rotated-icon' }
         ]
     },
     {
@@ -34,7 +34,7 @@ const model = ref([
         items: [
             { label: 'Classes', icon: 'pi pi-fw pi-book', to: '/public/schoolrombels', requires: 'students.view' },
             { label: 'Progression', icon: 'pi pi-fw pi-sitemap', to: '/public/progression', requires: 'students.view' },
-            { label: 'School Years', icon: 'pi pi-fw pi-calendar', to: '/public/schoolyears', requires: 'master.view' },
+            { label: 'School Years', icon: 'pi pi-fw pi-calendar', to: '/public/schoolyears', requires: 'master.view' }
         ]
     },
     {
@@ -44,7 +44,7 @@ const model = ref([
             { label: 'Students', icon: 'pi pi-fw pi-graduation-cap', to: '/public/students', requires: 'students.view' },
             { label: 'Teachers', icon: 'pi pi-fw pi-slack', to: '/public/teachers', requires: 'employees.view' },
             { label: 'Employees', icon: 'pi pi-fw pi-address-book', to: '/public/employees', requires: 'employees.view' },
-            { label: 'Data Quality', icon: 'pi pi-fw pi-check-circle', to: '/public/data-quality', requires: ['students.view', 'employees.view'] },
+            { label: 'Data Quality', icon: 'pi pi-fw pi-check-circle', to: '/public/data-quality', requires: ['students.view', 'employees.view'] }
         ]
     },
     {
@@ -54,22 +54,18 @@ const model = ref([
             { label: 'Incoming Letters', icon: 'pi pi-fw pi-inbox', to: '/public/letters/incoming', requires: 'letters.view' },
             { label: 'Outgoing Letters', icon: 'pi pi-fw pi-send', to: '/public/letters/outgoing', requires: 'letters.view' },
             { label: 'Dispositions', icon: 'pi pi-fw pi-user-plus', to: '/public/letters/dispositions', requires: 'letters.view' },
-            { label: 'Letter Settings', icon: 'pi pi-fw pi-cog', to: '/public/letters/settings', requires: 'letters.view' },
+            { label: 'Letter Settings', icon: 'pi pi-fw pi-cog', to: '/public/letters/settings', requires: 'letters.view' }
         ]
     },
     {
         label: 'Leaves',
         requires: ['leaves.view', 'leaves.request'],
-        items: [
-            { label: 'Leave Requests', icon: 'pi pi-fw pi-calendar-minus', to: '/public/leaves', requires: ['leaves.view', 'leaves.request'] },
-        ]
+        items: [{ label: 'Leave Requests', icon: 'pi pi-fw pi-calendar-minus', to: '/public/leaves', requires: ['leaves.view', 'leaves.request'] }]
     },
     {
         label: 'Archives',
         requires: 'archives.view',
-        items: [
-            { label: 'Archive Documents', icon: 'pi pi-fw pi-folder', to: '/public/archives', requires: 'archives.view' },
-        ]
+        items: [{ label: 'Archive Documents', icon: 'pi pi-fw pi-folder', to: '/public/archives', requires: 'archives.view' }]
     },
     {
         label: 'Teaching',
@@ -77,6 +73,7 @@ const model = ref([
         items: [
             { label: 'Assignments & Timetable', icon: 'pi pi-fw pi-calendar-clock', to: '/public/teaching/schedules', requires: 'teaching.view' },
             { label: 'Sessions & Journals', icon: 'pi pi-fw pi-book', to: '/public/teaching/journals', requires: 'teaching.view' },
+            { label: 'Journal Reports', icon: 'pi pi-fw pi-chart-bar', to: '/public/teaching/reports', requires: 'teaching.view' }
         ]
     },
     {
@@ -90,7 +87,7 @@ const model = ref([
         items: [
             { label: 'Accounts', icon: 'pi pi-fw pi-users', to: '/master/accounts', requires: 'users.view' },
             { label: 'User Type', icon: 'pi pi-fw pi-user-edit', to: '/master/typeusers', requires: 'master.manage' },
-            { label: 'Roles & Abilities', icon: 'pi pi-fw pi-shield', to: '/master/roles', requires: 'roles.view' },
+            { label: 'Roles & Abilities', icon: 'pi pi-fw pi-shield', to: '/master/roles', requires: 'roles.view' }
         ]
     },
     {

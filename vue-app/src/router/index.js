@@ -127,6 +127,13 @@ const router = createRouter({
                     component: () => import('@/views/teaching/TeachingJournalsView.vue')
                 },
                 {
+                    path: '/public/teaching/reports',
+                    alias: '/teaching/reports',
+                    name: 'teachingReports',
+                    meta: { breadcrumb: 'Journal Reports', requiresAbility: 'teaching.view' },
+                    component: () => import('@/views/teaching/TeachingReportsView.vue')
+                },
+                {
                     path: '/public/data-quality',
                     name: 'dataquality',
                     meta: { breadcrumb: 'Data Quality', requiresAbility: ['students.view', 'employees.view'] },

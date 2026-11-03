@@ -197,6 +197,15 @@ API mayoritas hanya auth:sanctum. Beberapa controller akun membedakan tipe secar
 - **UI**: menu **Teaching → Sessions & Journals** (`/public/teaching/journals`, alias `/teaching/journals`, guard `requiresAbility: 'teaching.view'`) dengan 2 tab (**Daily Sessions Worklist** dan **Recorded Journals History**), tombol `Fill Journal` / `Edit` mengikuti `can_record` / `can_update` server, dan dialog `409` **Reload Latest**.
 - **UAT**: `.uat-phase10` diperluas secara aditif via `php scripts/phase10-uat.php prepare-journals` (`66` jurnal sintetis + akun `uat.guru2` tertaut ke `UAT-P10 Teacher 02`); server dihentikan setelah verifikasi agen sesuai DEC-27.
 
+## Implementasi Subfase 10c (laporan kepatuhan jurnal mengajar dan drilldown sesi belum terisi)
+- **Pengamanan Reporting (`teaching.view`)**:
+  - Endpoint `GET /api/teaching/reports/missing-journals` dan `GET /api/teaching/reports/missing-journals/export` menggunakan middleware `can:teaching.view`.
+  - Guru biasa (`teaching.view` tanpa `teaching.manage` dan bukan peran pimpinan `kepala-sekolah`/`wakil-kesiswaan`) dipaksa server secara ketat ke `scope=mine` (hanya melihat kepatuhan dan rincian sesinya sendiri). Permintaan akses ke data guru lain (`employee_id != self_employee.id` atau `scope=all`) ditolak **`403 Forbidden`**.
+  - Pengelola (`teaching.manage`) dan peran pimpinan (`kepala-sekolah`, `wakil-kesiswaan`) berhak melihat rekap seluruh sekolah (`scope=all` atau filter spesifik `employee_id`).
+  - Ekspor streaming CSV menegakkan batasan otorisasi yang sama: guru hanya dapat mengunduh baris sesi miliknya sendiri.
+- **UI**: menu **Teaching → Journal Reports** (`/public/teaching/reports`, alias `/teaching/reports`, guard `requiresAbility: 'teaching.view'`) dengan 2 tab (**Teacher Compliance Summary** dan **Missing Sessions Drilldown**), filter preset rentang tanggal (7D, 30D, Bulan Ini) berbatas maks 90 hari, tombol aksi langsung "Fill Journal" pada baris sesi yang masih dalam grace window ($\le 7$ hari WIB), dan tombol ekspor CSV.
+- **UAT**: `.uat-phase10` diverifikasi via `php scripts/phase10-uat.php probe-reports` dengan 5 probe HTTP (laporan admin sekolah, isolasi `scope=mine` guru, penolakan `403` lintas guru, laporan kepemimpinan sekolah, dan streaming CSV dengan BOM); server UAT dihentikan setelah verifikasi sesuai DEC-27.
+
 | Kemampuan | Admin | Operator | Kepala sekolah | Guru/wali kelas |
 |---|---|---|---|---|
 | users.manage / roles.manage | Ya | Tidak | Tidak | Tidak |

@@ -216,12 +216,12 @@ beforeEach(function () {
 });
 
 // ─── T1: Route Registration & RBAC Matrix ────────────────────────────────────
-test('T1 registers 18 teaching routes and enforces RBAC abilities for sessions and journals', function () {
+test('T1 registers 20 teaching routes and enforces RBAC abilities for sessions and journals', function () {
     $routes = collect(Route::getRoutes()->getRoutes())
         ->filter(fn ($r) => str_starts_with($r->uri(), 'api/teaching'))
         ->values();
 
-    expect($routes)->toHaveCount(18);
+    expect($routes)->toHaveCount(20);
 
     // Unauthenticated -> 401
     $this->getJson('/api/teaching/sessions')->assertStatus(401);

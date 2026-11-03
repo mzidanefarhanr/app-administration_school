@@ -915,5 +915,132 @@ if ($command === 'status') {
     exit(0);
 }
 
-fwrite(STDERR, "Unknown command. Use init, prepare, prepare-teaching, prepare-journals, status, or start the HTTP server with this script.\n");
+if ($command === 'probe-reports') {
+    $reportService = $app->make(App\Services\TeachingReportService::class);
+    $activeYear = App\Models\SchoolYear::where('name', '2026/2027')->firstOrFail();
+    $lockedYear = App\Models\SchoolYear::where('name', '2024/2025')->firstOrFail();
+    $sem1 = App\Models\Semester::where('name', 'Semester I')->firstOrFail();
+
+    $admin = App\Models\User::where('username', 'uat.admin')->firstOrFail();
+    $operator = App\Models\User::where('username', 'uat.operator')->firstOrFail();
+    $kepsek = App\Models\User::where('username', 'uat.kepsek')->firstOrFail();
+    $waka = App\Models\User::where('username', 'uat.waka')->firstOrFail();
+    $guru1 = App\Models\User::where('username', 'uat.guru')->firstOrFail();
+    $guru2 = App\Models\User::where('username', 'uat.guru2')->firstOrFail();
+
+    $teacher01 = App\Models\Employee::where('name', 'UAT-P10 Teacher 01')->firstOrFail();
+    $teacher02 = App\Models\Employee::where('name', 'UAT-P10 Teacher 02')->firstOrFail();
+
+    fwrite(STDOUT, "=== UAT Phase 10c Compliance & Missing Journals Probe ===\n\n");
+
+    // Probe 1: School-wide Summary for Admin
+    $reportAdmin = $reportService->missingJournalsReport([
+        'school_year_id' => $activeYear->id,
+        'semester_id' => $sem1->id,
+        'date_from' => '2026-10-01',
+        'date_to' => '2026-10-31',
+    ], $admin);
+
+    $s = $reportAdmin['data']['summary'];
+    fwrite(STDOUT, "[PROBE 1] Admin School-wide Report (October 2026):\n");
+    fwrite(STDOUT, "  - Teachers with sessions: {$s['total_teachers_with_sessions']}\n");
+    fwrite(STDOUT, "  - Total Expected Sessions: {$s['total_expected_sessions']}\n");
+    fwrite(STDOUT, "  - Total Recorded Journals: {$s['total_recorded_journals']}\n");
+    fwrite(STDOUT, "  - Total Missing Journals: {$s['total_missing_journals']}\n");
+    fwrite(STDOUT, "    * Within Grace: {$s['total_missing_within_grace']}\n");
+    fwrite(STDOUT, "    * Overdue: {$s['total_missing_overdue']}\n");
+    fwrite(STDOUT, "  - Overall Compliance: {$s['overall_compliance_percentage']}%\n");
+    fwrite(STDOUT, "  - Excluded Slots: {$s['total_excluded_slots']}\n");
+
+    if ($s['total_expected_sessions'] !== ($s['total_recorded_journals'] + $s['total_missing_journals'])) {
+        throw new RuntimeException('Probe 1 failed: Expected != Recorded + Missing');
+    }
+    if ($s['total_missing_journals'] !== ($s['total_missing_within_grace'] + $s['total_missing_overdue'])) {
+        throw new RuntimeException('Probe 1 failed: Missing != Grace + Overdue');
+    }
+    fwrite(STDOUT, "  -> PASS: Aggregate math is 100% consistent.\n\n");
+
+    // Probe 2: RBAC Teacher Scoping (uat.guru)
+    $reportGuru = $reportService->missingJournalsReport([
+        'school_year_id' => $activeYear->id,
+        'semester_id' => $sem1->id,
+        'date_from' => '2026-10-01',
+        'date_to' => '2026-10-31',
+    ], $guru1);
+
+    fwrite(STDOUT, "[PROBE 2] Teacher Scoping (uat.guru):\n");
+    fwrite(STDOUT, "  - Effective Scope: {$reportGuru['meta']['scope']}\n");
+    fwrite(STDOUT, '  - Teachers in list: '.count($reportGuru['data']['by_teacher'])."\n");
+    if ($reportGuru['meta']['scope'] !== 'mine' || count($reportGuru['data']['by_teacher']) !== 1) {
+        throw new RuntimeException('Probe 2 failed: scope is not forced to mine for teacher');
+    }
+    if ((int) $reportGuru['data']['by_teacher'][0]['employee_id'] !== (int) $teacher01->id) {
+        throw new RuntimeException('Probe 2 failed: teacher in list does not match uat.guru');
+    }
+    fwrite(STDOUT, "  -> PASS: Teacher scope=mine enforced to {$teacher01->name}.\n\n");
+
+    // Probe 3: RBAC Cross-teacher Access Forbidden
+    $blocked = false;
+    try {
+        $reportService->missingJournalsReport([
+            'school_year_id' => $activeYear->id,
+            'semester_id' => $sem1->id,
+            'employee_id' => $teacher02->id,
+            'date_from' => '2026-10-01',
+            'date_to' => '2026-10-31',
+        ], $guru1);
+    } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+        if ($e->getStatusCode() === 403) {
+            $blocked = true;
+        }
+    }
+    fwrite(STDOUT, "[PROBE 3] Cross-teacher Access Guard:\n");
+    if (! $blocked) {
+        throw new RuntimeException('Probe 3 failed: uat.guru was able to request teacher02 without 403');
+    }
+    fwrite(STDOUT, "  -> PASS: Cross-teacher access blocked with 403 Forbidden.\n\n");
+
+    // Probe 4: Leadership Role Access (uat.kepsek & uat.waka)
+    $reportKepsek = $reportService->missingJournalsReport([
+        'school_year_id' => $activeYear->id,
+        'semester_id' => $sem1->id,
+        'date_from' => '2026-10-01',
+        'date_to' => '2026-10-31',
+    ], $kepsek);
+
+    fwrite(STDOUT, "[PROBE 4] Leadership Access (uat.kepsek):\n");
+    fwrite(STDOUT, '  - Can View All: '.($reportKepsek['meta']['can_view_all'] ? 'true' : 'false')."\n");
+    fwrite(STDOUT, '  - Teachers in list: '.count($reportKepsek['data']['by_teacher'])."\n");
+    if (! $reportKepsek['meta']['can_view_all'] || count($reportKepsek['data']['by_teacher']) < 2) {
+        throw new RuntimeException('Probe 4 failed: kepsek cannot view all teachers');
+    }
+    fwrite(STDOUT, "  -> PASS: Leadership has school-wide view access.\n\n");
+
+    // Probe 5: CSV Export Streaming
+    $csvResponse = $reportService->exportMissingJournalsCsv([
+        'school_year_id' => $activeYear->id,
+        'semester_id' => $sem1->id,
+        'date_from' => '2026-10-01',
+        'date_to' => '2026-10-31',
+    ], $admin);
+
+    ob_start();
+    $csvResponse->sendContent();
+    $csvOutput = (string) ob_get_clean();
+
+    fwrite(STDOUT, "[PROBE 5] CSV Export Streaming:\n");
+    fwrite(STDOUT, '  - Content Length: '.strlen($csvOutput)." bytes\n");
+    fwrite(STDOUT, '  - Has UTF-8 BOM: '.(str_starts_with($csvOutput, "\xEF\xBB\xBF") ? 'YES' : 'NO')."\n");
+    fwrite(STDOUT, '  - Headers present: '.(str_contains($csvOutput, 'Session Date') && str_contains($csvOutput, 'Journal Status') ? 'YES' : 'NO')."\n");
+
+    if (! str_starts_with($csvOutput, "\xEF\xBB\xBF") || ! str_contains($csvOutput, 'Session Date')) {
+        throw new RuntimeException('Probe 5 failed: CSV output invalid');
+    }
+    fwrite(STDOUT, "  -> PASS: CSV streaming export is valid and conformant.\n\n");
+
+    fwrite(STDOUT, "=== ALL 5 UAT PHASE 10C PROBES PASSED SUCCESSFULLY ===\n");
+    exit(0);
+}
+
+fwrite(STDERR, "Unknown command. Use init, prepare, prepare-teaching, prepare-journals, probe-reports, status, or start the HTTP server with this script.\n");
 exit(2);

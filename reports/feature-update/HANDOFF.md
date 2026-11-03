@@ -1,6 +1,12 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Rencana Subfase 10c DISETUJUI — DEC-41 APPROVED; implementasi diotorisasi)
+## Current checkpoint — 2026-11-03 (Subfase 10c IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-41 IMPLEMENTED)
+
+- **Status:** Subfase **10c — Laporan belum mengisi jurnal** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`122e044`** (dokumentasi persetujuan rencana `DEC-41 APPROVED`). Paket implementasi dilaporkan di `reports/feature-update/PHASE-10C-REPORT.md` dan checklist pengujian manual pemilik disediakan di `reports/feature-update/PHASE-10C-MANUAL-REVIEW.md` (#1–#18). **Subfase 10a & 10b tetap OWNER APPROVED (#1–#18, 2026-11-03 WIB)**.
+- **Server UAT:** Server UAT `.uat-phase10` pada port `18028` dan `14028` telah diverifikasi dihentikan per DEC-27 (`PORTS_18028_14028_FREE`). Data `.uat-phase10` dipertahankan untuk review manual pemilik. Apache dan MariaDB operasional tidak disentuh.
+- **Next:** Pemilik menjalankan checklist manual #1–#18 di `reports/feature-update/PHASE-10C-MANUAL-REVIEW.md` dan memberikan persetujuan penerimaan bila sesuai. Setelah 10c disetujui, Fase 10 selesai lengkap dan rencana fase berikutnya (Fase 11 Dashboard Operator & Laporan) dapat disusun.
+
+## Previous checkpoint — 2026-11-03 (Rencana Subfase 10c DISETUJUI — DEC-41 APPROVED; implementasi diotorisasi)
 
 - **Status:** pemilik menyatakan **"Saya setuju D1-D9"** (2026-11-03 WIB); dicatat sebagai **DEC-41 APPROVED**. Implementasi **Subfase 10c — Laporan belum mengisi jurnal** diotorisasi sesuai `reports/feature-update/PHASE-10C-PLAN.md` (baseline **`35728bb`**; paket rencana **`1ab03ef`**). **Subfase 10a & 10b tetap OWNER APPROVED (#1–#18, 2026-11-03 WIB)**.
 - **Next:** eksekusi S1–S8 Subfase 10c, verifikasi penuh, dan siapkan `PHASE-10C-REPORT.md` serta `PHASE-10C-MANUAL-REVIEW.md`.

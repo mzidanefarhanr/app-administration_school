@@ -173,7 +173,7 @@ test('T1 teaching routes are registered and enforce teaching.view and teaching.m
         ->filter(fn ($r) => str_starts_with($r->uri(), 'api/teaching'))
         ->values();
 
-    expect($routes)->toHaveCount(18);
+    expect($routes)->toHaveCount(20);
 
     // Unauthenticated -> 401
     $this->getJson('/api/teaching/options')->assertStatus(401);
