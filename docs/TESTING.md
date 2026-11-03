@@ -189,6 +189,22 @@ Storage uji memakai fake/temp disk; backup/restore mengarah ke target test, tida
 - **NOT RUN:** suite penuh PHPUnit tanpa filter (karena `MariaDbIntegrationTest`); otomasi browser visual/screenshot (diserahkan ke checklist manual pemilik `#1–#18` di `PHASE-10C-MANUAL-REVIEW.md`); race condition MariaDB/InnoDB multi-proses nyata; Fase 11+ (belum diotorisasi).
 - **Review manual pemilik: APPROVED (#1–#18, 2026-11-03 WIB)** berdasarkan pernyataan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** (`reports/feature-update/PHASE-10C-MANUAL-REVIEW.md`; paket review **`96db43b`**). Agen tidak mengulang skenario dan item NOT RUN tetap NOT RUN. Port `18028` dan `14028` diverifikasi ulang tetap bebas, `.uat-phase10` dipertahankan.
 
+## Bukti Subfase 11a (2026-11-03 WIB)
+- Suite baru `Tests\Feature\Dashboard\DashboardApiTest` (SQLite in-memory): **10 passed (52 assertions) in 8.15s** mencakup skenario `T1–T10` — menguji penolakan `401` guest (T1), penolakan `403` akun nonaktif (T2), ikhtisar komprehensif admin dengan hitungan nyata (T3), ikhtisar operasional operator (T4), ikhtisar kepemimpinan kepala sekolah (T5), isolasi personal guru tanpa kebocoran data staf/surat/sistem (T6), peredaman domain tanpa hak akses menjadi null pada staf polos (T7), daftar tugas tertunda persetujuan surat/izin pimpinan (T8), sesi missing jurnal dalam masa grace window guru (T9), serta struktur data grafik distribusi siswa dan tren mengajar (T10).
+- Suite regresi penuh PHPUnit/Pest: **654 passed, 13 skipped (7,767 assertions) in 611.05s** (zero failures, zero regressions across all domains).
+- Pint pada seluruh 3 file PHP dashboard baru/berubah: **PASS (3 files)**; `php artisan route:list --path=dashboard` → **3 routes**.
+- Frontend: `npx eslint` pada 7 file Vue baru/berubah di `src/views/Dashboard.vue` dan `src/components/dashboard/*.vue` → **0 errors, 0 warnings**; `npm run build` **PASS (36.20s)** (`dist/assets/Dashboard-BP4b2Y80.js 41.00 kB`).
+- UAT terisolasi `.uat-phase10` (perintah baru `probe-dashboard` pada `scripts/phase10-uat.php` terhadap database `.uat-phase10/database.sqlite`; API `127.0.0.1:18028`; SPA `127.0.0.1:14028`; cookie `school_phase10_session`): mengeksekusi 5 probe HTTP nyata:
+  1. Admin sekolah `uat.admin`: tahun ajaran 2026/2027 aktif, 3 siswa aktif, 11 rombel aktif, teaching view `school_wide`, info sistem lengkap (PASS).
+  2. Pimpinan `uat.kepsek`: role `kepala-sekolah`, teaching view `school_wide`, `can.view_students = true` (PASS).
+  3. Guru `uat.guru`: teaching view `teacher_personal`, nama guru `UAT-P10 Teacher 01`, data karyawan/surat/sistem null tanpa kebocoran data (PASS).
+  4. Pending tasks: admin 15 tugas terstruktur, guru 14 tugas terstruktur (PASS).
+  5. Charts API: admin menerima 11 label rombel dan 4 bulan tren kepatuhan; guru menerima data tren mengajar namun grafik siswa null sesuai matriks otorisasi (PASS).
+  -> **ALL 5 UAT PHASE 11A DASHBOARD PROBES PASSED SUCCESSFULLY**.
+- Penghentian server UAT (DEC-27): port `18028` dan `14028` diverifikasi ulang bebas listener (`PORTS_18028_14028_FREE`); data `.uat-phase10` dipertahankan untuk review manual pemilik `#1–#18`.
+- **NOT RUN:** otomasi browser visual/screenshot (diserahkan ke checklist manual pemilik `#1–#18` di `PHASE-11A-MANUAL-REVIEW.md`); race condition MariaDB/InnoDB multi-proses nyata; Subfase 11b+ (belum diotorisasi).
+- **Review manual pemilik: AWAITING OWNER REVIEW (#1–#18, 2026-11-03 WIB)** (`reports/feature-update/PHASE-11A-MANUAL-REVIEW.md`). Port `18028` dan `14028` tetap bebas.
+
 ## Matriks minimum per perubahan
 | Area | Kasus wajib |
 |---|---|

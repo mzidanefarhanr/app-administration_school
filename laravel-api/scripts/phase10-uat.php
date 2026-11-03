@@ -1042,5 +1042,79 @@ if ($command === 'probe-reports') {
     exit(0);
 }
 
-fwrite(STDERR, "Unknown command. Use init, prepare, prepare-teaching, prepare-journals, probe-reports, status, or start the HTTP server with this script.\n");
+if ($command === 'probe-dashboard') {
+    $dashboardService = $app->make(App\Services\DashboardService::class);
+    $admin = App\Models\User::where('username', 'uat.admin')->firstOrFail();
+    $operator = App\Models\User::where('username', 'uat.operator')->firstOrFail();
+    $kepsek = App\Models\User::where('username', 'uat.kepsek')->firstOrFail();
+    $guru = App\Models\User::where('username', 'uat.guru')->firstOrFail();
+
+    fwrite(STDOUT, "=== UAT Phase 11a Operational Dashboard Probe ===\n\n");
+
+    // Probe 1: Admin Overview
+    $adminOverview = $dashboardService->getOverview($admin);
+    fwrite(STDOUT, "[PROBE 1] Admin Dashboard Overview:\n");
+    fwrite(STDOUT, "  - Active School Year: " . ($adminOverview['academic']['active_school_year'] ?? 'N/A') . "\n");
+    fwrite(STDOUT, "  - Total Active Students: " . ($adminOverview['academic']['total_active_students'] ?? 'N/A') . "\n");
+    fwrite(STDOUT, "  - Total Active Rombels: " . ($adminOverview['academic']['total_active_rombels'] ?? 'N/A') . "\n");
+    fwrite(STDOUT, "  - Teaching View Type: " . ($adminOverview['teaching']['view_type'] ?? 'N/A') . "\n");
+    fwrite(STDOUT, "  - System Info: " . ($adminOverview['system'] !== null ? 'Present' : 'Null') . "\n");
+    if (($adminOverview['teaching']['view_type'] ?? null) !== 'school_wide' || $adminOverview['system'] === null) {
+        throw new RuntimeException('Probe 1 failed: Admin overview invalid');
+    }
+    fwrite(STDOUT, "  -> PASS: Admin overview contains complete school-wide metrics.\n\n");
+
+    // Probe 2: Leadership (Kepala Sekolah) Overview
+    $kepsekOverview = $dashboardService->getOverview($kepsek);
+    fwrite(STDOUT, "[PROBE 2] Kepala Sekolah Dashboard Overview:\n");
+    fwrite(STDOUT, "  - Role Slug: " . ($kepsekOverview['meta']['user_role'] ?? 'N/A') . "\n");
+    fwrite(STDOUT, "  - Teaching View Type: " . ($kepsekOverview['teaching']['view_type'] ?? 'N/A') . "\n");
+    fwrite(STDOUT, "  - Can View Students: " . ($kepsekOverview['meta']['can']['view_students'] ? 'true' : 'false') . "\n");
+    if (($kepsekOverview['teaching']['view_type'] ?? null) !== 'school_wide') {
+        throw new RuntimeException('Probe 2 failed: Kepsek should have school_wide teaching view');
+    }
+    fwrite(STDOUT, "  -> PASS: Kepala Sekolah overview is school-wide.\n\n");
+
+    // Probe 3: Teacher (Guru) Overview
+    $guruOverview = $dashboardService->getOverview($guru);
+    fwrite(STDOUT, "[PROBE 3] Guru Dashboard Overview:\n");
+    fwrite(STDOUT, "  - Teaching View Type: " . ($guruOverview['teaching']['view_type'] ?? 'N/A') . "\n");
+    fwrite(STDOUT, "  - Teacher Name: " . ($guruOverview['teaching']['teacher_name'] ?? 'N/A') . "\n");
+    fwrite(STDOUT, "  - Employees Data: " . ($guruOverview['employees'] === null ? 'NULL (Hidden)' : 'Visible') . "\n");
+    fwrite(STDOUT, "  - Letters Data: " . ($guruOverview['letters'] === null ? 'NULL (Hidden)' : 'Visible') . "\n");
+    fwrite(STDOUT, "  - System Data: " . ($guruOverview['system'] === null ? 'NULL (Hidden)' : 'Visible') . "\n");
+    if (($guruOverview['teaching']['view_type'] ?? null) !== 'teacher_personal' || $guruOverview['employees'] !== null || $guruOverview['system'] !== null) {
+        throw new RuntimeException('Probe 3 failed: Guru overview scoping/RBAC leak');
+    }
+    fwrite(STDOUT, "  -> PASS: Guru personal view correctly scoped without RBAC leaks.\n\n");
+
+    // Probe 4: Pending Tasks
+    $adminTasks = $dashboardService->getPendingTasks($admin);
+    $guruTasks = $dashboardService->getPendingTasks($guru);
+    fwrite(STDOUT, "[PROBE 4] Operational Pending Tasks:\n");
+    fwrite(STDOUT, "  - Admin Tasks Count: " . count($adminTasks) . "\n");
+    fwrite(STDOUT, "  - Guru Tasks Count: " . count($guruTasks) . "\n");
+    if (!is_array($adminTasks) || !is_array($guruTasks)) {
+        throw new RuntimeException('Probe 4 failed: Tasks must be arrays');
+    }
+    fwrite(STDOUT, "  -> PASS: Pending tasks returned as structured arrays.\n\n");
+
+    // Probe 5: Charts Data
+    $adminCharts = $dashboardService->getCharts($admin);
+    $guruCharts = $dashboardService->getCharts($guru);
+    fwrite(STDOUT, "[PROBE 5] Charts API:\n");
+    fwrite(STDOUT, "  - Admin Student Chart Labels: " . count($adminCharts['students_by_level']['labels'] ?? []) . " rombels\n");
+    fwrite(STDOUT, "  - Admin Teaching Trend Labels: " . count($adminCharts['teaching_compliance_trend']['labels'] ?? []) . " months\n");
+    fwrite(STDOUT, "  - Guru Student Chart: " . ($guruCharts['students_by_level'] === null ? 'NULL (Unpermitted)' : 'Visible') . "\n");
+    fwrite(STDOUT, "  - Guru Teaching Trend: " . ($guruCharts['teaching_compliance_trend'] !== null ? 'Present' : 'NULL') . "\n");
+    if ($adminCharts['students_by_level'] === null || $adminCharts['teaching_compliance_trend'] === null || $guruCharts['students_by_level'] !== null) {
+        throw new RuntimeException('Probe 5 failed: Charts RBAC or structure mismatch');
+    }
+    fwrite(STDOUT, "  -> PASS: Operational charts conform to authorization matrix.\n\n");
+
+    fwrite(STDOUT, "=== ALL 5 UAT PHASE 11A DASHBOARD PROBES PASSED SUCCESSFULLY ===\n");
+    exit(0);
+}
+
+fwrite(STDERR, "Unknown command. Use init, prepare, prepare-teaching, prepare-journals, probe-reports, probe-dashboard, status, or start the HTTP server with this script.\n");
 exit(2);

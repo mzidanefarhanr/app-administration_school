@@ -1,0 +1,161 @@
+<script setup>
+import { computed, onMounted, ref, watch } from 'vue';
+import apiLogin from '@/apiLogin';
+import { useLayout } from '@/layout/composables/layout';
+import { authStore } from '@/stores/authStore';
+
+const { isDarkTheme } = useLayout();
+const store = authStore();
+
+const rawData = ref(null);
+const chartData = ref(null);
+const chartOptions = ref(null);
+const loading = ref(false);
+const error = ref('');
+
+const canViewStudents = computed(() => store.can('students.view'));
+
+const buildChartConfig = () => {
+    if (!rawData.value?.labels || !rawData.value.labels.length) {
+        chartData.value = null;
+        return;
+    }
+
+    const documentStyle = getComputedStyle(document.documentElement);
+    const textColor = documentStyle.getPropertyValue('--text-color') || '#495057';
+    const textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary') || '#6c757d';
+    const surfaceBorder = documentStyle.getPropertyValue('--surface-border') || '#dfe7ef';
+
+    const maleColor = documentStyle.getPropertyValue('--p-primary-500') || '#3B82F6';
+    const femaleColor = documentStyle.getPropertyValue('--p-pink-400') || '#EC4899';
+
+    const datasets = (rawData.value.datasets || [])
+        .filter((ds) => ds.label !== 'Total')
+        .map((ds) => {
+            const isMale = ds.label.toLowerCase().includes('laki') || ds.label.toLowerCase().includes('male');
+            const color = isMale ? maleColor : femaleColor;
+            return {
+                label: ds.label,
+                data: ds.data,
+                backgroundColor: color,
+                borderColor: color,
+                borderRadius: 6,
+                barThickness: 24
+            };
+        });
+
+    chartData.value = {
+        labels: rawData.value.labels,
+        datasets
+    };
+
+    chartOptions.value = {
+        maintainAspectRatio: false,
+        aspectRatio: 0.8,
+        plugins: {
+            legend: {
+                labels: {
+                    color: textColor,
+                    font: {
+                        family: 'inherit',
+                        weight: 500
+                    }
+                }
+            },
+            tooltip: {
+                mode: 'index',
+                intersect: false
+            }
+        },
+        scales: {
+            x: {
+                stacked: true,
+                ticks: {
+                    color: textColorSecondary,
+                    font: {
+                        family: 'inherit'
+                    }
+                },
+                grid: {
+                    display: false,
+                    drawBorder: false
+                }
+            },
+            y: {
+                stacked: true,
+                ticks: {
+                    color: textColorSecondary,
+                    stepSize: 5,
+                    font: {
+                        family: 'inherit'
+                    }
+                },
+                grid: {
+                    color: surfaceBorder,
+                    drawBorder: false
+                }
+            }
+        }
+    };
+};
+
+const load = async () => {
+    if (!canViewStudents.value) return;
+
+    loading.value = true;
+    error.value = '';
+    try {
+        const response = await apiLogin.get('/api/dashboard/charts');
+        rawData.value = response.data?.data?.students_by_level ?? null;
+        buildChartConfig();
+    } catch {
+        error.value = 'Data grafik distribusi siswa tidak dapat dimuat.';
+    } finally {
+        loading.value = false;
+    }
+};
+
+watch(isDarkTheme, () => {
+    buildChartConfig();
+});
+
+onMounted(async () => {
+    await load();
+});
+
+defineExpose({ load });
+</script>
+
+<template>
+    <div class="card mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <div class="font-semibold text-xl">Distribusi Siswa per Rombel</div>
+                <div class="text-xs text-muted-color">Komposisi jumlah siswa per kelas dan jenis kelamin</div>
+            </div>
+            <Button v-if="canViewStudents" icon="pi pi-refresh" size="small" variant="text" severity="secondary" :loading="loading" aria-label="Segarkan grafik siswa" @click="load" />
+        </div>
+
+        <div v-if="!canViewStudents" class="flex flex-col items-center justify-center py-12 text-surface-400 text-center">
+            <i class="pi pi-lock text-3xl mb-2" aria-hidden="true"></i>
+            <span class="text-sm">Grafik distribusi siswa memerlukan kemampuan melihat data siswa (students.view).</span>
+        </div>
+
+        <div v-else-if="loading" class="flex items-center justify-center py-16 text-surface-500 gap-3">
+            <i class="pi pi-spin pi-spinner text-lg" aria-hidden="true"></i>
+            <span class="text-sm">Memuat visualisasi siswa...</span>
+        </div>
+
+        <div v-else-if="error" class="flex flex-col items-center justify-center py-12 text-center text-red-500">
+            <i class="pi pi-exclamation-triangle text-2xl mb-2" aria-hidden="true"></i>
+            <span class="text-sm">{{ error }}</span>
+            <Button label="Coba Lagi" icon="pi pi-refresh" size="small" severity="secondary" variant="outlined" class="mt-3" @click="load" />
+        </div>
+
+        <div v-else-if="!chartData || !chartData.labels || !chartData.labels.length" class="py-12 text-center text-surface-400 text-sm">Belum ada rombel atau data siswa terdaftar pada tahun ajaran aktif.</div>
+
+        <div v-else class="h-80">
+            <Chart type="bar" :data="chartData" :options="chartOptions" class="h-full w-full" />
+        </div>
+    </div>
+</template>

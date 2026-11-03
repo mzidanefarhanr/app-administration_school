@@ -1,33 +1,34 @@
 <script setup>
 import ArchiveExpiryWidget from '@/components/dashboard/ArchiveExpiryWidget.vue';
-import BestSellingWidget from '@/components/dashboard/BestSellingWidget.vue';
-import ChartDataWidget_1 from '@/components/dashboard/ChartDataWidget_1.vue';
+import DataQualityOverviewWidget from '@/components/dashboard/DataQualityOverviewWidget.vue';
 import ListUsersOnlineWidget from '@/components/dashboard/ListUsersOnlineWidget.vue';
-import NotificationsWidget from '@/components/dashboard/NotificationsWidget.vue';
-import RecentSalesWidget from '@/components/dashboard/RecentSalesWidget.vue';
-import RevenueStreamWidget from '@/components/dashboard/RevenueStreamWidget.vue';
-import StatsWidget from '@/components/dashboard/StatsWidget.vue';
+import OperationalStatsWidget from '@/components/dashboard/OperationalStatsWidget.vue';
+import PendingTasksWidget from '@/components/dashboard/PendingTasksWidget.vue';
+import StudentDistributionChartWidget from '@/components/dashboard/StudentDistributionChartWidget.vue';
+import SystemOverviewWidget from '@/components/dashboard/SystemOverviewWidget.vue';
+import TeachingComplianceChartWidget from '@/components/dashboard/TeachingComplianceChartWidget.vue';
 </script>
 
 <template>
     <div class="grid grid-cols-12 gap-8">
         <ArchiveExpiryWidget />
 
-        <StatsWidget />
+        <OperationalStatsWidget />
 
         <div class="col-span-12 xl:col-span-6">
-            <ChartDataWidget_1 />
+            <StudentDistributionChartWidget />
+        </div>
+        <div class="col-span-12 xl:col-span-6">
+            <TeachingComplianceChartWidget />
+        </div>
+
+        <div class="col-span-12 xl:col-span-6">
+            <PendingTasksWidget />
+            <DataQualityOverviewWidget />
         </div>
         <div class="col-span-12 xl:col-span-6">
             <ListUsersOnlineWidget />
-        </div>
-        <div class="col-span-12 xl:col-span-6">
-            <RecentSalesWidget />
-            <BestSellingWidget />
-        </div>
-        <div class="col-span-12 xl:col-span-6">
-            <RevenueStreamWidget />
-            <NotificationsWidget />
+            <SystemOverviewWidget />
         </div>
     </div>
 </template>

@@ -1,6 +1,12 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Rencana Subfase 11a DISETUJUI — DEC-42 APPROVED; implementasi diotorisasi)
+## Current checkpoint — 2026-11-03 (Subfase 11a IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-42 IMPLEMENTED)
+
+- **Status:** Subfase **11a — Ganti widget demo dashboard operasional** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`d7cf62d`** (dokumentasi persetujuan rencana `DEC-42 APPROVED`). Paket implementasi dilaporkan di `reports/feature-update/PHASE-11A-REPORT.md` dan checklist pengujian manual pemilik disediakan di `reports/feature-update/PHASE-11A-MANUAL-REVIEW.md` (#1–#18). **Fase 10 (10a, 10b, 10c) tetap OWNER APPROVED dan SELESAI LENGKAP & DITUTUP** (`2a36800`).
+- **Server UAT:** Server UAT `.uat-phase10` pada port `18028` dan `14028` telah diverifikasi dihentikan per DEC-27 (`PORTS_18028_14028_FREE`). Data `.uat-phase10` dipertahankan untuk review manual pemilik. Apache dan MariaDB operasional tidak disentuh.
+- **Next:** Pemilik menjalankan checklist manual #1–#18 di `reports/feature-update/PHASE-11A-MANUAL-REVIEW.md` dan memberikan persetujuan penerimaan bila sesuai.
+
+## Previous checkpoint — 2026-11-03 (Rencana Subfase 11a DISETUJUI — DEC-42 APPROVED; implementasi diotorisasi)
 
 - **Status:** Pemilik menyatakan **"Saya setuju D1-D10"** (2026-11-03 WIB); dicatat sebagai **DEC-42 APPROVED**. Implementasi **Subfase 11a — Ganti widget demo dashboard operasional** diotorisasi sesuai `reports/feature-update/PHASE-11A-PLAN.md` (baseline **`2a36800`**; paket rencana **`88b16a1`**). **Fase 10 (10a, 10b, 10c) tetap OWNER APPROVED dan SELESAI LENGKAP & DITUTUP** (`2a36800`).
 - **Next:** Eksekusi S1–S8 Subfase 11a, verifikasi penuh, dan siapkan `PHASE-11A-REPORT.md` serta `PHASE-11A-MANUAL-REVIEW.md`.

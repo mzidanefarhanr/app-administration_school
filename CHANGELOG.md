@@ -17,6 +17,37 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 11a — Ganti widget demo dashboard dengan metrik operasional nyata (DEC-42 IMPLEMENTED)
+- Type: Feature
+- Scope / fase: Fase 11 — Subfase 11a: Ganti Widget Demo Dashboard Operasional (DEC-42 IMPLEMENTED).
+- Files touched:
+  - Backend: `laravel-api/app/Services/DashboardService.php`, `laravel-api/app/Http/Controllers/DashboardController.php`, `laravel-api/routes/api.php`, `laravel-api/tests/Feature/Dashboard/DashboardApiTest.php`, `laravel-api/scripts/phase10-uat.php`.
+  - Frontend: `vue-app/src/components/dashboard/OperationalStatsWidget.vue`, `vue-app/src/components/dashboard/PendingTasksWidget.vue`, `vue-app/src/components/dashboard/DataQualityOverviewWidget.vue`, `vue-app/src/components/dashboard/StudentDistributionChartWidget.vue`, `vue-app/src/components/dashboard/TeachingComplianceChartWidget.vue`, `vue-app/src/components/dashboard/SystemOverviewWidget.vue`, `vue-app/src/views/Dashboard.vue`.
+  - Docs: `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `docs/TESTING.md`, `roadmap/ROADMAP.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `reports/feature-update/PHASE-11A-REPORT.md`, `reports/feature-update/PHASE-11A-MANUAL-REVIEW.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed:
+  - Mengeliminasi seluruh 6 widget demo bawaan template Sakai PrimeVue (`StatsWidget`, `RecentSales`, `BestSelling`, `ChartData_1`, `RevenueStream`, `Notifications`), mock `ProductService.js`, dan simbol mata uang dollar/toko pada `Dashboard.vue`.
+  - Menghadirkan 6 komponen widget dashboard operasional nyata di `vue-app/src/components/dashboard/`:
+    1. `OperationalStatsWidget.vue`: 4 KPI card adaptif peran (Siswa/Rombel, PTK, Surat/Izin Pending, Kepatuhan Jurnal/Sesi Mengajar Hari Ini).
+    2. `PendingTasksWidget.vue`: daftar actionable items bertag urgensi (`high` > `warn` > `info`) dengan direct navigation link.
+    3. `DataQualityOverviewWidget.vue`: progress kelengkapan master data siswa & pegawai dengan link ke `/public/data-quality`.
+    4. `StudentDistributionChartWidget.vue`: grafik batang distribusi siswa per rombel & gender (L/P).
+    5. `TeachingComplianceChartWidget.vue`: grafik kombinasi kepatuhan mengajar 4 bulan terakhir (persentase & sesi terjurnal).
+    6. `SystemOverviewWidget.vue`: kartu ringkasan status tahun ajaran/semester aktif, server time WIB, backup health, dan shortcut navigasi cepat.
+  - Tetap mempertahankan komponen eksisting `ArchiveExpiryWidget.vue` dan `ListUsersOnlineWidget.vue`.
+  - Mengimplementasikan `DashboardService` dan `DashboardController` dengan 3 endpoint terpadu berbasis ability di `/api/dashboard/*` (`overview`, `pending-tasks`, `charts`).
+  - Zero database schema change.
+- Why: memenuhi kebutuhan sistem administrasi sekolah riil di mana dashboard operasional menyajikan data live teragregasi lintas modul 01–10 secara adaptif sesuai peran pengguna (admin, operator, kepala sekolah, waka, guru, staf).
+- Validation:
+  - `php artisan test --filter=DashboardApiTest`: 10 passed, 52 assertions.
+  - `php artisan test`: 654 passed, 13 skipped, 7.767 assertions (611.05s).
+  - `vendor/bin/pint --test`: 0 issues.
+  - `npm run lint` in `vue-app`: 0 errors, 0 warnings.
+  - `npm run build` in `vue-app`: succeeded in 36.20s (`Dashboard-BP4b2Y80.js 41.00 kB`).
+  - `php scripts/phase10-uat.php probe-dashboard`: 5/5 probes passed.
+  - Ports: 18028 dan 14028 bebas (`PORTS_18028_14028_FREE`).
+- Notes / risks: Tidak ada skema baru. UAT servers dihentikan per DEC-27. Menunggu review manual pemilik #1–#18 di `PHASE-11A-MANUAL-REVIEW.md`.
+- Evidence: `reports/feature-update/PHASE-11A-REPORT.md`, `reports/feature-update/PHASE-11A-MANUAL-REVIEW.md`.
+
 ## [2026-11-03] Fase 11a — Persetujuan rencana ganti widget demo dashboard operasional (DEC-42 APPROVED)
 - Type: Docs
 - Scope / fase: Pencatatan persetujuan pemilik atas rencana Subfase 11a (`D1–D10` sebagai `DEC-42 APPROVED`). Tidak ada perubahan kode aplikasi pada entri ini.

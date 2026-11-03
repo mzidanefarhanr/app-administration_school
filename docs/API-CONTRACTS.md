@@ -591,6 +591,21 @@ Frontend 10b: `TeachingJournalsView.vue`, `router/index.js`, `AppMenu.vue`.
 
 Frontend 10c: `TeachingReportsView.vue`, `router/index.js`, `AppMenu.vue`.
 
+## Perubahan Subfase 11a (DEC-42) — penggantian widget demo dashboard dengan metrik operasional nyata
+
+**3 route baru** di `/api/dashboard/*` dilindungi `auth:sanctum`. Zero database migrations.
+
+| Method | Endpoint | Izin | Perilaku |
+|---|---|---|---|
+| GET | `/api/dashboard/overview` | `auth:sanctum` | Agregasi metrik operasional multi-domain adaptif sesuai kemampuan akun: `academic` (periode aktif, status kunci, total siswa aktif, total rombel aktif), `employees` (total guru dan tendik jika `employees.view`), `data_quality` (persentase kelengkapan data siswa dan PTK jika diizinkan), `letters` (surat masuk belum disposisi dan surat keluar review jika `letters.view`), `leaves` (permohonan izin pending jika `leaves.view` atau personal), `teaching` (mode `school_wide` untuk admin/operator/kepsek/waka atau mode `teacher_personal` dengan sesi hari ini untuk guru jika `teaching.view`), `archives` (dokumen kedaluwarsa & akan kedaluwarsa jika `archives.view`), `system` (status backup jika `backup.manage`), serta `meta` (`server_time_wib`, `user_role`, `can`). Bagian yang tidak diizinkan disembunyikan aman sebagai `null`. |
+| GET | `/api/dashboard/pending-tasks` | `auth:sanctum` | Daftar tugas operasional yang membutuhkan tindakan langsung pengguna, diurutkan berdasarkan urgensi (`high` > `warn` > `info`) dan tanggal terbaru: surat keluar review approval, surat masuk belum disposisi, permohonan izin pending keputusan, sesi missing jurnal dalam masa grace 7 hari (guru) atau overdue (operator), dan dokumen arsip kedaluwarsa. Format butir tugas: `id`, `domain`, `category`, `title`, `description`, `date`, `urgency`, `action_url` (maksimal 15 tugas). |
+| GET | `/api/dashboard/charts` | `auth:sanctum` | Kumpulan dataset statistik untuk visualisasi grafik dashboard: `students_by_level` (distribusi jumlah siswa per rombel terpilah laki-laki/perempuan dan total jika `students.view`), serta `teaching_compliance_trend` (tren kepatuhan % dan jumlah jurnal terisi 4 bulan terakhir jika `teaching.view`). |
+
+- **Zero schema change**: murni analitikal dan agregasi berbasis `DashboardService` memanfaatkan service domain yang sudah ada (`TeachingReportService`, `BackupMonitoringService`, `StudentCompletenessInspector`, dll).
+- **UI**: Penggantian seluruh widget demo template Sakai Vue di `Dashboard.vue` dengan 6 widget operasional nyata: `OperationalStatsWidget.vue` (4 kartu KPI), `PendingTasksWidget.vue` (daftar tugas tertunda), `DataQualityOverviewWidget.vue` (kelengkapan master), `StudentDistributionChartWidget.vue` (grafik siswa per rombel), `TeachingComplianceChartWidget.vue` (grafik tren kepatuhan 4 bulan), dan `SystemOverviewWidget.vue` (info sistem & pintasan cepat). Tetap mempertahankan `ArchiveExpiryWidget.vue` dan `ListUsersOnlineWidget.vue`.
+
+Frontend 11a: `Dashboard.vue`, `OperationalStatsWidget.vue`, `PendingTasksWidget.vue`, `DataQualityOverviewWidget.vue`, `StudentDistributionChartWidget.vue`, `TeachingComplianceChartWidget.vue`, `SystemOverviewWidget.vue`.
+
 ## Aktual
 
 Resource di `/api`, dilindungi auth:sanctum: users, status-users, type-users, firstlogin; provinces/regencies/districts/villages; school-years/semesters/education-levels; genders/religions/blood-types/professions/family-status; education-schools/student-statuses/student-entries/student-majors/phase-statuses; students/school-levels/school-rombels/student-rombels; employees (alias deprecated: employee)/employee-statuses/employee-types/employments/marital-statuses; school-profile/subjects/activities.

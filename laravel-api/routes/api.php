@@ -8,6 +8,7 @@ use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\BloodTypeController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\EducationLevelController;
 use App\Http\Controllers\EducationSchoolController;
@@ -428,6 +429,13 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
             ->middleware('can:teaching.view');
         Route::get('/reports/missing-journals/export', [TeachingReportController::class, 'exportMissingJournals'])
             ->middleware('can:teaching.view');
+    });
+
+    // Fase 11a (DEC-42) — dashboard operasional terpadu.
+    Route::prefix('dashboard')->group(function () {
+        Route::get('/overview', [DashboardController::class, 'overview']);
+        Route::get('/pending-tasks', [DashboardController::class, 'pendingTasks']);
+        Route::get('/charts', [DashboardController::class, 'charts']);
     });
 
     // Fase 01a — penegakan kemampuan pada endpoint master/referensi.

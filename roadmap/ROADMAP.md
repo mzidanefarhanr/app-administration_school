@@ -4,7 +4,18 @@ Versi dokumen: 1.0, 14 Oktober 2026 (WIB); audit HEAD 15 Oktober 2026.
 Baseline kode: `b02a87f0d57adffec297ed465a8afcd8e8d7ec59`; HEAD audit `b699feccd65357a10f7430c165400906e6394d49` (delta = paket docs saja, kode tidak berubah).
 Historical drafting status (2026-10-14/15): DRAFT; Fase 00 PARTIAL. The original “all other phases not started” statement is obsolete; current statuses are in the table and correction addendum below.
 
-## Addendum — 2026-11-03 (Rencana Subfase 11a DISETUJUI — DEC-42 APPROVED; implementasi diotorisasi)
+## Addendum — 2026-11-03 (Subfase 11a IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18)
+
+Subfase **11a — Ganti widget demo dashboard operasional** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`d7cf62d`** (dokumentasi persetujuan rencana `DEC-42 APPROVED`), dengan laporan implementasi di `reports/feature-update/PHASE-11A-REPORT.md` dan paket review manual di `reports/feature-update/PHASE-11A-MANUAL-REVIEW.md` (#1–#18). **Seluruh subfase Fase 10 (10a, 10b, 10c) tetap OWNER APPROVED dan Fase 10 SELESAI LENGKAP & DITUTUP** (`2a36800`). Disampaikan pada 11a:
+1. Zero database migrations (murni analitikal *read-only*).
+2. Endpoint agregasi baru: `GET /api/dashboard/overview`, `GET /api/dashboard/pending-tasks`, `GET /api/dashboard/charts` di bawah `auth:sanctum`.
+3. Dashboard adaptif berbasis peran: pimpinan/operator menerima ikhtisar sekolah menyeluruh (*school-wide*), guru menerima tampilan personal (*teacher_personal*) tanpa kebocoran data staf/surat/sistem.
+4. Penggantian 6 widget demo Sakai PrimeVue dengan komponen operasional nyata: `OperationalStatsWidget.vue` (4 kartu KPI), `PendingTasksWidget.vue` (daftar tugas tertunda), `DataQualityOverviewWidget.vue` (audit kualitas kelengkapan), `StudentDistributionChartWidget.vue` (grafik siswa per rombel & gender), `TeachingComplianceChartWidget.vue` (grafik tren kepatuhan mengajar 4 bulan), dan `SystemOverviewWidget.vue` (periode aktif, waktu WIB, status backup, dan pintasan cepat).
+5. Preservasi `ArchiveExpiryWidget.vue` dan `ListUsersOnlineWidget.vue`.
+6. Bukti: `DashboardApiTest.php` 10 tes / 52 assertions PASS (8.15s), Pint PASS, ESLint 0 errors / 0 warnings, Vite build PASS (41.00 kB), probe UAT otomatis 5/5 PASS, Full suite 654 passed / 13 skipped PASS (611.05s).
+7. Server UAT port 18028 & 14028 bebas (`PORTS_18028_14028_FREE`) per DEC-27. Menunggu review manual pemilik checklist #1–#18.
+
+## Previous addendum — 2026-11-03 (Rencana Subfase 11a DISETUJUI — DEC-42 APPROVED; implementasi diotorisasi)
 
 Pernyataan pemilik **"Saya setuju D1-D10"** (2026-11-03 WIB) dicatat sebagai **DEC-42 APPROVED**; implementasi **Subfase 11a — Ganti widget demo dashboard operasional** diotorisasi sesuai `reports/feature-update/PHASE-11A-PLAN.md` (baseline **`2a36800`**; paket rencana **`88b16a1`**). **Seluruh subfase Fase 10 (10a, 10b, 10c) tetap OWNER APPROVED dan Fase 10 SELESAI LENGKAP & DITUTUP** (`2a36800`). Scope 11a yang disetujui: penggantian 6 widget demo Sakai PrimeVue (`StatsWidget`, `RecentSales`, `BestSelling`, `ChartData_1`, `RevenueStream`, `Notifications`) dengan komponen operasional nyata (`OperationalStatsWidget`, `PendingTasksWidget`, `DataQualityOverviewWidget`, `StudentDistributionChartWidget`, `TeachingComplianceChartWidget`, `SystemOverviewWidget`); mempertahankan `ArchiveExpiryWidget.vue` dan `ListUsersOnlineWidget.vue`; penyediaan endpoint agregasi terpadu `GET /api/dashboard/overview` berbasis ability; endpoint antrean tugas tertunda `GET /api/dashboard/pending-tasks`; endpoint grafik distribusi `GET /api/dashboard/charts`; dashboard adaptif peran; eliminasi mock `ProductService.js` dan sisa toko/dollar; zero schema change; serta UAT terisolasi dengan server dihentikan per DEC-27. Detail: `reports/feature-update/PHASE-11A-PLAN.md`.
 

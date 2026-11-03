@@ -206,6 +206,21 @@ API mayoritas hanya auth:sanctum. Beberapa controller akun membedakan tipe secar
 - **UI**: menu **Teaching → Journal Reports** (`/public/teaching/reports`, alias `/teaching/reports`, guard `requiresAbility: 'teaching.view'`) dengan 2 tab (**Teacher Compliance Summary** dan **Missing Sessions Drilldown**), filter preset rentang tanggal (7D, 30D, Bulan Ini) berbatas maks 90 hari, tombol aksi langsung "Fill Journal" pada baris sesi yang masih dalam grace window ($\le 7$ hari WIB), dan tombol ekspor CSV.
 - **UAT**: `.uat-phase10` diverifikasi via `php scripts/phase10-uat.php probe-reports` dengan 5 probe HTTP (laporan admin sekolah, isolasi `scope=mine` guru, penolakan `403` lintas guru, laporan kepemimpinan sekolah, dan streaming CSV dengan BOM); server UAT dihentikan setelah verifikasi sesuai DEC-27.
 
+## Implementasi Subfase 11a (dashboard operasional adaptif berbasis peran & penggantian widget demo)
+- **Scoping Dashboard Adaptif Berbasis Peran & Kemampuan**:
+  - Endpoint `/api/dashboard/overview`, `/api/dashboard/pending-tasks`, dan `/api/dashboard/charts` dilindungi `auth:sanctum`.
+  - Scoping domain data disesuaikan otomatis dengan hak akses aktor tanpa kebocoran data (*default null* jika tidak berizin):
+    - `academic.total_active_students` & `total_active_rombels` hanya tampil untuk pemegang `students.view`.
+    - `employees` (total guru & tendik) hanya tampil untuk pemegang `employees.view`.
+    - `letters` (surat masuk belum disposisi & review keluar) hanya tampil untuk pemegang `letters.view`.
+    - `leaves` (permohonan izin pending) hanya tampil untuk pemegang `leaves.view` (atau personal izin user).
+    - `teaching`: untuk pengelola (`teaching.manage`) atau peran pimpinan (`kepala-sekolah`/`wakil-kesiswaan`) berupa `view_type = 'school_wide'` dengan metrik kepatuhan sekolah. Untuk guru biasa berupa `view_type = 'teacher_personal'` dengan hitungan jadwal hari ini dan kepatuhan guru sendiri.
+    - `system` (status backup) hanya tampil untuk pemegang `backup.manage` atau `users.manage`.
+  - `pending-tasks`: menyaring tugas sesuai peran (surat keluar/izin untuk approver/pimpinan; surat masuk untuk pengelola surat; sesi overdue untuk pengelola mengajar; sesi grace window untuk guru sendiri; dokumen arsip untuk pengelola arsip).
+  - `charts`: grafik distribusi siswa hanya diakses pemegang `students.view` (disembunyikan aman bagi guru biasa); grafik kepatuhan mengajar hanya diakses pemegang `teaching.view`.
+- **UI**: Halaman `/` (Dashboard) terbebas sepenuhnya dari mock/demo e-commerce dan menyajikan 6 widget operasional nyata beradaptasi terhadap kemampuan akun login.
+- **UAT**: `.uat-phase10` diverifikasi via `php scripts/phase10-uat.php probe-dashboard` dengan 5 probe HTTP (admin overview, kepsek overview, isolasi guru personal tanpa leak data staf/surat, pending tasks, dan charts matrix); server UAT dihentikan setelah verifikasi sesuai DEC-27.
+
 | Kemampuan | Admin | Operator | Kepala sekolah | Guru/wali kelas |
 |---|---|---|---|---|
 | users.manage / roles.manage | Ya | Tidak | Tidak | Tidak |
