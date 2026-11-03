@@ -1,0 +1,35 @@
+{
+    "topbar": {
+        "notifications": "Pemberitahuan",
+        "messages": "Pesan",
+        "profile": "Profil"
+    },
+    "userMenu": {
+        "title": "Pengguna",
+        "profile": "Profil Akun",
+        "logout": "Keluar",
+        "loading": "Memuat...",
+        "signedOut": "Sesi Berakhir",
+        "signedOutDetail": "Anda telah keluar dari sesi. Mengalihkan ke halaman login...",
+        "signedOutLocalDetail": "Keluar secara lokal. Tidak dapat menghubungi server untuk mengakhiri sesi.",
+        "roles": {
+            "adminSistem": "Administrator Sistem",
+            "operatorSekolah": "Operator Sekolah",
+            "kepalaSekolah": "Kepala Sekolah",
+            "wakilKesiswaan": "Wakil Kepala Kesiswaan",
+            "guru": "Guru"
+        }
+    },
+    "config": {
+        "primary": "Warna Utama",
+        "surface": "Warna Dasar",
+        "presets": "Preset Desain",
+        "menuMode": "Mode Menu",
+        "menuModeStatic": "Tetap",
+        "menuModeOverlay": "Melayang"
+    },
+    "footer": {
+        "createdBy": "Dibuat oleh",
+        "notAcquired": "(belum diakuisisi atau dibeli)"
+    }
+}

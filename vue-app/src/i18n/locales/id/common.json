@@ -16,6 +16,7 @@
     "state": {
         "empty": "Belum ada data",
         "error": "Terjadi kesalahan",
-        "loading": "Memuat…"
+        "loading": "Memuat…",
+        "processing": "Memproses Permintaan"
     }
 }

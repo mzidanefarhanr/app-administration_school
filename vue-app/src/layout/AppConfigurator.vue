@@ -23,9 +23,9 @@ const preset = ref(layoutConfig.preset);
 const presetOptions = ref(Object.keys(presets));
 
 const menuMode = ref(layoutConfig.menuMode);
-const menuModeOptions = ref([
-    { label: 'Static', value: 'static' },
-    { label: 'Overlay', value: 'overlay' }
+const menuModeOptions = computed(() => [
+    { label: t('layout.config.menuModeStatic'), value: 'static' },
+    { label: t('layout.config.menuModeOverlay'), value: 'overlay' }
 ]);
 
 const primaryColors = ref([
@@ -210,7 +210,7 @@ function onMenuModeChange() {
     >
         <div class="flex flex-col gap-4">
             <div>
-                <span class="text-sm text-muted-color font-semibold">Primary</span>
+                <span class="text-sm text-muted-color font-semibold">{{ t('layout.config.primary') }}</span>
                 <div class="pt-2 flex gap-2 flex-wrap justify-between">
                     <button
                         v-for="primaryColor of primaryColors"
@@ -224,7 +224,7 @@ function onMenuModeChange() {
                 </div>
             </div>
             <div>
-                <span class="text-sm text-muted-color font-semibold">Surface</span>
+                <span class="text-sm text-muted-color font-semibold">{{ t('layout.config.surface') }}</span>
                 <div class="pt-2 flex gap-2 flex-wrap justify-between">
                     <button
                         v-for="surface of surfaces"
@@ -241,11 +241,11 @@ function onMenuModeChange() {
                 </div>
             </div>
             <div class="flex flex-col gap-2">
-                <span class="text-sm text-muted-color font-semibold">Presets</span>
+                <span class="text-sm text-muted-color font-semibold">{{ t('layout.config.presets') }}</span>
                 <SelectButton v-model="preset" @change="onPresetChange" :options="presetOptions" :allowEmpty="false" />
             </div>
             <div class="flex flex-col gap-2">
-                <span class="text-sm text-muted-color font-semibold">Menu Mode</span>
+                <span class="text-sm text-muted-color font-semibold">{{ t('layout.config.menuMode') }}</span>
                 <SelectButton v-model="menuMode" @change="onMenuModeChange" :options="menuModeOptions" :allowEmpty="false" optionLabel="label" optionValue="value" />
             </div>
             <div class="flex flex-col gap-2">

@@ -16,6 +16,7 @@
     "state": {
         "empty": "No data yet",
         "error": "Something went wrong",
-        "loading": "Loading…"
+        "loading": "Loading…",
+        "processing": "Processing Request"
     }
 }

@@ -1,9 +1,9 @@
-<script setup></script>
+<script setup>
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+</script>
 
 <template>
-    <div class="layout-footer">
-        <!-- SAKAI by
-        <a href="https://primevue.org" target="_blank" rel="noopener noreferrer" class="text-primary font-bold hover:underline">PrimeVue</a> -->
-        Created by <b class="cursor-pointer">Muhamad Zidane Farhan Ramadhan, S.Kom.</b> (not yet Acquired or Purchased).
-    </div>
+    <div class="layout-footer">{{ t('layout.footer.createdBy') }} <b class="cursor-pointer">Muhamad Zidane Farhan Ramadhan, S.Kom.</b> {{ t('layout.footer.notAcquired') }}.</div>
 </template>
