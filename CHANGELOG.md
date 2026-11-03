@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 10a — Rencana penugasan dan jadwal pembelajaran (PLAN; DEC-39 PROPOSED; DEC-10 diajukan)
+- Type: Docs
+- Scope / fase: Penyusunan rencana rinci Subfase 10a (`reports/feature-update/PHASE-10-PLAN.md`, `DEC-39 PROPOSED`, penyelesaian gerbang `DEC-10`). Tidak ada perubahan kode aplikasi, migration, model, service, controller, route, komponen Vue, fixture UAT, atau eksekusi suite tes pada entri ini (`NOT RUN`).
+- Files touched: `reports/feature-update/PHASE-10-PLAN.md`, `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `roadmap/phases/PHASE-10-TEACHING.md`, `roadmap/ROADMAP.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: mendokumentasikan audit kode faktual pada baseline `f185ca6` (domain jadwal/penugasan masih greenfield, ability `teaching.view`/`teaching.manage` sudah terdaftar di `AbilityCatalog` namun `operator-sekolah` baru memiliki `teaching.view` dan `guru` belum memiliki keduanya, relasi `Employee` `Pendidik` + `Subject` + `SchoolRombel` + `SchoolYear` `locked_at`, serta `DEC-10` OPEN) dan menyusun usulan keputusan pemilik **D1–D11** (`DEC-39 PROPOSED`): tiga tabel additive (`teaching_assignments`, `teaching_schedules`, `teaching_schedule_exceptions`), deteksi bentrok waktu otomatis pada guru/rombel/ruang dengan transaksi + `SchoolYear::lockForUpdate()` + `expected_version`/`409`, exception kalender `holiday`/`cancelled`/`rescheduled` beserta deteksi bentrok pada tanggal/jam pengganti, sinkronisasi ability `teaching.manage` ke `operator-sekolah` dan `teaching.view` ke `guru`, guard penghapusan tahun ajaran/rombel, kebijakan batas waktu pengisian jurnal `journal_grace_days = 7` hari kalender WIB (untuk 10b/10c), 13 route `/api/teaching/*`, halaman `/public/teaching/schedules` (3 tab), dan UAT terisolasi `.uat-phase10` (`18028`/`14028`).
+- Why: setelah Fase 09 (09a & 09b) selesai dan diterima pemilik (`f185ca6`), tahap berikutnya pada roadmap adalah Fase 10 (Subfase 10a) yang memerlukan keputusan tertulis pemilik atas `D1–D11` dan `DEC-10` sebelum implementasi dimulai.
+- Validation: **NOT RUN** — tahap rencana dokumentasi saja.
+- Notes / risks: implementasi kode Subfase 10a belum diotorisasi sampai pemilik menyetujui `D1–D11`.
+- Evidence: `reports/feature-update/PHASE-10-PLAN.md`; baseline `f185ca6`.
+
 ## [2026-11-03] Fase 09b — Penerimaan manual pemilik #1–#18 (OWNER APPROVED; UAT stopped; Fase 09 selesai)
 - Type: Docs
 - Scope / fase: Penerimaan manual subfase 09b. Tidak ada perubahan kode aplikasi pada entri ini.
