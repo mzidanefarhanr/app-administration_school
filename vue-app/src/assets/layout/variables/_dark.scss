@@ -4,6 +4,7 @@
     --code-color: var(--p-surface-100);
 
     .layout-menu a.active-route {
-        background-color: rgba(52, 211, 153, 0.15);
+        color: var(--p-primary-400);
+        background-color: rgba(2, 44, 34, 0.3);
     }
 }

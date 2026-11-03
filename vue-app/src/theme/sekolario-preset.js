@@ -19,18 +19,18 @@ const SekolarioPreset = definePreset(Aura, {
         borderRadius: {
             none: '0',
             xs: '2px',
-            sm: '4px',
-            md: '8px',
+            sm: '6px',
+            md: '10px',
             lg: '12px',
             xl: '16px'
         },
         colorScheme: {
             light: {
                 primary: {
-                    color: '{emerald.600}',
+                    color: '{emerald.700}',
                     contrastColor: '#ffffff',
-                    hoverColor: '{emerald.700}',
-                    activeColor: '{emerald.700}'
+                    hoverColor: '{emerald.800}',
+                    activeColor: '{emerald.900}'
                 },
                 surface: {
                     0: '#ffffff',
@@ -50,9 +50,9 @@ const SekolarioPreset = definePreset(Aura, {
             dark: {
                 primary: {
                     color: '{emerald.400}',
-                    contrastColor: '{slate.950}',
+                    contrastColor: '{emerald.950}',
                     hoverColor: '{emerald.300}',
-                    activeColor: '{emerald.300}'
+                    activeColor: '{emerald.200}'
                 },
                 surface: {
                     0: '#ffffff',
