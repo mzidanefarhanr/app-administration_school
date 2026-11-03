@@ -37,7 +37,21 @@ Item 1–2 (logo, favicon) butuh file dari folder `sekolario-logo/`. Path tidak 
 - Dev server
 - Verifikasi visual (desktop/mobile, terang/gelap)
 
+## Status item design.md §10
+- ✓ Item 1: Logo (AppLogoDefault.vue)
+- ✓ Item 2: Favicon + title
+- ✓ Item 3: Preset tema
+- ✓ Item 4: Font struktur (ponytail: woff2 REQ-02)
+- ⊗ Item 5: Login page (views/** milik A, ditunda integrasi)
+- ⊗ Item 6: severity error→danger (views/** milik A)
+- ⊗ Item 7: Chart indigo→slate (components/** milik A)
+- ⊠ Item 8: Skala heading (butuh approval REQ-01)
+- ⊗ Item 9: Ikon menu (AppMenu.vue milik A)
+
+## Commit & Push
+SHA ff5d6ee pushed ke origin/feature/branding
+
 ## Next
-- Terima file logo dari pemilik
-- Kerjakan item 1–2: logo di AppLogoDefault.vue, AppTopbar.vue, favicon
-- Commit item 3–4 setelah verifikasi
+- File woff2 Plus Jakarta Sans (REQ-02)
+- Approval skala heading (REQ-01)
+- Item 5–7, 9 dikerjakan saat integrasi atau oleh A
