@@ -1,6 +1,19 @@
 # Konteks proyek
 
-## Current addendum — 2026-11-03 (Subfase 13b IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18; DEC-49 IMPLEMENTED)
+## Current addendum — 2026-11-03 (Subfase 13b OWNER APPROVED #1–#18; SUBFASE 13B SELESAI LENGKAP & DITUTUP; Rencana Subfase 13c DISUSUN — DEC-50 PROPOSED)
+
+Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** (2026-11-03 WIB); checklist manual Subfase 13b **#1–#18 APPROVED**. **Subfase 13b — Kesiapan Rilis (Release Readiness)** resmi **SELESAI LENGKAP & DITUTUP** (`dcc607b`). **DEC-49 disahkan menjadi APPROVED & CLOSED**. Port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
+
+Tonggak aktif bergeser ke **Subfase 13c — Rilis dan Handoff Operasional**, dengan rencana teknis rinci telah disusun di `reports/feature-update/PHASE-13C-PLAN.md` dengan usulan **DEC-50 PROPOSED (D1–D8)**:
+- Penjelasan makna rilis siap pakai (*Golden Master*) vs model deployment (On-Premise LAN Lokal Sekolah vs Cloud VPS Online).
+- Penerbitan tag Git resmi `v1.0.0` dan verifikasi bundel rilis `vue-app/dist`.
+- Panduan deployment langkah-demi-langkah dan inisialisasi superadmin `php artisan app:bootstrap-admin`.
+- Pre-use smoke test checklist $\le 10$ detik pasca-instalasi.
+- Paket serah terima operasional (*Handoff Package*): Runbook IT, SOP Rollback, kamus API, rekapitulasi 13 Fase.
+- Daftar known issues & rekomendasi masa depan (sinkronisasi Dapodik CSV lokal, notifikasi in-app).
+- Checklist review manual akhir #1–#18 dan kepatuhan port DEC-27 (`PORTS_18028_14028_FREE`).
+
+## Previous addendum — 2026-11-03 (Subfase 13b IMPLEMENTED & DIVERIFIKASI AGEN — DEC-49 IMPLEMENTED; FASE 13B SELESAI)
 
 Pernyataan pemilik **"Saya setuju D1-D10"** (2026-11-03 WIB) dicatat sebagai **DEC-49 APPROVED**; implementasi **Subfase 13b — Kesiapan Rilis (Release Readiness)** diotorisasi dan telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`303b624`**, dengan laporan implementasi di `reports/feature-update/PHASE-13B-REPORT.md` dan paket review manual di `reports/feature-update/PHASE-13B-MANUAL-REVIEW.md` (#1–#18). Disampaikan:
 - **Kesiapan Cadangan & Restore Drill:**

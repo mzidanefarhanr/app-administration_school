@@ -18,6 +18,60 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 ## Entries
 ## Entries
 
+## [2026-11-03] Fase 13b: penerimaan manual pemilik checklist #1–#18 (SUBFASE 13B SELESAI LENGKAP & DITUTUP); usulan rencana Subfase 13c (DEC-50 PROPOSED)
+- Type: Docs | Release Readiness | Project Sign-Off
+- Scope / fase: Fase 13 — Subfase 13b selesai dan ditutup; perencanaan Subfase 13c (DEC-50 PROPOSED).
+- Files touched:
+  - `docs/DECISIONS.md` (DEC-49 APPROVED & CLOSED; DEC-50 PROPOSED: D1–D8)
+  - `reports/feature-update/PHASE-13B-PLAN.md` (Subfase 13b disahkan APPROVED & CLOSED)
+  - `reports/feature-update/PHASE-13C-PLAN.md` (dokumen rencana komprehensif Subfase 13c: D1–D8)
+  - `roadmap/phases/PHASE-13-QA-RELEASE.md` (Subfase 13b OWNER APPROVED #1–#18 & CLOSED; Subfase 13c PLAN PROPOSED)
+  - `roadmap/ROADMAP.md` (pembaruan tabel roadmap dan addendum transisi Subfase 13c)
+  - `reports/feature-update/INDEX.md` (checkpoint indeks Subfase 13b penutupan & usulan Subfase 13c)
+  - `reports/feature-update/HANDOFF.md` (checkpoint handoff penerimaan Subfase 13b & usulan Subfase 13c)
+  - `PROJECT_CONTEXT.md` (addendum kontekstual penerimaan Subfase 13b & usulan Subfase 13c)
+  - `CHANGELOG.md` (entri riwayat penerimaan Subfase 13b dan perencanaan Subfase 13c)
+- What changed:
+  1. Mencatat persetujuan penuh pemilik atas 18 butir checklist pengujian manual Subfase 13b (#1–#18) pada `reports/feature-update/PHASE-13B-MANUAL-REVIEW.md` berdasarkan instruksi tertulis pemilik: *"Pengujian nomor 1-18 sudah berhasil dan saya approved."*
+  2. Menutup secara resmi **Subfase 13b (Kesiapan Rilis / Release Readiness)** dan mensahkan keputusan arsitektur **DEC-49** menjadi **APPROVED & CLOSED**.
+  3. Menyusun rencana kerja teknis untuk **Subfase 13c (Rilis dan Handoff Operasional)** di `reports/feature-update/PHASE-13C-PLAN.md` dengan usulan keputusan arsitektur **DEC-50 (D1–D8)**.
+  4. Menjelaskan secara komprehensif konsep "Rilis Siap Pakai" (*Golden Master*) vs model deployment sekolah (On-Premise LAN Lokal Sekolah vs Cloud VPS Online), penerbitan tag Git resmi `v1.0.0`, panduan langkah deployment lapangan, pre-use smoke test checklist, paket handoff serah terima sistem, daftar known issues, dan checklist review manual akhir #1–#18.
+- Why: Memenuhi instruksi pemilik untuk mencatat penerimaan resmi Subfase 13b dan menjawab pertanyaan pemilik mengenai arti rilis serta merumuskan rencana operasional untuk Subfase 13c.
+- Validation:
+  - Pemeriksaan kelengkapan dokumen rencana `reports/feature-update/PHASE-13C-PLAN.md` (D1–D8).
+  - Status port 18028 dan 14028 terverifikasi bebas listener (`PORTS_18028_14028_FREE`).
+  - Apache dan MariaDB operasional tidak terganggu.
+- Notes / risks: Tidak ada deployment liar ke server tanpa otorisasi pemilik (DEC-50 D1).
+- Evidence: `reports/feature-update/PHASE-13C-PLAN.md`; commit perencanaan.
+## Entries
+## Entries
+
+## [2026-11-03] Fase 13b: penerimaan manual pemilik checklist #1–#18 (SUBFASE 13B SELESAI LENGKAP & DITUTUP); usulan rencana Subfase 13c (DEC-50 PROPOSED)
+- Type: Docs | Release Readiness | Project Sign-Off
+- Scope / fase: Fase 13 — Subfase 13b selesai dan ditutup; perencanaan Subfase 13c (DEC-50 PROPOSED).
+- Files touched:
+  - `docs/DECISIONS.md` (DEC-49 APPROVED & CLOSED; DEC-50 PROPOSED: D1–D8)
+  - `reports/feature-update/PHASE-13B-PLAN.md` (Subfase 13b disahkan APPROVED & CLOSED)
+  - `reports/feature-update/PHASE-13C-PLAN.md` (dokumen rencana komprehensif Subfase 13c: D1–D8)
+  - `roadmap/phases/PHASE-13-QA-RELEASE.md` (Subfase 13b OWNER APPROVED #1–#18 & CLOSED; Subfase 13c PLAN PROPOSED)
+  - `roadmap/ROADMAP.md` (pembaruan tabel roadmap dan addendum transisi Subfase 13c)
+  - `reports/feature-update/INDEX.md` (checkpoint indeks Subfase 13b penutupan & usulan Subfase 13c)
+  - `reports/feature-update/HANDOFF.md` (checkpoint handoff penerimaan Subfase 13b & usulan Subfase 13c)
+  - `PROJECT_CONTEXT.md` (addendum kontekstual penerimaan Subfase 13b & usulan Subfase 13c)
+  - `CHANGELOG.md` (entri riwayat penerimaan Subfase 13b dan perencanaan Subfase 13c)
+- What changed:
+  1. Mencatat persetujuan penuh pemilik atas 18 butir checklist pengujian manual Subfase 13b (#1–#18) pada `reports/feature-update/PHASE-13B-MANUAL-REVIEW.md` berdasarkan instruksi tertulis pemilik: *"Pengujian nomor 1-18 sudah berhasil dan saya approved."*
+  2. Menutup secara resmi **Subfase 13b (Kesiapan Rilis / Release Readiness)** dan mensahkan keputusan arsitektur **DEC-49** menjadi **APPROVED & CLOSED**.
+  3. Menyusun rencana kerja teknis untuk **Subfase 13c (Rilis dan Handoff Operasional)** di `reports/feature-update/PHASE-13C-PLAN.md` dengan usulan keputusan arsitektur **DEC-50 (D1–D8)**.
+  4. Menjelaskan secara komprehensif konsep "Rilis Siap Pakai" (*Golden Master*) vs model deployment sekolah (On-Premise LAN Lokal Sekolah vs Cloud VPS Online), penerbitan tag Git resmi `v1.0.0`, panduan langkah deployment lapangan, pre-use smoke test checklist, paket handoff serah terima sistem, daftar known issues, dan checklist review manual akhir #1–#18.
+- Why: Memenuhi instruksi pemilik untuk mencatat penerimaan resmi Subfase 13b dan menjawab pertanyaan pemilik mengenai arti rilis serta merumuskan rencana operasional untuk Subfase 13c.
+- Validation:
+  - Pemeriksaan kelengkapan dokumen rencana `reports/feature-update/PHASE-13C-PLAN.md` (D1–D8).
+  - Status port 18028 dan 14028 terverifikasi bebas listener (`PORTS_18028_14028_FREE`).
+  - Apache dan MariaDB operasional tidak terganggu.
+- Notes / risks: Tidak ada deployment liar ke server tanpa otorisasi pemilik (DEC-50 D1).
+- Evidence: `reports/feature-update/PHASE-13C-PLAN.md`; commit perencanaan.
+
 ## [2026-11-03] Fase 13b — Kesiapan rilis, audit backup & restore drill, pengerasan produksi, rollback plan, dan SOP runbook (DEC-49 IMPLEMENTED)
 - Type: Feature | Docs | Quality Assurance | Release Readiness
 - Scope / fase: Fase 13 — Subfase 13b: Kesiapan Rilis (DEC-49 IMPLEMENTED).

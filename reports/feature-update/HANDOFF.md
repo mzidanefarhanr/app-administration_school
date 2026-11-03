@@ -1,6 +1,13 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Subfase 13b IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-49 IMPLEMENTED)
+## Current checkpoint — 2026-11-03 (Subfase 13b OWNER APPROVED #1–#18; SUBFASE 13B SELESAI LENGKAP & DITUTUP; Rencana Subfase 13c DISUSUN — DEC-50 PROPOSED)
+
+- **Status:** Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** (2026-11-03 WIB); checklist manual Subfase 13b **#1–#18 APPROVED**. **Subfase 13b — Kesiapan Rilis (Release Readiness)** resmi **SELESAI LENGKAP & DITUTUP** (`dcc607b`). **DEC-49 disahkan menjadi APPROVED & CLOSED**. Port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
+- **Perencanaan Subfase 13c:** Rencana teknis rinci untuk **Subfase 13c: Rilis dan Handoff Operasional** telah disusun di `reports/feature-update/PHASE-13C-PLAN.md` dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D8)** dan usulan **DEC-50 PROPOSED**. Dokumen ini menjawab pertanyaan pemilik mengenai makna rilis siap pakai (*Golden Master*) vs model target deployment (On-Premise LAN Sekolah vs Cloud VPS Online), tag rilis Git `v1.0.0`, panduan langkah deployment lapangan, pre-use smoke test checklist, paket handoff serah terima sistem, daftar known issues & batasan v1.0, serta checklist review manual akhir #1–#18.
+- **Server UAT:** Server UAT port `18028` dan `14028` diverifikasi bebas listener (`PORTS_18028_14028_FREE`). Apache dan MariaDB operasional tidak disentuh.
+- **Next:** Pemilik meninjau usulan rencana Subfase 13c (DEC-50: D1–D8) pada `reports/feature-update/PHASE-13C-PLAN.md` dan memberikan persetujuan dengan instruksi *"Saya setuju D1-D8"* untuk mengotorisasi pelaksanaan rilis.
+
+## Previous checkpoint — 2026-11-03 (Subfase 13b IMPLEMENTED & DIVERIFIKASI AGEN — DEC-49 IMPLEMENTED; FASE 13B SELESAI)
 
 - **Status:** Subfase **13b — Kesiapan Rilis (Release Readiness)** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`303b624`** (dokumentasi persetujuan rencana `DEC-49 APPROVED` via instruksi pemilik: *"Saya setuju D1-D10"*). Paket implementasi dilaporkan di `reports/feature-update/PHASE-13B-REPORT.md` dan checklist pengujian manual pemilik disediakan di `reports/feature-update/PHASE-13B-MANUAL-REVIEW.md` (#1–#18).
 - **Implementasi yang diselesaikan (S1–S8):**

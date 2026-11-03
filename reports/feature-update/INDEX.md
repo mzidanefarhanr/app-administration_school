@@ -1,6 +1,12 @@
 # Indeks laporan pengembangan
 
-## Current checkpoint — 2026-11-03 (Subfase 13b IMPLEMENTED & DIVERIFIKASI AGEN; DEC-49 IMPLEMENTED; MENUNGGU REVIEW MANUAL PEMILIK #1–#18)
+## Current checkpoint — 2026-11-03 (Subfase 13b OWNER APPROVED #1–#18; SUBFASE 13B SELESAI LENGKAP & DITUTUP; Rencana Subfase 13c DISUSUN — DEC-50 PROPOSED)
+
+Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** (2026-11-03 WIB); checklist manual Subfase 13b **#1–#18 APPROVED**. **Subfase 13b — Kesiapan Rilis (Release Readiness)** resmi **SELESAI LENGKAP & DITUTUP** (`dcc607b`). **DEC-49 disahkan menjadi APPROVED & CLOSED**. Port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
+
+Tonggak aktif bergeser ke **Subfase 13c — Rilis dan Handoff Operasional**, dengan rencana teknis rinci telah disusun di **`PHASE-13C-PLAN.md`** dengan usulan **DEC-50 PROPOSED (D1–D8)**. Dokumen ini menjelaskan secara transparan makna rilis siap pakai (*Golden Master*) vs pilihan target deployment (On-Premise LAN Sekolah vs Cloud VPS Online), penerbitan tag Git resmi `v1.0.0`, panduan langkah deployment lapangan, pre-use smoke test $\le 10$ detik, paket handoff serah terima sistem, daftar known issues, dan checklist review manual akhir #1–#18.
+
+## Previous checkpoint — 2026-11-03 (Subfase 13b IMPLEMENTED & DIVERIFIKASI AGEN; DEC-49 IMPLEMENTED; FASE 13B SELESAI)
 
 Subfase **13b — Kesiapan Rilis (Release Readiness)** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`303b624`** (dokumentasi persetujuan rencana `DEC-49 APPROVED` via instruksi pemilik: *"Saya setuju D1-D10"*). Seluruh implementasi S1–S8 selesai:
 1. Validasi komprehensif modul backup database SQL dan berkas lampiran privat `storage/app/attachments/` (letters, leaves, archives, letter-settings, letter-documents) ber-checksum SHA-256 dan enkripsi ZIP AES-256; test suite otomatis backup/restore drill passing 100% (43/43 pass, 200 assertions).
