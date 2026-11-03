@@ -1,0 +1,21 @@
+{
+    "language": {
+        "label": "Bahasa"
+    },
+    "action": {
+        "add": "Tambah",
+        "back": "Kembali",
+        "cancel": "Batal",
+        "close": "Tutup",
+        "delete": "Hapus",
+        "edit": "Ubah",
+        "refresh": "Muat ulang",
+        "save": "Simpan",
+        "search": "Cari"
+    },
+    "state": {
+        "empty": "Belum ada data",
+        "error": "Terjadi kesalahan",
+        "loading": "Memuat…"
+    }
+}

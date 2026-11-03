@@ -1,0 +1,21 @@
+{
+    "language": {
+        "label": "Language"
+    },
+    "action": {
+        "add": "Add",
+        "back": "Back",
+        "cancel": "Cancel",
+        "close": "Close",
+        "delete": "Delete",
+        "edit": "Edit",
+        "refresh": "Refresh",
+        "save": "Save",
+        "search": "Search"
+    },
+    "state": {
+        "empty": "No data yet",
+        "error": "Something went wrong",
+        "loading": "Loading…"
+    }
+}
