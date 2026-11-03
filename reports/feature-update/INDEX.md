@@ -1,6 +1,10 @@
 # Indeks laporan pengembangan
 
-## Current checkpoint — 2026-11-03 (Rencana Subfase 11a disusun — PLAN; DEC-42 PROPOSED)
+## Current checkpoint — 2026-11-03 (Rencana Subfase 11a DISETUJUI — DEC-42 APPROVED; implementasi diotorisasi)
+
+Pernyataan pemilik **"Saya setuju D1-D10"** (2026-11-03 WIB) dicatat sebagai **DEC-42 APPROVED**; implementasi **Subfase 11a — Ganti widget demo dashboard operasional** diotorisasi sesuai **`PHASE-11A-PLAN.md`** (baseline **`2a36800`**; paket rencana **`88b16a1`**). **Seluruh subfase Fase 10 (10a, 10b, 10c) tetap OWNER APPROVED dan Fase 10 SELESAI LENGKAP & DITUTUP** (`2a36800`). Scope 11a yang disetujui: penggantian 6 widget demo Sakai PrimeVue dengan widget operasional nyata; endpoint agregasi terpadu `GET /api/dashboard/overview` berbasis ability; endpoint antrean tugas tertunda `GET /api/dashboard/pending-tasks`; endpoint grafik distribusi `GET /api/dashboard/charts`; dashboard adaptif peran; eliminasi mock `ProductService.js` dan simbol toko/dollar; zero schema change; serta UAT terisolasi dengan server dihentikan per DEC-27. Detail: **`PHASE-11A-PLAN.md`**.
+
+## Previous checkpoint — 2026-11-03 (Rencana Subfase 11a disusun — PLAN; DEC-42 PROPOSED)
 
 Rencana rinci **Fase 11 — Subfase 11a: Ganti widget demo** telah disusun di **`PHASE-11A-PLAN.md`** (baseline **`2a36800`** di atas pencatatan penerimaan 10c dan penutupan Fase 10) dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D10)** dan usulan **DEC-42 PROPOSED**. Paket ini **hanya dokumentasi**: tidak ada kode aplikasi, migration, model, service, controller, route, komponen Vue, fixture UAT 11a, atau eksekusi suite tes (`NOT RUN`), dan implementasi 11a **belum diotorisasi** sampai pemilik menyetujui **D1–D10**. **Seluruh subfase Fase 10 (10a, 10b, 10c) tetap OWNER APPROVED dan Fase 10 SELESAI LENGKAP & DITUTUP** (`2a36800`). Usulan 11a mencakup: penggantian 6 widget demo template Sakai PrimeVue dengan widget operasional nyata; endpoint agregasi terpadu `GET /api/dashboard/overview` berbasis ability; endpoint antrean tugas tertunda `GET /api/dashboard/pending-tasks`; endpoint grafik distribusi `GET /api/dashboard/charts`; dashboard adaptif peran; eliminasi mock `ProductService.js`; zero schema change; serta UAT terisolasi dengan server dihentikan per DEC-27. Detail: **`PHASE-11A-PLAN.md`**.
 

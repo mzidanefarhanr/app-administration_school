@@ -1,6 +1,6 @@
 # Fase 11 — Dashboard operator dan laporan
 
-Status teknis: **11a PLAN — AWAITING OWNER APPROVAL (D1–D10; DEC-42 PROPOSED, 2026-11-03 WIB)**. Status review: **PENDING OWNER REVIEW (D1–D10)**. Semua tes/browser/manual: **NOT RUN** (langkah perencanaan; implementasi S1–S8 belum diotorisasi).
+Status teknis: **11a IN PROGRESS (DEC-42 APPROVED, 2026-11-03 WIB)**. Status review: **11a APPROVED (rencana; D1–D10 disetujui pemilik 2026-11-03 WIB)**. Semua tes/browser/manual: **NOT RUN** (langkah perencanaan; implementasi S1–S8 belum diotorisasi).
 Dependensi: Modul sumber 03–10; boleh bertahap setelah sumber siap. Baseline rencana: `2a36800` (pencatatan penerimaan pemilik Subfase 10c `#1–#18` dan penutupan Fase 10); paket rencana 11a: `reports/feature-update/PHASE-11A-PLAN.md`.
 
 ## Tujuan dan scope
@@ -9,7 +9,7 @@ Dashboard operator dan laporan. Kerjakan satu subfase per instruksi pemilik; jan
 ## Subfase
 
 ### 11a — Ganti widget demo
-- **Status implementasi (2026-11-03 WIB):** **PLAN — AWAITING OWNER APPROVAL (D1–D10; DEC-42 PROPOSED)** (`reports/feature-update/PHASE-11A-PLAN.md`). Implementasi kode langkah S1–S8 belum dimulai.
+- **Status implementasi (2026-11-03 WIB):** **IN PROGRESS — DEC-42 APPROVED (D1–D10; `"Saya setuju D1-D10"` )** (`reports/feature-update/PHASE-11A-PLAN.md`). Implementasi langkah S1–S8 diotorisasi.
 Scope: Statistik siswa/guru/rombel, data kurang lengkap, surat overdue/pending, izin pending, jurnal missing, backup terakhir; tiap widget mengikuti ability.
 
 Kriteria penerimaan: Tidak ada Orders/Revenue/data sample; angka nyata dengan scope; widget tanpa izin tidak query/ungkap data.

@@ -1,6 +1,11 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Rencana Subfase 11a disusun — PLAN; DEC-42 PROPOSED)
+## Current checkpoint — 2026-11-03 (Rencana Subfase 11a DISETUJUI — DEC-42 APPROVED; implementasi diotorisasi)
+
+- **Status:** Pemilik menyatakan **"Saya setuju D1-D10"** (2026-11-03 WIB); dicatat sebagai **DEC-42 APPROVED**. Implementasi **Subfase 11a — Ganti widget demo dashboard operasional** diotorisasi sesuai `reports/feature-update/PHASE-11A-PLAN.md` (baseline **`2a36800`**; paket rencana **`88b16a1`**). **Fase 10 (10a, 10b, 10c) tetap OWNER APPROVED dan SELESAI LENGKAP & DITUTUP** (`2a36800`).
+- **Next:** Eksekusi S1–S8 Subfase 11a, verifikasi penuh, dan siapkan `PHASE-11A-REPORT.md` serta `PHASE-11A-MANUAL-REVIEW.md`.
+
+## Previous checkpoint — 2026-11-03 (Rencana Subfase 11a disusun — PLAN; DEC-42 PROPOSED)
 
 - **Status:** Rencana rinci **Fase 11 — Subfase 11a: Ganti widget demo** telah disusun di `reports/feature-update/PHASE-11A-PLAN.md` (baseline audit **`2a36800`** di atas penutupan lengkap Fase 10) dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D10)** dan usulan **DEC-42 PROPOSED**. Paket ini **hanya dokumentasi**: tidak ada kode aplikasi, migration, model, service, controller, route, komponen Vue, fixture UAT 11a, atau eksekusi suite tes (`NOT RUN`), dan implementasi 11a **belum diotorisasi** sampai pemilik menyetujui **D1–D10**.
 - **Previous phase state:** **Fase 10 (10a, 10b, 10c) telah SELESAI LENGKAP & DITUTUP** (`2a36800`). Port 18028/14028 bebas listener (`PORTS_18028_14028_FREE`).

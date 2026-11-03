@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 11a — Persetujuan rencana ganti widget demo dashboard operasional (DEC-42 APPROVED)
+- Type: Docs
+- Scope / fase: Pencatatan persetujuan pemilik atas rencana Subfase 11a (`D1–D10` sebagai `DEC-42 APPROVED`). Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `reports/feature-update/PHASE-11A-PLAN.md`, `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `roadmap/phases/PHASE-11-ANALYTICS.md`, `roadmap/ROADMAP.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: mencatat pernyataan pemilik **"Saya setuju D1-D10"** (2026-11-03 WIB) sebagai **DEC-42 APPROVED** di atas paket rencana `88b16a1` (baseline audit `2a36800`), serta mengotorisasi implementasi Subfase 11a (S1–S8).
+- Why: memisahkan commit persetujuan rencana pemilik dari commit implementasi kode sesuai aturan repositori.
+- Validation: **NOT RUN** — commit dokumentasi persetujuan rencana.
+- Notes / risks: implementasi kode Subfase 11a dikerjakan pada commit berikutnya.
+- Evidence: `reports/feature-update/PHASE-11A-PLAN.md`; paket rencana `88b16a1`; baseline `2a36800`.
+
 ## [2026-11-03] Fase 11a — Rencana ganti widget demo dashboard operasional (PLAN; DEC-42 PROPOSED)
 - Type: Docs
 - Scope / fase: Penyusunan rencana teknis Fase 11 — Subfase 11a: Ganti Widget Demo Dashboard Operasional (DEC-42 PROPOSED). Tidak ada kode aplikasi, migrasi database, atau mutasi data operasional pada entri ini.
