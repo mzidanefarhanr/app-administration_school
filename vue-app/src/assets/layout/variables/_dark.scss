@@ -2,4 +2,8 @@
     --surface-ground: var(--p-surface-950);
     --code-background: var(--p-surface-800);
     --code-color: var(--p-surface-100);
+
+    .layout-menu a.active-route {
+        background-color: rgba(52, 211, 153, 0.15);
+    }
 }
