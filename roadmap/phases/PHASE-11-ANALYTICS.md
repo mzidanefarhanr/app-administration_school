@@ -1,18 +1,17 @@
 # Fase 11 — Dashboard operator dan laporan
 
-Status teknis: **11a IN PROGRESS (DEC-42 APPROVED, 2026-11-03 WIB)**. Status review: **11a APPROVED (rencana; D1–D10 disetujui pemilik 2026-11-03 WIB)**. Semua tes/browser/manual: **NOT RUN** (langkah perencanaan; implementasi S1–S8 belum diotorisasi).
-Dependensi: Modul sumber 03–10; boleh bertahap setelah sumber siap. Baseline rencana: `2a36800` (pencatatan penerimaan pemilik Subfase 10c `#1–#18` dan penutupan Fase 10); paket rencana 11a: `reports/feature-update/PHASE-11A-PLAN.md`.
+Status teknis: **11a IMPLEMENTED & SELESAI LENGKAP (2026-11-03 WIB)**; **11b PLAN IN PREPARATION**. Status review: **11a OWNER APPROVED (#1–#18, 2026-11-03 WIB)** berdasarkan pernyataan pemilik: *"Pengujian nomor 1-18 sudah berhasil dan saya approved."*
+Dependensi: Modul sumber 03–10; boleh bertahap setelah sumber siap. Baseline implementasi 11a: `d7cf62d`; paket implementasi: `2b7e8a5`.
 
 ## Tujuan dan scope
-Dashboard operator dan laporan. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Tidak ada pekerjaan implementasi yang telah dilakukan dalam penyusunan dokumen ini.
+Dashboard operator dan laporan. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis.
 
 ## Subfase
 
 ### 11a — Ganti widget demo
-- **Status implementasi (2026-11-03 WIB):** **IN PROGRESS — DEC-42 APPROVED (D1–D10; `"Saya setuju D1-D10"` )** (`reports/feature-update/PHASE-11A-PLAN.md`). Implementasi langkah S1–S8 diotorisasi.
+- **Status implementasi (2026-11-03 WIB):** **SELESAI LENGKAP & DITUTUP — DEC-42 APPROVED & CLOSED**. Review manual pemilik: **APPROVED (#1–#18)** (`reports/feature-update/PHASE-11A-MANUAL-REVIEW.md`). Laporan implementasi: `reports/feature-update/PHASE-11A-REPORT.md`. Paket commit: `2b7e8a5`.
 Scope: Statistik siswa/guru/rombel, data kurang lengkap, surat overdue/pending, izin pending, jurnal missing, backup terakhir; tiap widget mengikuti ability.
-
-Kriteria penerimaan: Tidak ada Orders/Revenue/data sample; angka nyata dengan scope; widget tanpa izin tidak query/ungkap data.
+Kriteria penerimaan: Tidak ada Orders/Revenue/data sample; angka nyata dengan scope; widget tanpa izin tidak query/ungkap data. (Terpenuhi penuh).
 
 Prompt setelah subfase ini dipilih:
 ```text

@@ -1,6 +1,10 @@
 # Indeks laporan pengembangan
 
-## Current checkpoint — 2026-11-03 (Subfase 11a IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-42 IMPLEMENTED)
+## Current checkpoint — 2026-11-03 (Subfase 11a OWNER APPROVED #1–#18; Subfase 11a SELESAI LENGKAP & DITUTUP)
+
+Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual 11a **#1–#18 APPROVED**. **Subfase 11a — Ganti widget demo dashboard operasional** resmi **SELESAI LENGKAP & DITUTUP** (`2b7e8a5`). DEC-42 disahkan menjadi **APPROVED & CLOSED**. Seluruh 6 widget demo Sakai PrimeVue telah digantikan dengan widget operasional nyata. Port 18028/14028 bebas listener (`PORTS_18028_14028_FREE`). Tonggak aktif bergeser ke persiapan perencanaan **Fase 11 — Subfase 11b: Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data**.
+
+## Previous checkpoint — 2026-11-03 (Subfase 11a IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-42 IMPLEMENTED)
 
 Subfase **11a — Ganti widget demo dashboard operasional** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`d7cf62d`** (dokumentasi persetujuan rencana `DEC-42 APPROVED`). Seluruh implementasi S1–S8 selesai: backend `DashboardService`, controller `DashboardController`, 3 route `/api/dashboard/*`, penggantian seluruh widget mock dengan 6 widget operasional nyata di `Dashboard.vue`, 10 tes feature `DashboardApiTest` (`T1–T10`), Pint PASS, ESLint 0 errors / 0 warnings, build Vite PASS (41.00 kB), dan 5 probe HTTP UAT `.uat-phase10` PASS (port 18028/14028 dihentikan sesuai DEC-27). Dokumen laporan rinci: **`PHASE-11A-REPORT.md`**; checklist review manual pemilik: **`PHASE-11A-MANUAL-REVIEW.md`** (#1–#18).
 

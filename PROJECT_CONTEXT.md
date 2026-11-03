@@ -1,6 +1,10 @@
 # Konteks proyek
 
-## Current addendum — 2026-11-03 (Subfase 11a IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18)
+## Current addendum — 2026-11-03 (Subfase 11a OWNER APPROVED #1–#18; Subfase 11a SELESAI LENGKAP & DITUTUP)
+
+Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual 11a **#1–#18 APPROVED**. **Subfase 11a — Ganti widget demo dashboard operasional** resmi **SELESAI LENGKAP & DITUTUP** di atas `main` @ baseline **`d7cf62d`** (paket implementasi **`2b7e8a5`**). **DEC-42 disahkan menjadi APPROVED & CLOSED**. Seluruh 6 widget demo bawaan template telah diganti secara permanen dengan widget operasional nyata live berbasis data modul 01–10. Server UAT port 18028/14028 bebas (`PORTS_18028_14028_FREE`). Milestone aktif bergeser ke **Fase 11 — Subfase 11b: Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data**.
+
+## Previous addendum — 2026-11-03 (Subfase 11a IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18)
 
 Subfase **11a — Ganti widget demo dashboard operasional** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`d7cf62d`** (pencatatan persetujuan rencana `DEC-42 APPROVED`). Disampaikan:
 - **Backend Service & Controller:** `DashboardService` dan `DashboardController` menyediakan 3 endpoint terpadu berbasis ability di `/api/dashboard/*` (`overview`, `pending-tasks`, `charts`). Tanpa migrasi skema database baru (zero schema change). Mengagregasikan data aktif siswa (rombel aktif), PTK (guru/tendik), surat pending (`LetterSubmission`/`LeaveRequest`), kepatuhan jurnal mengajar (`TeachingReportService::missingJournalsReport`), dan status sistem (tahun ajaran aktif, backup health, server time WIB).

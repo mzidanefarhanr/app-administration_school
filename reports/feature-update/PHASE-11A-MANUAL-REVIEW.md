@@ -3,7 +3,7 @@
 Subfase: 11a — Penggantian Seluruh Widget Demo Mock Dashboard dengan Metrik Operasional Nyata (4 KPI Cards, Pending Tasks Action List, Data Quality Overview, Dual Charts, System Overview & Shortcuts).
 Keputusan pemilik: **DEC-42 APPROVED** (D1–D10, 2026-11-03 WIB; pernyataan **"Saya setuju D1-D10"**).
 Laporan teknis lengkap: [`reports/feature-update/PHASE-11A-REPORT.md`](./PHASE-11A-REPORT.md); rencana kerja: [`reports/feature-update/PHASE-11A-PLAN.md`](./PHASE-11A-PLAN.md).
-Baseline induk: `main` pada `d7cf62d` (pencatatan `DEC-42 APPROVED` di atas penutupan Fase 10 `2a36800`). Status teknis: **IMPLEMENTED — agent-verified (2026-11-03)**. Status review pemilik: **AWAITING OWNER REVIEW (#1–#18, 2026-11-03 WIB)**.
+Baseline induk: `main` pada `d7cf62d`. Paket implementasi: `2b7e8a5`. Status teknis: **IMPLEMENTED — agent-verified (2026-11-03)**. Status review pemilik: **APPROVED (#1–#18, 2026-11-03 WIB)** berdasarkan pernyataan pemilik: *"Pengujian nomor 1-18 sudah berhasil dan saya approved."*
 
 ---
 
@@ -150,3 +150,16 @@ npx vite --host 127.0.0.1 --port 14028
 - **Ekspektasi**:
   - Tampilan grid responsif menata ulang kartu KPI dari 4 kolom menjadi 2 kolom (tablet) dan 1 kolom (ponsel) secara rapi tanpa elemen terpotong.
   - Pada tema Gelap (*Dark Mode*), seluruh kartu, teks, warna latar belakang, border, dan grafik (*chart colors, grid lines, legend labels*) beradaptasi secara elegan dan nyaman dibaca.
+
+---
+
+## Catatan Penerimaan Pemilik (2026-11-03 WIB)
+
+Pernyataan pemilik:
+> **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."**
+
+- **Hasil checklist manual #1–#18**: Seluruhnya **APPROVED** (2026-11-03 WIB).
+- **Status Subfase 11a**: **SELESAI LENGKAP & DITUTUP**.
+- **DEC-42**: **APPROVED & CLOSED**.
+- **Server UAT 18028/14028**: Dipastikan dihentikan per DEC-27 (`PORTS_18028_14028_FREE`).
+- **Tahap selanjutnya**: Perencanaan Subfase 11b (Laporan dan Rekonsiliasi).

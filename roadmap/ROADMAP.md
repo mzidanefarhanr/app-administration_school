@@ -4,7 +4,11 @@ Versi dokumen: 1.0, 14 Oktober 2026 (WIB); audit HEAD 15 Oktober 2026.
 Baseline kode: `b02a87f0d57adffec297ed465a8afcd8e8d7ec59`; HEAD audit `b699feccd65357a10f7430c165400906e6394d49` (delta = paket docs saja, kode tidak berubah).
 Historical drafting status (2026-10-14/15): DRAFT; Fase 00 PARTIAL. The original “all other phases not started” statement is obsolete; current statuses are in the table and correction addendum below.
 
-## Addendum — 2026-11-03 (Subfase 11a IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18)
+## Addendum — 2026-11-03 (Subfase 11a OWNER APPROVED #1–#18; Subfase 11a SELESAI LENGKAP & DITUTUP)
+
+Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual 11a **#1–#18 APPROVED**. **Subfase 11a — Ganti widget demo dashboard operasional** resmi **SELESAI LENGKAP & DITUTUP** (`2b7e8a5`). DEC-42 disahkan menjadi **APPROVED & CLOSED**. Seluruh 6 widget demo telah diganti dengan widget operasional live berbasis data riil lintas modul 01–10. Port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`). Tonggak aktif bergeser ke perencanaan **Fase 11 — Subfase 11b: Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data**.
+
+## Previous addendum — 2026-11-03 (Subfase 11a IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18)
 
 Subfase **11a — Ganti widget demo dashboard operasional** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`d7cf62d`** (dokumentasi persetujuan rencana `DEC-42 APPROVED`), dengan laporan implementasi di `reports/feature-update/PHASE-11A-REPORT.md` dan paket review manual di `reports/feature-update/PHASE-11A-MANUAL-REVIEW.md` (#1–#18). **Seluruh subfase Fase 10 (10a, 10b, 10c) tetap OWNER APPROVED dan Fase 10 SELESAI LENGKAP & DITUTUP** (`2a36800`). Disampaikan pada 11a:
 1. Zero database migrations (murni analitikal *read-only*).

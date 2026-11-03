@@ -1,6 +1,12 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Subfase 11a IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-42 IMPLEMENTED)
+## Current checkpoint — 2026-11-03 (Subfase 11a OWNER APPROVED #1–#18; Subfase 11a SELESAI LENGKAP & DITUTUP)
+
+- **Status:** Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual 11a **#1–#18 APPROVED**. Subfase **11a — Ganti widget demo dashboard operasional** resmi **SELESAI LENGKAP & DITUTUP** (`2b7e8a5`). DEC-42 status disahkan menjadi **APPROVED & CLOSED**. Seluruh widget demo template e-commerce telah digantikan dengan widget operasional live berbasis data riil lintas modul 01–10.
+- **Server UAT:** Server UAT `.uat-phase10` pada port `18028` dan `14028` diverifikasi bebas listener (`PORTS_18028_14028_FREE`). Data `.uat-phase10` dipertahankan. Apache dan MariaDB operasional tidak disentuh.
+- **Next:** Menyusun rencana rinci untuk subfase berikutnya: **Fase 11 — Subfase 11b: Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data** (`reports/feature-update/PHASE-11B-PLAN.md` dengan usulan `DEC-43 PROPOSED`).
+
+## Previous checkpoint — 2026-11-03 (Subfase 11a IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-42 IMPLEMENTED)
 
 - **Status:** Subfase **11a — Ganti widget demo dashboard operasional** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`d7cf62d`** (dokumentasi persetujuan rencana `DEC-42 APPROVED`). Paket implementasi dilaporkan di `reports/feature-update/PHASE-11A-REPORT.md` dan checklist pengujian manual pemilik disediakan di `reports/feature-update/PHASE-11A-MANUAL-REVIEW.md` (#1–#18). **Fase 10 (10a, 10b, 10c) tetap OWNER APPROVED dan SELESAI LENGKAP & DITUTUP** (`2a36800`).
 - **Server UAT:** Server UAT `.uat-phase10` pada port `18028` dan `14028` telah diverifikasi dihentikan per DEC-27 (`PORTS_18028_14028_FREE`). Data `.uat-phase10` dipertahankan untuk review manual pemilik. Apache dan MariaDB operasional tidak disentuh.

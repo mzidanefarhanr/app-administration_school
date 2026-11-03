@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 11a — Penerimaan manual pemilik checklist #1–#18; Subfase 11a SELESAI LENGKAP & DITUTUP
+- Type: Docs
+- Scope / fase: Pencatatan penerimaan pemilik atas Subfase 11a (checklist #1–#18) dan penutupan lengkap Subfase 11a. Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `reports/feature-update/PHASE-11A-MANUAL-REVIEW.md`, `docs/DECISIONS.md`, `roadmap/phases/PHASE-11-ANALYTICS.md`, `roadmap/ROADMAP.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: mencatat pernyataan pemilik **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** (2026-11-03 WIB); checklist manual #1–#18 pada `PHASE-11A-MANUAL-REVIEW.md` disahkan sebagai **APPROVED**; DEC-42 status disahkan menjadi **APPROVED & CLOSED**; Subfase 11a disahkan selesai lengkap dan ditutup; port 18028/14028 bebas listener (`PORTS_18028_14028_FREE`).
+- Why: memisahkan commit pencatatan penerimaan pemilik dari implementasi kode dan penyusunan rencana subfase berikutnya sesuai aturan repositori.
+- Validation: **NOT RUN** — commit dokumentasi penerimaan. Verifikasi port 18028 dan 14028 tetap bebas.
+- Notes / risks: Tidak ada mutasi kode atau skema. Tahap berikutnya adalah penyusunan rencana Fase 11 — Subfase 11b (Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data).
+- Evidence: `reports/feature-update/PHASE-11A-MANUAL-REVIEW.md`; paket review `2b7e8a5`.
+
 ## [2026-11-03] Fase 11a — Ganti widget demo dashboard dengan metrik operasional nyata (DEC-42 IMPLEMENTED)
 - Type: Feature
 - Scope / fase: Fase 11 — Subfase 11a: Ganti Widget Demo Dashboard Operasional (DEC-42 IMPLEMENTED).
