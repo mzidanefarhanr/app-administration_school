@@ -1,6 +1,12 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Subfase 11c IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-44 IMPLEMENTED)
+## Current checkpoint — 2026-11-03 (Subfase 11c OWNER APPROVED #1–#18; Subfase 11c & Fase 11 SELESAI LENGKAP & DITUTUP)
+
+- **Status:** Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual 11c **#1–#18 APPROVED**. Subfase **11c — Tugas Operasional dan Pengingat Internal Operator** resmi **SELESAI LENGKAP & DITUTUP** (`8ae6979`). DEC-44 disahkan menjadi **APPROVED & CLOSED**. Dengan disetujuinya seluruh subfase 11a, 11b, dan 11c, **FASE 11 (Dashboard Operator dan Laporan) RESMI SELESAI LENGKAP & DITUTUP**.
+- **Server UAT:** Server UAT `.uat-phase10` pada port `18028` dan `14028` diverifikasi bebas listener (`PORTS_18028_14028_FREE`). Data `.uat-phase10` dipertahankan. Apache dan MariaDB operasional tidak disentuh.
+- **Next:** Menyusun rencana teknis rinci untuk subfase berikutnya: **Fase 12 — Performa, Observability dan Konsistensi (Subfase 12a: Pagination dan Query)** di `reports/feature-update/PHASE-12A-PLAN.md` dengan usulan **DEC-45 PROPOSED**.
+
+## Previous checkpoint — 2026-11-03 (Subfase 11c IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-44 IMPLEMENTED)
 
 - **Status:** Subfase **11c — Tugas Operasional dan Pengingat Internal Operator** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`035987a`** (dokumentasi persetujuan rencana `DEC-44 APPROVED`). Paket implementasi dilaporkan di `reports/feature-update/PHASE-11C-REPORT.md` dan checklist pengujian manual pemilik disediakan di `reports/feature-update/PHASE-11C-MANUAL-REVIEW.md` (#1–#18). **Subfase 11a & 11b tetap OWNER APPROVED (#1–#18, 2026-11-03 WIB; DEC-42 & DEC-43 CLOSED; DEC-12 CLOSED)**, dan **Fase 10 tetap SELESAI LENGKAP & DITUTUP** (`2a36800`).
 - **Implementasi yang diselesaikan (S1–S8):**
