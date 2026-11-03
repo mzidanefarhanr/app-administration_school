@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 11b — Rencana laporan rekapitulasi sekolah, statistik multi-tahun, dan rekonsiliasi Dapodik (PLAN; DEC-43 PROPOSED; DEC-12 diajukan)
+- Type: Docs
+- Scope / fase: Penyusunan rencana teknis Fase 11 — Subfase 11b: Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data Dapodik (DEC-43 PROPOSED; DEC-12 PROPOSED FOR CLOSURE). Tidak ada kode aplikasi, migrasi database, atau mutasi data operasional pada entri ini.
+- Files touched: `reports/feature-update/PHASE-11B-PLAN.md`, `docs/DECISIONS.md`, `roadmap/phases/PHASE-11-ANALYTICS.md`, `roadmap/ROADMAP.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: menyusun rencana rinci Subfase 11b mencakup: rekap statistik multi-tahun lintas periode aktif & terkunci; demografi dan audit kesiapan identitas Dapodik; rekonsiliasi berkas CSV Dapodik lokal (matching bertingkat NISN lalu NIK, komparasi visual side-by-side dua arah, klasifikasi status, dan ekspor laporan audit tanpa auto-overwrite ke DB); perumusan 10 usulan keputusan DEC-43 (D1–D10) serta usulan penutupan gerbang DEC-12; zero schema change; dan UAT terisolasi.
+- Why: memenuhi prasyarat gerbang perencanaan repositori sebelum implementasi kode dimulai, serta meminta persetujuan pemilik atas usulan arsitektur D1–D10 dan penutupan DEC-12.
+- Validation: **NOT RUN** — entri dokumen perencanaan; implementasi kode belum dimulai.
+- Notes / risks: Tidak menyentuh MariaDB operasional port 3306 atau Apache port 80/443. Menunggu review dan persetujuan pemilik atas usulan D1–D10.
+- Evidence: `reports/feature-update/PHASE-11B-PLAN.md`.
+
 ## [2026-11-03] Fase 11a — Penerimaan manual pemilik checklist #1–#18; Subfase 11a SELESAI LENGKAP & DITUTUP
 - Type: Docs
 - Scope / fase: Pencatatan penerimaan pemilik atas Subfase 11a (checklist #1–#18) dan penutupan lengkap Subfase 11a. Tidak ada perubahan kode aplikasi pada entri ini.

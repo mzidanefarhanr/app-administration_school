@@ -1,6 +1,10 @@
 # Indeks laporan pengembangan
 
-## Current checkpoint — 2026-11-03 (Subfase 11a OWNER APPROVED #1–#18; Subfase 11a SELESAI LENGKAP & DITUTUP)
+## Current checkpoint — 2026-11-03 (Rencana Subfase 11b disusun — PLAN; DEC-43 PROPOSED; DEC-12 PROPOSED FOR CLOSURE)
+
+Rencana rinci **Fase 11 — Subfase 11b: Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data** telah disusun di **`PHASE-11B-PLAN.md`** (baseline **`bb06d98`** di atas penerimaan pemilik Subfase 11a) dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D10)**, usulan **DEC-43 PROPOSED**, dan pengajuan penutupan gerbang **DEC-12 (Laporan Eksternal & Rekonsiliasi Berkas)**. Paket ini **hanya dokumentasi**: tidak ada kode aplikasi, migration, model, service, controller, route, komponen Vue, fixture UAT 11b, atau eksekusi suite tes (`NOT RUN`), dan implementasi 11b **belum diotorisasi** sampai pemilik menyetujui **D1–D10**. **Subfase 11a tetap OWNER APPROVED (#1–#18, 2026-11-03 WIB; DEC-42 CLOSED)**, dan **Fase 10 tetap SELESAI LENGKAP & DITUTUP** (`2a36800`). Usulan 11b mencakup: statistik agregat multi-tahun; rekap demografi dan kesiapan profil identitas Dapodik; rekonsiliasi data berkas CSV Dapodik lokal (matching engine NISN lalu NIK, komparasi side-by-side, tanpa auto-overwrite ke DB); penyediaan 6 endpoint `/api/reports/*`; antarmuka `/public/reports/school` (3 tab); pembatasan hak akses berbasis ability `students.view` + `employees.view` dan izin impor; zero schema change; serta UAT terisolasi yang dihentikan per DEC-27. Detail: **`PHASE-11B-PLAN.md`**.
+
+## Previous checkpoint — 2026-11-03 (Subfase 11a OWNER APPROVED #1–#18; Subfase 11a SELESAI LENGKAP & DITUTUP)
 
 Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual 11a **#1–#18 APPROVED**. **Subfase 11a — Ganti widget demo dashboard operasional** resmi **SELESAI LENGKAP & DITUTUP** (`2b7e8a5`). DEC-42 disahkan menjadi **APPROVED & CLOSED**. Seluruh 6 widget demo Sakai PrimeVue telah digantikan dengan widget operasional nyata. Port 18028/14028 bebas listener (`PORTS_18028_14028_FREE`). Tonggak aktif bergeser ke persiapan perencanaan **Fase 11 — Subfase 11b: Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data**.
 

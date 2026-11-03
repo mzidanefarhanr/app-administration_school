@@ -1,6 +1,23 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Subfase 11a OWNER APPROVED #1–#18; Subfase 11a SELESAI LENGKAP & DITUTUP)
+## Current checkpoint — 2026-11-03 (Rencana Subfase 11b disusun — PLAN; DEC-43 PROPOSED; DEC-12 PROPOSED FOR CLOSURE)
+
+- **Status:** Rencana rinci **Fase 11 — Subfase 11b: Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data** telah disusun di `reports/feature-update/PHASE-11B-PLAN.md` (baseline audit `bb06d98` di atas penutupan Subfase 11a) dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D10)**, usulan **DEC-43 PROPOSED**, dan pengajuan penutupan gerbang **DEC-12 (Laporan Eksternal & Rekonsiliasi Berkas)**. Paket ini **hanya dokumentasi**: tidak ada kode aplikasi, migration, model, service, controller, route, komponen Vue, fixture UAT 11b, atau eksekusi suite tes (`NOT RUN`), dan implementasi 11b **belum diotorisasi** sampai pemilik menyetujui **D1–D10**.
+- **Previous phase state:** **Subfase 11a telah OWNER APPROVED (#1–#18, 2026-11-03 WIB) dan SELESAI LENGKAP & DITUTUP** (`2b7e8a5`). Port 18028/14028 bebas listener (`PORTS_18028_14028_FREE`).
+- **Proposed 11b scope (`D1–D10`):**
+  1. **D1 — Cakupan:** Kerjakan **11b** saja (rekap statistik multi-tahun, demografi, kesiapan Dapodik, dan rekonsiliasi berkas Dapodik lokal); non-goals: integrasi API online Dapodik Kemendikdasmen, auto-overwrite DB.
+  2. **D2 — Resolusi DEC-12:** Menutup gerbang DEC-12 via ekspor format sekolah standar dan rekonsiliasi berkas CSV Dapodik lokal tanpa API pihak ketiga otomatis.
+  3. **D3 — Tanpa Migrasi Database Baru:** Murni analitik agregasi dan perbandingan berkas *in-memory* (zero schema change).
+  4. **D4 — Mesin Rekonsiliasi Bertingkat:** Pencocokan berkas CSV Dapodik vs DB lokal berbasis NISN lalu NIK; klasifikasi *Matched Identical, Matched Diff, Local Only, Dapodik Only*.
+  5. **D5 — Kontrak API Subfase 11b:** 6 endpoint `/api/reports/*` (`school-statistics`, `demographics`, `dapodik-readiness`, `dapodik-reconciliation/compare`, dan ekspor).
+  6. **D6 — Otorisasi:** `students.view` + `employees.view` untuk laporan; izin import untuk rekonsiliasi Dapodik; penolakan `403` bagi guru dan staf umum.
+  7. **D7 — Antarmuka Pengguna (UI):** Halaman `/public/reports/school` dengan 3 tab (Statistik Multi-Tahun, Demografi & Kesiapan Profil, Rekonsiliasi Dapodik).
+  8. **D8 — Ketahanan Kinerja:** Kueri agregasi SQL terindeks dan pemrosesan CSV streaming line-by-line (< 32 MB).
+  9. **D9 — Format Ekspor CSV:** Prepended UTF-8 BOM dan text-quoted numerik agar kompatibel sempurna dengan Microsoft Excel.
+  10. **D10 — UAT Terisolasi:** Perluasan additive `.uat-phase10`, file sampel Dapodik sintetis, probe HTTP otomatis, dan penghentian server per DEC-27.
+- **Next:** Pemilik meninjau `reports/feature-update/PHASE-11B-PLAN.md` dan memberikan persetujuan atas **D1–D10** (mis. *"Saya setuju D1-D10"*). Jangan mulai implementasi kode sebelum disetujui.
+
+## Previous checkpoint — 2026-11-03 (Subfase 11a OWNER APPROVED #1–#18; Subfase 11a SELESAI LENGKAP & DITUTUP)
 
 - **Status:** Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual 11a **#1–#18 APPROVED**. Subfase **11a — Ganti widget demo dashboard operasional** resmi **SELESAI LENGKAP & DITUTUP** (`2b7e8a5`). DEC-42 status disahkan menjadi **APPROVED & CLOSED**. Seluruh widget demo template e-commerce telah digantikan dengan widget operasional live berbasis data riil lintas modul 01–10.
 - **Server UAT:** Server UAT `.uat-phase10` pada port `18028` dan `14028` diverifikasi bebas listener (`PORTS_18028_14028_FREE`). Data `.uat-phase10` dipertahankan. Apache dan MariaDB operasional tidak disentuh.

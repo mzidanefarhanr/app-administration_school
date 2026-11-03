@@ -27,7 +27,8 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 ```
 
 ### 11b — Laporan dan rekonsiliasi
-Scope: Tren per tahun, mutasi/bantuan/kelengkapan; definisi aktif/pending/overdue; filter drilldown dan ekspor. Dapodik rekonsiliasi file jika dipilih, bukan sync otomatis.
+- **Status implementasi (2026-11-03 WIB):** **PLAN — AWAITING OWNER APPROVAL (DEC-43 PROPOSED; D1–D10)** (`reports/feature-update/PHASE-11B-PLAN.md`). Belum ada kode implementasi (NOT RUN).
+Scope: Tren per tahun, mutasi/bantuan/kelengkapan; definisi aktif/pending/overdue; filter drilldown dan ekspor. Dapodik rekonsiliasi file jika dipilih, bukan sync otomatis (DEC-12 PROPOSED FOR CLOSURE).
 
 Kriteria penerimaan: Chart/list/export konsisten; hari batas dan periode jelas; perbedaan data terlihat tanpa auto-overwrite.
 
