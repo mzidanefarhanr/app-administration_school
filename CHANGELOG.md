@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 11c — Rencana tugas operasional dan pengingat internal operator (PLAN; DEC-44 PROPOSED)
+- Type: Docs
+- Scope / fase: Penyusunan rencana teknis Fase 11 — Subfase 11c: Tugas Operasional dan Pengingat Internal Operator (DEC-44 PROPOSED). Tidak ada kode aplikasi, migrasi database, atau mutasi data operasional pada entri ini.
+- Files touched: `reports/feature-update/PHASE-11C-PLAN.md`, `docs/DECISIONS.md`, `roadmap/phases/PHASE-11-ANALYTICS.md`, `roadmap/ROADMAP.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: menyusun rencana rinci Subfase 11c mencakup: tabel additive `operator_reminders`; mesin agregasi terpadu tugas live dari 6 domain (surat, izin, pembelajaran, arsip, kualitas data, sistem/backup); deduplikasi deterministik; siklus hidup status tugas & pengakuan (*dismissal*); otorisasi peran ketat; 8 endpoint `/api/tasks/*`; antarmuka SPA terpadu `/public/tasks` (4 kartu KPI & 4 tab kerja); perumusan 10 usulan keputusan DEC-44 (D1–D10); dan UAT terisolasi per DEC-27.
+- Why: memenuhi prasyarat gerbang perencanaan repositori sebelum implementasi kode dimulai, serta meminta persetujuan pemilik atas usulan arsitektur D1–D10.
+- Validation: **NOT RUN** — entri dokumen perencanaan; implementasi kode belum dimulai.
+- Notes / risks: Tidak menyentuh MariaDB operasional port 3306 atau Apache port 80/443. Menunggu review dan persetujuan pemilik atas usulan D1–D10.
+- Evidence: `reports/feature-update/PHASE-11C-PLAN.md`.
+
 ## [2026-11-03] Fase 11b — Penerimaan manual pemilik checklist #1–#18; Subfase 11b SELESAI LENGKAP & DITUTUP
 - Type: Docs
 - Scope / fase: Pencatatan penerimaan pemilik atas Subfase 11b (checklist #1–#18) dan penutupan lengkap Subfase 11b. Tidak ada perubahan kode aplikasi pada entri ini.

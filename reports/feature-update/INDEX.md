@@ -1,6 +1,10 @@
 # Indeks laporan pengembangan
 
-## Current checkpoint — 2026-11-03 (Subfase 11b OWNER APPROVED #1–#18; Subfase 11b SELESAI LENGKAP & DITUTUP)
+## Current checkpoint — 2026-11-03 (Rencana Subfase 11c disusun — PLAN; DEC-44 PROPOSED)
+
+Rencana rinci **Fase 11 — Subfase 11c: Tugas Operasional dan Pengingat Internal Operator** telah disusun di **`PHASE-11C-PLAN.md`** (baseline audit **`3cf80cf`** di atas penutupan lengkap Subfase 11b) dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D10)** dan usulan **DEC-44 PROPOSED**. Paket ini **hanya dokumentasi**: tidak ada kode aplikasi, migration, model, service, controller, route, komponen Vue, fixture UAT 11c, atau eksekusi suite tes (`NOT RUN`), dan implementasi 11c **belum diotorisasi** sampai pemilik menyetujui **D1–D10**. **Subfase 11a & 11b tetap OWNER APPROVED (#1–#18, 2026-11-03 WIB; DEC-42 & DEC-43 CLOSED; DEC-12 CLOSED)**, dan **Fase 10 tetap SELESAI LENGKAP & DITUTUP** (`2a36800`). Usulan 11c mencakup: tabel additive `operator_reminders`; mesin agregasi terpadu tugas live dari 6 domain; deduplikasi deterministik; siklus hidup status tugas & pengakuan (*dismissal*); otorisasi peran; 8 endpoint `/api/tasks/*`; antarmuka SPA terpadu `/public/tasks` (4 kartu KPI & 4 tab kerja); integrasi tautan balik dari widget dashboard 11a; serta UAT terisolasi yang dihentikan per DEC-27. Detail: **`PHASE-11C-PLAN.md`**.
+
+## Previous checkpoint — 2026-11-03 (Subfase 11b OWNER APPROVED #1–#18; Subfase 11b SELESAI LENGKAP & DITUTUP)
 
 Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual 11b **#1–#18 APPROVED**. **Subfase 11b — Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data Dapodik** resmi **SELESAI LENGKAP & DITUTUP** (`78a2c28`). **DEC-43 disahkan menjadi APPROVED & CLOSED** dan gerbang **DEC-12 CLOSED**. Port 18028/14028 bebas listener (`PORTS_18028_14028_FREE`). Tonggak aktif bergeser ke persiapan perencanaan **Fase 11 — Subfase 11c: Tugas dan Pengingat Internal Operator**.
 

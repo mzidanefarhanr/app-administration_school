@@ -1,6 +1,23 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Subfase 11b OWNER APPROVED #1–#18; Subfase 11b SELESAI LENGKAP & DITUTUP)
+## Current checkpoint — 2026-11-03 (Rencana Subfase 11c disusun — PLAN; DEC-44 PROPOSED)
+
+- **Status:** Rencana rinci **Fase 11 — Subfase 11c: Tugas Operasional dan Pengingat Internal Operator** telah disusun di `reports/feature-update/PHASE-11C-PLAN.md` (baseline audit `3cf80cf` di atas penutupan lengkap Subfase 11b) dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D10)** dan usulan **DEC-44 PROPOSED**. Paket ini **hanya dokumentasi**: tidak ada kode aplikasi, migration, model, service, controller, route, komponen Vue, fixture UAT 11c, atau eksekusi suite tes (`NOT RUN`), dan implementasi 11c **belum diotorisasi** sampai pemilik menyetujui **D1–D10**.
+- **Previous phase state:** **Subfase 11a & 11b telah OWNER APPROVED (#1–#18, 2026-11-03 WIB) dan SELESAI LENGKAP & DITUTUP** (`78a2c28`, `3cf80cf`). Port 18028/14028 bebas listener (`PORTS_18028_14028_FREE`). DEC-12 CLOSED.
+- **Proposed 11c scope (`D1–D10`):**
+  1. **D1 — Cakupan:** Kerjakan **11c** saja (Pusat Tugas & Pengingat Operasional); non-goals: tanpa pesan eksternal (email/WA), tanpa background cron/worker.
+  2. **D2 — Skema Additive:** Tabel baru `operator_reminders` untuk pengingat manual dan penanda status pengakuan/dismissal pengingat sistem.
+  3. **D3 — Mesin Agregasi Tugas Sistem:** Agregasi live tugas dari 6 domain modul dengan key deterministik dan bebas duplikasi.
+  4. **D4 — Logika Siklus Hidup & Penyelesaian:** Status `pending`, `completed`, `cancelled` untuk manual; resolusi native & dismiss untuk tugas sistem.
+  5. **D5 — Hak Akses & Privasi Peran:** Pimpinan dan operator melihat tugas sekolah; guru hanya melihat tugas personal.
+  6. **D6 — Kontrak API Subfase 11c:** 8 endpoint `/api/tasks/*` di bawah `auth:sanctum`.
+  7. **D7 — Antarmuka Pengguna (UI):** Halaman `/public/tasks` dengan 4 kartu metrik KPI dan 4 tab navigasi kerja.
+  8. **D8 — Ketahanan Kinerja & Pagination:** Kueri terindeks berkuota per domain ($\le 150$ ms) dan paginasi server-side.
+  9. **D9 — Integrasi Widget Dashboard:** Tautan balik dari `PendingTasksWidget.vue` di beranda ke `/public/tasks`.
+  10. **D10 — UAT Terisolasi:** Perluasan additive `.uat-phase10`, fixture pengingat sintetis, probe HTTP otomatis, dan penghentian server per DEC-27.
+- **Next:** Pemilik meninjau `reports/feature-update/PHASE-11C-PLAN.md` dan memberikan persetujuan atas **D1–D10** (mis. *"Saya setuju D1-D10"*). Jangan mulai implementasi kode sebelum disetujui.
+
+## Previous checkpoint — 2026-11-03 (Subfase 11b OWNER APPROVED #1–#18; Subfase 11b SELESAI LENGKAP & DITUTUP)
 
 - **Status:** Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual 11b **#1–#18 APPROVED**. Subfase **11b — Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data Dapodik** resmi **SELESAI LENGKAP & DITUTUP** (`78a2c28`). DEC-43 disahkan menjadi **APPROVED & CLOSED** dan gerbang **DEC-12 CLOSED**. Seluruh fitur laporan statistik multi-tahun, demografi, audit kesiapan profil Dapodik, serta rekonsiliasi berkas Dapodik lokal telah beroperasi penuh dan terverifikasi.
 - **Server UAT:** Server UAT `.uat-phase10` pada port `18028` dan `14028` diverifikasi bebas listener (`PORTS_18028_14028_FREE`). Data `.uat-phase10` dipertahankan. Apache dan MariaDB operasional tidak disentuh.

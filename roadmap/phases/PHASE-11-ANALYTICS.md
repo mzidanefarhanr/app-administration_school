@@ -1,7 +1,7 @@
 # Fase 11 — Dashboard operator dan laporan
 
-Status teknis: **11a SELESAI LENGKAP & DITUTUP (2026-11-03 WIB)**; **11b SELESAI LENGKAP & DITUTUP (2026-11-03 WIB)**; **11c PLAN IN PREPARATION**. Status review: **11a OWNER APPROVED (#1–#18)**; **11b OWNER APPROVED (#1–#18, 2026-11-03 WIB)** berdasarkan pernyataan pemilik: *"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."*
-Dependensi: Modul sumber 03–10; boleh bertahap setelah sumber siap. Baseline implementasi 11b: `dc43954`; paket implementasi: `78a2c28`.
+Status teknis: **11a SELESAI LENGKAP & DITUTUP (2026-11-03 WIB)**; **11b SELESAI LENGKAP & DITUTUP (2026-11-03 WIB)**; **11c PLAN IN REVIEW (DEC-44 PROPOSED)**. Status review: **11a OWNER APPROVED (#1–#18)**; **11b OWNER APPROVED (#1–#18, 2026-11-03 WIB)**; **11c AWAITING OWNER APPROVAL (D1–D10)**.
+Dependensi: Modul sumber 03–10; boleh bertahap setelah sumber siap. Baseline rencana 11c: `3cf80cf`; paket rencana: `reports/feature-update/PHASE-11C-PLAN.md`.
 
 ## Tujuan dan scope
 Dashboard operator dan laporan. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis.
@@ -46,7 +46,8 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 ```
 
 ### 11c — Tugas dan pengingat internal
-Scope: Daftar prioritas operator dari deadline/jurnal/dokumen kedaluwarsa; status selesai/cancel; dedup dan link ke objek.
+- **Status implementasi (2026-11-03 WIB):** **PLAN — AWAITING OWNER APPROVAL (DEC-44 PROPOSED; D1–D10)** (`reports/feature-update/PHASE-11C-PLAN.md`). Implementasi belum diotorisasi.
+Scope: Daftar prioritas operator dari deadline/jurnal/dokumen kedaluwarsa; status selesai/cancel; dedup dan link ke objek; tabel additive `operator_reminders`.
 
 Kriteria penerimaan: Tugas tidak duplikat saat refresh; hanya objek berizin; empty/error state jelas; tidak mengirim pesan eksternal.
 
