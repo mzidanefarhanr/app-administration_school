@@ -4,7 +4,21 @@ Versi dokumen: 1.0, 14 Oktober 2026 (WIB); audit HEAD 15 Oktober 2026.
 Baseline kode: `b02a87f0d57adffec297ed465a8afcd8e8d7ec59`; HEAD audit `b699feccd65357a10f7430c165400906e6394d49` (delta = paket docs saja, kode tidak berubah).
 Historical drafting status (2026-10-14/15): DRAFT; Fase 00 PARTIAL. The original “all other phases not started” statement is obsolete; current statuses are in the table and correction addendum below.
 
-## Addendum — 2026-11-03 (Subfase 12a IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18; DEC-45 IMPLEMENTED; Rencana Subfase 12b DISUSUN — DEC-46 PROPOSED)
+## Addendum — 2026-11-03 (Subfase 12b IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18; DEC-46 IMPLEMENTED; Rencana Subfase 12c DISUSUN — DEC-47 PROPOSED)
+
+Subfase **12b — Background Jobs, Queue Resilience, Observability dan Error Handling** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`b2df2de`** (dokumentasi persetujuan rencana `DEC-46 APPROVED`), dengan laporan implementasi di `reports/feature-update/PHASE-12B-REPORT.md` dan paket review manual di `reports/feature-update/PHASE-12B-MANUAL-REVIEW.md` (#1–#18). Disampaikan pada 12b:
+1. Migrasi database aditif `2029_12_02_000001_create_queue_jobs_and_tracking_tables.php` (`jobs`, `job_batches`, `job_execution_statuses`) dan model Eloquent `JobExecutionStatus.php`.
+2. Middleware `EnsureCorrelationId` (`EnsureCorrelationId.php`) terdaftar global: menghasilkan atau mempertahankan header `X-Correlation-ID` (UUID v4) dan menyematkan correlation context ke Monolog.
+3. Sanitasi data pribadi log melalui `PiiRedactionProcessor` dan `PiiRedactionTap`: mendeteksi serta meredaksi otomatis password, token, NIK (16 digit), telepon, dan kunci rahasia pada seluruh berkas log monolog/Laravel.
+4. Hardening `Handler.php` dengan format kontrak error terpadu (`success: false`, `correlation_id`, `message`, `errors`) pada seluruh exception API tanpa kebocoran stacktrace internal.
+5. Layanan `JobTrackingService` dan controller `JobStatusController` (`GET /api/jobs/status/{jobId}`) dengan otorisasi kepemilikan/admin dan mekanisme *idempotency replay guard* pencegah duplikasi eksekusi.
+6. Peningkatan observabilitas frontend pada `vue-app/src/apiLogin/index.js` dengan penyematan correlation ID pada notifikasi toast 5xx (`ID Referensi: <UUID>`), serta eliminasi console error suppression di `TasksView.vue`.
+7. Feature test suite otomatis `QueueAndErrorResilienceTest.php` 7/7 PASS (50 assertions).
+8. Eksekusi probe UAT terisolasi `scripts/phase10-uat.php probe-resilience`: 5/5 PROBES PASSED.
+9. Kepatuhan DEC-27: port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
+Bersamaan dengan ini, rencana teknis untuk subfase berikutnya telah disusun di `reports/feature-update/PHASE-12C-PLAN.md` dengan usulan **DEC-47 PROPOSED (D1–D10)**.
+
+## Previous addendum — 2026-11-03 (Subfase 12a IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18; DEC-45 IMPLEMENTED; Rencana Subfase 12b DISUSUN — DEC-46 PROPOSED)
 
 Subfase **12a — Pagination, Query Performance, dan Pengendalian Beban** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`9a7eeb6`** (dokumentasi persetujuan rencana `DEC-45 APPROVED`), dengan laporan implementasi di `reports/feature-update/PHASE-12A-REPORT.md` dan paket review manual di `reports/feature-update/PHASE-12A-MANUAL-REVIEW.md` (#1–#18). Disampaikan pada 12a:
 1. Migrasi aditif indeks komposit basis data `2029_12_01_000001_add_performance_composite_indexes.php` dengan indeks komposit pada `students`, `student_rombels`, `employees`, `letters`, `letter_dispositions`, `leave_requests`, `archive_documents`, dan `operator_reminders`.

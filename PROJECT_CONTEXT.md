@@ -1,6 +1,30 @@
 # Konteks proyek
 
-## Current addendum — 2026-11-03 (Subfase 12a IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18; DEC-45 IMPLEMENTED; Rencana Subfase 12b DISUSUN — DEC-46 PROPOSED)
+## Current addendum — 2026-11-03 (Subfase 12b IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18; DEC-46 IMPLEMENTED; Rencana Subfase 12c DISUSUN — DEC-47 PROPOSED)
+
+Subfase **12b — Background Jobs, Queue Resilience, Observability dan Error Handling** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas main @ baseline **2df2de** (dokumentasi persetujuan rencana DEC-46 APPROVED). Disampaikan:
+- **Backend Migrations, Models, Services & Error Hardening:**
+  1. Migrasi aditif 2029_12_02_000001_create_queue_jobs_and_tracking_tables.php: tabel jobs, job_batches, job_execution_statuses.
+  2. Model Eloquent JobExecutionStatus.php.
+  3. Middleware EnsureCorrelationId: otomatis membangkitkan/melestarikan header X-Correlation-ID dan menyematkannya ke context logger Monolog.
+  4. Redaksi data pribadi Monolog (PiiRedactionProcessor, PiiRedactionTap): penyembunyian otomatis password, token, NIK (16 digit), telepon, dan kunci rahasia pada seluruh catatan log.
+  5. Standarisasi Exception Handler global (Handler.php): format payload terpadu (success: false, correlation_id, message, errors) pada seluruh respons error HTTP API tanpa kebocoran stacktrace internal.
+  6. Service JobTrackingService.php dan Controller JobStatusController.php: endpoint GET /api/jobs/status/{jobId} dengan otorisasi kepemilikan/admin dan *idempotency replay guard* pencegah duplikasi.
+- **Frontend Enhancements:**
+  1. Axios response interceptor (ue-app/src/apiLogin/index.js): penyematan Correlation ID ke objek error & tampilan toast notifikasi ramah pengguna dengan nomor referensi kesalahan teknis (ID Referensi: <UUID>).
+  2. Eliminasi silent console error di TasksView.vue pada loadSummary().
+- **Verifikasi & Kualitas:**
+  - 7 tes feature QueueAndErrorResilienceTest.php PASS (50 assertions).
+  - Laravel Pint: PASS (10 files, 0 issues).
+  - Vite build: PASS (code 0, 29.19s).
+  - UAT probe: scripts/phase10-uat.php probe-resilience 5/5 probes PASS.
+  - Server UAT port 18028 dan 14028 bebas per DEC-27 (PORTS_18028_14028_FREE).
+  - MariaDB operasional port 3306 dan Apache port 80/443 tidak disentuh.
+- **Status:** Menunggu review manual pemilik checklist #1–#18 di 
+eports/feature-update/PHASE-12B-MANUAL-REVIEW.md. Rencana Subfase 12c disusun di 
+eports/feature-update/PHASE-12C-PLAN.md (DEC-47 PROPOSED).
+
+## Previous addendum — 2026-11-03 (Subfase 12a IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18; DEC-45 IMPLEMENTED; Rencana Subfase 12b DISUSUN — DEC-46 PROPOSED)
 
 Subfase **12a — Pagination, Query Performance, dan Pengendalian Beban** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`9a7eeb6`** (dokumentasi persetujuan rencana `DEC-45 APPROVED`). Disampaikan:
 - **Backend Migrations, Optimizations & Hardening:**

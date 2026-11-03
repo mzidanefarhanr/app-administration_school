@@ -620,6 +620,8 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::post('/system/dismiss', [OperationalTaskController::class, 'dismissSystemTask'])->middleware('can:tasks.manage');
     });
 
+    // Subfase 12b (DEC-46 D8): Pelacakan status pekerjaan latar belakang (jobs progress tracking)
+    Route::get('/jobs/status/{jobId}', [\App\Http\Controllers\JobStatusController::class, 'show']);
 });
 
 // Route::apiResource('/users', UserController::class);

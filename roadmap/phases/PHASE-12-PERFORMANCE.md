@@ -1,6 +1,6 @@
 # Fase 12 — Performa, observability dan konsistensi
 
-Status teknis: IN PROGRESS (12a IMPLEMENTED & DIVERIFIKASI AGEN; 12b PLANNED). Status review: AWAITING OWNER REVIEW (12a #1–#18; 12b PLAN PROPOSED).
+Status teknis: IN PROGRESS (12a & 12b IMPLEMENTED & DIVERIFIKASI AGEN; 12c PLANNED). Status review: AWAITING OWNER REVIEW (12a & 12b #1–#18; 12c PLAN PROPOSED via DEC-47).
 Dependensi: Modul aktif; audit 00. Baseline rencana: `9a7eeb6`; audit ulang HEAD saat pelaksanaan.
 
 ## Tujuan dan scope
@@ -29,16 +29,25 @@ Scope: Worker/scheduler jika dipakai, retry/idempotency, progress/status, except
 
 Kriteria penerimaan: Gagal network/server/job terlihat, error tercatat dengan correlation ID aman; log tidak menyimpan raw biodata/password.
 
-Status teknis: **PLANNED — AWAITING OWNER APPROVAL (DEC-46 PROPOSED; D1–D10)**.
-- Usulan keputusan: DEC-46 (D1–D10) di `reports/feature-update/PHASE-12B-PLAN.md`.
-- Belum dieksekusi sebelum instruksi tertulis persetujuan D1–D10 dari pemilik.
+Status teknis: **IMPLEMENTED & DIVERIFIKASI AGEN (2026-11-03)**; **DEC-46 APPROVED (D1–D10)**.
+- Migrasi antrean & status: `2029_12_02_000001_create_queue_jobs_and_tracking_tables.php` (`jobs`, `job_batches`, `job_execution_statuses`).
+- Middleware `EnsureCorrelationId`: otomatis menghasilkan/melestarikan header `X-Correlation-ID` dan menyematkannya ke Monolog context.
+- Monolog PII Redaction (`PiiRedactionProcessor`, `PiiRedactionTap`): penyembunyian otomatis password, token, NIK (16 digit), telepon, dan kunci rahasia pada seluruh log file.
+- Standarisasi Global Exception Handler (`Handler.php`): format payload terpadu (`success: false`, `correlation_id`, `message`, `errors`) pada seluruh respons error HTTP API.
+- `JobTrackingService` & `JobStatusController`: endpoint status progres `GET /api/jobs/status/{jobId}`, otorisasi pemilik, dan *idempotency replay guard* pencegah duplikasi.
+- Frontend Axios Interceptor: penyematan Correlation ID ke objek error & tampilan toast notifikasi ramah pengguna dengan nomor referensi kesalahan teknis.
+- Test suite: `QueueAndErrorResilienceTest.php` 7 tes PASS (50 assertions).
+- Probe UAT: `scripts/phase10-uat.php probe-resilience` 5/5 PROBES PASSED.
+- Laporan: `reports/feature-update/PHASE-12B-REPORT.md`; Panduan review manual: `reports/feature-update/PHASE-12B-MANUAL-REVIEW.md` (#1–#18).
 
 ### 12c — Konsistensi antarmenu
 Scope: Audit halaman aktif, form/detail/dialog/filter/export, bahasa Indonesia, keyboard/mobile/light/dark; hapus menu demo operasional setelah audit usage.
 
 Kriteria penerimaan: Tidak ada link/tombol dummy; tema dan state konsisten; build/lint relevan dan browser/manual diberi hasil nyata.
 
-Status teknis: **NOT STARTED**.
+Status teknis: **PLANNED — AWAITING OWNER APPROVAL (DEC-47 PROPOSED; D1–D10)**.
+- Usulan rencana: `reports/feature-update/PHASE-12C-PLAN.md`.
+- Belum dieksekusi sebelum instruksi tertulis persetujuan D1–D10 dari pemilik.
 
 ## Batas pekerjaan
 Bukan upgrade framework mayor atau cleanup massal. Performa diukur, bukan diklaim dari adanya index saja.
@@ -51,8 +60,9 @@ ARCHITECTURE; DESIGN_SYSTEM; TESTING; OPERATIONS; API-CONTRACTS; CHANGELOG; lapo
 
 ## Syarat keluar subfase
 - [x] Scope 12a selesai dan diverifikasi agen (S1–S8).
-- [x] Kontrak request/response/schema/permission yang berubah didokumentasikan (hard-limit 100, indeks aditif).
-- [x] Uji relevan benar-benar dijalankan (QueryPerformanceTest 6/6 PASS, probe-performance 5/5 PASS, Pint PASS, Vite build PASS).
-- [x] Checklist manual tersedia (`PHASE-12A-MANUAL-REVIEW.md` #1–#18).
+- [x] Scope 12b selesai dan diverifikasi agen (S1–S8).
+- [x] Kontrak request/response/schema/permission yang berubah didokumentasikan (tabel queue, job_execution_statuses, X-Correlation-ID, PII redaction, standard error contract).
+- [x] Uji relevan benar-benar dijalankan (QueueAndErrorResilienceTest 7/7 PASS, probe-resilience 5/5 PASS, Pint PASS, Vite build PASS).
+- [x] Checklist manual tersedia (`PHASE-12B-MANUAL-REVIEW.md` #1–#18).
 - [x] SHA/working tree, known issues dan langkah berikutnya dicatat.
-- [x] Scope berikutnya (Subfase 12b) diusulkan via DEC-46 (D1–D10) di `PHASE-12B-PLAN.md`.
+- [x] Scope berikutnya (Subfase 12c) diusulkan via DEC-47 (D1–D10) di `PHASE-12C-PLAN.md`.

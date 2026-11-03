@@ -1645,5 +1645,142 @@ if ($command === 'probe-performance') {
     exit(0);
 }
 
-fwrite(STDERR, "Unknown command. Use init, prepare, prepare-teaching, prepare-journals, prepare-tasks, probe-reports, probe-dashboard, probe-reports-school, probe-tasks, probe-performance, status, or start the HTTP server with this script.\n");
+if ($command === 'probe-resilience') {
+    fwrite(STDOUT, "=== EXECUTING UAT PHASE 12B QUEUE & ERROR RESILIENCE PROBES ===\n\n");
+
+    // Pastikan migrasi terbaru telah diterapkan pada database UAT
+    Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+
+    // Probe 1: Correlation ID Generation and Middleware Response
+    fwrite(STDOUT, "[PROBE 1] Correlation ID Generation & Response Injection:\n");
+    $middleware = new App\Http\Middleware\EnsureCorrelationId;
+    $request = Illuminate\Http\Request::create('/api/tasks/summary', 'GET');
+    $response = $middleware->handle($request, function ($req) {
+        $cid = $req->header('X-Correlation-ID');
+
+        return response()->json(['success' => true, 'data' => ['echo_cid' => $cid]]);
+    });
+
+    $headerCid = $response->headers->get('X-Correlation-ID');
+    $bodyCid = $response->getData(true)['data']['echo_cid'];
+
+    if (empty($headerCid) || $headerCid !== $bodyCid) {
+        throw new RuntimeException("Probe 1 failed: Correlation ID mismatch between header ({$headerCid}) and body ({$bodyCid}).");
+    }
+    fwrite(STDOUT, "  - Generated Correlation ID: {$headerCid}\n");
+    fwrite(STDOUT, "  -> PASS: Header X-Correlation-ID successfully generated and injected.\n\n");
+
+    // Probe 2: Monolog PII Redaction Filter
+    fwrite(STDOUT, "[PROBE 2] Monolog PII Redaction Processor:\n");
+    $processor = new App\Logging\PiiRedactionProcessor;
+    $rawLog = new Monolog\LogRecord(
+        datetime: new DateTimeImmutable,
+        channel: 'uat-probe',
+        level: Monolog\Level::Info,
+        message: 'UAT probe user registration NIK: 3201998877665544 with password: SuperSecretUatPassword123!',
+        context: [
+            'nik' => '3201998877665544',
+            'nisn' => '0099887766',
+            'password' => 'SuperSecretUatPassword123!',
+            'token' => 'uat-bearer-token-12345',
+            'safe_domain' => 'Administration School UAT',
+        ],
+        extra: ['api_key' => 'secret-uat-api-key']
+    );
+
+    $sanitizedLog = $processor($rawLog);
+
+    if ($sanitizedLog->context['nik'] !== '[REDACTED]' ||
+        $sanitizedLog->context['password'] !== '[REDACTED]' ||
+        $sanitizedLog->context['token'] !== '[REDACTED]' ||
+        $sanitizedLog->extra['api_key'] !== '[REDACTED]') {
+        throw new RuntimeException('Probe 2 failed: Sensitive fields not redacted in context/extra.');
+    }
+
+    if (str_contains($sanitizedLog->message, '3201998877665544') || str_contains($sanitizedLog->message, 'SuperSecretUatPassword123!')) {
+        throw new RuntimeException('Probe 2 failed: Raw PII strings leaked in message.');
+    }
+    fwrite(STDOUT, "  - Context NIK: {$sanitizedLog->context['nik']}\n");
+    fwrite(STDOUT, "  - Context Password: {$sanitizedLog->context['password']}\n");
+    fwrite(STDOUT, "  - Extra API Key: {$sanitizedLog->extra['api_key']}\n");
+    fwrite(STDOUT, "  - Sanitized Message: {$sanitizedLog->message}\n");
+    fwrite(STDOUT, "  -> PASS: Zero PII leak verified on log records.\n\n");
+
+    // Probe 3: Job Tracking Service & Idempotency Replay Guard
+    fwrite(STDOUT, "[PROBE 3] Job Tracking Service & Idempotency Replay Guard:\n");
+    $trackingService = new App\Services\Jobs\JobTrackingService;
+    $testIdempotencyKey = 'probe-uat-key-'.Illuminate\Support\Str::uuid();
+
+    $job1 = $trackingService->createJobStatus(
+        type: 'probe_async_task',
+        userId: null,
+        idempotencyKey: $testIdempotencyKey,
+        totalRecords: 100
+    );
+
+    $trackingService->updateProgress($job1->job_id, processed: 50, total: 100);
+    $job1->refresh();
+
+    $jobReplay = $trackingService->createJobStatus(
+        type: 'probe_async_task',
+        userId: null,
+        idempotencyKey: $testIdempotencyKey,
+        totalRecords: 100
+    );
+
+    if ($job1->id !== $jobReplay->id || $jobReplay->progress_percentage !== 50) {
+        throw new RuntimeException('Probe 3 failed: Idempotency replay guard did not return matching job instance.');
+    }
+
+    $trackingService->markCompleted($job1->job_id, ['processed' => 100]);
+    $job1->refresh();
+
+    fwrite(STDOUT, "  - Job ID: {$job1->job_id}\n");
+    fwrite(STDOUT, "  - Status: {$job1->status}, Progress: {$job1->progress_percentage}%\n");
+    fwrite(STDOUT, "  - Replay Guard ID match: job1 #{$job1->id} == replay #{$jobReplay->id}\n");
+    fwrite(STDOUT, "  -> PASS: Idempotency guard prevents duplicate async job creation.\n\n");
+
+    // Probe 4: Queue Tables Schema Readiness
+    fwrite(STDOUT, "[PROBE 4] Queue & Job Status Database Tables Readiness:\n");
+    $requiredTables = ['jobs', 'failed_jobs', 'job_batches', 'job_execution_statuses'];
+    foreach ($requiredTables as $tbl) {
+        if (! Illuminate\Support\Facades\Schema::hasTable($tbl)) {
+            throw new RuntimeException("Probe 4 failed: Required table '{$tbl}' does not exist.");
+        }
+        fwrite(STDOUT, "  - Table '{$tbl}': PRESENT\n");
+    }
+    fwrite(STDOUT, "  -> PASS: All required background queue tables are present and schema-ready.\n\n");
+
+    // Probe 5: Exception Rendering & Standard Error Contract
+    fwrite(STDOUT, "[PROBE 5] Standard Error Contract & Correlation ID on Exceptions:\n");
+    $handler = app(App\Exceptions\Handler::class);
+    $mockRequest = Illuminate\Http\Request::create('/api/test-error', 'GET');
+    $mockRequest->headers->set('Accept', 'application/json');
+    $mockRequest->headers->set('X-Correlation-ID', 'probe-err-cid-999');
+
+    $mockException = new Symfony\Component\HttpKernel\Exception\NotFoundHttpException('Halaman atau data tidak ditemukan.');
+    $renderedResponse = $handler->render($mockRequest, $mockException);
+
+    $respData = $renderedResponse->getData(true);
+    if (! isset($respData['success']) || $respData['success'] !== false) {
+        throw new RuntimeException("Probe 5 failed: 'success' => false not present in error response.");
+    }
+    if (! isset($respData['correlation_id']) || $respData['correlation_id'] !== 'probe-err-cid-999') {
+        throw new RuntimeException('Probe 5 failed: correlation_id not preserved in error response.');
+    }
+    if ($renderedResponse->headers->get('X-Correlation-ID') !== 'probe-err-cid-999') {
+        throw new RuntimeException('Probe 5 failed: X-Correlation-ID header missing from error response.');
+    }
+
+    fwrite(STDOUT, "  - Response Status: {$renderedResponse->getStatusCode()}\n");
+    fwrite(STDOUT, '  - Payload Success: '.($respData['success'] ? 'true' : 'false')."\n");
+    fwrite(STDOUT, "  - Correlation ID: {$respData['correlation_id']}\n");
+    fwrite(STDOUT, "  - Header X-Correlation-ID: {$renderedResponse->headers->get('X-Correlation-ID')}\n");
+    fwrite(STDOUT, "  -> PASS: Exception rendering adheres strictly to unified contract.\n\n");
+
+    fwrite(STDOUT, "=== ALL 5 UAT PHASE 12B RESILIENCE PROBES PASSED SUCCESSFULLY ===\n");
+    exit(0);
+}
+
+fwrite(STDERR, "Unknown command. Use init, prepare, prepare-teaching, prepare-journals, prepare-tasks, probe-reports, probe-dashboard, probe-reports-school, probe-tasks, probe-performance, probe-resilience, status, or start the HTTP server with this script.\n");
 exit(2);

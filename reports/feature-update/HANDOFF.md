@@ -1,6 +1,27 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Subfase 12a IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-45 IMPLEMENTED; Rencana Subfase 12b DISUSUN — DEC-46 PROPOSED)
+## Current checkpoint — 2026-11-03 (Subfase 12b IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-46 IMPLEMENTED; Rencana Subfase 12c DISUSUN — DEC-47 PROPOSED)
+
+- **Status:** Subfase **12b — Background Jobs, Queue Resilience, Observability dan Error Handling** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas main @ baseline **2df2de** (dokumentasi persetujuan rencana DEC-46 APPROVED). Paket implementasi dilaporkan di 
+eports/feature-update/PHASE-12B-REPORT.md dan checklist pengujian manual pemilik disediakan di 
+eports/feature-update/PHASE-12B-MANUAL-REVIEW.md (#1–#18). Bersamaan dengan itu, rencana teknis untuk subfase berikutnya telah disusun di 
+eports/feature-update/PHASE-12C-PLAN.md dengan usulan **DEC-47 PROPOSED (D1–D10)**.
+- **Implementasi yang diselesaikan (S1–S8):**
+  1. Migrasi aditif tabel antrean background queue: jobs, job_batches, dan job_execution_statuses (2029_12_02_000001_create_queue_jobs_and_tracking_tables.php) dan model JobExecutionStatus.php.
+  2. Middleware global EnsureCorrelationId (EnsureCorrelationId.php): otomatis membangkitkan/melestarikan header X-Correlation-ID (UUID v4) dan menyematkan correlation context ke Monolog.
+  3. Sanitasi data pribadi log melalui PiiRedactionProcessor dan PiiRedactionTap: mendeteksi serta meredaksi otomatis password, token, NIK (16 digit), nomor telepon, dan kunci rahasia pada seluruh catatan log monolog/Laravel.
+  4. Hardening Handler.php dengan format kontrak error terpadu (success: false, correlation_id, message, errors) pada seluruh exception API tanpa kebocoran internal server error.
+  5. Layanan JobTrackingService dan controller JobStatusController (GET /api/jobs/status/{jobId}) dengan otorisasi kepemilikan/admin dan mekanisme *idempotency replay guard* pencegah duplikasi pekerjaan latar belakang.
+  6. Peningkatan observabilitas error frontend pada ue-app/src/apiLogin/index.js dengan penyematan correlation ID pada notifikasi toast 5xx (ID Referensi: <UUID>), serta eliminasi unhandled console error di TasksView.vue.
+  7. Feature test suite otomatis QueueAndErrorResilienceTest.php: 7/7 PASS (50 assertions).
+  8. Kualitas: Pint PASS (10 files, 0 issues), Vite build clean (29.19s), probe UAT scripts/phase10-uat.php probe-resilience 5/5 PROBES PASSED.
+  9. Port isolation DEC-27: port 18028 dan 14028 dipastikan bebas listener (PORTS_18028_14028_FREE).
+- **Server UAT:** Server UAT port 18028 dan 14028 diverifikasi bebas listener (PORTS_18028_14028_FREE). Apache dan MariaDB operasional tidak disentuh.
+- **Next:** Pemilik menguji checklist manual #1–#18 pada 
+eports/feature-update/PHASE-12B-MANUAL-REVIEW.md dan/atau meninjau rencana Subfase 12c (DEC-47: D1–D10) pada 
+eports/feature-update/PHASE-12C-PLAN.md.
+
+## Previous checkpoint — 2026-11-03 (Subfase 12a IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-45 IMPLEMENTED; Rencana Subfase 12b DISUSUN — DEC-46 PROPOSED)
 
 - **Status:** Subfase **12a — Pagination, Query Performance, dan Pengendalian Beban** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`9a7eeb6`** (dokumentasi persetujuan rencana `DEC-45 APPROVED`). Paket implementasi dilaporkan di `reports/feature-update/PHASE-12A-REPORT.md` dan checklist pengujian manual pemilik disediakan di `reports/feature-update/PHASE-12A-MANUAL-REVIEW.md` (#1–#18). Bersamaan dengan itu, rencana teknis untuk subfase berikutnya telah disusun di `reports/feature-update/PHASE-12B-PLAN.md` dengan usulan **DEC-46 PROPOSED (D1–D10)**.
 - **Implementasi yang diselesaikan (S1–S8):**

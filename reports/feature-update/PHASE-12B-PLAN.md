@@ -4,10 +4,11 @@
 
 - **Subfase:** 12b — Background Jobs, Queue Resilience, Observability dan Error Handling (*Worker/Scheduler, Retry/Idempotency, Correlation ID & Secure Observability*).
 - **Milestone Induk:** Fase 12 — Performa, Observability dan Konsistensi.
-- **Usulan Keputusan Arsitektur:** **DEC-46 PROPOSED (D1–D10)** pada 2026-11-03 WIB.
-- **Baseline Kode:** `main` setelah penyelesaian Subfase 12a (*Pagination, Query Performance & Hard-Limit*).
-- **Status Rencana:** **PLAN — PROPOSED (DEC-46: D1–D10)** — *Menunggu Persetujuan Pemilik*.
-- **Status Implementasi:** **NOT STARTED** (menunggu instruksi tertulis persetujuan D1–D10 dari pemilik).
+- **Usulan Keputusan Arsitektur:** **DEC-46 APPROVED (D1–D10)** pada 2026-11-03 WIB.
+- **Baseline Kode:** `main` pada commit [`b2df2de`](file:///D:/xampp-htdocs/app-administration_school) setelah penyelesaian Subfase 12a (*Pagination, Query Performance & Hard-Limit*).
+- **Status Rencana:** **PLAN — APPROVED (DEC-46: D1–D10)** berdasarkan instruksi tertulis pemilik: *"Saya setuju D1-D10"*.
+- **Status Implementasi:** **IMPLEMENTED & DIVERIFIKASI AGEN (2026-11-03)**.
+- **Status Review Pemilik:** **AWAITING OWNER REVIEW (#1–#18)** (Panduan review: [`PHASE-12B-MANUAL-REVIEW.md`](./PHASE-12B-MANUAL-REVIEW.md); Laporan lengkap: [`PHASE-12B-REPORT.md`](./PHASE-12B-REPORT.md)).
 
 ---
 

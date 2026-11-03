@@ -29,3 +29,6 @@ UAT-ACCOUNTS.local.md
 .uat-phase08/
 .uat-phase09/
 .uat-phase10/
+.uat-phase06/
+console.txt
+vue-app/test-results/

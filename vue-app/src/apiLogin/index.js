@@ -61,10 +61,15 @@ export function registerAuthHandlers(handlers = {}) {
 apiLogin.interceptors.response.use(
     (response) => {
         response.data = enrichReferenceResponse(response.data, response.config?.url);
+        response.correlationId = response.headers?.['x-correlation-id'] || response.data?.correlation_id;
         return response;
     },
     async (error) => {
         const config = error.config || {};
+        const correlationId = error.response?.headers?.['x-correlation-id'] || error.response?.data?.correlation_id;
+        if (correlationId) {
+            error.correlationId = correlationId;
+        }
 
         // 1. Timeout / Network error (no response)
         if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
@@ -201,10 +206,13 @@ apiLogin.interceptors.response.use(
 
         // 6. 5xx Server Error
         if (status >= 500) {
+            const refText = correlationId ? ` (ID Referensi: ${correlationId})` : '';
+            const errorMsg = error.response?.data?.message || 'An unexpected server error occurred. Please try again later.';
             notify({
                 type: 'error',
                 title: 'Server error',
-                text: 'An unexpected server error occurred. Please try again later.'
+                text: `${errorMsg}${refText}`,
+                duration: 8000
             });
             return Promise.reject(error);
         }

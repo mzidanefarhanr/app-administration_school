@@ -127,7 +127,12 @@ const loadSummary = async () => {
             summary.value = response.data.data;
         }
     } catch (err) {
-        console.error('Failed to load tasks summary', err);
+        toast.add({
+            severity: 'warn',
+            summary: 'Peringatan',
+            detail: 'Gagal memuat ringkasan tugas: ' + (err.response?.data?.message || err.message),
+            life: 4000
+        });
     } finally {
         loadingSummary.value = false;
     }

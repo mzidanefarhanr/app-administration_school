@@ -17,6 +17,51 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 12b — Background jobs, queue resilience, observability dan error handling (DEC-46 IMPLEMENTED)
+- Type: Feature | Schema Change | Reliability | Observability
+- Scope / fase: Fase 12 — Subfase 12b: Background Jobs, Queue Resilience, Observability dan Error Handling (DEC-46 IMPLEMENTED).
+- Files touched:
+  - laravel-api/database/migrations/2029_12_02_000001_create_queue_jobs_and_tracking_tables.php (tabel queue jobs, job_batches, job_execution_statuses)
+  - laravel-api/app/Models/JobExecutionStatus.php (model tracking progres dan status job)
+  - laravel-api/app/Http/Middleware/EnsureCorrelationId.php (injeksi X-Correlation-ID & Monolog context)
+  - laravel-api/app/Http/Kernel.php (registrasi middleware EnsureCorrelationId)
+  - laravel-api/app/Logging/PiiRedactionProcessor.php & PiiRedactionTap.php (sanitasi PII password, NIK, token)
+  - laravel-api/config/logging.php (wiring tap PII redaction)
+  - laravel-api/app/Exceptions/Handler.php (standard error contract & correlation ID injection)
+  - laravel-api/app/Services/Jobs/JobTrackingService.php (idempotency replay guard & progress helper)
+  - laravel-api/app/Http/Controllers/JobStatusController.php (endpoint GET /api/jobs/status/{jobId})
+  - laravel-api/routes/api.php (route /api/jobs/status/{jobId})
+  - ue-app/src/apiLogin/index.js (Axios interceptor Toast 5xx ID Referensi)
+  - ue-app/src/views/tasks/TasksView.vue (eliminasi unhandled console.error pada loadSummary)
+  - laravel-api/tests/Feature/Performance/QueueAndErrorResilienceTest.php (7 tes feature, 50 assertions)
+  - laravel-api/scripts/phase10-uat.php (handler probe-resilience)
+  - docs/DECISIONS.md, 
+oadmap/phases/PHASE-12-PERFORMANCE.md, 
+oadmap/ROADMAP.md, 
+eports/feature-update/INDEX.md, 
+eports/feature-update/HANDOFF.md, PROJECT_CONTEXT.md, CHANGELOG.md.
+  - 
+eports/feature-update/PHASE-12B-REPORT.md, 
+eports/feature-update/PHASE-12B-MANUAL-REVIEW.md, 
+eports/feature-update/PHASE-12C-PLAN.md.
+- What changed:
+  1. Migrasi aditif pembuatan tabel antrean background queue: jobs, job_batches, dan job_execution_statuses.
+  2. Middleware global EnsureCorrelationId untuk membangkitkan/melestarikan UUID v4 dan menyematkannya ke Monolog.
+  3. Sanitasi PII otomatis pada log file untuk melindungi data sensitif seperti password, NIK, dan token otentikasi.
+  4. Format payload terpadu respons error global di Handler.php (success: false, correlation_id, message, errors).
+  5. JobTrackingService dengan *idempotency replay guard* pencegah duplikasi job dan controller status progres GET /api/jobs/status/{jobId} dengan otorisasi kepemilikan.
+  6. Frontend Axios response interceptor yang menampilkan nomor referensi kesalahan teknis (ID Referensi: <UUID>) pada toast notifikasi, serta pembersihan console error suppression.
+  7. Penyusunan rencana Subfase 12c (Konsistensi Antarmenu, Form/Dialog, dan Penghapusan Menu Demo) dengan DEC-47 PROPOSED (D1–D10).
+- Validation:
+  - php artisan test --filter=QueueAndErrorResilienceTest: 7 passed (50 assertions).
+  - php scripts/phase10-uat.php probe-resilience: 5/5 PROBES PASSED.
+  - Laravel Pint: PASS (10 files, 0 issues).
+  - Vite build: PASS (built in 29.19s).
+  - Port isolation: Ports 18028 & 14028 free (DEC-27).
+- Evidence: 
+eports/feature-update/PHASE-12B-REPORT.md dan 
+eports/feature-update/PHASE-12B-MANUAL-REVIEW.md.
+
 ## [2026-11-03] Fase 12a — Optimasi pagination, query performance, dan pengendalian beban (DEC-45 IMPLEMENTED)
 - Type: Feature | Schema Change | Performance
 - Scope / fase: Fase 12 — Subfase 12a: Pagination, Query Performance, dan Pengendalian Beban (DEC-45 IMPLEMENTED).
