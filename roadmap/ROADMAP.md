@@ -4,7 +4,21 @@ Versi dokumen: 1.0, 14 Oktober 2026 (WIB); audit HEAD 15 Oktober 2026.
 Baseline kode: `b02a87f0d57adffec297ed465a8afcd8e8d7ec59`; HEAD audit `b699feccd65357a10f7430c165400906e6394d49` (delta = paket docs saja, kode tidak berubah).
 Historical drafting status (2026-10-14/15): DRAFT; Fase 00 PARTIAL. The original “all other phases not started” statement is obsolete; current statuses are in the table and correction addendum below.
 
-## Addendum — 2026-11-03 (Subfase 12c OWNER APPROVED #1–#18; FASE 12 SELESAI LENGKAP & DITUTUP; Rencana Subfase 13a DISUSUN — DEC-48 PROPOSED)
+## Addendum — 2026-11-03 (Rencana Subfase 13a DISETUJUI — DEC-48 APPROVED; Subfase 13a IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18)
+
+Pernyataan pemilik **"Saya setuju D1-D10"** (2026-11-03 WIB) dicatat sebagai **DEC-48 APPROVED**; implementasi **Subfase 13a — QA Integrasi dan UAT** diotorisasi dan telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`6d79fdd`**, dengan laporan implementasi di `reports/feature-update/PHASE-13A-REPORT.md` dan paket review manual di `reports/feature-update/PHASE-13A-MANUAL-REVIEW.md` (#1–#18). Disampaikan pada 13a:
+1. Audit dan katalog definitif 334 endpoint backend (10 domain modul) dan 27 rute antarmuka frontend aktif tanpa orphaned routes atau dead links.
+2. Verifikasi matriks hak akses 5 peran kanonikal (`admin-sistem`, `operator-sekolah`, `kepala-sekolah`, `wakil-kesiswaan`, `guru`) dengan penegakan penolakan tegas 403 Forbidden pada akses yang tidak berhak.
+3. Verifikasi 4 alur integrasi end-to-end: E2E-1 (Siswa -> Rombel -> Surat Keterangan -> Arsip PDF SHA-256), E2E-2 (Guru -> Jadwal Bebas Bentrok 422 -> Jurnal Harian Idempoten -> Rekap Kepatuhan 100%), E2E-3 (Pengajuan Izin -> Pusat Tugas Pimpinan -> Approval Kepala Sekolah & No Self-Approval), dan E2E-4 (Integritas Cadangan & Observabilitas Correlation ID).
+4. Audit zero PII leak: penegakan sensor otomatis Monolog `[REDACTED_NIK]` dan `[REDACTED]` pada kata sandi, NIK, token, dan telepon sensitif.
+5. Verifikasi tampilan multi-viewport (Desktop 1440px, Tablet 768px, Ponsel Mobile 390px) dan keterbacaan kontras mode gelap (`.app-dark`).
+6. Suite tes integrasi otomatis baru `laravel-api/tests/Feature/Integration/EndToEndIntegrationTest.php`: 6/6 PASS (67 assertions).
+7. Probe UAT terisolasi `scripts/phase10-uat.php probe-integration`: 5/5 PROBES PASSED.
+8. Kepatuhan DEC-27: port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
+9. Penutupan gerbang DEC-13 (audit trail append-only, soft-delete preservatif buku induk, laporan retensi arsip read-only) dan inventarisasi batasan rilis kandidat v1.0.
+Menunggu review manual pemilik checklist #1–#18.
+
+## Previous addendum — 2026-11-03 (Subfase 12c OWNER APPROVED #1–#18; FASE 12 SELESAI LENGKAP & DITUTUP; Rencana Subfase 13a DISUSUN — DEC-48 PROPOSED)
 
 Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual Subfase 12c **#1–#18 APPROVED**. **Subfase 12c — Konsistensi Antarmenu, Form/Dialog, dan Penghapusan Menu Demo** resmi **SELESAI LENGKAP & DITUTUP** (`0af991d`). **DEC-47 disahkan menjadi APPROVED & CLOSED**. Dengan disetujuinya seluruh subfase 12a, 12b, dan 12c, **FASE 12 (Performa, Observability dan Konsistensi) RESMI SELESAI LENGKAP & DITUTUP**. Port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
 
@@ -348,7 +362,7 @@ Fondasi keamanan + backup dahulu; penyelesaian pendataan; pengolahan massal dan 
 | 10 | [Administrasi pembelajaran](phases/PHASE-10-TEACHING.md) | 04,06; DEC-10 (CLOSED via DEC-39) | **10a, 10b, 10c IMPLEMENTED + OWNER APPROVED (#1–#18, 2026-11-03 WIB) — FASE 10 SELESAI LENGKAP & DITUTUP**: penugasan & jadwal mingguan + deteksi bentrok 3D (10a); sesi efektif & jurnal mengajar idempotent retry + own-assignment grace window (10b); laporan kepatuhan guru, aturan denominator eksak, segmentasi grace vs overdue, streaming CSV ber-BOM (10c); total 20 route `/api/teaching/*`, 2 halaman mandiri, 32 tes Teaching + 147 regresi (179 passed / 2.338 assertions) | **10a, 10b, 10c OWNER APPROVED (#1–#18, 2026-11-03 WIB; Fase 10 DITUTUP)** |
 | 11 | [Dashboard operator dan laporan](phases/PHASE-11-ANALYTICS.md) | Modul sumber 03–10; boleh bertahap setelah sumber siap; DEC-42; DEC-43; DEC-44; DEC-12 CLOSED | **11a, 11b, 11c IMPLEMENTED + OWNER APPROVED (#1–#18, 2026-11-03 WIB) — FASE 11 SELESAI LENGKAP & DITUTUP** | **11a APPROVED; 11b APPROVED; 11c APPROVED (DEC-44 CLOSED); FASE 11 DITUTUP** |
 | 12 | [Performa, observability dan konsistensi](phases/PHASE-12-PERFORMANCE.md) | Modul aktif; audit 00; DEC-45; DEC-46; DEC-47 | **12a, 12b, 12c IMPLEMENTED & OWNER APPROVED (#1–#18, 2026-11-03 WIB) — FASE 12 SELESAI LENGKAP & DITUTUP** | **12a APPROVED; 12b APPROVED; 12c APPROVED (DEC-47 CLOSED); FASE 12 DITUTUP** |
-| 13 | [QA akhir, rilis dan handoff operasional](phases/PHASE-13-QA-RELEASE.md) | Fase 00–12 selesai lengkap; DEC-48 | **IN PROGRESS (Subfase 13a PLAN PROPOSED — DEC-48: D1–D10)** | **13a PLAN PROPOSED; MENUNGGU PERSETUJUAN PEMILIK (D1–D10)** |
+| 13 | [QA akhir, rilis dan handoff operasional](phases/PHASE-13-QA-RELEASE.md) | Fase 00–12 selesai lengkap; DEC-48 | **IN PROGRESS (Subfase 13a IMPLEMENTED & DIVERIFIKASI AGEN — DEC-48 APPROVED)** | **13a IMPLEMENTED; MENUNGGU REVIEW MANUAL PEMILIK (#1–#18)** |
 
 Setiap fase memiliki subfase, prompt, kriteria dan bukti. Fase11 dashboard dapat bertahap berdasarkan modul sumber yang sudah siap; tidak harus menunggu semua modul untuk mengganti widget demo, tetapi jangan menampilkan angka palsu untuk modul belum tersedia.
 

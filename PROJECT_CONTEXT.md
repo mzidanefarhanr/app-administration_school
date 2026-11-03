@@ -1,6 +1,28 @@
 # Konteks proyek
 
-## Current addendum — 2026-11-03 (Subfase 12c OWNER APPROVED #1–#18; FASE 12 SELESAI LENGKAP & DITUTUP; Rencana Subfase 13a DISUSUN — DEC-48 PROPOSED)
+## Current addendum — 2026-11-03 (Subfase 13a IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18; DEC-48 IMPLEMENTED)
+
+Pernyataan pemilik **"Saya setuju D1-D10"** (2026-11-03 WIB) dicatat sebagai **DEC-48 APPROVED**; implementasi **Subfase 13a — QA Integrasi dan UAT** diotorisasi dan telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`6d79fdd`**, dengan laporan implementasi di `reports/feature-update/PHASE-13A-REPORT.md` dan paket review manual di `reports/feature-update/PHASE-13A-MANUAL-REVIEW.md` (#1–#18). Disampaikan:
+- **Integrasi Lintas Domain & Full Role Matrix:**
+  1. Audit dan inventarisasi katalog lengkap 334 endpoint backend (10 domain modul) dan 27 rute antarmuka aktif Vue SPA tanpa orphaned routes atau dead links.
+  2. Audit otorisasi formal Full Role-Based Permission Matrix lintas 5 peran kanonikal (`admin-sistem`, `operator-sekolah`, `kepala-sekolah`, `wakil-kesiswaan`, `guru`), menegakkan allowed access tepat dan penolakan 403 tegas pada akses di luar wewenang.
+  3. Verifikasi 4 alur kerja integrasi end-to-end lintas modul: E2E-1 (Siswa -> Rombel -> Surat Keterangan -> Arsip Dokumen PDF SHA-256), E2E-2 (Guru -> Jadwal Bebas Bentrok 422 -> Jurnal Harian Idempoten -> Rekap Kepatuhan 100%), E2E-3 (Pengajuan Izin Guru -> Pusat Tugas Pimpinan -> Approval Kepala Sekolah & No Self-Approval), dan E2E-4 (Integritas Cadangan & Observabilitas Correlation ID).
+- **Audit Keamanan Data Pribadi & Observabilitas:**
+  1. Audit zero PII leak: penegakan sensor otomatis Monolog `[REDACTED_NIK]` dan `[REDACTED]` pada kata sandi, NIK, token, dan telepon sensitif.
+  2. Kontrak error seragam dan propagasi header `X-Correlation-ID`.
+- **UI Multi-Viewport & Konsistensi Tampilan:**
+  1. Verifikasi tampilan Desktop (1440px), Tablet (768px), dan Layar Ponsel Mobile (390px) serta tema Light/Dark.
+- **Verifikasi & Kualitas:**
+  - Test suite otomatis: `EndToEndIntegrationTest.php` 6/6 PASS (67 assertions).
+  - UAT probe: `scripts/phase10-uat.php probe-integration` 5/5 probes PASS.
+  - ESLint: PASS (0 errors, 0 warnings).
+  - Vite build: PASS (code 0, 18.42s).
+  - Laravel Pint: PASS (clean).
+  - Port isolation DEC-27: port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
+  - MariaDB operasional port 3306 dan Apache port 80/443 tidak disentuh.
+- **Status:** Menunggu review manual pemilik checklist #1–#18 di `reports/feature-update/PHASE-13A-MANUAL-REVIEW.md`.
+
+## Previous addendum — 2026-11-03 (Subfase 12c OWNER APPROVED #1–#18; FASE 12 SELESAI LENGKAP & DITUTUP; Rencana Subfase 13a DISUSUN — DEC-48 PROPOSED)
 
 Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual Subfase 12c **#1–#18 APPROVED**. **Subfase 12c — Konsistensi Antarmenu, Form/Dialog, dan Penghapusan Menu Demo** resmi **SELESAI LENGKAP & DITUTUP** (`0af991d`). **DEC-47 disahkan menjadi APPROVED & CLOSED**. Dengan disetujuinya seluruh subfase 12a, 12b, dan 12c, **FASE 12 (Performa, Observability dan Konsistensi) RESMI SELESAI LENGKAP & DITUTUP**. Port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
 

@@ -1,15 +1,15 @@
 # Fase 13 — QA akhir, rilis dan handoff operasional
 
-Status teknis: IN PROGRESS (Subfase 13a PLAN PROPOSED). Status review: PENDING (DEC-48 PROPOSED; menunggu persetujuan pemilik D1–D10). Semua tes/browser/manual: NOT RUN (implementasi belum diotorisasi).
-Dependensi: Fase 00 s.d. Fase 12 SELESAI LENGKAP & DITUTUP. Baseline rencana: `0af991d`; audit ulang HEAD saat pelaksanaan.
+Status teknis: IN PROGRESS (Subfase 13a IMPLEMENTED; AWAITING OWNER REVIEW #1–#18). Status review: AWAITING OWNER REVIEW (Checklist #1–#18 pada `reports/feature-update/PHASE-13A-MANUAL-REVIEW.md`). Verifikasi otomatis: EndToEndIntegrationTest 6/6 PASS, probe-integration 5/5 PASS, lint & build pass.
+Dependensi: Fase 00 s.d. Fase 12 SELESAI LENGKAP & DITUTUP. Baseline implementasi: `6d79fdd`.
 
 ## Tujuan dan scope
-QA akhir, rilis dan handoff operasional. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Tidak ada pekerjaan implementasi yang telah dilakukan dalam penyusunan dokumen ini.
+QA akhir, rilis dan handoff operasional. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis.
 
 ## Subfase
 
 ### 13a — QA integrasi dan UAT
-Scope: Inventory semua endpoint/halaman aktif (334 endpoint, 27 halaman); full role matrix (5 peran); end-to-end siswa→rombel→surat→arsip, guru→jadwal→jurnal→rekap, izin→tugas→approval dan backup; audit zero PII leak; multi-viewport (1440/768/390px) & light/dark; test suite otomatis EndToEndIntegrationTest.php; probe UAT probe-integration; catat open issues dan scope release nyata. Detail rencana: `reports/feature-update/PHASE-13A-PLAN.md` (DEC-48: D1–D10). Status: **PLAN PROPOSED — MENUNGGU PERSETUJUAN PEMILIK (D1–D10)**.
+Scope: Inventory semua endpoint/halaman aktif (334 endpoint, 27 halaman); full role matrix (5 peran); end-to-end siswa→rombel→surat→arsip, guru→jadwal→jurnal→rekap, izin→tugas→approval dan backup; audit zero PII leak; multi-viewport (1440/768/390px) & light/dark; test suite otomatis EndToEndIntegrationTest.php (6/6 pass); probe UAT probe-integration (5/5 pass); catat open issues dan scope release nyata. Detail rencana: `reports/feature-update/PHASE-13A-PLAN.md` (DEC-48 APPROVED). Laporan: `reports/feature-update/PHASE-13A-REPORT.md`. Checklist review manual: `reports/feature-update/PHASE-13A-MANUAL-REVIEW.md` (#1–#18). Status: **IMPLEMENTED & DIVERIFIKASI AGEN (2026-11-03 WIB) — MENUNGGU REVIEW MANUAL PEMILIK (#1–#18)**.
 
 Kriteria penerimaan: Suite dan UAT sesuai hasil; semua NOT RUN/FAIL/BLOCKED eksplisit; approval manual tidak melampaui checklist.
 

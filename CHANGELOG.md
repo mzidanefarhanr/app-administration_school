@@ -17,6 +17,43 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 13a — QA integrasi menyeluruh, role matrix, alur E2E, audit PII, dan UAT probe (DEC-48 IMPLEMENTED)
+- Type: Feature | Test | Quality Assurance | Observability
+- Scope / fase: Fase 13 — Subfase 13a: QA Integrasi dan UAT (DEC-48 IMPLEMENTED).
+- Files touched:
+  - `laravel-api/tests/Feature/Integration/EndToEndIntegrationTest.php` (automated integration test suite lintas 10 modul domain, 6/6 tests passed, 67 assertions)
+  - `laravel-api/scripts/phase10-uat.php` (handler UAT probe terisolasi `probe-integration`, 5/5 probes passed)
+  - `docs/DECISIONS.md` (DEC-48 APPROVED & IMPLEMENTED; penutupan sisa DEC-13)
+  - `reports/feature-update/PHASE-13A-PLAN.md` (status APPROVED & IMPLEMENTED)
+  - `reports/feature-update/PHASE-13A-REPORT.md` (laporan hasil kerja komprehensif Subfase 13a)
+  - `reports/feature-update/PHASE-13A-MANUAL-REVIEW.md` (panduan review manual pemilik #1–#18)
+  - `roadmap/phases/PHASE-13-QA-RELEASE.md` (Subfase 13a IMPLEMENTED & AWAITING OWNER REVIEW #1–#18)
+  - `roadmap/ROADMAP.md` (addendum implementasi Subfase 13a dan status roadmap)
+  - `reports/feature-update/INDEX.md` (checkpoint pembaruan Subfase 13a)
+  - `reports/feature-update/HANDOFF.md` (checkpoint handoff Subfase 13a)
+  - `PROJECT_CONTEXT.md` (addendum kontekstual implementasi Subfase 13a)
+- What changed:
+  1. Melakukan inventarisasi dan audit katalog menyeluruh terhadap 334 endpoint backend (10 domain modul) dan 27 rute antarmuka aktif Vue SPA.
+  2. Menguji dan memvalidasi Full Role-Based Permission Matrix untuk 5 peran kanonikal (`admin-sistem`, `operator-sekolah`, `kepala-sekolah`, `wakil-kesiswaan`, `guru`) dengan penegakan penolakan 403 Forbidden tegas pada wewenang di luar peran.
+  3. Menguji 4 alur kerja integrasi lintas domain end-to-end: E2E-1 (Siswa -> Rombel -> Surat Keterangan -> Arsip PDF SHA-256), E2E-2 (Guru -> Jadwal Bebas Bentrok 422 -> Jurnal Harian Idempoten -> Rekap Kepatuhan 100%), E2E-3 (Pengajuan Izin Guru -> Pusat Tugas Pimpinan -> Approval Kepala Sekolah & No Self-Approval), dan E2E-4 (Integritas Cadangan & Observabilitas Correlation ID).
+  4. Melakukan audit zero PII leak: penegakan sensor otomatis Monolog `[REDACTED_NIK]` dan `[REDACTED]` pada kata sandi, NIK, token, dan telepon sensitif.
+  5. Memverifikasi keselarasan tampilan multi-viewport (Desktop 1440px, Tablet 768px, Layar Ponsel 390px) serta tema Light dan Dark Mode (`.app-dark`).
+  6. Menyusun suite tes integrasi otomatis baru `EndToEndIntegrationTest.php` (6/6 tests passing, 67 assertions).
+  7. Menyediakan handler probe UAT terisolasi `probe-integration` pada `scripts/phase10-uat.php` (5/5 probes passing).
+  8. Menutup sisa gerbang keputusan DEC-13 dan mendokumentasikan batasan operasional rilis kandidat v1.0.
+- Why: Memenuhi instruksi pemilik yang menyetujui D1–D10 pada DEC-48 untuk pelaksanaan Subfase 13a (QA Integrasi dan UAT).
+- Validation:
+  - `php artisan test --filter=EndToEndIntegrationTest`: PASS (6 passed, 67 assertions, 5.37s).
+  - `php scripts/phase10-uat.php probe-integration`: PASS (5/5 probes passed).
+  - `npm run lint`: PASS (0 errors, code 0).
+  - `npm run build`: PASS (built in 18.42s, 0 errors).
+  - `vendor/bin/pint tests/Feature/Integration/EndToEndIntegrationTest.php scripts/phase10-uat.php`: PASS (clean).
+  - Regresi `QueueAndErrorResilienceTest`: PASS (7 passed, 50 assertions).
+  - Regresi `QueryPerformanceTest`: PASS (6 passed, 62 assertions).
+  - Port isolation DEC-27: port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
+  - MariaDB operasional port 3306 dan Apache port 80/443 tidak disentuh.
+- Evidence: `reports/feature-update/PHASE-13A-REPORT.md`, `reports/feature-update/PHASE-13A-MANUAL-REVIEW.md`, `docs/DECISIONS.md`.
+
 ## [2026-11-03] Fase 12c — Penerimaan manual pemilik checklist #1–#18 (FASE 12 SELESAI LENGKAP & DITUTUP); Usulan rencana Subfase 13a (DEC-48 PROPOSED)
 - Type: Docs | Acceptance | Architecture Planning
 - Scope / fase: Fase 12 (Subfase 12c APPROVED; FASE 12 CLOSED) & Fase 13 (Subfase 13a: QA Integrasi dan UAT — DEC-48 PROPOSED: D1–D10).

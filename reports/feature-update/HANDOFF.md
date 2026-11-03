@@ -1,6 +1,22 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Subfase 12c OWNER APPROVED #1–#18; FASE 12 SELESAI LENGKAP & DITUTUP; Rencana Subfase 13a DISUSUN — DEC-48 PROPOSED)
+## Current checkpoint — 2026-11-03 (Subfase 13a IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-48 IMPLEMENTED)
+
+- **Status:** Subfase **13a — QA Integrasi dan UAT** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`6d79fdd`** (dokumentasi persetujuan rencana `DEC-48 APPROVED` via instruksi pemilik: *"Saya setuju D1-D10"*). Paket implementasi dilaporkan di `reports/feature-update/PHASE-13A-REPORT.md` dan checklist pengujian manual pemilik disediakan di `reports/feature-update/PHASE-13A-MANUAL-REVIEW.md` (#1–#18).
+- **Implementasi yang diselesaikan (S1–S8):**
+  1. Audit dan inventarisasi katalog lengkap 334 endpoint HTTP API (10 domain modul) dan 27 rute antarmuka aktif Vue SPA terbebas dari orphaned routes atau dead links.
+  2. Audit otorisasi formal Full Role-Based Permission Matrix lintas 5 peran kanonikal (`admin-sistem`, `operator-sekolah`, `kepala-sekolah`, `wakil-kesiswaan`, `guru`), menegakkan allowed access tepat dan penolakan 403 tegas pada akses di luar wewenang.
+  3. Verifikasi 4 alur kerja integrasi end-to-end lintas modul: E2E-1 (Siswa -> Rombel -> Surat Keterangan -> Arsip Dokumen PDF SHA-256), E2E-2 (Guru -> Jadwal Bebas Bentrok 422 -> Jurnal Harian Idempoten -> Rekap Kepatuhan 100%), E2E-3 (Pengajuan Izin Guru -> Pusat Tugas Pimpinan -> Approval Kepala Sekolah & No Self-Approval), dan E2E-4 (Integritas Cadangan & Observabilitas Correlation ID).
+  4. Audit keamanan zero PII leak: penegakan sensor otomatis Monolog `[REDACTED_NIK]` dan `[REDACTED]` pada kata sandi, NIK, token, dan telepon sensitif.
+  5. Verifikasi tampilan multi-viewport (Desktop 1440px, Tablet 768px, Ponsel Mobile 390px) dan keterbacaan kontras mode gelap (`.app-dark`).
+  6. Suite tes integrasi otomatis baru `laravel-api/tests/Feature/Integration/EndToEndIntegrationTest.php`: 6/6 PASS (67 assertions).
+  7. Probe UAT terisolasi `scripts/phase10-uat.php probe-integration`: 5/5 PROBES PASSED.
+  8. Kepatuhan DEC-27: port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
+  9. Penutupan gerbang DEC-13 (audit trail append-only, soft-delete preservatif buku induk, laporan retensi arsip read-only) dan inventarisasi batasan rilis kandidat v1.0.
+- **Server UAT:** Server UAT port `18028` dan `14028` diverifikasi bebas listener (`PORTS_18028_14028_FREE`). Apache dan MariaDB operasional tidak disentuh.
+- **Next:** Pemilik menguji checklist manual #1–#18 pada `reports/feature-update/PHASE-13A-MANUAL-REVIEW.md` dan memberikan persetujuan penerimaan bila sesuai.
+
+## Previous checkpoint — 2026-11-03 (Subfase 12c OWNER APPROVED #1–#18; FASE 12 SELESAI LENGKAP & DITUTUP; Rencana Subfase 13a DISUSUN — DEC-48 PROPOSED)
 
 - **Status:** Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual Subfase 12c **#1–#18 APPROVED**. **Subfase 12c — Konsistensi Antarmenu, Form/Dialog, dan Penghapusan Menu Demo** resmi **SELESAI LENGKAP & DITUTUP** (`0af991d`). **DEC-47 disahkan menjadi APPROVED & CLOSED**. Dengan disetujuinya seluruh subfase 12a, 12b, dan 12c, **FASE 12 (Performa, Observability dan Konsistensi) RESMI SELESAI LENGKAP & DITUTUP**.
 - **Perencanaan Subfase 13a:** Rencana teknis rinci untuk **Subfase 13a: QA Integrasi dan UAT** telah disusun di `reports/feature-update/PHASE-13A-PLAN.md` dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D10)** dan usulan **DEC-48 PROPOSED**. Paket ini murni perencanaan tanpa pekerjaan implementasi kode baru, migrasi database baru, atau deployment aktual. Cakupan mencakup inventarisasi 334 endpoint & 27 rute SPA aktif, audit matriks hak akses 5 peran, 4 alur pengujian E2E, audit zero PII leak, verifikasi UI multi-viewport (1440/768/390px) & tema Light/Dark, test suite `EndToEndIntegrationTest.php`, probe UAT `probe-integration` di `phase10-uat.php`, rekonsiliasi keputusan & batasan rilis v1.0, serta checklist review manual #1–#18.
