@@ -1,0 +1,49 @@
+{
+    "stats": {
+        "followers": "Followers",
+        "projects": "Projects",
+        "collections": "Collections",
+        "shots": "Shots"
+    },
+    "verticalForm": {
+        "title": "Vertical",
+        "name": "Name",
+        "email": "Email",
+        "age": "Age"
+    },
+    "changePassword": {
+        "title": "Change Password",
+        "currentPassword": "Current Password",
+        "newPassword": "New Password (min 12 chars)",
+        "confirmNewPassword": "Confirm New Password",
+        "passwordMismatch": "New passwords do not match!"
+    },
+    "advancedForm": {
+        "title": "Advanced",
+        "firstName": "Firstname",
+        "lastName": "Lastname",
+        "address": "Address",
+        "state": "State",
+        "selectOne": "Select One",
+        "zip": "Zip"
+    },
+    "dialog": {
+        "warningHeader": "Warning!",
+        "warningMessage": "Is the information you entered correct?",
+        "confirmHeader": "Are you sure you want to change your password?",
+        "confirmMessage": "Click Save to proceed.",
+        "cancelledSummary": "Cancelled",
+        "cancelledDetail": "Password change cancelled.",
+        "successTitle": "Success",
+        "successMessage": "Password changed successfully!",
+        "waitingHeader": "Please wait while your information is processed.",
+        "loading": "Loading...",
+        "failedTitle": "Failed",
+        "requiredFields": "All password fields are required.",
+        "minLength": "New password must be at least 12 characters long.",
+        "mismatch": "New password and confirmation do not match.",
+        "sameAsOld": "New password cannot be the same as current password.",
+        "validationError": "Validation error. Please check your input.",
+        "unexpectedError": "An unexpected error occurred."
+    }
+}

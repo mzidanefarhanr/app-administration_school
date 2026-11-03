@@ -1,8 +1,10 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import apiLogin from '@/apiLogin';
 
+const { t } = useI18n();
 const router = useRouter();
 
 const tasks = ref([]);
@@ -16,7 +18,7 @@ const load = async () => {
         const response = await apiLogin.get('/api/dashboard/pending-tasks');
         tasks.value = response.data?.data ?? [];
     } catch {
-        error.value = 'Daftar tugas operasional tidak dapat dimuat.';
+        error.value = t('dashboard.pendingTasks.error');
     } finally {
         loading.value = false;
     }
@@ -51,11 +53,11 @@ const getUrgencySeverity = (urgency) => {
 const getUrgencyLabel = (urgency) => {
     switch (urgency) {
         case 'high':
-            return 'Mendesak';
+            return t('dashboard.pendingTasks.urgencyHigh');
         case 'warn':
-            return 'Perhatian';
+            return t('dashboard.pendingTasks.urgencyWarn');
         default:
-            return 'Info';
+            return t('dashboard.pendingTasks.urgencyInfo');
     }
 };
 
@@ -76,29 +78,29 @@ defineExpose({ load });
     <div class="card mb-6">
         <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
-                <span class="font-semibold text-xl">Tugas & Tindakan Operasional</span>
+                <span class="font-semibold text-xl">{{ t('dashboard.pendingTasks.title') }}</span>
                 <Tag v-if="tasks.length > 0" :value="`${tasks.length}`" severity="warn" rounded />
             </div>
-            <Button icon="pi pi-refresh" size="small" variant="text" severity="secondary" :loading="loading" aria-label="Segarkan tugas" @click="load" />
+            <Button icon="pi pi-refresh" size="small" variant="text" severity="secondary" :loading="loading" :aria-label="t('dashboard.pendingTasks.refreshAria')" @click="load" />
         </div>
 
         <div v-if="loading" class="flex items-center gap-3 py-8 text-surface-500 justify-center">
             <i class="pi pi-spin pi-spinner text-lg" aria-hidden="true"></i>
-            <span class="text-sm">Memeriksa tugas operasional tertunda...</span>
+            <span class="text-sm">{{ t('dashboard.pendingTasks.loading') }}</span>
         </div>
 
         <div v-else-if="error" class="flex flex-col items-center gap-3 py-6 text-center">
             <i class="pi pi-exclamation-triangle text-2xl text-red-500" aria-hidden="true"></i>
             <span class="text-sm text-red-500">{{ error }}</span>
-            <Button label="Coba Lagi" icon="pi pi-refresh" size="small" severity="secondary" variant="outlined" @click="load" />
+            <Button :label="t('common.action.retry')" icon="pi pi-refresh" size="small" severity="secondary" variant="outlined" @click="load" />
         </div>
 
         <div v-else-if="tasks.length === 0" class="flex flex-col items-center gap-2 py-8 text-center text-surface-500">
             <div class="w-12 h-12 flex items-center justify-center rounded-full bg-green-100 dark:bg-green-400/10 text-green-600 mb-2">
                 <i class="pi pi-check text-xl" aria-hidden="true"></i>
             </div>
-            <span class="font-medium text-surface-800 dark:text-surface-100">Semua Beres!</span>
-            <span class="text-xs text-surface-400 max-w-sm">Tidak ada surat, izin, atau jurnal mengajar yang memerlukan tindakan segera saat ini.</span>
+            <span class="font-medium text-surface-800 dark:text-surface-100">{{ t('dashboard.pendingTasks.emptyTitle') }}</span>
+            <span class="text-xs text-surface-400 max-w-sm">{{ t('dashboard.pendingTasks.emptySubtitle') }}</span>
         </div>
 
         <ul v-else class="p-0 m-0 list-none divide-y divide-surface">
@@ -122,12 +124,12 @@ defineExpose({ load });
                     </div>
                 </div>
 
-                <Button icon="pi pi-arrow-right" size="small" variant="text" severity="secondary" class="shrink-0 self-center" aria-label="Tindak Lanjuti" @click.stop="openTask(task)" />
+                <Button icon="pi pi-arrow-right" size="small" variant="text" severity="secondary" class="shrink-0 self-center" :aria-label="t('dashboard.pendingTasks.actionAria')" @click.stop="openTask(task)" />
             </li>
         </ul>
 
         <div class="mt-4 pt-3 border-t border-surface-200 dark:border-surface-700 flex justify-end">
-            <Button label="Buka Pusat Tugas & Pengingat" icon="pi pi-arrow-right" icon-pos="right" size="small" variant="text" @click="router.push('/public/tasks')" />
+            <Button :label="t('dashboard.pendingTasks.openCenter')" icon="pi pi-arrow-right" icon-pos="right" size="small" variant="text" @click="router.push('/public/tasks')" />
         </div>
     </div>
 </template>

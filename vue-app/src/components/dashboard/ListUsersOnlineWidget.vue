@@ -1,8 +1,10 @@
 <script setup>
 import { onMounted, ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { authStore } from '@/stores/authStore';
 import apiLogin from '@/apiLogin';
 
+const { t } = useI18n();
 const useAuthStore = authStore();
 
 //define state
@@ -47,7 +49,7 @@ const fetchDataUsersOnline = async () => {
     try {
         const response = await apiLogin.get('/api/users');
         userOnline.value = response.data?.data ?? [];
-    } catch (error) {
+    } catch {
         // Tangani kegagalan tanpa unhandled promise; jangan menghapus identitas sesi.
         userOnline.value = [];
         loadError.value = true;
@@ -72,21 +74,21 @@ onMounted(() => {
     <div v-if="canViewUsers" class="card sm:justify-center h-full">
         <Menubar>
             <template #start>
-                <div class="font-semibold text-xl w-full">List Users Online</div>
+                <div class="font-semibold text-xl w-full">{{ t('dashboard.onlineUsers.title') }}</div>
             </template>
             <template #end>
                 <div class="flex items-center gap-2">
-                    <AutoComplete v-model="selectedUser" optionLabel="name" placeholder="Search" :suggestions="filteredUsers" @complete="search" class="w-full" />
+                    <AutoComplete v-model="selectedUser" optionLabel="name" :placeholder="t('dashboard.onlineUsers.search')" :suggestions="filteredUsers" @complete="search" class="w-full" />
                     <i v-if="filteredUsers && filteredUsers.length > 0" @click="toggleUserVisibility" class="pi pi-times"></i>
                 </div>
             </template>
         </Menubar>
 
-        <div v-if="loading" class="p-4 text-surface-500">Loading users...</div>
+        <div v-if="loading" class="p-4 text-surface-500">{{ t('dashboard.onlineUsers.loading') }}</div>
 
         <div v-else-if="loadError" class="p-4 text-red-500">
-            Could not load the user list. Your session is unaffected.
-            <Button label="Retry" text size="small" @click="fetchDataUsersOnline" />
+            {{ t('dashboard.onlineUsers.loadError') }}
+            <Button :label="t('common.action.retry')" text size="small" @click="fetchDataUsersOnline" />
         </div>
 
         <ScrollPanel v-else-if="filteredUsers && filteredUsers.length > 0" style="width: 100%; height: 20rem">
@@ -118,7 +120,7 @@ onMounted(() => {
                     </div>
                     <Tag :value="user.type_user ? user.type_user.name : ''" :severity="getBadge(user)" />
                 </li>
-                <li v-if="!userOnline.length" class="p-2 text-surface-500">No users to display.</li>
+                <li v-if="!userOnline.length" class="p-2 text-surface-500">{{ t('dashboard.onlineUsers.empty') }}</li>
             </ul>
 
             <ScrollTop target="parent" :threshold="100" icon="pi pi-arrow-up"></ScrollTop>

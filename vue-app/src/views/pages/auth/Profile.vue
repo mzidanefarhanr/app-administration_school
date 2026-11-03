@@ -1,5 +1,6 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import { authStore } from '@/stores/authStore';
 import { useConfirm } from 'primevue/useconfirm';
@@ -7,6 +8,7 @@ import { useToast } from 'primevue/usetoast';
 import apiLogin from '@/apiLogin';
 import gifSuccess from '@/assets/gif/success.gif';
 
+const { t } = useI18n();
 const confirm = useConfirm();
 const toast = useToast();
 const useAuthStore = authStore();
@@ -32,12 +34,6 @@ const getDefaultFormData = () => ({
     password_new: '',
     password_new_confirm: ''
 });
-// const form = ref({
-//     username: '',
-//     password_old: '',
-//     password_new: '',
-//     password_new_confirm: '',
-// });
 const form = reactive(getDefaultFormData());
 const _method = 'PATCH';
 
@@ -48,6 +44,7 @@ const visibleStaticBackdropSuccess = ref(false);
 const titleSuccess = ref('');
 const fieldSuccess = ref('');
 const visibleStaticBackdropWaiting = ref(false);
+const visibleStaticBackdropWarning = ref(false);
 
 //function visibleStaticBackdropDangers
 function visibleStaticBackdropDangers() {
@@ -69,19 +66,16 @@ const dropdownItem = ref(null);
 //function togglePassword_oldVisibility
 function togglePassword_oldVisibility() {
     showPassword_old.value = !showPassword_old.value;
-    // console.log(showPassword_old.value);
     fetchValidate();
 }
 //function togglePassword_newVisibility
 function togglePassword_newVisibility() {
     showPassword_new.value = !showPassword_new.value;
-    // console.log(showPassword_new.value);
     fetchValidate();
 }
 //function togglePassword_new_confirmVisibility
 function togglePassword_new_confirmVisibility() {
     showPassword_new_confirm.value = !showPassword_new_confirm.value;
-    // console.log(showPassword_new_confirm.value);
     fetchValidate();
 }
 const fetchValidate = async () => {
@@ -116,38 +110,43 @@ const fetchDataUserRole = async () => {
 };
 
 const submitNewPassword = async () => {
-    //
     if (!form.password_old || !form.password_new || !form.password_new_confirm) {
-        titleDanger.value = 'Failed';
-        fieldDanger.value = 'All password fields are required.';
+        titleDanger.value = t('profile.dialog.failedTitle');
+        fieldDanger.value = t('profile.dialog.requiredFields');
         visibleStaticBackdropDangers();
     } else if (form.password_new.length < 12) {
-        titleDanger.value = 'Failed';
-        fieldDanger.value = 'New password must be at least 12 characters long.';
+        titleDanger.value = t('profile.dialog.failedTitle');
+        fieldDanger.value = t('profile.dialog.minLength');
         visibleStaticBackdropDangers();
     } else if (form.password_new != form.password_new_confirm) {
-        titleDanger.value = 'Failed';
-        fieldDanger.value = 'New password and confirmation do not match.';
+        titleDanger.value = t('profile.dialog.failedTitle');
+        fieldDanger.value = t('profile.dialog.mismatch');
         visibleStaticBackdropDangers();
     } else if (form.password_old == form.password_new_confirm) {
-        titleDanger.value = 'Failed';
-        fieldDanger.value = 'New password cannot be the same as current password.';
+        titleDanger.value = t('profile.dialog.failedTitle');
+        fieldDanger.value = t('profile.dialog.sameAsOld');
         visibleStaticBackdropDangers();
     } else {
         confirm.require({
             group: 'headless',
-            header: 'Are you sure you want to change your password?',
-            message: 'Click Save to proceed.',
+            header: t('profile.dialog.confirmHeader'),
+            message: t('profile.dialog.confirmMessage'),
             accept: () => {
                 visibleStaticBackdropWaitings();
                 fetchDataNewPassword();
             },
             reject: () => {
-                toast.add({ severity: 'info', summary: 'Cancelled', detail: 'Password change cancelled.', life: 3000 });
+                toast.add({
+                    severity: 'info',
+                    summary: t('profile.dialog.cancelledSummary'),
+                    detail: t('profile.dialog.cancelledDetail'),
+                    life: 3000
+                });
             }
         });
     }
 };
+
 //method fetchDataNewPassword
 const fetchDataNewPassword = async () => {
     await apiLogin
@@ -166,8 +165,8 @@ const fetchDataNewPassword = async () => {
             if (response.data.success === true) {
                 visibleStaticBackdropWaitings();
                 visibleStaticBackdropSuccesss();
-                titleSuccess.value = 'Success';
-                fieldSuccess.value = 'Password changed successfully!';
+                titleSuccess.value = t('profile.dialog.successTitle');
+                fieldSuccess.value = t('profile.dialog.successMessage');
                 setTimeout(function () {
                     visibleStaticBackdropSuccesss();
                     fetchDataUserRole();
@@ -178,11 +177,11 @@ const fetchDataNewPassword = async () => {
         .catch((error) => {
             console.error(error);
             visibleStaticBackdropWaitings();
-            titleDanger.value = 'Failed';
+            titleDanger.value = t('profile.dialog.failedTitle');
             if (error.response?.status === 422) {
-                fieldDanger.value = error.response?.data?.message || 'Validation error. Please check your input.';
+                fieldDanger.value = error.response?.data?.message || t('profile.dialog.validationError');
             } else {
-                fieldDanger.value = error.response?.data?.message || 'An unexpected error occurred.';
+                fieldDanger.value = error.response?.data?.message || t('profile.dialog.unexpectedError');
             }
             visibleStaticBackdropDangers();
         });
@@ -205,19 +204,19 @@ onMounted(() => {
                         </div>
                         <div class="flex items-center flex-wrap gap-8">
                             <div>
-                                <span class="text-surface-500 dark:text-surface-300">Followers</span>
+                                <span class="text-surface-500 dark:text-surface-300">{{ t('profile.stats.followers') }}</span>
                                 <div class="text-surface-700 dark:text-surface-100 mt-1 text-sm font-semibold">333</div>
                             </div>
                             <div>
-                                <span class="text-surface-500 dark:text-surface-300">Projects</span>
+                                <span class="text-surface-500 dark:text-surface-300">{{ t('profile.stats.projects') }}</span>
                                 <div class="text-surface-700 dark:text-surface-100 mt-1 text-sm font-semibold">26</div>
                             </div>
                             <div>
-                                <span class="text-surface-500 dark:text-surface-300">Collections</span>
+                                <span class="text-surface-500 dark:text-surface-300">{{ t('profile.stats.collections') }}</span>
                                 <div class="text-surface-700 dark:text-surface-100 mt-1 text-sm font-semibold">17</div>
                             </div>
                             <div>
-                                <span class="text-surface-500 dark:text-surface-300">Shots</span>
+                                <span class="text-surface-500 dark:text-surface-300">{{ t('profile.stats.shots') }}</span>
                                 <div class="text-surface-700 dark:text-surface-100 mt-1 text-sm font-semibold">130</div>
                             </div>
                         </div>
@@ -234,17 +233,17 @@ onMounted(() => {
         <div class="flex flex-col md:flex-row gap-8 mt-8">
             <div class="md:w-1/2">
                 <div class="card flex flex-col gap-4">
-                    <div class="font-semibold text-xl">Vertical</div>
+                    <div class="font-semibold text-xl">{{ t('profile.verticalForm.title') }}</div>
                     <div class="flex flex-col gap-2">
-                        <label for="name1">Name</label>
+                        <label for="name1">{{ t('profile.verticalForm.name') }}</label>
                         <InputText id="name1" type="text" />
                     </div>
                     <div class="flex flex-col gap-2">
-                        <label for="email1">Email</label>
+                        <label for="email1">{{ t('profile.verticalForm.email') }}</label>
                         <InputText id="email1" type="text" />
                     </div>
                     <div class="flex flex-col gap-2">
-                        <label for="age1">Age</label>
+                        <label for="age1">{{ t('profile.verticalForm.age') }}</label>
                         <InputText id="age1" type="text" />
                     </div>
                 </div>
@@ -252,9 +251,9 @@ onMounted(() => {
             <div class="md:w-1/2">
                 <form @submit.prevent="submitNewPassword">
                     <div class="card flex flex-col gap-4">
-                        <div class="font-semibold text-xl">Change Password</div>
+                        <div class="font-semibold text-xl">{{ t('profile.changePassword.title') }}</div>
                         <div class="grid grid-cols-12 gap-2">
-                            <label for="password_old" class="flex items-center col-span-12 mb-2 md:col-span-6 md:mb-0">Current Password</label>
+                            <label for="password_old" class="flex items-center col-span-12 mb-2 md:col-span-6 md:mb-0">{{ t('profile.changePassword.currentPassword') }}</label>
                             <div class="col-span-12 md:col-span-6">
                                 <IconField>
                                     <FloatLabel variant="on">
@@ -265,7 +264,7 @@ onMounted(() => {
                             </div>
                         </div>
                         <div class="grid grid-cols-12 gap-2">
-                            <label for="password_new" class="flex items-center col-span-12 mb-2 md:col-span-6 md:mb-0">New Password (min 12 chars)</label>
+                            <label for="password_new" class="flex items-center col-span-12 mb-2 md:col-span-6 md:mb-0">{{ t('profile.changePassword.newPassword') }}</label>
                             <div class="col-span-12 md:col-span-6">
                                 <IconField>
                                     <FloatLabel variant="on">
@@ -276,7 +275,7 @@ onMounted(() => {
                             </div>
                         </div>
                         <div class="grid grid-cols-12 gap-2">
-                            <label for="password_new_confirm" class="flex items-center col-span-12 mb-2 md:col-span-6 md:mb-0">Confirm New Password</label>
+                            <label for="password_new_confirm" class="flex items-center col-span-12 mb-2 md:col-span-6 md:mb-0">{{ t('profile.changePassword.confirmNewPassword') }}</label>
                             <div class="col-span-12 md:col-span-6">
                                 <IconField>
                                     <FloatLabel variant="on">
@@ -291,13 +290,13 @@ onMounted(() => {
                             <div class="col-span-12 md:col-span-6">
                                 <IconField>
                                     <FloatLabel variant="on">
-                                        <Message v-if="form.password_new != form.password_new_confirm" severity="error" size="small" variant="simple">New passwords do not match!</Message>
+                                        <Message v-if="form.password_new != form.password_new_confirm" severity="error" size="small" variant="simple">{{ t('profile.changePassword.passwordMismatch') }}</Message>
                                     </FloatLabel>
                                 </IconField>
                             </div>
                         </div>
                         <div style="text-align: right">
-                            <Button class="md:w-1/6 flex items-center" type="submit" label="Save" :fluid="false" />
+                            <Button class="md:w-1/6 flex items-center" type="submit" :label="t('common.action.save')" :fluid="false" />
                         </div>
                     </div>
                 </form>
@@ -306,30 +305,30 @@ onMounted(() => {
 
         <div class="flex mt-8">
             <div class="card flex flex-col gap-4 w-full">
-                <div class="font-semibold text-xl">Advanced</div>
+                <div class="font-semibold text-xl">{{ t('profile.advancedForm.title') }}</div>
                 <div class="flex flex-col md:flex-row gap-4">
                     <div class="flex flex-wrap gap-2 w-full">
-                        <label for="firstname2">Firstname</label>
+                        <label for="firstname2">{{ t('profile.advancedForm.firstName') }}</label>
                         <InputText id="firstname2" type="text" />
                     </div>
                     <div class="flex flex-wrap gap-2 w-full">
-                        <label for="lastname2">Lastname</label>
+                        <label for="lastname2">{{ t('profile.advancedForm.lastName') }}</label>
                         <InputText id="lastname2" type="text" />
                     </div>
                 </div>
 
                 <div class="flex flex-wrap">
-                    <label for="address">Address</label>
+                    <label for="address">{{ t('profile.advancedForm.address') }}</label>
                     <Textarea id="address" rows="4" />
                 </div>
 
                 <div class="flex flex-col md:flex-row gap-4">
                     <div class="flex flex-wrap gap-2 w-full">
-                        <label for="state">State</label>
-                        <Select id="state" v-model="dropdownItem" :options="dropdownItems" optionLabel="name" placeholder="Select One" class="w-full"></Select>
+                        <label for="state">{{ t('profile.advancedForm.state') }}</label>
+                        <Select id="state" v-model="dropdownItem" :options="dropdownItems" optionLabel="name" :placeholder="t('profile.advancedForm.selectOne')" class="w-full"></Select>
                     </div>
                     <div class="flex flex-wrap gap-2 w-full">
-                        <label for="zip">Zip</label>
+                        <label for="zip">{{ t('profile.advancedForm.zip') }}</label>
                         <InputText id="zip" type="text" />
                     </div>
                 </div>
@@ -337,10 +336,9 @@ onMounted(() => {
         </div>
     </Fluid>
 
-    <!-- <Button label="Danger" @click="visibleStaticBackdropWarnings" /> -->
-    <Dialog v-model:visible="visibleStaticBackdropWarning" modal header="Warning!!" :style="{ width: '25rem' }">
+    <Dialog v-model:visible="visibleStaticBackdropWarning" modal :header="t('profile.dialog.warningHeader')" :style="{ width: '25rem' }">
         <div class="text-center justify-content-center align-items-center">
-            <p>Is the information you entered correct?</p>
+            <p>{{ t('profile.dialog.warningMessage') }}</p>
         </div>
     </Dialog>
     <ConfirmDialog group="headless">
@@ -352,30 +350,27 @@ onMounted(() => {
                 <span class="font-bold text-2xl block mb-2 mt-6">{{ message.header }}</span>
                 <p class="mb-0">{{ message.message }}</p>
                 <div class="flex items-center gap-2 mt-6">
-                    <Button label="Save" @click="acceptCallback"></Button>
-                    <Button label="Cancel" outlined @click="rejectCallback"></Button>
+                    <Button :label="t('common.action.save')" @click="acceptCallback"></Button>
+                    <Button :label="t('common.action.cancel')" outlined @click="rejectCallback"></Button>
                 </div>
             </div>
         </template>
     </ConfirmDialog>
 
-    <!-- <Button label="Danger" @click="visibleStaticBackdropDangers" /> -->
     <Dialog v-model:visible="visibleStaticBackdropDanger" modal :header="titleDanger" style="width: 25rem; color: red">
         <div style="color: black">
             {{ fieldDanger }}
         </div>
     </Dialog>
 
-    <!-- <Button label="Success" @click="visibleStaticBackdropSuccesss" /> -->
     <Dialog v-model:visible="visibleStaticBackdropSuccess" modal :header="titleSuccess">
         <div>{{ fieldSuccess }} <Image fluid :src="gifSuccess" width="55" height="55" /></div>
     </Dialog>
 
-    <!-- <Button label="Waiting" @click="visibleStaticBackdropWaitings" /> -->
-    <Dialog v-model:visible="visibleStaticBackdropWaiting" modal header="Please wait while your information is processed.">
+    <Dialog v-model:visible="visibleStaticBackdropWaiting" modal :header="t('profile.dialog.waitingHeader')">
         <div class="text-center justify-content-center align-items-center">
             <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: green"></i>
-            <p class="text-success" style="font-size: medium">Loading...</p>
+            <p class="text-success" style="font-size: medium">{{ t('profile.dialog.loading') }}</p>
         </div>
     </Dialog>
 </template>
