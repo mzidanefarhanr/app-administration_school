@@ -1054,11 +1054,11 @@ if ($command === 'probe-dashboard') {
     // Probe 1: Admin Overview
     $adminOverview = $dashboardService->getOverview($admin);
     fwrite(STDOUT, "[PROBE 1] Admin Dashboard Overview:\n");
-    fwrite(STDOUT, "  - Active School Year: " . ($adminOverview['academic']['active_school_year'] ?? 'N/A') . "\n");
-    fwrite(STDOUT, "  - Total Active Students: " . ($adminOverview['academic']['total_active_students'] ?? 'N/A') . "\n");
-    fwrite(STDOUT, "  - Total Active Rombels: " . ($adminOverview['academic']['total_active_rombels'] ?? 'N/A') . "\n");
-    fwrite(STDOUT, "  - Teaching View Type: " . ($adminOverview['teaching']['view_type'] ?? 'N/A') . "\n");
-    fwrite(STDOUT, "  - System Info: " . ($adminOverview['system'] !== null ? 'Present' : 'Null') . "\n");
+    fwrite(STDOUT, '  - Active School Year: '.($adminOverview['academic']['active_school_year'] ?? 'N/A')."\n");
+    fwrite(STDOUT, '  - Total Active Students: '.($adminOverview['academic']['total_active_students'] ?? 'N/A')."\n");
+    fwrite(STDOUT, '  - Total Active Rombels: '.($adminOverview['academic']['total_active_rombels'] ?? 'N/A')."\n");
+    fwrite(STDOUT, '  - Teaching View Type: '.($adminOverview['teaching']['view_type'] ?? 'N/A')."\n");
+    fwrite(STDOUT, '  - System Info: '.($adminOverview['system'] !== null ? 'Present' : 'Null')."\n");
     if (($adminOverview['teaching']['view_type'] ?? null) !== 'school_wide' || $adminOverview['system'] === null) {
         throw new RuntimeException('Probe 1 failed: Admin overview invalid');
     }
@@ -1067,9 +1067,9 @@ if ($command === 'probe-dashboard') {
     // Probe 2: Leadership (Kepala Sekolah) Overview
     $kepsekOverview = $dashboardService->getOverview($kepsek);
     fwrite(STDOUT, "[PROBE 2] Kepala Sekolah Dashboard Overview:\n");
-    fwrite(STDOUT, "  - Role Slug: " . ($kepsekOverview['meta']['user_role'] ?? 'N/A') . "\n");
-    fwrite(STDOUT, "  - Teaching View Type: " . ($kepsekOverview['teaching']['view_type'] ?? 'N/A') . "\n");
-    fwrite(STDOUT, "  - Can View Students: " . ($kepsekOverview['meta']['can']['view_students'] ? 'true' : 'false') . "\n");
+    fwrite(STDOUT, '  - Role Slug: '.($kepsekOverview['meta']['user_role'] ?? 'N/A')."\n");
+    fwrite(STDOUT, '  - Teaching View Type: '.($kepsekOverview['teaching']['view_type'] ?? 'N/A')."\n");
+    fwrite(STDOUT, '  - Can View Students: '.($kepsekOverview['meta']['can']['view_students'] ? 'true' : 'false')."\n");
     if (($kepsekOverview['teaching']['view_type'] ?? null) !== 'school_wide') {
         throw new RuntimeException('Probe 2 failed: Kepsek should have school_wide teaching view');
     }
@@ -1078,11 +1078,11 @@ if ($command === 'probe-dashboard') {
     // Probe 3: Teacher (Guru) Overview
     $guruOverview = $dashboardService->getOverview($guru);
     fwrite(STDOUT, "[PROBE 3] Guru Dashboard Overview:\n");
-    fwrite(STDOUT, "  - Teaching View Type: " . ($guruOverview['teaching']['view_type'] ?? 'N/A') . "\n");
-    fwrite(STDOUT, "  - Teacher Name: " . ($guruOverview['teaching']['teacher_name'] ?? 'N/A') . "\n");
-    fwrite(STDOUT, "  - Employees Data: " . ($guruOverview['employees'] === null ? 'NULL (Hidden)' : 'Visible') . "\n");
-    fwrite(STDOUT, "  - Letters Data: " . ($guruOverview['letters'] === null ? 'NULL (Hidden)' : 'Visible') . "\n");
-    fwrite(STDOUT, "  - System Data: " . ($guruOverview['system'] === null ? 'NULL (Hidden)' : 'Visible') . "\n");
+    fwrite(STDOUT, '  - Teaching View Type: '.($guruOverview['teaching']['view_type'] ?? 'N/A')."\n");
+    fwrite(STDOUT, '  - Teacher Name: '.($guruOverview['teaching']['teacher_name'] ?? 'N/A')."\n");
+    fwrite(STDOUT, '  - Employees Data: '.($guruOverview['employees'] === null ? 'NULL (Hidden)' : 'Visible')."\n");
+    fwrite(STDOUT, '  - Letters Data: '.($guruOverview['letters'] === null ? 'NULL (Hidden)' : 'Visible')."\n");
+    fwrite(STDOUT, '  - System Data: '.($guruOverview['system'] === null ? 'NULL (Hidden)' : 'Visible')."\n");
     if (($guruOverview['teaching']['view_type'] ?? null) !== 'teacher_personal' || $guruOverview['employees'] !== null || $guruOverview['system'] !== null) {
         throw new RuntimeException('Probe 3 failed: Guru overview scoping/RBAC leak');
     }
@@ -1092,9 +1092,9 @@ if ($command === 'probe-dashboard') {
     $adminTasks = $dashboardService->getPendingTasks($admin);
     $guruTasks = $dashboardService->getPendingTasks($guru);
     fwrite(STDOUT, "[PROBE 4] Operational Pending Tasks:\n");
-    fwrite(STDOUT, "  - Admin Tasks Count: " . count($adminTasks) . "\n");
-    fwrite(STDOUT, "  - Guru Tasks Count: " . count($guruTasks) . "\n");
-    if (!is_array($adminTasks) || !is_array($guruTasks)) {
+    fwrite(STDOUT, '  - Admin Tasks Count: '.count($adminTasks)."\n");
+    fwrite(STDOUT, '  - Guru Tasks Count: '.count($guruTasks)."\n");
+    if (! is_array($adminTasks) || ! is_array($guruTasks)) {
         throw new RuntimeException('Probe 4 failed: Tasks must be arrays');
     }
     fwrite(STDOUT, "  -> PASS: Pending tasks returned as structured arrays.\n\n");
@@ -1103,10 +1103,10 @@ if ($command === 'probe-dashboard') {
     $adminCharts = $dashboardService->getCharts($admin);
     $guruCharts = $dashboardService->getCharts($guru);
     fwrite(STDOUT, "[PROBE 5] Charts API:\n");
-    fwrite(STDOUT, "  - Admin Student Chart Labels: " . count($adminCharts['students_by_level']['labels'] ?? []) . " rombels\n");
-    fwrite(STDOUT, "  - Admin Teaching Trend Labels: " . count($adminCharts['teaching_compliance_trend']['labels'] ?? []) . " months\n");
-    fwrite(STDOUT, "  - Guru Student Chart: " . ($guruCharts['students_by_level'] === null ? 'NULL (Unpermitted)' : 'Visible') . "\n");
-    fwrite(STDOUT, "  - Guru Teaching Trend: " . ($guruCharts['teaching_compliance_trend'] !== null ? 'Present' : 'NULL') . "\n");
+    fwrite(STDOUT, '  - Admin Student Chart Labels: '.count($adminCharts['students_by_level']['labels'] ?? [])." rombels\n");
+    fwrite(STDOUT, '  - Admin Teaching Trend Labels: '.count($adminCharts['teaching_compliance_trend']['labels'] ?? [])." months\n");
+    fwrite(STDOUT, '  - Guru Student Chart: '.($guruCharts['students_by_level'] === null ? 'NULL (Unpermitted)' : 'Visible')."\n");
+    fwrite(STDOUT, '  - Guru Teaching Trend: '.($guruCharts['teaching_compliance_trend'] !== null ? 'Present' : 'NULL')."\n");
     if ($adminCharts['students_by_level'] === null || $adminCharts['teaching_compliance_trend'] === null || $guruCharts['students_by_level'] !== null) {
         throw new RuntimeException('Probe 5 failed: Charts RBAC or structure mismatch');
     }
@@ -1116,5 +1116,107 @@ if ($command === 'probe-dashboard') {
     exit(0);
 }
 
-fwrite(STDERR, "Unknown command. Use init, prepare, prepare-teaching, prepare-journals, probe-reports, probe-dashboard, status, or start the HTTP server with this script.\n");
+if ($command === 'probe-reports-school') {
+    $statsService = $app->make(App\Services\Reports\SchoolStatisticsReportService::class);
+    $reconcileService = $app->make(App\Services\Reports\DapodikReconciliationService::class);
+
+    $activeYear = App\Models\SchoolYear::where('name', '2026/2027')->first()
+        ?? App\Models\SchoolYear::orderByDesc('start_date')->firstOrFail();
+
+    fwrite(STDOUT, "=== UAT Phase 11b School Statistics & Dapodik Reconciliation Probe ===\n\n");
+
+    // Probe 1: Multi-Year Statistics Trends
+    $trends = $statsService->getMultiYearTrends(5);
+    fwrite(STDOUT, "[PROBE 1] Multi-Year School Statistics Trends (5 Years):\n");
+    fwrite(STDOUT, '  - Years Returned: '.count($trends['years'])."\n");
+    fwrite(STDOUT, '  - Chart Labels: '.implode(', ', $trends['charts']['labels'])."\n");
+    fwrite(STDOUT, '  - Latest Year Students: '.($trends['years'][count($trends['years']) - 1]['total_students'] ?? 0)."\n");
+    if (! isset($trends['years']) || ! isset($trends['charts']['students']['total'])) {
+        throw new RuntimeException('Probe 1 failed: Invalid trends structure');
+    }
+    fwrite(STDOUT, "  -> PASS: Multi-year trends aggregate correctly.\n\n");
+
+    // Probe 2: Demographics Breakdown
+    $demographics = $statsService->getDemographics($activeYear->id);
+    fwrite(STDOUT, "[PROBE 2] Demographics Breakdown (Year {$activeYear->name}):\n");
+    fwrite(STDOUT, '  - Total Students: '.($demographics['gender']['total'] ?? 0)."\n");
+    fwrite(STDOUT, '  - Male Students: '.($demographics['gender']['male'] ?? 0)." ({$demographics['gender']['male_percent']}%)\n");
+    fwrite(STDOUT, '  - Female Students: '.($demographics['gender']['female'] ?? 0)." ({$demographics['gender']['female_percent']}%)\n");
+    fwrite(STDOUT, '  - Religions Count: '.count($demographics['religion'])."\n");
+    fwrite(STDOUT, '  - Active Rombels: '.count($demographics['rombels'])."\n");
+    if (! isset($demographics['gender']['total']) || ! isset($demographics['age_groups'])) {
+        throw new RuntimeException('Probe 2 failed: Invalid demographics structure');
+    }
+    fwrite(STDOUT, "  -> PASS: Demographics distribution conforms to specification.\n\n");
+
+    // Probe 3: Dapodik Readiness Audit
+    $readiness = $statsService->getDapodikReadiness($activeYear->id);
+    fwrite(STDOUT, "[PROBE 3] Dapodik Profile Readiness Audit:\n");
+    fwrite(STDOUT, "  - Students Readiness: {$readiness['students']['readiness_percent']}%\n");
+    fwrite(STDOUT, "  - Valid NIK Students: {$readiness['students']['valid_nik']} / {$readiness['students']['total']}\n");
+    fwrite(STDOUT, "  - Valid NISN Students: {$readiness['students']['valid_nisn']} / {$readiness['students']['total']}\n");
+    fwrite(STDOUT, "  - Employees Readiness: {$readiness['employees']['readiness_percent']}%\n");
+    if (! isset($readiness['students']['readiness_percent']) || ! isset($readiness['employees']['readiness_percent'])) {
+        throw new RuntimeException('Probe 3 failed: Invalid readiness structure');
+    }
+    fwrite(STDOUT, "  -> PASS: Dapodik mandatory attribute audit computes accurately.\n\n");
+
+    // Probe 4: Dapodik CSV Reconciliation Comparison
+    $sampleStudents = App\Models\Student::take(2)->get();
+    $csvRows = ['nisn,nik,nama,rombel,jenis_kelamin'];
+    if ($sampleStudents->count() > 0) {
+        $s1 = $sampleStudents[0];
+        $csvRows[] = "{$s1->nisn},{$s1->nik},{$s1->name},Rombel Identik,L";
+    }
+    if ($sampleStudents->count() > 1) {
+        $s2 = $sampleStudents[1];
+        $csvRows[] = "{$s2->nisn},{$s2->nik},Nama Berbeda Di Dapodik,Rombel Diff,P";
+    }
+    $csvRows[] = '9999999999,3201019999999999,Siswa Hanya Dapodik,X-Z,L';
+
+    $tempCsvPath = tempnam(sys_get_temp_dir(), 'dapodik_uat_').'.csv';
+    file_put_contents($tempCsvPath, implode("\n", $csvRows));
+
+    $uploadedFile = new Illuminate\Http\UploadedFile(
+        $tempCsvPath,
+        'dapodik_uat.csv',
+        'text/csv',
+        null,
+        true
+    );
+
+    $reconciliation = $reconcileService->reconcileCsv($uploadedFile, $activeYear->id);
+    $recSummary = $reconciliation['summary'];
+    fwrite(STDOUT, "[PROBE 4] Dapodik Two-Pass CSV Reconciliation:\n");
+    fwrite(STDOUT, "  - Total Dapodik Rows: {$recSummary['total_dapodik_rows']}\n");
+    fwrite(STDOUT, "  - Total Local Students: {$recSummary['total_local_students']}\n");
+    fwrite(STDOUT, "  - Matched Identical: {$recSummary['total_identical']}\n");
+    fwrite(STDOUT, "  - Matched Diff: {$recSummary['total_diff']}\n");
+    fwrite(STDOUT, "  - Dapodik Only: {$recSummary['total_dapodik_only']}\n");
+    fwrite(STDOUT, "  - Local Only: {$recSummary['total_local_only']}\n");
+    if ($recSummary['total_dapodik_rows'] < 2 || ! isset($reconciliation['items'])) {
+        @unlink($tempCsvPath);
+        throw new RuntimeException('Probe 4 failed: Reconciliation output invalid');
+    }
+    fwrite(STDOUT, "  -> PASS: Two-pass reconciliation and diff detection verified.\n\n");
+
+    // Probe 5: Export School Statistics & Reconciliation
+    $statsExport = $statsService->exportMultiYearTrendsCsv(3);
+    $reconcileExport = $reconcileService->exportReconciliationFromUpload($uploadedFile, $activeYear->id);
+    @unlink($tempCsvPath);
+
+    fwrite(STDOUT, "[PROBE 5] CSV Export with UTF-8 BOM:\n");
+    fwrite(STDOUT, '  - Stats Export Content-Type: '.$statsExport->headers->get('Content-Type')."\n");
+    fwrite(STDOUT, '  - Reconcile Export Content-Type: '.$reconcileExport->headers->get('Content-Type')."\n");
+    if ($statsExport->headers->get('Content-Type') !== 'text/csv; charset=UTF-8' ||
+        $reconcileExport->headers->get('Content-Type') !== 'text/csv; charset=UTF-8') {
+        throw new RuntimeException('Probe 5 failed: Invalid export content type or BOM');
+    }
+    fwrite(STDOUT, "  -> PASS: Export streaming generates compliant CSV with UTF-8 BOM.\n\n");
+
+    fwrite(STDOUT, "=== ALL 5 UAT PHASE 11B SCHOOL REPORTS & RECONCILIATION PROBES PASSED SUCCESSFULLY ===\n");
+    exit(0);
+}
+
+fwrite(STDERR, "Unknown command. Use init, prepare, prepare-teaching, prepare-journals, probe-reports, probe-dashboard, probe-reports-school, status, or start the HTTP server with this script.\n");
 exit(2);

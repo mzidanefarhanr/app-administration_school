@@ -44,7 +44,8 @@ const model = ref([
             { label: 'Students', icon: 'pi pi-fw pi-graduation-cap', to: '/public/students', requires: 'students.view' },
             { label: 'Teachers', icon: 'pi pi-fw pi-slack', to: '/public/teachers', requires: 'employees.view' },
             { label: 'Employees', icon: 'pi pi-fw pi-address-book', to: '/public/employees', requires: 'employees.view' },
-            { label: 'Data Quality', icon: 'pi pi-fw pi-check-circle', to: '/public/data-quality', requires: ['students.view', 'employees.view'] }
+            { label: 'Data Quality', icon: 'pi pi-fw pi-check-circle', to: '/public/data-quality', requires: ['students.view', 'employees.view'] },
+            { label: 'School Reports', icon: 'pi pi-fw pi-chart-line', to: '/public/reports/school', requires: 'students.view' }
         ]
     },
     {

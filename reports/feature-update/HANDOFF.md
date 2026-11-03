@@ -1,6 +1,19 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Rencana Subfase 11b DISETUJUI — DEC-43 APPROVED; DEC-12 CLOSED; implementasi diotorisasi)
+## Current checkpoint — 2026-11-03 (Subfase 11b IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-43 IMPLEMENTED; DEC-12 CLOSED)
+
+- **Status:** Subfase **11b — Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data Dapodik** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`dc43954`** (dokumentasi persetujuan rencana `DEC-43 APPROVED` dan `DEC-12 CLOSED`). Paket implementasi dilaporkan di `reports/feature-update/PHASE-11B-REPORT.md` dan checklist pengujian manual pemilik disediakan di `reports/feature-update/PHASE-11B-MANUAL-REVIEW.md` (#1–#18). **Subfase 11a tetap OWNER APPROVED (#1–#18, 2026-11-03 WIB; DEC-42 CLOSED)**, dan **Fase 10 tetap SELESAI LENGKAP & DITUTUP** (`2a36800`).
+- **Implementasi yang diselesaikan (S1–S8):**
+  1. `SchoolStatisticsReportService.php`: statistik multi-tahun (tren siswa, rombel, gender L/P, mutasi masuk/keluar, PTK guru/tendik), rincian demografi kesiswaan (gender, agama, tingkat, kelompok usia, rombel), audit kesiapan profil Dapodik (NIK valid 16 digit, NISN valid 10 digit, KK, nama ibu, lahir siswa & PTK), dan ekspor CSV streaming dengan UTF-8 BOM (`\xEF\xBB\xBF`).
+  2. `DapodikReconciliationService.php`: pengurai CSV Dapodik auto-delimiter (koma, titik-koma, tab), two-pass matching engine (Pass 1 NISN, Pass 2 NIK), klasifikasi 4 status diskrepansi (`MATCHED_IDENTICAL`, `MATCHED_DIFF`, `LOCAL_ONLY`, `DAPODIK_ONLY`), penyorotan diff atribut, dan ekspor CSV hasil audit rekonsiliasi ber-BOM UTF-8 (menutup DEC-12).
+  3. `SchoolReportController.php` & `DapodikReconciliationController.php`: 6 endpoint di `/api/reports/*` dengan guard `students.view` untuk laporan dan `students.import` untuk rekonsiliasi Dapodik.
+  4. Suite feature test `SchoolReportApiTest.php` mencakup skenario T1–T12 (12 passed / 105 assertions). Full suite 666 passed, 13 skipped, 7.872 assertions.
+  5. Komponen frontend: `MultiYearTrendsTab.vue`, `DemographicsTab.vue`, `DapodikReconciliationTab.vue`, dan view induk `SchoolReportsView.vue` di `/public/reports/school` dengan menu navigasi `AppMenu.vue`.
+  6. Kualitas: Pint PASS (0 issues), ESLint clean (0 errors, 0 warnings), Vite build clean (`dist/assets/SchoolReportsView-DUzrot1y.js` 39.56 kB), dan UAT probe 5/5 PASS via `scripts/phase10-uat.php probe-reports-school`.
+- **Server UAT:** Server UAT `.uat-phase10` pada port `18028` dan `14028` telah diverifikasi dihentikan per DEC-27 (`PORTS_18028_14028_FREE`). Data `.uat-phase10` dipertahankan untuk review manual pemilik. Apache dan MariaDB operasional tidak disentuh.
+- **Next:** Pemilik menjalankan checklist manual #1–#18 di `reports/feature-update/PHASE-11B-MANUAL-REVIEW.md` dan memberikan persetujuan penerimaan bila sesuai.
+
+## Previous checkpoint — 2026-11-03 (Rencana Subfase 11b DISETUJUI — DEC-43 APPROVED; DEC-12 CLOSED; implementasi diotorisasi)
 
 - **Status:** Pemilik menyatakan **"Saya setuju D1-D10"** (2026-11-03 WIB); dicatat sebagai **DEC-43 APPROVED** dan menutup gerbang **DEC-12 CLOSED**. Implementasi **Subfase 11b — Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data** diotorisasi sesuai `reports/feature-update/PHASE-11B-PLAN.md` (baseline `bb06d98`; paket rencana `e49e2f4`). **Subfase 11a tetap OWNER APPROVED (#1–#18, 2026-11-03 WIB; DEC-42 CLOSED)**, dan **Fase 10 tetap SELESAI LENGKAP & DITUTUP** (`2a36800`).
 - **Next:** Eksekusi S1–S8 Subfase 11b (Services, Controllers, Routes, Tests T1–T12, Vue components, lint, build, UAT probe), verifikasi penuh, dan siapkan `PHASE-11B-REPORT.md` serta `PHASE-11B-MANUAL-REVIEW.md`.

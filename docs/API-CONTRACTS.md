@@ -606,6 +606,24 @@ Frontend 10c: `TeachingReportsView.vue`, `router/index.js`, `AppMenu.vue`.
 
 Frontend 11a: `Dashboard.vue`, `OperationalStatsWidget.vue`, `PendingTasksWidget.vue`, `DataQualityOverviewWidget.vue`, `StudentDistributionChartWidget.vue`, `TeachingComplianceChartWidget.vue`, `SystemOverviewWidget.vue`.
 
+## Perubahan Subfase 11b (DEC-43 / DEC-12 CLOSED) — laporan rekapitulasi sekolah, statistik multi-tahun, dan rekonsiliasi Dapodik
+
+**6 route baru** di `/api/reports/*` dilindungi `auth:sanctum`. Zero database migrations.
+
+| Method | Endpoint | Izin | Perilaku |
+|---|---|---|---|
+| GET | `/api/reports/school-statistics` | `students.view` | Mengembalikan tren multi-tahun (default 5 tahun ajaran terakhir, parameter `limit_years` 1..10): `years[]` (data per tahun: ID, nama, tanggal, status kunci, total siswa aktif, siswa L/P, total rombel, mutasi masuk, mutasi keluar, total guru, total tendik), serta dataset grafik `charts` (`labels`, `students` [male, female, total], `mutations` [incoming, outgoing], `employees` [teachers, staff]). |
+| GET | `/api/reports/demographics` | `students.view` | Analisis demografi kesiswaan untuk tahun ajaran aktif atau terpilih (`school_year_id`): `school_year` (ID, nama, status kunci), `gender` (male, female, total, male_percent, female_percent), `religion[]` (distribusi agama dengan count dan percentage), `levels[]` (distribusi jenjang kelas), `rombels[]` (rekap siswa per rombel terpilah L/P/total), dan `age_groups` (distribusi usia: <15, 15, 16, 17, 18, >18, tidak diketahui). |
+| GET | `/api/reports/dapodik-readiness` | `students.view` | Audit kesiapan kelengkapan kolom profil Dapodik: `school_year`, `students` (total, readiness_percent, valid_nik 16 digit, valid_nisn 10 digit, has_kk, has_mother_name, has_birth_data), dan `employees` (total, readiness_percent, valid_nik 16 digit, teachers_with_nuptk, teachers_with_subject). |
+| GET | `/api/reports/school-statistics/export` | `students.view` | Streaming unduhan berkas CSV statistik multi-tahun dengan UTF-8 BOM (`\xEF\xBB\xBF`), header aman `Content-Type: text/csv; charset=UTF-8`, `Content-Disposition: attachment; filename="rekap_statistik_sekolah_YYYYMMDD_HHmmss.csv"`. Memuat 10 kolom data per baris tahun ajaran. |
+| POST | `/api/reports/dapodik-reconciliation/compare` | `students.import` | Membandingkan berkas ekspor CSV/TXT Dapodik (maks. 5 MB, maks. 2.000 baris) dengan database sekolah lokal pada `school_year_id`. Mendukung auto-deteksi pemisah (koma, titik-koma, tab) dan pencocokan dua tahap (*two-pass matching*: Pass 1 NISN, Pass 2 NIK). Mengembalikan `summary` (total baris Dapodik, total siswa lokal, matched, identical, diff, local_only, dapodik_only) serta array `items[]` dengan rincian perbedaan atribut (`name`, `rombel`, `nisn`, `nik`). |
+| POST | `/api/reports/dapodik-reconciliation/export` | `students.import` | Streaming unduhan berkas CSV audit hasil rekonsiliasi Dapodik dengan UTF-8 BOM (`\xEF\xBB\xBF`), header aman `Content-Type: text/csv; charset=UTF-8`, `Content-Disposition: attachment; filename="hasil_rekonsiliasi_dapodik_YYYYMMDD_HHmmss.csv"`. Memuat status rekonsiliasi, data lokal, data Dapodik, dan catatan diskrepansi. |
+
+- **Zero schema change**: murni lapisan analitik deterministik dan komparasi memori (*in-memory*) berbasis `SchoolStatisticsReportService` dan `DapodikReconciliationService`.
+- **UI**: `/public/reports/school` (menu **Public → School Reports**, guard `students.view`) dengan tampilan tabbed terpadu: `MultiYearTrendsTab.vue` (tren multi-tahun & ekspor CSV), `DemographicsTab.vue` (doughnut chart gender & agama, progress bar audit kesiapan Dapodik), dan `DapodikReconciliationTab.vue` (unggah CSV Dapodik, 6 kartu KPI, filter status, komparasi berdampingan, dan unduh audit).
+
+Frontend 11b: `SchoolReportsView.vue`, `MultiYearTrendsTab.vue`, `DemographicsTab.vue`, `DapodikReconciliationTab.vue`, `router/index.js`, `AppMenu.vue`.
+
 ## Aktual
 
 Resource di `/api`, dilindungi auth:sanctum: users, status-users, type-users, firstlogin; provinces/regencies/districts/villages; school-years/semesters/education-levels; genders/religions/blood-types/professions/family-status; education-schools/student-statuses/student-entries/student-majors/phase-statuses; students/school-levels/school-rombels/student-rombels; employees (alias deprecated: employee)/employee-statuses/employee-types/employments/marital-statuses; school-profile/subjects/activities.

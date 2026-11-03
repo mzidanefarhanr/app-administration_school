@@ -140,6 +140,12 @@ const router = createRouter({
                     component: () => import('@/views/pages/public/DataQuality.vue')
                 },
                 {
+                    path: '/public/reports/school',
+                    name: 'schoolReports',
+                    meta: { breadcrumb: 'School Reports', requiresAbility: 'students.view' },
+                    component: () => import('@/views/reports/SchoolReportsView.vue')
+                },
+                {
                     path: '/public/teachers',
                     name: 'teachers',
                     meta: { breadcrumb: 'Teachers', requiresAbility: 'employees.view' },

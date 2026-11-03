@@ -203,7 +203,23 @@ Storage uji memakai fake/temp disk; backup/restore mengarah ke target test, tida
   -> **ALL 5 UAT PHASE 11A DASHBOARD PROBES PASSED SUCCESSFULLY**.
 - Penghentian server UAT (DEC-27): port `18028` dan `14028` diverifikasi ulang bebas listener (`PORTS_18028_14028_FREE`); data `.uat-phase10` dipertahankan untuk review manual pemilik `#1–#18`.
 - **NOT RUN:** otomasi browser visual/screenshot (diserahkan ke checklist manual pemilik `#1–#18` di `PHASE-11A-MANUAL-REVIEW.md`); race condition MariaDB/InnoDB multi-proses nyata; Subfase 11b+ (belum diotorisasi).
-- **Review manual pemilik: AWAITING OWNER REVIEW (#1–#18, 2026-11-03 WIB)** (`reports/feature-update/PHASE-11A-MANUAL-REVIEW.md`). Port `18028` dan `14028` tetap bebas.
+- **Review manual pemilik: APPROVED (#1–#18, 2026-11-03 WIB)** berdasarkan pernyataan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** (`reports/feature-update/PHASE-11A-MANUAL-REVIEW.md`; paket review **`2b7e8a5`**). Port `18028` dan `14028` diverifikasi ulang tetap bebas.
+
+## Bukti Subfase 11b (2026-11-03 WIB)
+- Suite baru `Tests\Feature\Reports\SchoolReportApiTest` (SQLite in-memory): **12 passed (105 assertions) in 9.84s** mencakup skenario `T1–T12` — tren statistik multi-tahun (T1), batas rentang limit_years (T2), rincian demografi kesiswaan (T3), audit kesiapan profil Dapodik (T4), ekspor CSV statistik multi-tahun dengan UTF-8 BOM (T5), rekonsiliasi CSV Dapodik dua tahap (T6), validasi berkas rekonsiliasi (T7), ekspor CSV hasil audit rekonsiliasi ber-BOM UTF-8 (T8), auto-deteksi pemisah titik-koma (T9), penandaan diskrepansi perbedaan rombel/nama (T10), guard izin students.view untuk laporan (T11), dan guard izin ketat students.import untuk rekonsiliasi Dapodik (T12).
+- Suite regresi penuh PHPUnit/Pest: **666 passed, 13 skipped (7,872 assertions) in 537.58s** (zero failures, zero regressions across all domains).
+- Pint pada seluruh 7 file PHP laporan baru/berubah: **PASS (7 files)**; `php artisan route:list --path=reports` → **8 routes** (termasuk 2 route teaching reports 10c).
+- Frontend: `npx eslint` pada komponen laporan di `src/views/reports/*.vue` dan `src/components/reports/*.vue` → **0 errors, 0 warnings**; `npm run build` **PASS (30.86s)** (`dist/assets/SchoolReportsView-DUzrot1y.js 39.56 kB`).
+- UAT terisolasi `.uat-phase10` (perintah baru `probe-reports-school` pada `scripts/phase10-uat.php` terhadap database `.uat-phase10/database.sqlite`; API `127.0.0.1:18028`; SPA `127.0.0.1:14028`; cookie `school_phase10_session`): mengeksekusi 5 probe HTTP nyata:
+  1. Multi-year statistics trends: 2 tahun ajaran, label chart valid, total siswa aktif teragregasi (PASS).
+  2. Demographics breakdown: total siswa, rasio gender, agama, rombel aktif, kelompok usia (PASS).
+  3. Dapodik profile readiness audit: kelengkapan NIK/NISN/KK/ibu/lahir siswa dan PTK (PASS).
+  4. Dapodik two-pass reconciliation: komparasi 3 baris Dapodik terhadap database sekolah, klasifikasi identik, diff, dan data lokal/Dapodik only (PASS).
+  5. CSV export with UTF-8 BOM: streaming berkas statistik dan audit rekonsiliasi menghasilkan header `text/csv; charset=UTF-8` dengan BOM `\xEF\xBB\xBF` (PASS).
+  -> **ALL 5 UAT PHASE 11B SCHOOL REPORTS & RECONCILIATION PROBES PASSED SUCCESSFULLY**.
+- Penghentian server UAT (DEC-27): port `18028` dan `14028` diverifikasi ulang bebas listener (`PORTS_18028_14028_FREE`); data `.uat-phase10` dipertahankan untuk review manual pemilik `#1–#18`.
+- **NOT RUN:** otomasi browser visual/screenshot (diserahkan ke checklist manual pemilik `#1–#18` di `PHASE-11B-MANUAL-REVIEW.md`); race condition MariaDB/InnoDB multi-proses nyata; Subfase 11c+ (belum direncanakan).
+- **Review manual pemilik: AWAITING OWNER REVIEW (#1–#18, 2026-11-03 WIB)** (`reports/feature-update/PHASE-11B-MANUAL-REVIEW.md`). Port `18028` dan `14028` tetap bebas.
 
 ## Matriks minimum per perubahan
 | Area | Kasus wajib |

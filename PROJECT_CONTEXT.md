@@ -1,6 +1,30 @@
 # Konteks proyek
 
-## Current addendum — 2026-11-03 (Rencana Subfase 11b DISETUJUI — DEC-43 APPROVED; DEC-12 CLOSED; implementasi diotorisasi)
+## Current addendum — 2026-11-03 (Subfase 11b IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18; DEC-43 IMPLEMENTED; DEC-12 CLOSED)
+
+Subfase **11b — Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data Dapodik** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`dc43954`** (pencatatan persetujuan rencana `DEC-43 APPROVED` dan `DEC-12 CLOSED`). Disampaikan:
+- **Backend Services & Controllers:**
+  1. `SchoolStatisticsReportService.php`: menyediakan data agregat tren multi-tahun kesiswaan (total siswa, rombel, rasio gender L/P, mutasi masuk/keluar, dan tren pegawai guru/tendik) lintas tahun ajaran aktif maupun terkunci; rincian demografi kesiswaan (distribusi gender, agama, tingkat kelas VII/VIII/IX, kelompok umur, dan persebaran rombel); audit kesiapan profil identitas Dapodik (validasi NIK 16 digit, NISN 10 digit, nomor KK, nama ibu kandung, tanggal & tempat lahir siswa serta PTK); dan ekspor berkas CSV streaming dengan prepended UTF-8 BOM (`\xEF\xBB\xBF`) serta text-quoted numerik untuk kompatibilitas Microsoft Excel.
+  2. `DapodikReconciliationService.php`: engine rekonsiliasi berkas CSV Dapodik lokal vs basis data sistem dengan pembacaan auto-delimiter (koma, titik-koma, tab), sanitasi data, validasi batas ukuran berkas (< 5 MB, maks 2.000 baris); matching bertingkat (Pass 1: NISN, Pass 2: NIK); klasifikasi 4 status diskrepansi (`MATCHED_IDENTICAL`, `MATCHED_DIFF`, `LOCAL_ONLY`, `DAPODIK_ONLY`); pelacakan diff atribut (nama, rombel, NISN, NIK); dan ekspor laporan audit CSV ber-BOM UTF-8 tanpa melakukan mutasi/overwrite ke database lokal (menutup DEC-12).
+  3. `SchoolReportController.php` & `DapodikReconciliationController.php`: mendaftarkan 6 endpoint di bawah prefix `/api/reports/*` dengan otorisasi berbasis ability Sanctum (`students.view` untuk statistik & demografi; `students.import` untuk rekonsiliasi Dapodik).
+- **Frontend Components & Navigation:**
+  1. `MultiYearTrendsTab.vue`: visualisasi grafik tren siswa per tahun ajaran, kartu ringkasan KPI, tabel rekapitulasi multi-tahun, dan tombol ekspor CSV.
+  2. `DemographicsTab.vue`: grafik doughnut distribusi gender & agama, distribusi usia siswa, rincian per rombel, dan kartu audit kesiapan data Dapodik.
+  3. `DapodikReconciliationTab.vue`: antarmuka upload file CSV drag-and-drop, 6 KPI cards ringkasan rekonsiliasi, tombol filter status tabulasi, tabel perbandingan side-by-side dua arah dengan badge status visual dan penyorotan diff atribut, serta tombol unduh laporan audit CSV.
+  4. `SchoolReportsView.vue`: halaman induk tabbed di rute `/public/reports/school` yang mengintegrasikan ketiga sub-komponen laporan.
+  5. Navigasi: terdaftar pada menu `AppMenu.vue` di bawah grup Public / Laporan Sekolah.
+- **Verifikasi & Kualitas:**
+  - 12 tes feature `SchoolReportApiTest.php` PASS (105 assertions).
+  - Full PHPUnit/Pest suite: 666 passed, 13 skipped, 7.872 assertions PASS (537.58s, 0 regresi).
+  - Laravel Pint: PASS (0 issues) pada seluruh file PHP baru dan termodifikasi.
+  - ESLint: 0 errors, 0 warnings pada seluruh komponen Vue dan router/menu.
+  - Vite build: PASS (`dist/assets/SchoolReportsView-DUzrot1y.js` 39.56 kB, 30.86s).
+  - UAT probe: `scripts/phase10-uat.php probe-reports-school` 5/5 probes PASS.
+  - Server UAT port 18028 dan 14028 dipastikan dihentikan dan port bebas per DEC-27 (`PORTS_18028_14028_FREE`).
+  - MariaDB operasional port 3306 dan Apache port 80/443 tidak disentuh. Zero database migration.
+- **Status:** Menunggu review manual pemilik checklist #1–#18 di `reports/feature-update/PHASE-11B-MANUAL-REVIEW.md`.
+
+## Previous addendum — 2026-11-03 (Rencana Subfase 11b DISETUJUI — DEC-43 APPROVED; DEC-12 CLOSED; implementasi diotorisasi)
 
 Pernyataan pemilik **"Saya setuju D1-D10"** (2026-11-03 WIB) dicatat sebagai **DEC-43 APPROVED** dan menutup gerbang **DEC-12 CLOSED (Laporan Eksternal & Rekonsiliasi Berkas)**; implementasi **Subfase 11b — Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data** diotorisasi sesuai `reports/feature-update/PHASE-11B-PLAN.md` (baseline **`bb06d98`**; paket rencana **`e49e2f4`**). **Subfase 11a tetap OWNER APPROVED (#1–#18, 2026-11-03 WIB; DEC-42 CLOSED)**, dan **Fase 10 tetap SELESAI LENGKAP & DITUTUP** (`2a36800`). Scope 11b yang disetujui: rekapitulasi statistik multi-tahun (tren siswa, rombel, mutasi, pegawai) lintas tahun ajaran aktif dan terkunci; rekap demografi dan kesiapan profil identitas Dapodik; rekonsiliasi berkas CSV Dapodik lokal (matching engine NISN lalu NIK, komparasi visual side-by-side dua arah, klasifikasi status *Matched, Diff, Local Only, Dapodik Only*, dan ekspor laporan audit tanpa auto-overwrite ke DB); 6 endpoint `/api/reports/*`; antarmuka `/public/reports/school` (3 tab); pembatasan hak akses berbasis ability `students.view` + `employees.view` dan izin impor; zero schema change; serta UAT terisolasi yang dihentikan per DEC-27. Detail: `reports/feature-update/PHASE-11B-PLAN.md`.
 

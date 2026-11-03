@@ -17,6 +17,57 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 11b — Laporan rekapitulasi sekolah, statistik multi-tahun, dan rekonsiliasi Dapodik (DEC-43 IMPLEMENTED; DEC-12 CLOSED)
+- Type: Feature
+- Scope / fase: Implementasi Fase 11 — Subfase 11b: Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun, dan Rekonsiliasi Data Dapodik (DEC-43 IMPLEMENTED, DEC-12 CLOSED). Zero schema change.
+- Files touched:
+  - Backend Services:
+    - `laravel-api/app/Services/Reports/SchoolStatisticsReportService.php`
+    - `laravel-api/app/Services/Reports/DapodikReconciliationService.php`
+  - Backend Controllers & Routes:
+    - `laravel-api/app/Http/Controllers/Reports/SchoolReportController.php`
+    - `laravel-api/app/Http/Controllers/Reports/DapodikReconciliationController.php`
+    - `laravel-api/routes/api.php`
+  - Backend Tests & Fixtures:
+    - `laravel-api/tests/Feature/Reports/SchoolReportApiTest.php`
+    - `laravel-api/scripts/phase10-uat.php`
+  - Frontend Components & Views:
+    - `vue-app/src/components/reports/MultiYearTrendsTab.vue`
+    - `vue-app/src/components/reports/DemographicsTab.vue`
+    - `vue-app/src/components/reports/DapodikReconciliationTab.vue`
+    - `vue-app/src/views/reports/SchoolReportsView.vue`
+    - `vue-app/src/router/index.js`
+    - `vue-app/src/layout/AppMenu.vue`
+  - Reports & Documentation:
+    - `reports/feature-update/PHASE-11B-REPORT.md`
+    - `reports/feature-update/PHASE-11B-MANUAL-REVIEW.md`
+    - `docs/API-CONTRACTS.md`
+    - `docs/ACCESS-CONTROL.md`
+    - `docs/TESTING.md`
+    - `roadmap/ROADMAP.md`
+    - `reports/feature-update/INDEX.md`
+    - `reports/feature-update/HANDOFF.md`
+    - `PROJECT_CONTEXT.md`
+    - `CHANGELOG.md`
+- What changed:
+  1. Menambahkan `SchoolStatisticsReportService` untuk agregasi data statistik multi-tahun (tren siswa, rombel, gender L/P, mutasi masuk/keluar, dan tren pegawai guru/tendik) lintas tahun ajaran aktif & terkunci; demografi kesiswaan (gender, agama, tingkat kelas, kelompok umur, rombel); audit kesiapan profil identitas Dapodik (validasi NIK 16 digit, NISN 10 digit, nomor KK, nama ibu kandung, tanggal/tempat lahir); serta ekspor streaming CSV dengan prepended UTF-8 BOM dan format numerik text-quoted.
+  2. Menambahkan `DapodikReconciliationService` untuk memproses berkas CSV Dapodik lokal vs basis data sistem dengan pembacaan auto-delimiter (koma, titik-koma, tab), sanitasi data, batas ukuran < 5 MB / 2.000 baris, matching bertingkat (Pass 1 NISN, Pass 2 NIK), klasifikasi 4 status diskrepansi (`MATCHED_IDENTICAL`, `MATCHED_DIFF`, `LOCAL_ONLY`, `DAPODIK_ONLY`), pelacakan diff atribut (nama, rombel, NISN, NIK), dan ekspor CSV audit rekonsiliasi tanpa melakukan overwrite ke database (menutup DEC-12).
+  3. Mendaftarkan 6 endpoint API `/api/reports/*` (`school-statistics`, `demographics`, `dapodik-readiness`, `dapodik-reconciliation/compare`, dan ekspor CSV) dengan otorisasi Sanctum (`students.view` untuk statistik & demografi; `students.import` untuk rekonsiliasi Dapodik).
+  4. Membangun 3 komponen tab frontend (`MultiYearTrendsTab.vue`, `DemographicsTab.vue`, `DapodikReconciliationTab.vue`) dan halaman view induk `SchoolReportsView.vue` di rute `/public/reports/school` dengan menu navigasi `AppMenu.vue`.
+  5. Menambahkan 12 tes feature `SchoolReportApiTest.php` (T1–T12, 105 assertions).
+  6. Menambahkan sub-perintah `probe-reports-school` pada `scripts/phase10-uat.php` untuk verifikasi HTTP UAT otomatis (5/5 PASS).
+- Why: Memenuhi roadmap Fase 11 Subfase 11b dan menutup keputusan arsitektur DEC-12 terkait rekonsiliasi berkas Dapodik lokal dan pelaporan agregat sekolah.
+- Validation:
+  - `vendor/bin/pint --test` PASS (0 issues).
+  - `npx eslint` PASS (0 errors, 0 warnings).
+  - `npm run build` PASS (SchoolReportsView bundle 39.56 kB).
+  - `php artisan test tests/Feature/Reports/SchoolReportApiTest.php` PASS (12 passed, 105 assertions).
+  - `php artisan test` PASS (666 passed, 13 skipped, 7.872 assertions in 537.58s).
+  - `scripts/phase10-uat.php probe-reports-school` PASS (5/5 probes).
+  - DEC-27 port check: port 18028 dan 14028 dipastikan bebas listener.
+- Notes / risks: Tidak ada perubahan skema database atau migration. MariaDB 3306 dan Apache 80/443 tidak disentuh.
+- Evidence: `reports/feature-update/PHASE-11B-REPORT.md`, `reports/feature-update/PHASE-11B-MANUAL-REVIEW.md`.
+
 ## [2026-11-03] Fase 11b — Persetujuan rencana laporan rekapitulasi sekolah dan rekonsiliasi Dapodik (DEC-43 APPROVED; DEC-12 CLOSED)
 - Type: Docs
 - Scope / fase: Pencatatan persetujuan pemilik atas rencana Subfase 11b (`D1–D10` sebagai `DEC-43 APPROVED`) dan penutupan gerbang `DEC-12 CLOSED`. Tidak ada perubahan kode aplikasi pada entri ini.

@@ -221,6 +221,18 @@ API mayoritas hanya auth:sanctum. Beberapa controller akun membedakan tipe secar
 - **UI**: Halaman `/` (Dashboard) terbebas sepenuhnya dari mock/demo e-commerce dan menyajikan 6 widget operasional nyata beradaptasi terhadap kemampuan akun login.
 - **UAT**: `.uat-phase10` diverifikasi via `php scripts/phase10-uat.php probe-dashboard` dengan 5 probe HTTP (admin overview, kepsek overview, isolasi guru personal tanpa leak data staf/surat, pending tasks, dan charts matrix); server UAT dihentikan setelah verifikasi sesuai DEC-27.
 
+## Implementasi Subfase 11b (laporan rekapitulasi sekolah, statistik multi-tahun, dan rekonsiliasi Dapodik)
+- **Pengendalian Akses Laporan Statistik & Demografi**:
+  - Endpoint `/api/reports/school-statistics`, `/api/reports/demographics`, `/api/reports/dapodik-readiness`, dan `/api/reports/school-statistics/export` diproteksi dengan kemampuan `students.view`.
+  - Mengizinkan peran `admin-sistem`, `operator-sekolah`, `kepala-sekolah`, dan `wakil-kesiswaan` untuk mengakses analisis analitikal sekolah tanpa modifikasi data.
+  - Peran tanpa `students.view` (misalnya guru umum atau staf teknis) ditolak dengan respons `403 Forbidden`.
+- **Pengendalian Ketat Rekonsiliasi Eksternal Dapodik (`students.import`)**:
+  - Endpoint komparasi `/api/reports/dapodik-reconciliation/compare` dan ekspor `/api/reports/dapodik-reconciliation/export` diproteksi dengan kemampuan `students.import`.
+  - Hanya peran berwenang mengelola impor kesiswaan (`admin-sistem` dan `operator-sekolah`) yang dapat memproses dan mengunduh audit rekonsiliasi berkas eksternal Dapodik.
+  - Peran pimpinan (`kepala-sekolah`, `wakil-kesiswaan`) yang hanya memiliki `students.view` melihat banner informatif bahwa fitur rekonsiliasi dibatasi demi perlindungan integritas data, dan permintaan API langsung ditolak `403 Forbidden`.
+- **UI**: Menu **Public → School Reports** (`/public/reports/school`, guard `requiresAbility: 'students.view'`) dengan 3 tab (**Tren Multi-Tahun**, **Demografi & Kesiapan Profil**, dan **Rekonsiliasi Data Dapodik**).
+- **UAT**: `.uat-phase10` diverifikasi via `php scripts/phase10-uat.php probe-reports-school` dengan 5 probe HTTP (tren multi-tahun 5 tahun, demografi terpilah gender/agama/rombel, audit kesiapan profil Dapodik, rekonsiliasi berkas dua arah, dan ekspor CSV streaming dengan UTF-8 BOM); server UAT dihentikan setelah verifikasi sesuai DEC-27.
+
 | Kemampuan | Admin | Operator | Kepala sekolah | Guru/wali kelas |
 |---|---|---|---|---|
 | users.manage / roles.manage | Ya | Tidak | Tidak | Tidak |

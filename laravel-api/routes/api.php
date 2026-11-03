@@ -34,6 +34,8 @@ use App\Http\Controllers\ProfessionController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\RegencyController;
 use App\Http\Controllers\ReligionController;
+use App\Http\Controllers\Reports\DapodikReconciliationController;
+use App\Http\Controllers\Reports\SchoolReportController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SchoolLevelController;
 use App\Http\Controllers\SchoolProfileController;
@@ -586,6 +588,23 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/backups/{filename}/download', [BackupController::class, 'download'])
         ->where('filename', '.*')
         ->middleware('can:backup.manage');
+
+    // Subfase 11b: Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun & Rekonsiliasi Dapodik (DEC-43)
+    Route::prefix('reports')->group(function () {
+        Route::get('/school-statistics', [SchoolReportController::class, 'schoolStatistics'])
+            ->middleware('can:students.view');
+        Route::get('/demographics', [SchoolReportController::class, 'demographics'])
+            ->middleware('can:students.view');
+        Route::get('/dapodik-readiness', [SchoolReportController::class, 'dapodikReadiness'])
+            ->middleware('can:students.view');
+        Route::get('/school-statistics/export', [SchoolReportController::class, 'exportSchoolStatistics'])
+            ->middleware('can:students.view');
+
+        Route::post('/dapodik-reconciliation/compare', [DapodikReconciliationController::class, 'compare'])
+            ->middleware('can:students.import');
+        Route::post('/dapodik-reconciliation/export', [DapodikReconciliationController::class, 'exportReconciliation'])
+            ->middleware('can:students.import');
+    });
 
 });
 
