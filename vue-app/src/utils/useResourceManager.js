@@ -54,24 +54,14 @@ import { enrichReferenceResponse } from '@/utils/referenceLabels.mjs';
  * @param {string}   [config.cat2_fk_id]       - FK id field to set on save, e.g. 'status_user_id'
  */
 export function useResourceManager(config) {
-    const {
-        endpoint,
-        endpoints = [],
-        menuLabel,
-        menuLabelPlural,
-        fieldLabels      = {},
-        uniqueFields     = [],
-        uniqueMinLengths = [3, 3, 3, 3],
-        requiredFields   = [],
-        fkFields = [],
-    } = config;
+    const { endpoint, endpoints = [], menuLabel, menuLabelPlural, fieldLabels = {}, uniqueFields = [], uniqueMinLengths = [3, 3, 3, 3], requiredFields = [], fkFields = [] } = config;
 
-    const toast     = useToast();
+    const toast = useToast();
     const useAuthStore = authStore();
 
     // ── State ──────────────────────────────────────────────────────────────────
 
-    const manyDatas      = ref([]);
+    const manyDatas = ref([]);
     const manyDatas_cat1 = ref([]);
     const status_educations = ref([
         { name: 'Negeri', display_name: 'Public' },
@@ -80,25 +70,25 @@ export function useResourceManager(config) {
 
     // ── Secondary data sources (fully dynamic — no upper limit) ───────────────
     const _secondaryDatas = endpoints.map(() => ref([]));
-    const _secondaryCats  = endpoints.map(() => ref([]));
+    const _secondaryCats = endpoints.map(() => ref([]));
 
-    const singleData        = ref({});
-    const previousData      = ref({});   // stores the original record before editing
+    const singleData = ref({});
+    const previousData = ref({}); // stores the original record before editing
     const selectedManyDatas = ref();
-    const saveUser          = ref([]);
+    const saveUser = ref([]);
 
-    const loading           = ref(true);
-    const submitted         = ref(false);
-    const entityLabel       = ref('');
+    const loading = ref(true);
+    const submitted = ref(false);
+    const entityLabel = ref('');
     const entityLabelPlural = ref('');
 
     const EditOrNewDialog = ref(false);
-    const deleteDialog    = ref(false);
-    const deletesDialog   = ref(false);
-    const WaitingDialog   = ref(false);
-    const ErrorDialog     = ref(false);
-    const titleError      = ref('');
-    const fieldError      = ref('');
+    const deleteDialog = ref(false);
+    const deletesDialog = ref(false);
+    const WaitingDialog = ref(false);
+    const ErrorDialog = ref(false);
+    const titleError = ref('');
+    const fieldError = ref('');
 
     // ── Unique validation (dynamic — supports any number of fields) ────────────
 
@@ -106,9 +96,7 @@ export function useResourceManager(config) {
     const _validators = uniqueFields.map((field, i) => {
         const minLen = uniqueMinLengths[i] ?? 3;
 
-        const { isAlreadyUsed, validate } = field
-            ? useUniqueValidation(manyDatas, previousData, field)
-            : { isAlreadyUsed: ref(false), validate: () => {} };
+        const { isAlreadyUsed, validate } = field ? useUniqueValidation(manyDatas, previousData, field) : { isAlreadyUsed: ref(false), validate: () => {} };
 
         return { field, minLen, isAlreadyUsed, validate };
     });
@@ -118,22 +106,19 @@ export function useResourceManager(config) {
 
     _validators.forEach(({ field, validate }) => {
         debounces[field] = null;
-        watch(() => singleData.value[field], (newVal) => {
-            clearTimeout(debounces[field]);
-            debounces[field] = setTimeout(() => validate(newVal), 400);
-        });
+        watch(
+            () => singleData.value[field],
+            (newVal) => {
+                clearTimeout(debounces[field]);
+                debounces[field] = setTimeout(() => validate(newVal), 400);
+            }
+        );
     });
 
     // In the return block — spread all isAlreadyUsed refs dynamically
-    const catUsedRefs = Object.fromEntries(
-        _validators.map(({ isAlreadyUsed }, i) => [`isCat${i + 1}Used`, isAlreadyUsed])
-    );
+    const catUsedRefs = Object.fromEntries(_validators.map(({ isAlreadyUsed }, i) => [`isCat${i + 1}Used`, isAlreadyUsed]));
 
-    const validFieldCount = computed(() =>
-        _validators.filter(({ field, minLen }) =>
-            (singleData.value[field]?.trim().length ?? 0) > minLen
-        ).length
-    );
+    const validFieldCount = computed(() => _validators.filter(({ field, minLen }) => (singleData.value[field]?.trim().length ?? 0) > minLen).length);
 
     // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -153,21 +138,16 @@ export function useResourceManager(config) {
             const mainUrl = endpoint.startsWith('/') ? endpoint : `/api/${endpoint}`;
 
             // Prepend /api/ to all secondary endpoints automatically
-            const secondaryUrls = endpoints.map(ep =>
-                ep.startsWith('/') ? ep : `/api/${ep}`
-            );
+            const secondaryUrls = endpoints.map((ep) => (ep.startsWith('/') ? ep : `/api/${ep}`));
 
-            const [res1, ...restResults] = await Promise.all([
-                apiLogin.get(mainUrl),
-                ...secondaryUrls.map(ep => apiLogin.get(ep)),
-            ]);
+            const [res1, ...restResults] = await Promise.all([apiLogin.get(mainUrl), ...secondaryUrls.map((ep) => apiLogin.get(ep))]);
 
-            manyDatas.value      = res1.data.data;
-            manyDatas_cat1.value = manyDatas.value.map(item => item.name);
+            manyDatas.value = res1.data.data;
+            manyDatas_cat1.value = manyDatas.value.map((item) => item.name);
 
             restResults.forEach((res, i) => {
                 _secondaryDatas[i].value = res.data.data;
-                _secondaryCats[i].value  = _secondaryDatas[i].value.map(item => item.name);
+                _secondaryCats[i].value = _secondaryDatas[i].value.map((item) => item.name);
             });
         } catch (error) {
             // console.error('fetchDataAll error:', error);
@@ -178,7 +158,7 @@ export function useResourceManager(config) {
                 const validationErrors = error.response.data.errors;
                 // Combine all errors into a bulleted list string
                 fieldError.value = Object.values(validationErrors)
-                    .map(errArray => `• ${errArray.join(', ')}`)
+                    .map((errArray) => `• ${errArray.join(', ')}`)
                     .join('\n');
             } else {
                 // Fallback for general server errors (e.g., 500, 404)
@@ -193,8 +173,8 @@ export function useResourceManager(config) {
     const fetchDataUserRole = async () => {
         // Identitas sesi dari kontrak ringan check-auth (bukan daftar /api/users).
         await useAuthStore.getUser();
-        saveUser.value          = useAuthStore.identity;
-        entityLabel.value       = menuLabel;
+        saveUser.value = useAuthStore.identity;
+        entityLabel.value = menuLabel;
         entityLabelPlural.value = menuLabelPlural;
         await fetchDataAll();
     };
@@ -209,44 +189,39 @@ export function useResourceManager(config) {
             const query = event.query.trim().toLowerCase();
             _filteredCats[index].value = !query.length
                 ? [...source.value]
-                : source.value.filter(item =>
-                    String(item.display_name ?? item.name ?? '').toLowerCase().includes(query));
+                : source.value.filter((item) =>
+                      String(item.display_name ?? item.name ?? '')
+                          .toLowerCase()
+                          .includes(query)
+                  );
         }, 250);
     };
 
     // Dynamic spread — exposes search_Cat5, search_Cat6, filtered_Cat5, filtered_Cat6, etc.
     // automatically based on how many endpoints are passed in config.
-    const dynamicSearchCats   = Object.fromEntries(
-        endpoints.map((_, i) => [`search_Cat${i + 1}`, (e) => searchCat(i, e)])
-    );
-    const dynamicFilteredCats = Object.fromEntries(
-        endpoints.map((_, i) => [`filtered_Cat${i + 1}`, _filteredCats[i]])
-    );
-    const dynamicSecondaryDatas = Object.fromEntries(
-        endpoints.map((_, i) => [`manyDatas_${i + 2}`, _secondaryDatas[i]])
-    );
-    const dynamicSecondaryCats = Object.fromEntries(
-        endpoints.map((_, i) => [`manyDatas_cat${i + 2}`, _secondaryCats[i]])
-    );
+    const dynamicSearchCats = Object.fromEntries(endpoints.map((_, i) => [`search_Cat${i + 1}`, (e) => searchCat(i, e)]));
+    const dynamicFilteredCats = Object.fromEntries(endpoints.map((_, i) => [`filtered_Cat${i + 1}`, _filteredCats[i]]));
+    const dynamicSecondaryDatas = Object.fromEntries(endpoints.map((_, i) => [`manyDatas_${i + 2}`, _secondaryDatas[i]]));
+    const dynamicSecondaryCats = Object.fromEntries(endpoints.map((_, i) => [`manyDatas_cat${i + 2}`, _secondaryCats[i]]));
 
     // ── Dialog helpers ─────────────────────────────────────────────────────────
 
     const openNew = () => {
-        previousData.value    = {};
-        singleData.value      = {};
-        submitted.value       = false;
+        previousData.value = {};
+        singleData.value = {};
+        submitted.value = false;
         EditOrNewDialog.value = true;
     };
 
     const hideDialog = () => {
-        singleData.value      = {};
+        singleData.value = {};
         EditOrNewDialog.value = false;
-        submitted.value       = false;
+        submitted.value = false;
     };
 
     const editSingleData = (row) => {
-        previousData.value    = { ...row };
-        singleData.value      = { ...row };
+        previousData.value = { ...row };
+        singleData.value = { ...row };
         EditOrNewDialog.value = true;
     };
 
@@ -255,7 +230,7 @@ export function useResourceManager(config) {
     const saveSingleData = async () => {
         submitted.value = true;
 
-        const textFieldsValid = [...uniqueFields, ...requiredFields].every(f => singleData.value[f]?.trim());
+        const textFieldsValid = [...uniqueFields, ...requiredFields].every((f) => singleData.value[f]?.trim());
 
         // Replace the two hardcoded checks:
         const fkFieldsValid = fkFields.every(({ fk }) => singleData.value[fk]?.id);
@@ -270,21 +245,20 @@ export function useResourceManager(config) {
         if (singleData.value.id) {
             // ── UPDATE ──
             waitingDialogRender();
-            const idx      = manyDatas.value.findIndex(item => item.id === singleData.value.id);
+            const idx = manyDatas.value.findIndex((item) => item.id === singleData.value.id);
             const old_data = manyDatas.value[idx];
 
-            singleData.value._method     = 'PATCH';
+            singleData.value._method = 'PATCH';
             if (endpoint == 'users') {
                 singleData.value.type_editor = saveUser.value?.type_user_id ?? null;
                 delete singleData.value['password'];
             }
 
             const detailMessages = getChangeDetails(old_data, singleData.value, fieldLabels);
-            const detailMessage  = getChangeDetail(old_data, singleData.value, fieldLabels);
+            const detailMessage = getChangeDetail(old_data, singleData.value, fieldLabels);
             // console.log(old_data.update_at == singleData.value.update_at);
 
             if (detailMessage.hasChanges) {
-
                 try {
                     await apiLogin.post(`/api/${endpoint}/${singleData.value.id}`, singleData.value);
                     delete singleData.value['password_new'];
@@ -293,13 +267,13 @@ export function useResourceManager(config) {
 
                     waitingDialogRender();
                     EditOrNewDialog.value = false;
-                    singleData.value      = {};
+                    singleData.value = {};
 
                     toast.add({
                         severity: 'success',
-                        summary:  'Data ' + old_data.name + ' Updated',
-                        detail:   detailMessages,
-                        life:     5000,
+                        summary: 'Data ' + old_data.name + ' Updated',
+                        detail: detailMessages,
+                        life: 5000
                     });
                 } catch (error) {
                     // console.error('saveSingleData (update) error:', error);
@@ -315,7 +289,7 @@ export function useResourceManager(config) {
                         // Reload the latest data into the form automatically
                         const latest = error.response.data.latest?.data;
                         if (latest) {
-                            singleData.value  = { ...latest };
+                            singleData.value = { ...latest };
                             previousData.value = { ...latest };
                         }
                     } else if (error.response?.status === 422) {
@@ -327,16 +301,13 @@ export function useResourceManager(config) {
                         fieldError.value = error.response?.data?.message ?? 'Unprocessable Content.';
                         errorDialogRender();
                     }
-
                 }
-
             } else {
                 waitingDialogRender();
                 titleError.value = 'Failed to process data!';
                 fieldError.value = detailMessage.hasChanges + '\n' + detailMessages;
                 errorDialogRender();
             }
-
         } else {
             // ── CREATE ──
             if (endpoint == 'users' && !singleData.value.password?.trim()) return;
@@ -350,9 +321,9 @@ export function useResourceManager(config) {
                 waitingDialogRender();
                 toast.add({
                     severity: 'success',
-                    summary:  'Data Created Successfully',
-                    detail:   (singleData.value.name || 'New record') + ' has been created',
-                    life:     3000,
+                    summary: 'Data Created Successfully',
+                    detail: (singleData.value.name || 'New record') + ' has been created',
+                    life: 3000
                 });
                 singleData.value = {};
             } catch (error) {
@@ -368,7 +339,7 @@ export function useResourceManager(config) {
     // ── Delete single ──────────────────────────────────────────────────────────
 
     const confirmDeleteSingleData = (row) => {
-        singleData.value   = row;
+        singleData.value = row;
         deleteDialog.value = true;
     };
 
@@ -377,17 +348,17 @@ export function useResourceManager(config) {
 
         try {
             singleData.value._method = 'DELETE';
-            singleData.value.delete  = true;
+            singleData.value.delete = true;
 
             await apiLogin.post(`/api/${endpoint}/${singleData.value.id}`, singleData.value);
-            manyDatas.value          = manyDatas.value.filter(item => item.id !== singleData.value.id);
+            manyDatas.value = manyDatas.value.filter((item) => item.id !== singleData.value.id);
 
             waitingDialogRender();
             toast.add({
                 severity: 'success',
-                summary:  'Data Deleted',
-                detail:   `Data ${singleData.value.name} has been deleted successfully`,
-                life:     5000,
+                summary: 'Data Deleted',
+                detail: `Data ${singleData.value.name} has been deleted successfully`,
+                life: 5000
             });
         } catch (error) {
             // console.error('deleteSingleData error:', error);
@@ -398,7 +369,7 @@ export function useResourceManager(config) {
         }
 
         deleteDialog.value = false;
-        singleData.value   = {};
+        singleData.value = {};
     };
 
     // ── Delete many ────────────────────────────────────────────────────────────
@@ -414,18 +385,16 @@ export function useResourceManager(config) {
         let count = selectedManyDatas.value.length;
         const totalSelected = selectedManyDatas.value.length;
 
-        const names = selectedManyDatas.value.map(item => item.name);
-        const formattedNames = names.length > 1
-            ? names.slice(0, -1).join(', ') + ', and ' + names.slice(-1)
-            : names[0] || '';
+        const names = selectedManyDatas.value.map((item) => item.name);
+        const formattedNames = names.length > 1 ? names.slice(0, -1).join(', ') + ', and ' + names.slice(-1) : names[0] || '';
 
         for (const element of selectedManyDatas.value) {
             element._method = 'DELETE';
-            element.delete  = true;
+            element.delete = true;
             if (element.id) {
                 try {
                     await apiLogin.post(`/api/${endpoint}/${element.id}`, element);
-                    manyDatas.value = manyDatas.value.filter(val => val.id !== element.id);
+                    manyDatas.value = manyDatas.value.filter((val) => val.id !== element.id);
                     count--;
                 } catch (error) {
                     // console.error('deleteSelectedManyDatas error:', error);
@@ -442,13 +411,13 @@ export function useResourceManager(config) {
             waitingDialogRender();
             toast.add({
                 severity: 'success',
-                summary:  `${totalSelected} ${entityLabelPlural.value} Deleted`,
-                detail:   `${formattedNames} have been deleted successfully`,
-                life:     5000,
+                summary: `${totalSelected} ${entityLabelPlural.value} Deleted`,
+                detail: `${formattedNames} have been deleted successfully`,
+                life: 5000
             });
         }
 
-        deletesDialog.value     = false;
+        deletesDialog.value = false;
         selectedManyDatas.value = null;
     };
 
@@ -456,29 +425,49 @@ export function useResourceManager(config) {
 
     return {
         // Data
-        manyDatas, manyDatas_cat1, status_educations,
-        ...dynamicSecondaryDatas,   // manyDatas_2, manyDatas_3, ... auto-generated
-        ...dynamicSecondaryCats,    // manyDatas_cat2, manyDatas_cat3, ... auto-generated
-        singleData, previousData, selectedManyDatas, saveUser,
+        manyDatas,
+        manyDatas_cat1,
+        status_educations,
+        ...dynamicSecondaryDatas, // manyDatas_2, manyDatas_3, ... auto-generated
+        ...dynamicSecondaryCats, // manyDatas_cat2, manyDatas_cat3, ... auto-generated
+        singleData,
+        previousData,
+        selectedManyDatas,
+        saveUser,
 
         // UI state
-        loading, submitted, entityLabel, entityLabelPlural,
-        EditOrNewDialog, deleteDialog, deletesDialog, WaitingDialog, ErrorDialog,
-        titleError, fieldError,
+        loading,
+        submitted,
+        entityLabel,
+        entityLabelPlural,
+        EditOrNewDialog,
+        deleteDialog,
+        deletesDialog,
+        WaitingDialog,
+        ErrorDialog,
+        titleError,
+        fieldError,
 
         // Filtered autocomplete lists
-        ...dynamicFilteredCats,     // filtered_Cat1, filtered_Cat2, ... auto-generated
+        ...dynamicFilteredCats, // filtered_Cat1, filtered_Cat2, ... auto-generated
 
         // Validation
         ...catUsedRefs,
         validFieldCount,
 
         // Methods
-        fetchDataAll, fetchDataUserRole,
-        openNew, hideDialog, editSingleData, saveSingleData,
-        confirmDeleteSingleData, deleteSingleData,
-        confirmDeleteSelected, deleteSelectedManyDatas,
-        ...dynamicSearchCats,       // search_Cat1, search_Cat2, ... auto-generated
-        waitingDialogRender, errorDialogRender,
+        fetchDataAll,
+        fetchDataUserRole,
+        openNew,
+        hideDialog,
+        editSingleData,
+        saveSingleData,
+        confirmDeleteSingleData,
+        deleteSingleData,
+        confirmDeleteSelected,
+        deleteSelectedManyDatas,
+        ...dynamicSearchCats, // search_Cat1, search_Cat2, ... auto-generated
+        waitingDialogRender,
+        errorDialogRender
     };
 }

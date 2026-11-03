@@ -1,7 +1,4 @@
-<script setup>
-import FloatingConfigurator from '@/components/FloatingConfigurator.vue';
-import logoDefault from '@/assets/pictures/logo_default.jpg';
-</script>
+<script setup></script>
 
 <template>
     <!-- <FloatingConfigurator /> -->

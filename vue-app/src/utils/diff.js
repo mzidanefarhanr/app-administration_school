@@ -9,22 +9,22 @@ export const getChangeDetails = (oldData, newData, config) => {
     const fields = Object.keys(config); // Mengambil key database (name, email, dll)
 
     const changes = fields
-        .filter(field => {
+        .filter((field) => {
             const getValue = (data) => {
-                if (!data) return "";
+                if (!data) return '';
 
                 // Cek apakah field ini nested (mengandung titik, misal: 'type_user.name')
                 if (field.includes('.')) {
                     const [parent, child] = field.split('.');
-                    return data[parent]?.[child] || "";
+                    return data[parent]?.[child] || '';
                 }
 
                 // Jika object Select (PrimeVue), ambil .value
                 if (typeof data[field] === 'object' && data[field] !== null) {
-                    return data[field].value !== undefined ? data[field].value : "";
+                    return data[field].value !== undefined ? data[field].value : '';
                 }
 
-                return data[field] || "";
+                return data[field] || '';
             };
 
             const oldVal = getValue(oldData);
@@ -38,25 +38,25 @@ export const getChangeDetails = (oldData, newData, config) => {
 
             return finalOld !== finalNew;
         })
-        .map(field => {
+        .map((field) => {
             // MENGGANTI NAMA FIELD KE CUSTOM LABEL
             const label = config[field]; // Mengambil 'Nama Lengkap' bukannya 'name'
 
             const getDisplayText = (data) => {
-                if (!data) return "Empty";
+                if (!data) return 'Empty';
 
                 // Cek nested field untuk label
                 if (field.includes('.')) {
                     const [parent, child] = field.split('.');
-                    return data[parent]?.[child] || "Empty";
+                    return data[parent]?.[child] || 'Empty';
                 }
 
                 if (typeof data[field] === 'object' && data[field] !== null) {
-                    return data[field].label || data[field].value || "Empty";
+                    return data[field].label || data[field].value || 'Empty';
                 }
 
-                return data[field] || "Empty";
-            }
+                return data[field] || 'Empty';
+            };
 
             return `\n [${label}] has been updated. \n From -> \n ${getDisplayText(oldData)} \n To -> \n ${getDisplayText(newData)} \n`;
         });
@@ -69,14 +69,14 @@ export const getChangeDetail = (oldData, newData, config) => {
     const beforeObj = {};
     const afterObj = {};
 
-    fields.forEach(field => {
+    fields.forEach((field) => {
         const getValue = (data) => {
             if (!data) return null;
             if (field.includes('.')) {
                 const [parent, child] = field.split('.');
                 return data[parent]?.[child];
             }
-            return (data[field] && typeof data[field] === 'object') ? data[field].value : data[field];
+            return data[field] && typeof data[field] === 'object' ? data[field].value : data[field];
         };
 
         const oldVal = getValue(oldData);

@@ -1782,5 +1782,146 @@ if ($command === 'probe-resilience') {
     exit(0);
 }
 
-fwrite(STDERR, "Unknown command. Use init, prepare, prepare-teaching, prepare-journals, prepare-tasks, probe-reports, probe-dashboard, probe-reports-school, probe-tasks, probe-performance, probe-resilience, status, or start the HTTP server with this script.\n");
+if ($command === 'probe-ui-consistency') {
+    fwrite(STDOUT, "=== EXECUTING UAT PHASE 12C UI & NAVIGATION CONSISTENCY PROBES ===\n\n");
+
+    $vueBase = dirname($base).'/vue-app';
+
+    // [PROBE 1] Absence of Sakai Demo Menu Items in AppMenu.vue
+    fwrite(STDOUT, "[PROBE 1] Absence of Sakai Demo Menu Items in AppMenu.vue:\n");
+    $appMenuFile = $vueBase.'/src/layout/AppMenu.vue';
+    if (! file_exists($appMenuFile)) {
+        throw new RuntimeException("AppMenu.vue not found at {$appMenuFile}");
+    }
+    $appMenuContent = file_get_contents($appMenuFile);
+
+    $forbiddenDemoKeywords = [
+        'UI Components',
+        '/uikit/formlayout',
+        '/uikit/input',
+        '/uikit/table',
+        '/pages/crud',
+        '/pages/empty',
+        '/landing',
+        'Hierarchy',
+        'Submenu 1',
+        'Get Started',
+        '/documentation',
+    ];
+
+    $foundDemo = [];
+    foreach ($forbiddenDemoKeywords as $kw) {
+        if (str_contains($appMenuContent, $kw)) {
+            $foundDemo[] = $kw;
+        }
+    }
+
+    if (! empty($foundDemo)) {
+        throw new RuntimeException('Probe 1 failed: Sakai demo items still present in AppMenu.vue: '.implode(', ', $foundDemo));
+    }
+    fwrite(STDOUT, "  -> PASS: All Sakai demo menu items successfully purged from AppMenu.vue.\n\n");
+
+    // [PROBE 2] Presence of Standardized Indonesian Navigation Groups
+    fwrite(STDOUT, "[PROBE 2] Presence of Standardized Indonesian Navigation Groups in AppMenu.vue:\n");
+    $expectedGroups = [
+        'Beranda',
+        'Data Master',
+        'Akademik',
+        'Kesiswaan & Kepegawaian',
+        'Tata Persuratan',
+        'Perizinan Pegawai',
+        'Arsip Dokumen',
+        'Administrasi Pembelajaran',
+        'Akun Saya',
+        'Pengaturan Akses',
+    ];
+
+    $missingGroups = [];
+    foreach ($expectedGroups as $group) {
+        if (! str_contains($appMenuContent, "'{$group}'") && ! str_contains($appMenuContent, "\"{$group}\"")) {
+            $missingGroups[] = $group;
+        }
+    }
+
+    if (! empty($missingGroups)) {
+        throw new RuntimeException('Probe 2 failed: Missing Indonesian navigation groups in AppMenu.vue: '.implode(', ', $missingGroups));
+    }
+    fwrite(STDOUT, '  - Verified '.count($expectedGroups)." navigation groups.\n");
+    fwrite(STDOUT, "  -> PASS: All 10 navigation groups standardized in formal Indonesian.\n\n");
+
+    // [PROBE 3] Active Routes & Indonesian Breadcrumbs in router/index.js
+    fwrite(STDOUT, "[PROBE 3] Active Routes & Indonesian Breadcrumbs in router/index.js:\n");
+    $routerFile = $vueBase.'/src/router/index.js';
+    if (! file_exists($routerFile)) {
+        throw new RuntimeException("router/index.js not found at {$routerFile}");
+    }
+    $routerContent = file_get_contents($routerFile);
+
+    // Verify demo routes are purged from router
+    $forbiddenRoutes = ['/uikit/formlayout', '/pages/crud', '/landing', '/documentation'];
+    $foundRoutes = [];
+    foreach ($forbiddenRoutes as $r) {
+        if (str_contains($routerContent, "'{$r}'") || str_contains($routerContent, "\"{$r}\"")) {
+            $foundRoutes[] = $r;
+        }
+    }
+    if (! empty($foundRoutes)) {
+        throw new RuntimeException('Probe 3 failed: Demo routes still present in router/index.js: '.implode(', ', $foundRoutes));
+    }
+
+    // Verify Indonesian breadcrumbs exist
+    $expectedBreadcrumbs = ['Dasbor', 'Data Siswa', 'Direktori Pegawai', 'Pusat Tugas & Pengingat', 'Surat Masuk', 'Penugasan & Jadwal'];
+    foreach ($expectedBreadcrumbs as $bc) {
+        if (! str_contains($routerContent, "'{$bc}'")) {
+            throw new RuntimeException("Probe 3 failed: Breadcrumb '{$bc}' missing from router/index.js");
+        }
+    }
+    fwrite(STDOUT, "  - Demo routes purged: 0 orphaned demo routes.\n");
+    fwrite(STDOUT, '  - Standardized Indonesian breadcrumbs verified: '.implode(', ', $expectedBreadcrumbs).".\n");
+    fwrite(STDOUT, "  -> PASS: Vue Router routes and breadcrumbs cleanly synchronized.\n\n");
+
+    // [PROBE 4] Centralized Display & Date/Time Formatters in formatters.js
+    fwrite(STDOUT, "[PROBE 4] Centralized Display & Date/Time Formatters in formatters.js:\n");
+    $formattersFile = $vueBase.'/src/utils/formatters.js';
+    if (! file_exists($formattersFile)) {
+        throw new RuntimeException("formatters.js not found at {$formattersFile}");
+    }
+    $formattersContent = file_get_contents($formattersFile);
+
+    $requiredFunctions = ['formatDate', 'formatTime', 'formatDateTime', 'formatNumber', 'formatPercentage', 'emptyPlaceholder'];
+    foreach ($requiredFunctions as $fn) {
+        if (! str_contains($formattersContent, "function {$fn}") && ! str_contains($formattersContent, "{$fn}(")) {
+            throw new RuntimeException("Probe 4 failed: Formatter function '{$fn}' missing from formatters.js");
+        }
+    }
+    fwrite(STDOUT, '  - Verified formatters: '.implode(', ', $requiredFunctions).".\n");
+    fwrite(STDOUT, "  -> PASS: Standardized Indonesian visual formatters ready.\n\n");
+
+    // [PROBE 5] Accessibility Focus Rings & Mobile Viewport Styles in styles.scss
+    fwrite(STDOUT, "[PROBE 5] Accessibility Focus Rings & Mobile Viewport Styles in styles.scss:\n");
+    $stylesFile = $vueBase.'/src/assets/styles.scss';
+    if (! file_exists($stylesFile)) {
+        throw new RuntimeException("styles.scss not found at {$stylesFile}");
+    }
+    $stylesContent = file_get_contents($stylesFile);
+
+    if (! str_contains($stylesContent, ':focus-visible')) {
+        throw new RuntimeException('Probe 5 failed: :focus-visible accessibility style missing from styles.scss');
+    }
+    if (! str_contains($stylesContent, 'max-width: 576px')) {
+        throw new RuntimeException('Probe 5 failed: Mobile responsive max-width: 576px query missing from styles.scss');
+    }
+    if (! str_contains($stylesContent, '.app-dark')) {
+        throw new RuntimeException('Probe 5 failed: Dark mode contrast styling missing from styles.scss');
+    }
+    fwrite(STDOUT, "  - Verified :focus-visible A11y focus rings.\n");
+    fwrite(STDOUT, "  - Verified mobile responsive viewport table wrapper & dialogs.\n");
+    fwrite(STDOUT, "  - Verified dark mode contrast harmonization.\n");
+    fwrite(STDOUT, "  -> PASS: Accessibility, mobile viewport, and theme contrast verified.\n\n");
+
+    fwrite(STDOUT, "=== ALL 5 UAT PHASE 12C UI CONSISTENCY PROBES PASSED SUCCESSFULLY ===\n");
+    exit(0);
+}
+
+fwrite(STDERR, "Unknown command. Use init, prepare, prepare-teaching, prepare-journals, prepare-tasks, probe-reports, probe-dashboard, probe-reports-school, probe-tasks, probe-performance, probe-resilience, probe-ui-consistency, status, or start the HTTP server with this script.\n");
 exit(2);

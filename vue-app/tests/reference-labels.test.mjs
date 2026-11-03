@@ -7,18 +7,9 @@ const labels = JSON.parse(await readFile(mappingUrl, 'utf8'));
 const source = await readFile(new URL('../src/utils/referenceLabels.mjs', import.meta.url), 'utf8');
 // Vite accepts plain JSON imports; native Node requires an import attribute.
 // Load the actual helper and shared JSON, adapting only that import for Node.
-const nativeSource = source.replace(
-    "import referenceLabels from '../../../laravel-api/resources/reference-labels.json';",
-    `import referenceLabels from ${JSON.stringify(mappingUrl.href)} with { type: 'json' };`
-);
+const nativeSource = source.replace("import referenceLabels from '../../../laravel-api/resources/reference-labels.json';", `import referenceLabels from ${JSON.stringify(mappingUrl.href)} with { type: 'json' };`);
 assert.notEqual(nativeSource, source, 'The helper must import the shared mapping JSON');
-const {
-    referenceLabel,
-    displayReferenceOptions,
-    referenceDomainForEndpoint,
-    enrichReferenceResponse,
-    referenceExportFunction
-} = await import(`data:text/javascript;base64,${Buffer.from(nativeSource).toString('base64')}`);
+const { referenceLabel, displayReferenceOptions, referenceDomainForEndpoint, enrichReferenceResponse, referenceExportFunction } = await import(`data:text/javascript;base64,${Buffer.from(nativeSource).toString('base64')}`);
 
 const knownLabels = {
     'employee-types': ['Pendidik', 'Teacher'],
@@ -80,7 +71,20 @@ test('only exact catalog endpoints scope top-level names', () => {
         assert.equal(referenceDomainForEndpoint(`https://api.example.test/api/${domain}/12/`), domain);
     }
     assert.equal(referenceDomainForEndpoint('/api/family-status'), 'family-statuses');
-    for (const endpoint of ['/api/users', '/api/students', '/api/employees', '/api/education-schools', '/api/school-rombels', '/api/roles', '/api/subjects/export', '/api/subjects/12/users', '/api/constructor', '/api/unknown', '/subjects', '/other/api/subjects']) {
+    for (const endpoint of [
+        '/api/users',
+        '/api/students',
+        '/api/employees',
+        '/api/education-schools',
+        '/api/school-rombels',
+        '/api/roles',
+        '/api/subjects/export',
+        '/api/subjects/12/users',
+        '/api/constructor',
+        '/api/unknown',
+        '/subjects',
+        '/other/api/subjects'
+    ]) {
         assert.equal(referenceDomainForEndpoint(endpoint), undefined, endpoint);
     }
 });
@@ -97,8 +101,25 @@ test('catalog arrays, detail rows and data wrappers retain canonical name', () =
 
 test('people, places, schools, classes, roles and generic user fields are never renamed', () => {
     const payload = {
-        name: 'Pendidik', username: 'Perempuan', address: 'Negeri',
-        data: [{ name: 'Perempuan', account: { name: 'Matematika' }, user: { name: 'Guru' }, student: { name: 'Bahasa' }, employee: { name: 'Pendidik' }, person: { name: 'Negeri' }, district: { name: 'Swasta' }, school: { name: 'Negeri' }, education_school: { name: 'Negeri' }, class_teach: { name: 'Guru' }, rombel: { name: 'Bahasa' }, roles: [{ name: 'Guru', slug: 'guru' }] }],
+        name: 'Pendidik',
+        username: 'Perempuan',
+        address: 'Negeri',
+        data: [
+            {
+                name: 'Perempuan',
+                account: { name: 'Matematika' },
+                user: { name: 'Guru' },
+                student: { name: 'Bahasa' },
+                employee: { name: 'Pendidik' },
+                person: { name: 'Negeri' },
+                district: { name: 'Swasta' },
+                school: { name: 'Negeri' },
+                education_school: { name: 'Negeri' },
+                class_teach: { name: 'Guru' },
+                rombel: { name: 'Bahasa' },
+                roles: [{ name: 'Guru', slug: 'guru' }]
+            }
+        ],
         recap: { by_rombel: [{ name: 'Bahasa', label: 'Perempuan', total: 2 }] }
     };
     for (const endpoint of ['/api/users', '/api/students', '/api/employees', '/api/school-rombels', '/api/education-schools', '/check-auth', '']) {
@@ -108,19 +129,32 @@ test('people, places, schools, classes, roles and generic user fields are never 
 
 test('known snake-case and camel-case relations enrich recursively across arbitrary wrappers', () => {
     const references = {
-        employee_type: ['employee-types', 'Pendidik'], employeeType: ['employee-types', 'Pendidik'],
-        employee_status: ['employee-statuses', 'Pegawai Negeri Sipil'], employeeStatus: ['employee-statuses', 'Pegawai Negeri Sipil'],
-        employment: ['employments', 'Kepala Sekolah'], subject: ['subjects', 'Matematika'],
-        gender: ['genders', 'Perempuan'], religion: ['religions', 'Kristen'],
-        marital_status: ['marital-statuses', 'Menikah'], maritalStatus: ['marital-statuses', 'Menikah'],
-        occupation: ['professions', 'Petani'], profession: ['professions', 'Petani'],
-        education_level: ['education-levels', 'Strata II'], educationLevel: ['education-levels', 'Strata II'],
-        student_status: ['student-statuses', 'Aktif'], studentStatus: ['student-statuses', 'Aktif'],
-        student_entry: ['student-entries', 'Siswa Baru'], studentEntry: ['student-entries', 'Siswa Baru'],
-        student_major: ['student-majors', 'Bahasa'], studentMajor: ['student-majors', 'Bahasa'],
-        family_status: ['family-statuses', 'Yatim'], familyStatus: ['family-statuses', 'Yatim'],
-        phase_status: ['phase-statuses', '2026 Tahap 1'], phaseStatus: ['phase-statuses', '2026 Tahap 1'],
-        status_user: ['status-users', 'Tidak Aktif'], statusUser: ['status-users', 'Tidak Aktif'],
+        employee_type: ['employee-types', 'Pendidik'],
+        employeeType: ['employee-types', 'Pendidik'],
+        employee_status: ['employee-statuses', 'Pegawai Negeri Sipil'],
+        employeeStatus: ['employee-statuses', 'Pegawai Negeri Sipil'],
+        employment: ['employments', 'Kepala Sekolah'],
+        subject: ['subjects', 'Matematika'],
+        gender: ['genders', 'Perempuan'],
+        religion: ['religions', 'Kristen'],
+        marital_status: ['marital-statuses', 'Menikah'],
+        maritalStatus: ['marital-statuses', 'Menikah'],
+        occupation: ['professions', 'Petani'],
+        profession: ['professions', 'Petani'],
+        education_level: ['education-levels', 'Strata II'],
+        educationLevel: ['education-levels', 'Strata II'],
+        student_status: ['student-statuses', 'Aktif'],
+        studentStatus: ['student-statuses', 'Aktif'],
+        student_entry: ['student-entries', 'Siswa Baru'],
+        studentEntry: ['student-entries', 'Siswa Baru'],
+        student_major: ['student-majors', 'Bahasa'],
+        studentMajor: ['student-majors', 'Bahasa'],
+        family_status: ['family-statuses', 'Yatim'],
+        familyStatus: ['family-statuses', 'Yatim'],
+        phase_status: ['phase-statuses', '2026 Tahap 1'],
+        phaseStatus: ['phase-statuses', '2026 Tahap 1'],
+        status_user: ['status-users', 'Tidak Aktif'],
+        statusUser: ['status-users', 'Tidak Aktif'],
         semester: ['semesters', 'Ganjil']
     };
     const row = { name: 'Perempuan', ...Object.fromEntries(Object.entries(references).map(([key, [, name]]) => [key, { id: 9, name }])) };
@@ -159,7 +193,10 @@ test('scope does not leak from catalog rows into related users or metadata', () 
 });
 
 test('scoped relation arrays and recap labels enrich without changing counts or labels', () => {
-    const payload = { data: { employee_types: { data: [{ id: 1, name: 'Pendidik' }] }, studentMajors: [{ name: 'Bahasa' }] }, recap: { by_gender: [{ label: 'Perempuan', total: 3 }], by_employee_type: [{ name: 'Pendidik', count: 2 }], other: [{ label: 'Perempuan' }] } };
+    const payload = {
+        data: { employee_types: { data: [{ id: 1, name: 'Pendidik' }] }, studentMajors: [{ name: 'Bahasa' }] },
+        recap: { by_gender: [{ label: 'Perempuan', total: 3 }], by_employee_type: [{ name: 'Pendidik', count: 2 }], other: [{ label: 'Perempuan' }] }
+    };
     const result = enrichReferenceResponse(payload, '/api/students');
     assert.equal(result.data.employee_types.data[0].display_name, 'Teacher');
     assert.equal(result.data.studentMajors[0].display_name, 'Languages');
@@ -240,7 +277,18 @@ test('successful account updates remove credential fields before caching the row
     const singleData = { value: { id: 1, name: 'Synthetic account', password: 'synthetic-old-secret', password_new: 'synthetic-new-secret' } };
     const manyDatas = { value: [] };
     let submitted;
-    await execute({ post: async (_, payload) => { submitted = { ...payload }; } }, 'users', singleData, manyDatas, 0, enrichReferenceResponse);
+    await execute(
+        {
+            post: async (_, payload) => {
+                submitted = { ...payload };
+            }
+        },
+        'users',
+        singleData,
+        manyDatas,
+        0,
+        enrichReferenceResponse
+    );
     assert.equal(submitted.password_new, 'synthetic-new-secret');
     assert.equal(Object.hasOwn(manyDatas.value[0], 'password'), false);
     assert.equal(Object.hasOwn(manyDatas.value[0], 'password_new'), false);

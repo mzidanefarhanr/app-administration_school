@@ -1,14 +1,8 @@
 <script setup>
 import { useLayout } from '@/layout/composables/layout';
-import AppConfigurator from './AppConfigurator.vue';
 import AppUsers from './AppUsers.vue';
 import AppLogoDefault from '@/layout/AppLogoDefault.vue';
-import logoDefault from '@/assets/pictures/logo_default.jpg';
 import { ref, onMounted } from 'vue';
-import { authStore } from '@/stores/authStore';
-import { useRouter } from 'vue-router';
-import apiLogin from '@/apiLogin';
-import gifSuccess from '@/assets/gif/success.gif';
 
 const buttonHighlight_1 = ref(false);
 const inputClassButton_1 = ref('');
@@ -18,8 +12,6 @@ const buttonHighlight_3 = ref(false);
 const inputClassButton_3 = ref('');
 
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
-const useAuthStore = authStore();
-const router = useRouter();
 
 //function togglebuttonHighlight_1
 function togglebuttonHighlight_1() {

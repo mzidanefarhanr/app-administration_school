@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import Button from 'primevue/button';
 import { authStore } from '@/stores/authStore';
-import { useToast } from "primevue/usetoast";
+import { useToast } from 'primevue/usetoast';
 import apiLogin from '@/apiLogin';
 import gifSuccess from '@/assets/gif/success.gif';
 import { buildStudentExportParams } from './studentExportParams.mjs';
@@ -35,9 +35,7 @@ const academicPeriod = ref(null);
 const academicPeriodError = ref('');
 const activeSchoolYear = computed(() => academicPeriod.value?.active?.school_year ?? null);
 const activeSemester = computed(() => academicPeriod.value?.active?.semester ?? null);
-const selectedYearRow = computed(() =>
-    school_years.value.find((year) => year.id === school_years_now.value?.id) ?? null
-);
+const selectedYearRow = computed(() => school_years.value.find((year) => year.id === school_years_now.value?.id) ?? null);
 const selectedYearLocked = computed(() => selectedYearRow.value?.is_locked === true);
 const searchQuery = ref([]);
 const filtered_Cat1 = ref([]);
@@ -63,7 +61,7 @@ const rombelOptions = ref([]);
 const placementOptions = [
     { label: 'All', value: 'all' },
     { label: 'Placed', value: 'placed' },
-    { label: 'Unplaced', value: 'unplaced' },
+    { label: 'Unplaced', value: 'unplaced' }
 ];
 
 const saveUser = ref([]);
@@ -104,7 +102,7 @@ const fetchDataSchoolYears = async () => {
     }
 
     fetchDataSelected();
-}
+};
 
 //method fetchDataSelected
 const fetchDataSelected = async () => {
@@ -121,7 +119,7 @@ const fetchDataSelected = async () => {
 
     loading.value = true;
     fetchDataStudentRombels();
-}
+};
 
 const fetchRombelOptions = async () => {
     if (!school_years_now.value?.id) {
@@ -130,9 +128,7 @@ const fetchRombelOptions = async () => {
     }
     try {
         const res = await apiLogin.get('/api/school-rombels');
-        rombelOptions.value = (res.data.data ?? [])
-            .filter((rombel) => rombel.school_year_id === school_years_now.value.id)
-            .map((rombel) => ({ id: rombel.id, name: rombel.name }));
+        rombelOptions.value = (res.data.data ?? []).filter((rombel) => rombel.school_year_id === school_years_now.value.id).map((rombel) => ({ id: rombel.id, name: rombel.name }));
     } catch {
         rombelOptions.value = [];
     }
@@ -157,7 +153,7 @@ const fetchStudentList = async () => {
             per_page: length_rows_pick.value,
             placement: listPlacement.value,
             sort: listSortField.value,
-            direction: listSortOrder.value === -1 ? 'desc' : 'asc',
+            direction: listSortOrder.value === -1 ? 'desc' : 'asc'
         };
         if (listSearch.value.trim()) params.search = listSearch.value.trim();
         if (listRombelId.value && listPlacement.value !== 'unplaced') params.rombel = listRombelId.value;
@@ -219,8 +215,7 @@ const fetchDataStudentRombels = async () => {
     //fetch data
     school_years_pick.value.length = 0;
     dt.value = null;
-    await apiLogin.get(`/api/student-rombels/${school_years_now.value.id}`)
-    .then(response => {
+    await apiLogin.get(`/api/student-rombels/${school_years_now.value.id}`).then((response) => {
         //set response data to state "Students"
         school_years_pick.value = response.data.data;
         loading.value = false;
@@ -244,7 +239,6 @@ const fetchDataStudentRombels = async () => {
         // Status 6 = Lulus (status 4 = Mengundurkan Diri).
         index_graduation_students = counts[6] || 0;
         if (school_years_pick.value.length > 0) {
-
             active_students.value = index_active_students;
             mutation_students.value = index_mutation_students;
             dropout_students.value = index_dropout_students;
@@ -254,14 +248,13 @@ const fetchDataStudentRombels = async () => {
             mutation_students.value = 0;
             dropout_students.value = 0;
             graduation_students.value = 0;
-
         }
         // console.log(school_years_pick.value);
     });
     fetchRombelOptions();
     fetchStudentList();
     updateChartData();
-}
+};
 
 //method fetchDataUserRole
 const fetchDataUserRole = async () => {
@@ -326,7 +319,7 @@ const getSeverity = (status) => {
         case 'renewal':
             return null;
     }
-}
+};
 
 const exportCSV = async () => {
     // Fase 01a: unduhan via endpoint backend terlindungi (students.view + students.export).
@@ -340,7 +333,7 @@ const exportCSV = async () => {
             schoolYearId: school_years_now.value.id,
             placement: listPlacement.value,
             search: listSearch.value,
-            rombelId: listRombelId.value,
+            rombelId: listRombelId.value
         });
         const response = await apiLogin.get('/api/students/export', {
             params,
@@ -378,7 +371,7 @@ const onStudentsImported = (summary) => {
         severity: 'success',
         summary: 'Import',
         detail: `${rows} student(s) imported.`,
-        life: 4000,
+        life: 4000
     });
     listPage.value = 1;
     fetchStudentList();
@@ -394,9 +387,7 @@ const clearFilter = () => {
 };
 
 // Tab item murni (tanpa efek samping) — DEC-22 lint terarah.
-const tabItems = computed(() =>
-    Object.keys(recapClassCounts.value).map(level => ({ label: `Class ${level}`, value: level }))
-);
+const tabItems = computed(() => Object.keys(recapClassCounts.value).map((level) => ({ label: `Class ${level}`, value: level })));
 
 const updateChartData = () => {
     const documentStyle = getComputedStyle(document.documentElement);
@@ -413,7 +404,7 @@ const updateChartData = () => {
     let relTotal = 0;
 
     // ── 1. GENDER PIE CHART (Unchanged) ──
-    const maleCount = school_years_pick.value.filter(s => s.student_nik?.gender?.name === 'Laki-Laki').length;
+    const maleCount = school_years_pick.value.filter((s) => s.student_nik?.gender?.name === 'Laki-Laki').length;
     const femaleCount = totalStudents - maleCount;
 
     ChartStudentsData.value = {
@@ -442,10 +433,10 @@ const updateChartData = () => {
     const gradeCounts = {};
     const recapClassCountss = {};
 
-    school_years_pick.value.forEach(student => {
+    school_years_pick.value.forEach((student) => {
         // 1. Fetch your names safely from the API payload
-        const levelName  = student.school_rombel?.school_level?.name || 'Unknown'; // e.g., "X"
-        const level2Name = student.school_rombel?.name || 'Unknown';              // e.g., "X - 1"
+        const levelName = student.school_rombel?.school_level?.name || 'Unknown'; // e.g., "X"
+        const level2Name = student.school_rombel?.name || 'Unknown'; // e.g., "X - 1"
         const relName = student.student_nik?.religion?.name || 'Unknown';
 
         // If the key doesn't exist in our object yet, initialize it to 0, then add 1
@@ -463,8 +454,7 @@ const updateChartData = () => {
         // Using your exact API path: student.student_nik?.gender?.name
         // Let's normalize it to "M" or "F" (or map 'Laki-laki'/'Perempuan' cleanly)
         const rawGender = student.student_nik?.gender?.name || 'Unknown';
-        const genderKey = (rawGender === 'Laki-Laki' || rawGender === 'Male' || rawGender === 'M') ? 'M' :
-                        (rawGender === 'Perempuan' || rawGender === 'Female' || rawGender === 'F') ? 'F' : 'Unknown';
+        const genderKey = rawGender === 'Laki-Laki' || rawGender === 'Male' || rawGender === 'M' ? 'M' : rawGender === 'Perempuan' || rawGender === 'Female' || rawGender === 'F' ? 'F' : 'Unknown';
 
         // ── LAYER 1: Initialize the School Level (e.g., "X") ──
         if (!recapClassCountss[levelName]) {
@@ -496,12 +486,12 @@ const updateChartData = () => {
     // Generate a beautiful, unique color scheme dynamically based on how many categories exist
     const dynamicColors = Object.keys(gradeCounts).map((_, index) => {
         const colors = [
-            'rgba(75, 192, 192, 0.8)',  // Teal
-            'rgba(54, 162, 235, 0.8)',  // Blue
+            'rgba(75, 192, 192, 0.8)', // Teal
+            'rgba(54, 162, 235, 0.8)', // Blue
             'rgba(153, 102, 255, 0.8)', // Purple
-            'rgba(255, 159, 64, 0.8)',  // Orange
-            'rgba(255, 99, 132, 0.8)',  // Red
-            'rgba(255, 206, 86, 0.8)'   // Yellow
+            'rgba(255, 159, 64, 0.8)', // Orange
+            'rgba(255, 99, 132, 0.8)', // Red
+            'rgba(255, 206, 86, 0.8)' // Yellow
         ];
         return colors[index % colors.length]; // Loops through colors safely if there are many levels
     });
@@ -514,7 +504,7 @@ const updateChartData = () => {
                 // Object.values extracts the counted numbers
                 data: Object.values(gradeCounts),
                 backgroundColor: dynamicColors,
-                hoverBackgroundColor: dynamicColors.map(color => color.replace('0.8', '1')) // Makes color solid on hover
+                hoverBackgroundColor: dynamicColors.map((color) => color.replace('0.8', '1')) // Makes color solid on hover
             }
         ]
     };
@@ -537,8 +527,8 @@ const updateChartData = () => {
     const classes = Object.keys(recapClassCounts.value[selectedLevel]);
 
     // Extract the Male and Female totals for each classroom dynamically
-    const maleData = classes.map(className => recapClassCounts.value[selectedLevel][className]['M'] || 0);
-    const femaleData = classes.map(className => recapClassCounts.value[selectedLevel][className]['F'] || 0);
+    const maleData = classes.map((className) => recapClassCounts.value[selectedLevel][className]['M'] || 0);
+    const femaleData = classes.map((className) => recapClassCounts.value[selectedLevel][className]['F'] || 0);
 
     barData.value = {
         labels: classes,
@@ -592,23 +582,23 @@ const updateChartData = () => {
 
     const religionColors = religionNames.map((_, index) => {
         const colors = [
-            'rgba(54, 162, 235, 0.8)',  // Blue
-            'rgba(255, 99, 132, 0.8)',  // Pink
-            'rgba(75, 192, 192, 0.8)',  // Teal
-            'rgba(255, 206, 86, 0.8)',  // Yellow
+            'rgba(54, 162, 235, 0.8)', // Blue
+            'rgba(255, 99, 132, 0.8)', // Pink
+            'rgba(75, 192, 192, 0.8)', // Teal
+            'rgba(255, 206, 86, 0.8)', // Yellow
             'rgba(153, 102, 255, 0.8)', // Purple
-            'rgba(255, 159, 64, 0.8)'   // Orange
+            'rgba(255, 159, 64, 0.8)' // Orange
         ];
         return colors[index % colors.length];
     });
 
     ChartReligionsData.value = {
-        labels: religionNames.map(name => referenceLabel('religions', name)),
+        labels: religionNames.map((name) => referenceLabel('religions', name)),
         datasets: [
             {
                 data: religionValues,
                 backgroundColor: religionColors,
-                hoverBackgroundColor: religionColors.map(color => color.replace('0.8', '1'))
+                hoverBackgroundColor: religionColors.map((color) => color.replace('0.8', '1'))
             }
         ]
     };
@@ -624,7 +614,7 @@ const updateChartData = () => {
         }
     };
 
-    rekapReligionsList.value = religionNames.map(name => ({
+    rekapReligionsList.value = religionNames.map((name) => ({
         name: name,
         count: religionCounts[name]
     }));
@@ -637,47 +627,45 @@ const activeSub = ref('section-students');
 
 const groupItems = [
     {
-        key:   'demographics',
+        key: 'demographics',
         label: 'Demographics',
-        icon:  'pi pi-users',
+        icon: 'pi pi-users',
         subItems: [
-            { label: 'Students',         icon: 'pi pi-star',                 id: 'section-students' },
-            { label: 'Genders',           icon: 'pi pi-heart',           id: 'section-gender' },
-            { label: 'Religions',         icon: 'pi pi-heart',                id: 'section-religion' },
-            { label: 'Class Breakdown',  icon: 'pi pi-chart-bar',            id: 'section-class-breakdown' },
-            { label: 'Student Profile',  icon: 'pi pi-id-card',              id: 'section-profile-student' },
-        ],
+            { label: 'Students', icon: 'pi pi-star', id: 'section-students' },
+            { label: 'Genders', icon: 'pi pi-heart', id: 'section-gender' },
+            { label: 'Religions', icon: 'pi pi-heart', id: 'section-religion' },
+            { label: 'Class Breakdown', icon: 'pi pi-chart-bar', id: 'section-class-breakdown' },
+            { label: 'Student Profile', icon: 'pi pi-id-card', id: 'section-profile-student' }
+        ]
     },
     {
-        key:   'administration',
+        key: 'administration',
         label: 'Administration',
-        icon:  'pi pi-briefcase',
+        icon: 'pi pi-briefcase',
         subItems: [
-            { label: 'F8355',           icon: 'pi pi-file-edit',             id: 'section-f8355' },
-            { label: 'KJP',             icon: 'pi pi-wallet',                id: 'section-kjp' },
-            { label: 'PPDB',            icon: 'pi pi-file-plus',             id: 'section-ppdb' },
-            { label: 'Dapodik Status',  icon: 'pi pi-check-circle',          id: 'section-dapodik' },
-            { label: 'Mutations',       icon: 'pi pi-arrow-right-arrow-left',id: 'section-mutation' },
-        ],
+            { label: 'F8355', icon: 'pi pi-file-edit', id: 'section-f8355' },
+            { label: 'KJP', icon: 'pi pi-wallet', id: 'section-kjp' },
+            { label: 'PPDB', icon: 'pi pi-file-plus', id: 'section-ppdb' },
+            { label: 'Dapodik Status', icon: 'pi pi-check-circle', id: 'section-dapodik' },
+            { label: 'Mutations', icon: 'pi pi-arrow-right-arrow-left', id: 'section-mutation' }
+        ]
     },
     {
-        key:   'relationships',
+        key: 'relationships',
         label: 'Relationships',
-        icon:  'pi pi-sitemap',
+        icon: 'pi pi-sitemap',
         subItems: [
-            { label: 'Parents',          icon: 'pi pi-home',                 id: 'section-parents' },
-            { label: 'Homeroom Teacher', icon: 'pi pi-graduation-cap',       id: 'section-guardian' },
-        ],
-    },
+            { label: 'Parents', icon: 'pi pi-home', id: 'section-parents' },
+            { label: 'Homeroom Teacher', icon: 'pi pi-graduation-cap', id: 'section-guardian' }
+        ]
+    }
 ];
 
-const activeGroupData = computed(() =>
-    groupItems.find(g => g.key === activeGroup.value)
-);
+const activeGroupData = computed(() => groupItems.find((g) => g.key === activeGroup.value));
 
 const setActiveGroup = (key) => {
     activeGroup.value = key;
-    const group = groupItems.find(g => g.key === key);
+    const group = groupItems.find((g) => g.key === key);
     activeSub.value = group?.subItems[0]?.id ?? null;
 };
 
@@ -694,11 +682,11 @@ const rekapData = computed(() => {
 
     const levelsMap = {};
 
-    school_years_pick.value.forEach(student => {
-        const levelName  = student.school_rombel?.school_level?.name ?? 'Unknown';
-        const rombelName = student.school_rombel?.name               ?? 'Unknown';
-        const majorName  = student.school_rombel?.student_major?.display_name ?? student.school_rombel?.student_major?.name ?? '-';
-        const isMale     = student.student_nik?.gender?.name === 'Laki-Laki';
+    school_years_pick.value.forEach((student) => {
+        const levelName = student.school_rombel?.school_level?.name ?? 'Unknown';
+        const rombelName = student.school_rombel?.name ?? 'Unknown';
+        const majorName = student.school_rombel?.student_major?.display_name ?? student.school_rombel?.student_major?.name ?? '-';
+        const isMale = student.student_nik?.gender?.name === 'Laki-Laki';
 
         if (!levelsMap[levelName]) {
             levelsMap[levelName] = { rombels: {}, totalL: 0, totalP: 0 };
@@ -716,7 +704,8 @@ const rekapData = computed(() => {
         }
     });
 
-    let grandL = 0, grandP = 0;
+    let grandL = 0,
+        grandP = 0;
 
     const levels = Object.entries(levelsMap).map(([name, data]) => {
         grandL += data.totalL;
@@ -724,15 +713,15 @@ const rekapData = computed(() => {
         return {
             name,
             rombels: Object.entries(data.rombels).map(([rombelName, rd]) => ({
-                name:  rombelName,
+                name: rombelName,
                 major: rd.major,
-                L:     rd.L,
-                P:     rd.P,
-                total: rd.L + rd.P,
+                L: rd.L,
+                P: rd.P,
+                total: rd.L + rd.P
             })),
-            totalL:   data.totalL,
-            totalP:   data.totalP,
-            totalAll: data.totalL + data.totalP,
+            totalL: data.totalL,
+            totalP: data.totalP,
+            totalAll: data.totalL + data.totalP
         };
     });
 
@@ -740,8 +729,8 @@ const rekapData = computed(() => {
 });
 
 // ── Profile Student ────────────────────────────────────────────────────────
-const selectedStudent   = ref(null);
-const profileDialog     = ref(false);
+const selectedStudent = ref(null);
+const profileDialog = ref(false);
 
 const printProfile = () => {
     const el = document.getElementById('student-profile-print');
@@ -778,8 +767,8 @@ const search_Cat1 = (event) => {
             filtered_Cat1.value = [...school_years_pick.value];
         } else {
             filtered_Cat1.value = school_years_pick.value.filter((level) => {
-                const [year, month, day] = level.student_nik.birthdate.split('-')
-                const dateObj = new Date(Date.UTC(year, month - 1, day))
+                const [year, month, day] = level.student_nik.birthdate.split('-');
+                const dateObj = new Date(Date.UTC(year, month - 1, day));
 
                 // Format into a human-readable string (e.g., August 26, 2008)
                 level.student_nik.birthdate_human = new Intl.DateTimeFormat('en-US', {
@@ -795,50 +784,95 @@ const search_Cat1 = (event) => {
 
 // ── 03b: Student CRUD (create / edit / detail / archive / restore) ─────────
 // Semua label & pesan English (DEC-14). Izin: students.view (baca) / students.manage (mutasi).
-const canManage    = computed(() => useAuthStore.can('students.manage'));
+const canManage = computed(() => useAuthStore.can('students.manage'));
 const studentFormKeys = [
-    'name', 'nik', 'nis', 'nisn', 'birthplace', 'birthdate',
-    'gender_id', 'religion_id', 'education_level_id', 'blood_type_id', 'profession_id', 'family_status_id',
-    'village_id', 'zip_code', 'rt_num', 'rw_num', 'address', 'hp_num',
-    'kk', 'akta', 'child_order_to', 'child_order_total', 'body_height', 'body_weight', 'history_illness',
-    'father_name', 'father_nik', 'father_birthplace', 'father_birthdate', 'father_education_level_id', 'father_profession_id', 'father_income', 'father_hp_num',
-    'mother_name', 'mother_nik', 'mother_birthplace', 'mother_birthdate', 'mother_education_level_id', 'mother_profession_id', 'mother_income', 'mother_hp_num',
-    'guardian_name', 'guardian_nik', 'guardian_birthplace', 'guardian_birthdate', 'guardian_education_level_id', 'guardian_profession_id', 'guardian_income', 'guardian_hp_num',
-    'check_ppdbbersama', 'check_kjp', 'check_bpms', 'check_pip',
+    'name',
+    'nik',
+    'nis',
+    'nisn',
+    'birthplace',
+    'birthdate',
+    'gender_id',
+    'religion_id',
+    'education_level_id',
+    'blood_type_id',
+    'profession_id',
+    'family_status_id',
+    'village_id',
+    'zip_code',
+    'rt_num',
+    'rw_num',
+    'address',
+    'hp_num',
+    'kk',
+    'akta',
+    'child_order_to',
+    'child_order_total',
+    'body_height',
+    'body_weight',
+    'history_illness',
+    'father_name',
+    'father_nik',
+    'father_birthplace',
+    'father_birthdate',
+    'father_education_level_id',
+    'father_profession_id',
+    'father_income',
+    'father_hp_num',
+    'mother_name',
+    'mother_nik',
+    'mother_birthplace',
+    'mother_birthdate',
+    'mother_education_level_id',
+    'mother_profession_id',
+    'mother_income',
+    'mother_hp_num',
+    'guardian_name',
+    'guardian_nik',
+    'guardian_birthplace',
+    'guardian_birthdate',
+    'guardian_education_level_id',
+    'guardian_profession_id',
+    'guardian_income',
+    'guardian_hp_num',
+    'check_ppdbbersama',
+    'check_kjp',
+    'check_bpms',
+    'check_pip'
 ];
 
-const studentFormDialog   = ref(false);
+const studentFormDialog = ref(false);
 const studentDetailDialog = ref(false);
-const archiveDialog       = ref(false);
-const archivedListDialog  = ref(false);
-const importDialog        = ref(false);
+const archiveDialog = ref(false);
+const archivedListDialog = ref(false);
+const importDialog = ref(false);
 const mutationTimelineDialog = ref(false);
 const mutationTimelineStudent = ref(null);
-const conflictDialog      = ref(false);
-const conflictMessage     = ref('');
+const conflictDialog = ref(false);
+const conflictMessage = ref('');
 const conflictReloadAction = ref(null);
-const reloadingConflict   = ref(false);
-const isSubmitting        = ref(false);
-const submitted           = ref(false);
-const formErrors          = ref({});
-const studentForm         = ref({});
-const editTargetId        = ref(null);
-const detailStudent       = ref(null);
-const archiveTarget       = ref({});
-const archiveReason       = ref('');
-const archiveErrors       = ref({});
-const archivedStudents    = ref([]);
-const archivedLoading     = ref(false);
-const formOptions         = ref({ genders: [], religions: [], education_levels: [], blood_types: [], professions: [], family_statuses: [] });
-const formOptionsLoaded   = ref(false);
+const reloadingConflict = ref(false);
+const isSubmitting = ref(false);
+const submitted = ref(false);
+const formErrors = ref({});
+const studentForm = ref({});
+const editTargetId = ref(null);
+const detailStudent = ref(null);
+const archiveTarget = ref({});
+const archiveReason = ref('');
+const archiveErrors = ref({});
+const archivedStudents = ref([]);
+const archivedLoading = ref(false);
+const formOptions = ref({ genders: [], religions: [], education_levels: [], blood_types: [], professions: [], family_statuses: [] });
+const formOptionsLoaded = ref(false);
 
 // 03d: Assign & Transfer Rombel
-const placementDialog        = ref(false);
-const placementMode          = ref('assign');
-const placementTarget        = ref({});
-const placementForm          = ref({ target_rombel_id: null, reason: '' });
-const placementErrors        = ref({});
-const isSubmittingPlacement  = ref(false);
+const placementDialog = ref(false);
+const placementMode = ref('assign');
+const placementTarget = ref({});
+const placementForm = ref({ target_rombel_id: null, reason: '' });
+const placementErrors = ref({});
+const isSubmittingPlacement = ref(false);
 
 const availablePlacementRombels = computed(() => {
     if (placementMode.value === 'transfer') {
@@ -849,7 +883,9 @@ const availablePlacementRombels = computed(() => {
 
 const emptyStudentForm = () => {
     const form = {};
-    studentFormKeys.forEach((key) => { form[key] = ['check_ppdbbersama', 'check_kjp', 'check_bpms', 'check_pip'].includes(key) ? false : null; });
+    studentFormKeys.forEach((key) => {
+        form[key] = ['check_ppdbbersama', 'check_kjp', 'check_bpms', 'check_pip'].includes(key) ? false : null;
+    });
     form.name = '';
     form.version = null;
     return form;
@@ -865,7 +901,7 @@ const fetchStudentFormOptions = async () => {
         apiLogin.get('/api/education-levels'),
         apiLogin.get('/api/blood-types'),
         apiLogin.get('/api/professions'),
-        apiLogin.get('/api/family-status'),
+        apiLogin.get('/api/family-status')
     ]);
     const normalize = (res) => res.data.data ?? [];
     formOptions.value = {
@@ -874,7 +910,7 @@ const fetchStudentFormOptions = async () => {
         education_levels: displayReferenceOptions('education-levels', normalize(levels)),
         blood_types: normalize(bloodTypes),
         professions: displayReferenceOptions('professions', normalize(professions)),
-        family_statuses: displayReferenceOptions('family-statuses', normalize(familyStatuses)),
+        family_statuses: displayReferenceOptions('family-statuses', normalize(familyStatuses))
     };
     formOptionsLoaded.value = true;
 };
@@ -950,7 +986,9 @@ const openStudentFromQuery = async () => {
 
 const buildStudentPayload = (form) => {
     const payload = {};
-    studentFormKeys.forEach((key) => { payload[key] = form[key]; });
+    studentFormKeys.forEach((key) => {
+        payload[key] = form[key];
+    });
     return payload;
 };
 
@@ -1041,7 +1079,7 @@ const confirmArchiveStudent = async () => {
     isSubmitting.value = true;
     try {
         await apiLogin.delete(`/api/students/${archiveTarget.value.id}`, {
-            data: { version: archiveTarget.value.version, archive_reason: archiveReason.value.trim() },
+            data: { version: archiveTarget.value.version, archive_reason: archiveReason.value.trim() }
         });
         toast.add({ severity: 'success', summary: 'Student Archived', detail: `${archiveTarget.value.name} has been archived.`, life: 4000 });
         archiveDialog.value = false;
@@ -1094,7 +1132,15 @@ const restoreStudent = async (student) => {
     } catch (error) {
         const status = error.response?.status;
         if (status === 422) {
-            toast.add({ severity: 'error', summary: 'Restore Failed', detail: Object.values(error.response.data.errors ?? {}).flat().join(' ') || 'Cannot restore this student.', life: 5000 });
+            toast.add({
+                severity: 'error',
+                summary: 'Restore Failed',
+                detail:
+                    Object.values(error.response.data.errors ?? {})
+                        .flat()
+                        .join(' ') || 'Cannot restore this student.',
+                life: 5000
+            });
             await fetchArchivedStudents();
         } else if (status === 409) {
             toast.add({ severity: 'warn', summary: 'Conflict', detail: error.response.data.message ?? 'The student record changed. Reloading the latest list.', life: 5000 });
@@ -1154,9 +1200,7 @@ const openTransferRombel = async (row) => {
         const res = await apiLogin.get(`/api/students/${id}`);
         const student = res.data.data;
         const currentYearId = school_years_now.value?.id;
-        const activeMembership = (student.student_rombels ?? []).find(
-            (sr) => sr.school_rombel?.school_year_id === currentYearId && !sr.deleted_at && !sr.archived_at && !sr.latest_student_exit_date
-        );
+        const activeMembership = (student.student_rombels ?? []).find((sr) => sr.school_rombel?.school_year_id === currentYearId && !sr.deleted_at && !sr.archived_at && !sr.latest_student_exit_date);
 
         placementTarget.value = {
             id: student.id,
@@ -1249,10 +1293,9 @@ onMounted(async () => {
         <div class="bg-surface-0 dark:bg-surface-900 px-6 py-8 md:px-12 lg:px-20">
             <div class="flex items-start flex-col md:justify-between md:flex-row">
                 <div>
-                    <div class="font-bold text-3xl text-surface-900 dark:text-surface-0 mb-2">Students - {{ school_years_now ? school_years_now.name : "No Year Selected" }}</div>
+                    <div class="font-bold text-3xl text-surface-900 dark:text-surface-0 mb-2">Students - {{ school_years_now ? school_years_now.name : 'No Year Selected' }}</div>
                     <div class="flex flex-wrap items-center gap-2 mb-3">
-                        <Tag v-if="activeSchoolYear" severity="success"
-                            :value="`Active period: ${activeSchoolYear.name}${activeSemester ? ' · ' + activeSemester.name : ''}`" />
+                        <Tag v-if="activeSchoolYear" severity="success" :value="`Active period: ${activeSchoolYear.name}${activeSemester ? ' · ' + activeSemester.name : ''}`" />
                         <Tag v-else value="No active academic period" severity="warn" />
                         <Tag v-if="selectedYearLocked" value="Locked" severity="danger" />
                     </div>
@@ -1265,25 +1308,25 @@ onMounted(async () => {
                         <div class="flex flex-wrap gap-4 text-md mt-2">
                             <span class="flex items-center gap-1 text-green-500">
                                 <i class="pi pi-plus-circle" />
-                                {{ loading == false ? active_students : "" }}
+                                {{ loading == false ? active_students : '' }}
                                 <Skeleton v-if="loading == true" width="3rem" height="2rem" />
                                 Active Students
                             </span>
                             <span class="flex items-center gap-1 text-orange-500">
                                 <i class="pi pi-minus-circle" />
-                                {{ loading == false ? mutation_students : "" }}
+                                {{ loading == false ? mutation_students : '' }}
                                 <Skeleton v-if="loading == true" width="3rem" height="2rem" />
                                 Transfer Students
                             </span>
                             <span class="flex items-center gap-1 text-red-500">
                                 <i class="pi pi-minus-circle" />
-                                {{ loading == false ? dropout_students : "" }}
+                                {{ loading == false ? dropout_students : '' }}
                                 <Skeleton v-if="loading == true" width="3rem" height="2rem" />
                                 Drop Out Students
                             </span>
                             <span class="flex items-center gap-1 text-blue-500">
                                 <i class="pi pi-star" />
-                                {{ loading == false ? graduation_students : "" }}
+                                {{ loading == false ? graduation_students : '' }}
                                 <Skeleton v-if="loading == true" width="3rem" height="2rem" />
                                 Graduation Students
                             </span>
@@ -1294,8 +1337,7 @@ onMounted(async () => {
                     <!-- <Button label="Add" class="mr-3" outlined icon="pi pi-user-plus" />
                     <Button label="Save Changes" icon="pi pi-check" class="whitespace-nowrap" /> -->
                     <span class="me-2">School Years</span>
-                        <Select v-model="school_years_now" showClear :options="school_years" optionLabel="name" placeholder="Select Year" class="w-full" @change="handleSchoolYearsChange">
-                        </Select>
+                    <Select v-model="school_years_now" showClear :options="school_years" optionLabel="name" placeholder="Select Year" class="w-full" @change="handleSchoolYearsChange"> </Select>
                 </div>
             </div>
         </div>
@@ -1303,34 +1345,26 @@ onMounted(async () => {
         <div class="px-6 md:px-12 lg:px-20 mt-4 flex flex-col gap-2">
             <Message v-if="!activeSchoolYear" severity="warn" :closable="false">
                 No active academic period is configured. Select a school year manually or ask an administrator to set the active period.
-                <router-link v-if="useAuthStore.can('master.manage')" to="/public/schoolyears" class="underline font-semibold ml-1">
-                    Manage School Years
-                </router-link>
+                <router-link v-if="useAuthStore.can('master.manage')" to="/public/schoolyears" class="underline font-semibold ml-1"> Manage School Years </router-link>
             </Message>
             <Message v-if="academicPeriodError" severity="error" :closable="false">
                 {{ academicPeriodError }}
             </Message>
             <Message v-if="selectedYearLocked" severity="warn" :closable="false">
-                This school year is locked{{ selectedYearRow?.lock_reason ? ` (${selectedYearRow.lock_reason})` : '' }}.
-                Class assignment and transfers are disabled until it is unlocked.
+                This school year is locked{{ selectedYearRow?.lock_reason ? ` (${selectedYearRow.lock_reason})` : '' }}. Class assignment and transfers are disabled until it is unlocked.
             </Message>
         </div>
 
         <div class="flex mt-8">
             <div class="card flex flex-col gap-4 w-full">
                 <!-- ── Group Navigation Bar ─────────────────────────────────────────── -->
-                <div class="flex flex-wrap items-center gap-2 px-3 py-2
-                            border border-surface-200 dark:border-surface-700
-                            rounded-lg bg-surface-0 dark:bg-surface-950">
+                <div class="flex flex-wrap items-center gap-2 px-3 py-2 border border-surface-200 dark:border-surface-700 rounded-lg bg-surface-0 dark:bg-surface-950">
                     <button
                         v-for="group in groupItems"
                         :key="group.key"
                         @click="setActiveGroup(group.key)"
-                        class="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium
-                            transition-all duration-200 cursor-pointer select-none"
-                        :class="activeGroup === group.key
-                            ? 'bg-primary-500 text-white shadow-sm'
-                            : 'text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800'"
+                        class="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 cursor-pointer select-none"
+                        :class="activeGroup === group.key ? 'bg-primary-500 text-white shadow-sm' : 'text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800'"
                     >
                         <i :class="group.icon" />
                         <span>{{ group.label }}</span>
@@ -1344,17 +1378,13 @@ onMounted(async () => {
                         v-for="sub in activeGroupData.subItems"
                         :key="sub.id"
                         @click="setActiveSub(sub.id)"
-                        class="flex items-center gap-1 px-3 py-1 rounded-full text-xs
-                            transition-all duration-150 cursor-pointer border"
-                        :class="activeSub === sub.id
-                            ? 'bg-primary-500 text-white border-primary-500 shadow-sm'
-                            : 'text-surface-500 dark:text-surface-400 border-surface-200 dark:border-surface-700 hover:border-primary-400 hover:text-primary-500'"
+                        class="flex items-center gap-1 px-3 py-1 rounded-full text-xs transition-all duration-150 cursor-pointer border"
+                        :class="activeSub === sub.id ? 'bg-primary-500 text-white border-primary-500 shadow-sm' : 'text-surface-500 dark:text-surface-400 border-surface-200 dark:border-surface-700 hover:border-primary-400 hover:text-primary-500'"
                     >
                         <i :class="sub.icon" class="text-xs" />
                         {{ sub.label }}
                     </button>
                 </div>
-
             </div>
         </div>
 
@@ -1388,12 +1418,8 @@ onMounted(async () => {
                     <table class="w-full text-sm border-collapse text-surface-900 dark:text-surface-0 border border-surface-300 dark:border-surface-600">
                         <thead>
                             <tr>
-                                <th class="border-b px-3 py-2 text-center font-bold">
-                                    Level
-                                </th>
-                                <th class="border-b px-3 py-2 text-center font-bold">
-                                    Total
-                                </th>
+                                <th class="border-b px-3 py-2 text-center font-bold">Level</th>
+                                <th class="border-b px-3 py-2 text-center font-bold">Total</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1432,13 +1458,22 @@ onMounted(async () => {
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} students"
                     @page="onListPage"
-                    @sort="onListSort">
+                    @sort="onListSort"
+                >
                     <template #header>
                         <div class="mb-3 flex flex-wrap gap-4 items-center text-sm">
-                            <span>Total: <strong>{{ listRecap.total_matches }}</strong></span>
-                            <span class="text-green-600">Placed: <strong>{{ listRecap.placed_count }}</strong></span>
-                            <span class="text-orange-500">Unplaced: <strong>{{ listRecap.unplaced_count }}</strong></span>
-                            <span v-for="group in listRecap.by_gender" :key="group.label">{{ referenceLabel('genders', group.label) }}: <strong>{{ group.total }}</strong></span>
+                            <span
+                                >Total: <strong>{{ listRecap.total_matches }}</strong></span
+                            >
+                            <span class="text-green-600"
+                                >Placed: <strong>{{ listRecap.placed_count }}</strong></span
+                            >
+                            <span class="text-orange-500"
+                                >Unplaced: <strong>{{ listRecap.unplaced_count }}</strong></span
+                            >
+                            <span v-for="group in listRecap.by_gender" :key="group.label"
+                                >{{ referenceLabel('genders', group.label) }}: <strong>{{ group.total }}</strong></span
+                            >
                         </div>
                         <div class="flex flex-col xl:flex-row gap-4 xl:items-center">
                             <IconField class="w-full xl:w-64">
@@ -1491,14 +1526,28 @@ onMounted(async () => {
                             <Button icon="pi pi-history" variant="outlined" rounded class="mr-2" v-tooltip.top="'Mutation Timeline'" @click="openMutationTimeline(data)" />
                             <Button icon="pi pi-eye" variant="outlined" rounded class="mr-2" v-tooltip.top="'View Detail'" @click="viewStudentDetail(data)" />
                             <Button v-if="canManage" icon="pi pi-pencil" variant="outlined" rounded class="mr-2" v-tooltip.top="'Edit Student'" @click="openEditStudent(data)" />
-                            <Button v-if="canManage && data.placement === 'unplaced'" icon="pi pi-user-plus" variant="outlined" rounded severity="info" class="mr-2"
+                            <Button
+                                v-if="canManage && data.placement === 'unplaced'"
+                                icon="pi pi-user-plus"
+                                variant="outlined"
+                                rounded
+                                severity="info"
+                                class="mr-2"
                                 :disabled="selectedYearLocked"
                                 v-tooltip.top="selectedYearLocked ? 'This school year is locked.' : 'Assign Class'"
-                                @click="openAssignRombel(data)" />
-                            <Button v-if="canManage && data.placement === 'placed'" icon="pi pi-arrow-right-arrow-left" variant="outlined" rounded severity="warn" class="mr-2"
+                                @click="openAssignRombel(data)"
+                            />
+                            <Button
+                                v-if="canManage && data.placement === 'placed'"
+                                icon="pi pi-arrow-right-arrow-left"
+                                variant="outlined"
+                                rounded
+                                severity="warn"
+                                class="mr-2"
                                 :disabled="selectedYearLocked"
                                 v-tooltip.top="selectedYearLocked ? 'This school year is locked.' : 'Transfer Class'"
-                                @click="openTransferRombel(data)" />
+                                @click="openTransferRombel(data)"
+                            />
                             <Button v-if="canManage" icon="pi pi-inbox" variant="outlined" rounded severity="danger" v-tooltip.top="'Archive Student'" @click="openArchiveStudent(data)" />
                         </template>
                     </Column>
@@ -1644,15 +1693,11 @@ onMounted(async () => {
                 <div class="card items-center">
                     <!-- Header -->
                     <div class="text-center mb-4">
-                        <div class="font-bold text-lg uppercase">
-                            Recap Class Breakdown
-                        </div>
-                        <div class="text-sm text-surface-500 mt-1">
-                            School Year {{ school_years_now?.name ?? '' }}
-                        </div>
+                        <div class="font-bold text-lg uppercase">Recap Class Breakdown</div>
+                        <div class="text-sm text-surface-500 mt-1">School Year {{ school_years_now?.name ?? '' }}</div>
                         <div class="text-xs text-surface-400 mt-1">
                             Recap per date:
-                            {{ new Date().toLocaleDateString('en-US', { day:'2-digit', month:'long', year:'numeric' }) }}
+                            {{ new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' }) }}
                         </div>
                     </div>
 
@@ -1662,72 +1707,36 @@ onMounted(async () => {
                     </div>
 
                     <!-- No data -->
-                    <div v-else-if="!school_years_pick.length" class="text-center text-surface-400 py-8">
-                        No Class Breakdown found.
-                    </div>
+                    <div v-else-if="!school_years_pick.length" class="text-center text-surface-400 py-8">No Class Breakdown found.</div>
 
                     <!-- Table -->
                     <div v-else class="overflow-x-auto">
-                        <table class="w-full text-sm border-collapse
-                                    text-surface-900 dark:text-surface-0">
+                        <table class="w-full text-sm border-collapse text-surface-900 dark:text-surface-0">
                             <!-- Head -->
                             <thead>
                                 <tr class="bg-surface-100 dark:bg-surface-800">
-                                    <th rowspan="2"
-                                        class="border border-surface-300 dark:border-surface-600
-                                            px-3 py-2 text-center font-semibold">
-                                        Level
-                                    </th>
-                                    <th rowspan="2"
-                                        class="border border-surface-300 dark:border-surface-600
-                                            px-3 py-2 text-center font-semibold">
-                                        Class
-                                    </th>
-                                    <th colspan="3"
-                                        class="border border-surface-300 dark:border-surface-600
-                                            px-3 py-2 text-center font-semibold">
-                                        Gender
-                                    </th>
-                                    <th rowspan="2"
-                                        class="border border-surface-300 dark:border-surface-600
-                                            px-3 py-2 text-center font-semibold">
-                                        Major
-                                    </th>
-                                    <th colspan="3"
-                                        class="border border-surface-300 dark:border-surface-600
-                                            px-3 py-2 text-center font-semibold">
-                                        Total
-                                    </th>
+                                    <th rowspan="2" class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center font-semibold">Level</th>
+                                    <th rowspan="2" class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center font-semibold">Class</th>
+                                    <th colspan="3" class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center font-semibold">Gender</th>
+                                    <th rowspan="2" class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center font-semibold">Major</th>
+                                    <th colspan="3" class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center font-semibold">Total</th>
                                 </tr>
                                 <tr class="bg-surface-100 dark:bg-surface-800">
-                                    <th class="border border-surface-300 dark:border-surface-600
-                                            px-3 py-2 text-center font-semibold text-blue-500">M</th>
-                                    <th class="border border-surface-300 dark:border-surface-600
-                                            px-3 py-2 text-center font-semibold text-pink-500">F</th>
-                                    <th class="border border-surface-300 dark:border-surface-600
-                                            px-3 py-2 text-center font-semibold">Total</th>
-                                    <th class="border border-surface-300 dark:border-surface-600
-                                            px-3 py-2 text-center font-semibold text-blue-500">M</th>
-                                    <th class="border border-surface-300 dark:border-surface-600
-                                            px-3 py-2 text-center font-semibold text-pink-500">F</th>
-                                    <th class="border border-surface-300 dark:border-surface-600
-                                            px-3 py-2 text-center font-semibold">Total</th>
+                                    <th class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center font-semibold text-blue-500">M</th>
+                                    <th class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center font-semibold text-pink-500">F</th>
+                                    <th class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center font-semibold">Total</th>
+                                    <th class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center font-semibold text-blue-500">M</th>
+                                    <th class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center font-semibold text-pink-500">F</th>
+                                    <th class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center font-semibold">Total</th>
                                 </tr>
                             </thead>
 
                             <!-- Body -->
                             <tbody>
                                 <template v-for="level in rekapData.levels" :key="level.name">
-                                    <tr v-for="(rombel, idx) in level.rombels" :key="rombel.name"
-                                        class="hover:bg-surface-50 dark:hover:bg-surface-800
-                                            transition-colors duration-100">
-
+                                    <tr v-for="(rombel, idx) in level.rombels" :key="rombel.name" class="hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors duration-100">
                                         <!-- Tingkat — rowspan to cover all rombels in this level -->
-                                        <td v-if="idx === 0"
-                                            :rowspan="level.rombels.length"
-                                            class="border border-surface-300 dark:border-surface-600
-                                                px-3 py-2 text-center font-semibold
-                                                bg-surface-50 dark:bg-surface-900">
+                                        <td v-if="idx === 0" :rowspan="level.rombels.length" class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center font-semibold bg-surface-50 dark:bg-surface-900">
                                             {{ level.name }}
                                         </td>
 
@@ -1737,56 +1746,37 @@ onMounted(async () => {
                                         </td>
 
                                         <!-- L per rombel -->
-                                        <td class="border border-surface-300 dark:border-surface-600
-                                                px-3 py-2 text-center text-blue-500 font-medium">
+                                        <td class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center text-blue-500 font-medium">
                                             {{ rombel.L }}
                                         </td>
 
                                         <!-- P per rombel -->
-                                        <td class="border border-surface-300 dark:border-surface-600
-                                                px-3 py-2 text-center text-pink-500 font-medium">
+                                        <td class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center text-pink-500 font-medium">
                                             {{ rombel.P }}
                                         </td>
 
                                         <!-- Jml per rombel -->
-                                        <td class="border border-surface-300 dark:border-surface-600
-                                                px-3 py-2 text-center font-medium">
+                                        <td class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center font-medium">
                                             {{ rombel.total }}
                                         </td>
 
                                         <!-- Jurusan — rowspan -->
-                                        <td v-if="idx === 0"
-                                            :rowspan="level.rombels.length"
-                                            class="border border-surface-300 dark:border-surface-600
-                                                px-3 py-2 text-center
-                                                bg-surface-50 dark:bg-surface-900">
+                                        <td v-if="idx === 0" :rowspan="level.rombels.length" class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center bg-surface-50 dark:bg-surface-900">
                                             {{ rombel.major }}
                                         </td>
 
                                         <!-- Level Total L — rowspan, only on first row -->
-                                        <td v-if="idx === 0"
-                                            :rowspan="level.rombels.length"
-                                            class="border border-surface-300 dark:border-surface-600
-                                                px-3 py-2 text-center text-blue-500 font-bold
-                                                bg-blue-50 dark:bg-blue-950">
+                                        <td v-if="idx === 0" :rowspan="level.rombels.length" class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center text-blue-500 font-bold bg-blue-50 dark:bg-blue-950">
                                             {{ level.totalL }}
                                         </td>
 
                                         <!-- Level Total P — rowspan -->
-                                        <td v-if="idx === 0"
-                                            :rowspan="level.rombels.length"
-                                            class="border border-surface-300 dark:border-surface-600
-                                                px-3 py-2 text-center text-pink-500 font-bold
-                                                bg-pink-50 dark:bg-pink-950">
+                                        <td v-if="idx === 0" :rowspan="level.rombels.length" class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center text-pink-500 font-bold bg-pink-50 dark:bg-pink-950">
                                             {{ level.totalP }}
                                         </td>
 
                                         <!-- Level Total All — rowspan -->
-                                        <td v-if="idx === 0"
-                                            :rowspan="level.rombels.length"
-                                            class="border border-surface-300 dark:border-surface-600
-                                                px-3 py-2 text-center font-bold
-                                                bg-surface-100 dark:bg-surface-800">
+                                        <td v-if="idx === 0" :rowspan="level.rombels.length" class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center font-bold bg-surface-100 dark:bg-surface-800">
                                             {{ level.totalAll }}
                                         </td>
                                     </tr>
@@ -1794,58 +1784,43 @@ onMounted(async () => {
 
                                 <!-- Grand Total row -->
                                 <tr class="bg-surface-200 dark:bg-surface-700 font-bold">
-                                    <td colspan="2"
-                                        class="border border-surface-300 dark:border-surface-600
-                                            px-3 py-2 text-center font-bold">
-                                        Total
-                                    </td>
-                                    <td class="border border-surface-300 dark:border-surface-600
-                                            px-3 py-2 text-center text-blue-600">
+                                    <td colspan="2" class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center font-bold">Total</td>
+                                    <td class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center text-blue-600">
                                         {{ rekapData.grandL }}
                                     </td>
-                                    <td class="border border-surface-300 dark:border-surface-600
-                                            px-3 py-2 text-center text-pink-600">
+                                    <td class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center text-pink-600">
                                         {{ rekapData.grandP }}
                                     </td>
-                                    <td class="border border-surface-300 dark:border-surface-600
-                                            px-3 py-2 text-center">
+                                    <td class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center">
                                         {{ rekapData.grandTotal }}
                                     </td>
-                                    <td class="border border-surface-300 dark:border-surface-600
-                                            px-3 py-2"></td>
-                                    <td class="border border-surface-300 dark:border-surface-600
-                                            px-3 py-2 text-center text-blue-600">
+                                    <td class="border border-surface-300 dark:border-surface-600 px-3 py-2"></td>
+                                    <td class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center text-blue-600">
                                         {{ rekapData.grandL }}
                                     </td>
-                                    <td class="border border-surface-300 dark:border-surface-600
-                                            px-3 py-2 text-center text-pink-600">
+                                    <td class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center text-pink-600">
                                         {{ rekapData.grandP }}
                                     </td>
-                                    <td class="border border-surface-300 dark:border-surface-600
-                                            px-3 py-2 text-center">
+                                    <td class="border border-surface-300 dark:border-surface-600 px-3 py-2 text-center">
                                         {{ rekapData.grandTotal }}
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-
                 </div>
             </div>
         </div>
 
         <div class="card w-full h-full" v-show="activeGroup === 'demographics' && activeSub === 'section-profile-student'">
-
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 border-b border-surface-200 dark:border-surface-700 pb-4">
                 <div class="font-semibold text-xl">Student Profile</div>
                 <div class="flex gap-2 w-full md:w-auto">
                     <AutoComplete v-model="searchQuery" required="true" optionLabel="student_nik.name" forceSelection :suggestions="filtered_Cat1" @complete="search_Cat1" fluid />
-
                 </div>
             </div>
 
             <div class="grid grid-cols-12 gap-6">
-
                 <div class="col-span-12 xl:col-span-4">
                     <div class="card bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 flex flex-col items-center p-6 h-full shadow-none">
                         <div class="w-32 h-32 bg-surface-200 dark:bg-surface-800 rounded-full mb-6 flex items-center justify-center text-surface-500 shadow-sm border-4 border-surface-0 dark:border-surface-900">
@@ -1867,18 +1842,14 @@ onMounted(async () => {
                             </div>
                             <div class="border-b border-surface-200 dark:border-surface-700 pb-2">
                                 <span class="text-sm text-surface-500 block mb-1">NIS / NISN</span>
-                                <span class="font-bold text-lg text-surface-900 dark:text-surface-0">
-                                    {{ searchQuery?.student_nik?.nis ?? '-' }} / {{ searchQuery?.student_nik?.nisn ?? '-' }}
-                                </span>
+                                <span class="font-bold text-lg text-surface-900 dark:text-surface-0"> {{ searchQuery?.student_nik?.nis ?? '-' }} / {{ searchQuery?.student_nik?.nisn ?? '-' }} </span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-span-12 xl:col-span-8 flex flex-col gap-6">
-
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
                         <div class="card bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 p-6 shadow-none h-full">
                             <div class="font-semibold text-lg mb-4 border-b border-surface-200 dark:border-surface-700 pb-2">Personal Data</div>
                             <div class="flex flex-col gap-4 text-sm">
@@ -1963,7 +1934,6 @@ onMounted(async () => {
                     <div class="card bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 p-6 shadow-none">
                         <div class="font-semibold text-lg mb-6 border-b border-surface-200 dark:border-surface-700 pb-2">Parents / Guardian Data</div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-
                             <div class="flex flex-col gap-3">
                                 <div class="font-bold text-primary-500 mb-2 flex items-center"><i class="pi pi-user mr-2"></i> Father Data</div>
                                 <div class="flex justify-between">
@@ -2073,7 +2043,6 @@ onMounted(async () => {
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -2107,7 +2076,6 @@ onMounted(async () => {
                 </div>
                 <div v-else class="card flex flex-col items-center">
                     <div class="font-semibold text-xl mb-4">Chart KJP</div>
-
                 </div>
             </div>
             <div id="section-kjp" class="col-span-12 xl:col-span-6">
@@ -2121,7 +2089,6 @@ onMounted(async () => {
                 </div>
                 <div v-else class="card flex flex-col items-center">
                     <div class="font-semibold text-xl mb-4">Total KJP</div>
-
                 </div>
             </div>
         </div>
@@ -2138,7 +2105,6 @@ onMounted(async () => {
                 </div>
                 <div v-else class="card flex flex-col items-center">
                     <div class="font-semibold text-xl mb-4">Chart PPDB</div>
-
                 </div>
             </div>
             <div id="section-ppdb" class="col-span-12 xl:col-span-6">
@@ -2152,7 +2118,6 @@ onMounted(async () => {
                 </div>
                 <div v-else class="card flex flex-col items-center">
                     <div class="font-semibold text-xl mb-4">Total PPDB</div>
-
                 </div>
             </div>
         </div>
@@ -2169,7 +2134,6 @@ onMounted(async () => {
                 </div>
                 <div v-else class="card flex flex-col items-center">
                     <div class="font-semibold text-xl mb-4">Chart Dapodik Active</div>
-
                 </div>
             </div>
             <div id="section-dapodik" class="col-span-12 xl:col-span-6">
@@ -2183,7 +2147,6 @@ onMounted(async () => {
                 </div>
                 <div v-else class="card flex flex-col items-center">
                     <div class="font-semibold text-xl mb-4">Total Dapodik Status</div>
-
                 </div>
             </div>
         </div>
@@ -2241,8 +2204,6 @@ onMounted(async () => {
                 </div>
             </div>
         </div>
-
-
     </Fluid>
 
     <!-- <Button label="Danger" @click="visibleStaticBackdropWarnings" /> -->
@@ -2268,8 +2229,8 @@ onMounted(async () => {
     </ConfirmDialog>
 
     <!-- <Button label="Danger" @click="visibleStaticBackdropDangers" /> -->
-    <Dialog v-model:visible="visibleStaticBackdropDanger" modal :header="titleDanger" style=" width: 25rem; color: red;">
-        <div style="color: black;">
+    <Dialog v-model:visible="visibleStaticBackdropDanger" modal :header="titleDanger" style="width: 25rem; color: red">
+        <div style="color: black">
             {{ fieldDanger }}
         </div>
     </Dialog>
@@ -2288,38 +2249,20 @@ onMounted(async () => {
     </Dialog>
 
     <!-- ── Profile Student Dialog ─────────────────────────────────────────────── -->
-    <Dialog
-        v-model:visible="profileDialog"
-        modal
-        :style="{ width: '700px', maxWidth: '95vw' }"
-        header="Student Profile"
-        :draggable="false"
-    >
+    <Dialog v-model:visible="profileDialog" modal :style="{ width: '700px', maxWidth: '95vw' }" header="Student Profile" :draggable="false">
         <template #header>
             <div class="flex items-center justify-between w-full">
                 <span class="font-bold text-lg">Student Profile</span>
-                <Button
-                    icon="pi pi-print"
-                    label="Print"
-                    severity="secondary"
-                    size="small"
-                    outlined
-                    @click="printProfile"
-                />
+                <Button icon="pi pi-print" label="Print" severity="secondary" size="small" outlined @click="printProfile" />
             </div>
         </template>
 
         <div v-if="selectedStudent" id="student-profile-print" class="text-sm text-surface-900 dark:text-surface-0">
-
             <!-- Document Title -->
-            <h2 class="text-center font-bold text-base uppercase mb-4">
-                Student Profile SMA YAPPENDA
-            </h2>
+            <h2 class="text-center font-bold text-base uppercase mb-4">Student Profile SMA YAPPENDA</h2>
 
             <!-- ── A. Profil Siswa ────────────────────────────────────────────── -->
-            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">
-                A. Student Profile
-            </div>
+            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">A. Student Profile</div>
             <div class="flex flex-col gap-1 pl-4 mb-4">
                 <div class="flex gap-2">
                     <span class="w-40 shrink-0">Student Name</span>
@@ -2346,9 +2289,7 @@ onMounted(async () => {
             </div>
 
             <!-- ── B. Identitas Siswa ─────────────────────────────────────────── -->
-            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">
-                B. Student Identity
-            </div>
+            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">B. Student Identity</div>
             <div class="flex flex-col gap-1 pl-4 mb-4">
                 <div class="flex gap-2">
                     <span class="w-40 shrink-0">Gender</span>
@@ -2405,9 +2346,7 @@ onMounted(async () => {
             </div>
 
             <!-- ── C. Kontak Siswa ────────────────────────────────────────────── -->
-            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">
-                C. Student Contact Details
-            </div>
+            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">C. Student Contact Details</div>
             <div class="flex flex-col gap-1 pl-4 mb-4">
                 <div class="flex gap-2">
                     <span class="w-40 shrink-0">Address</span>
@@ -2463,9 +2402,7 @@ onMounted(async () => {
             </div>
 
             <!-- ── D. Data Ijazah ─────────────────────────────────────────────── -->
-            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">
-                D. Diploma Details
-            </div>
+            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">D. Diploma Details</div>
             <div class="flex flex-col gap-1 pl-4 mb-4">
                 <div class="flex gap-2">
                     <span class="w-40 shrink-0">Previous School</span>
@@ -2485,9 +2422,7 @@ onMounted(async () => {
             </div>
 
             <!-- ── E. Identitas Ayah ──────────────────────────────────────────── -->
-            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">
-                E. Father Identity
-            </div>
+            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">E. Father Identity</div>
             <div class="flex flex-col gap-1 pl-4 mb-4">
                 <div class="flex gap-2">
                     <span class="w-40 shrink-0">Name</span>
@@ -2524,9 +2459,7 @@ onMounted(async () => {
                 <div class="flex gap-2">
                     <span class="w-40 shrink-0">Income</span>
                     <span class="w-3 shrink-0">:</span>
-                    <span>{{ selectedStudent.student_nik?.father_income
-                        ? 'Rp' + Number(selectedStudent.student_nik.father_income).toLocaleString('id-ID')
-                        : 'Rp0' }}</span>
+                    <span>{{ selectedStudent.student_nik?.father_income ? 'Rp' + Number(selectedStudent.student_nik.father_income).toLocaleString('id-ID') : 'Rp0' }}</span>
                 </div>
                 <div class="flex gap-2">
                     <span class="w-40 shrink-0">Phone Number</span>
@@ -2536,9 +2469,7 @@ onMounted(async () => {
             </div>
 
             <!-- ── F. Identitas Ibu ───────────────────────────────────────────── -->
-            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">
-                F. Mother Identity
-            </div>
+            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">F. Mother Identity</div>
             <div class="flex flex-col gap-1 pl-4 mb-4">
                 <div class="flex gap-2">
                     <span class="w-40 shrink-0">Name</span>
@@ -2575,9 +2506,7 @@ onMounted(async () => {
                 <div class="flex gap-2">
                     <span class="w-40 shrink-0">Income</span>
                     <span class="w-3 shrink-0">:</span>
-                    <span>{{ selectedStudent.student_nik?.mother_income
-                        ? 'Rp' + Number(selectedStudent.student_nik.mother_income).toLocaleString('id-ID')
-                        : 'Rp0' }}</span>
+                    <span>{{ selectedStudent.student_nik?.mother_income ? 'Rp' + Number(selectedStudent.student_nik.mother_income).toLocaleString('id-ID') : 'Rp0' }}</span>
                 </div>
                 <div class="flex gap-2">
                     <span class="w-40 shrink-0">Phone Number</span>
@@ -2596,13 +2525,11 @@ onMounted(async () => {
                     </div>
                 </div>
             </div>
-
         </div>
     </Dialog>
 
     <!-- ── 03b: Add / Edit Student Dialog ─────────────────────────────────────── -->
-    <Dialog v-model:visible="studentFormDialog" modal :style="{ width: '880px', maxWidth: '95vw' }" :draggable="false"
-            :header="editTargetId ? 'Edit Student Details' : 'Add New Student'">
+    <Dialog v-model:visible="studentFormDialog" modal :style="{ width: '880px', maxWidth: '95vw' }" :draggable="false" :header="editTargetId ? 'Edit Student Details' : 'Add New Student'">
         <div class="flex flex-col gap-6 max-h-[70vh] overflow-y-auto pr-1">
             <div>
                 <div class="font-bold border-b border-surface-200 dark:border-surface-700 pb-1 mb-3">Personal Details</div>
@@ -2794,22 +2721,54 @@ onMounted(async () => {
     <Dialog v-model:visible="studentDetailDialog" modal :style="{ width: '720px', maxWidth: '95vw' }" :draggable="false" header="Student Detail">
         <div v-if="detailStudent" class="flex flex-col gap-4 text-sm">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Full Name</span><span class="font-medium">{{ detailStudent.name ?? '-' }}</span></div>
-                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">NIK</span><span class="font-medium">{{ detailStudent.nik ?? '-' }}</span></div>
-                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">NIS</span><span class="font-medium">{{ detailStudent.nis ?? '-' }}</span></div>
-                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">NISN</span><span class="font-medium">{{ detailStudent.nisn ?? '-' }}</span></div>
-                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Gender</span><span class="font-medium">{{ detailStudent.gender?.display_name ?? detailStudent.gender?.name ?? '-' }}</span></div>
-                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Religion</span><span class="font-medium">{{ detailStudent.religion?.display_name ?? detailStudent.religion?.name ?? '-' }}</span></div>
-                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Birthplace</span><span class="font-medium">{{ detailStudent.birthplace ?? '-' }}</span></div>
-                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Birthdate</span><span class="font-medium">{{ detailStudent.birthdate ?? '-' }}</span></div>
-                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Family Status</span><span class="font-medium">{{ detailStudent.family_status?.display_name ?? detailStudent.family_status?.name ?? '-' }}</span></div>
-                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Blood Type</span><span class="font-medium">{{ detailStudent.blood_type?.name ?? '-' }}</span></div>
-                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Address</span><span class="font-medium text-right">{{ detailStudent.address ?? '-' }}</span></div>
-                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Phone</span><span class="font-medium">{{ detailStudent.hp_num ?? '-' }}</span></div>
-                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Father Name</span><span class="font-medium">{{ detailStudent.father_name ?? '-' }}</span></div>
-                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Mother Name</span><span class="font-medium">{{ detailStudent.mother_name ?? '-' }}</span></div>
-                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Guardian Name</span><span class="font-medium">{{ detailStudent.guardian_name ?? '-' }}</span></div>
-                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1"><span class="text-surface-500">Record Version</span><span class="font-medium">{{ detailStudent.version ?? '-' }}</span></div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1">
+                    <span class="text-surface-500">Full Name</span><span class="font-medium">{{ detailStudent.name ?? '-' }}</span>
+                </div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1">
+                    <span class="text-surface-500">NIK</span><span class="font-medium">{{ detailStudent.nik ?? '-' }}</span>
+                </div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1">
+                    <span class="text-surface-500">NIS</span><span class="font-medium">{{ detailStudent.nis ?? '-' }}</span>
+                </div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1">
+                    <span class="text-surface-500">NISN</span><span class="font-medium">{{ detailStudent.nisn ?? '-' }}</span>
+                </div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1">
+                    <span class="text-surface-500">Gender</span><span class="font-medium">{{ detailStudent.gender?.display_name ?? detailStudent.gender?.name ?? '-' }}</span>
+                </div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1">
+                    <span class="text-surface-500">Religion</span><span class="font-medium">{{ detailStudent.religion?.display_name ?? detailStudent.religion?.name ?? '-' }}</span>
+                </div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1">
+                    <span class="text-surface-500">Birthplace</span><span class="font-medium">{{ detailStudent.birthplace ?? '-' }}</span>
+                </div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1">
+                    <span class="text-surface-500">Birthdate</span><span class="font-medium">{{ detailStudent.birthdate ?? '-' }}</span>
+                </div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1">
+                    <span class="text-surface-500">Family Status</span><span class="font-medium">{{ detailStudent.family_status?.display_name ?? detailStudent.family_status?.name ?? '-' }}</span>
+                </div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1">
+                    <span class="text-surface-500">Blood Type</span><span class="font-medium">{{ detailStudent.blood_type?.name ?? '-' }}</span>
+                </div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1">
+                    <span class="text-surface-500">Address</span><span class="font-medium text-right">{{ detailStudent.address ?? '-' }}</span>
+                </div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1">
+                    <span class="text-surface-500">Phone</span><span class="font-medium">{{ detailStudent.hp_num ?? '-' }}</span>
+                </div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1">
+                    <span class="text-surface-500">Father Name</span><span class="font-medium">{{ detailStudent.father_name ?? '-' }}</span>
+                </div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1">
+                    <span class="text-surface-500">Mother Name</span><span class="font-medium">{{ detailStudent.mother_name ?? '-' }}</span>
+                </div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1">
+                    <span class="text-surface-500">Guardian Name</span><span class="font-medium">{{ detailStudent.guardian_name ?? '-' }}</span>
+                </div>
+                <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1">
+                    <span class="text-surface-500">Record Version</span><span class="font-medium">{{ detailStudent.version ?? '-' }}</span>
+                </div>
             </div>
             <div v-if="detailStudent.deleted_at" class="text-red-500">This student is archived. Reason: {{ detailStudent.archive_reason ?? '-' }}</div>
         </div>
@@ -2823,7 +2782,10 @@ onMounted(async () => {
         <div class="flex flex-col gap-4">
             <div class="flex items-center gap-4">
                 <i class="pi pi-exclamation-triangle !text-3xl text-red-500" />
-                <span>Are you sure you want to archive <b>{{ archiveTarget.name }}</b>? Active class memberships will be deactivated administratively (not recorded as a transfer-out).</span>
+                <span
+                    >Are you sure you want to archive <b>{{ archiveTarget.name }}</b
+                    >? Active class memberships will be deactivated administratively (not recorded as a transfer-out).</span
+                >
             </div>
             <div>
                 <label for="archive-reason" class="block font-bold mb-2">Administrative Reason <span class="text-red-500">*</span></label>
@@ -2839,9 +2801,16 @@ onMounted(async () => {
 
     <!-- ── 03b: Archived Students Dialog ──────────────────────────────────────── -->
     <Dialog v-model:visible="archivedListDialog" modal :style="{ width: '820px', maxWidth: '95vw' }" :draggable="false" header="Archived Students">
-        <DataTable :value="archivedStudents" :loading="archivedLoading" dataKey="id" paginator :rows="10" showGridlines
-                   paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                   currentPageReportTemplate="Showing {first} to {last} of {totalRecords} archived students">
+        <DataTable
+            :value="archivedStudents"
+            :loading="archivedLoading"
+            dataKey="id"
+            paginator
+            :rows="10"
+            showGridlines
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} archived students"
+        >
             <template #empty> No archived students found. </template>
             <template #loading> Loading archived students. Please wait. </template>
             <Column header="No" style="width: 3rem">
@@ -2853,8 +2822,7 @@ onMounted(async () => {
             <Column field="archive_reason" header="Archive Reason" style="min-width: 12rem" />
             <Column header="Action" :exportable="false" style="min-width: 8rem">
                 <template #body="{ data }">
-                    <Button label="Restore" icon="pi pi-refresh" size="small" severity="success" variant="outlined"
-                            :loading="isSubmitting" :disabled="isSubmitting" @click="restoreStudent(data)" />
+                    <Button label="Restore" icon="pi pi-refresh" size="small" severity="success" variant="outlined" :loading="isSubmitting" :disabled="isSubmitting" @click="restoreStudent(data)" />
                 </template>
             </Column>
         </DataTable>
@@ -2864,8 +2832,7 @@ onMounted(async () => {
     </Dialog>
 
     <!-- ── 03d: Assign & Transfer Rombel Dialog ────────────────────────── -->
-    <Dialog v-model:visible="placementDialog" modal :style="{ width: '500px', maxWidth: '95vw' }" :draggable="false"
-            :header="placementMode === 'assign' ? 'Assign to Class' : 'Transfer Class'">
+    <Dialog v-model:visible="placementDialog" modal :style="{ width: '500px', maxWidth: '95vw' }" :draggable="false" :header="placementMode === 'assign' ? 'Assign to Class' : 'Transfer Class'">
         <div class="flex flex-col gap-4">
             <div class="bg-surface-50 dark:bg-surface-800 p-3 rounded-border flex flex-col gap-1 text-sm border border-surface-200 dark:border-surface-700">
                 <div class="flex justify-between">
@@ -2894,34 +2861,38 @@ onMounted(async () => {
             </div>
 
             <div class="flex flex-col gap-1">
-                <label for="targetRombelSelect" class="font-medium text-sm">
-                    Target Class <span class="text-red-500">*</span>
-                </label>
-                <Select id="targetRombelSelect" v-model="placementForm.target_rombel_id" :options="availablePlacementRombels"
-                        optionLabel="name" optionValue="id" placeholder="Select target class"
-                        :class="{ 'p-invalid': placementErrors.target_rombel_id || placementErrors.school_rombel_id }" />
+                <label for="targetRombelSelect" class="font-medium text-sm"> Target Class <span class="text-red-500">*</span> </label>
+                <Select
+                    id="targetRombelSelect"
+                    v-model="placementForm.target_rombel_id"
+                    :options="availablePlacementRombels"
+                    optionLabel="name"
+                    optionValue="id"
+                    placeholder="Select target class"
+                    :class="{ 'p-invalid': placementErrors.target_rombel_id || placementErrors.school_rombel_id }"
+                />
                 <small v-if="placementErrors.target_rombel_id" class="text-red-500 text-xs">{{ placementErrors.target_rombel_id[0] }}</small>
                 <small v-if="placementErrors.school_rombel_id" class="text-red-500 text-xs">{{ placementErrors.school_rombel_id[0] }}</small>
             </div>
 
             <div v-if="placementMode === 'transfer'" class="flex flex-col gap-1">
                 <label for="transferReason" class="font-medium text-sm">Transfer Reason (Optional)</label>
-                <Textarea id="transferReason" v-model="placementForm.reason" rows="3" autoResize placeholder="Enter reason for class transfer..."
-                          :class="{ 'p-invalid': placementErrors.reason }" />
+                <Textarea id="transferReason" v-model="placementForm.reason" rows="3" autoResize placeholder="Enter reason for class transfer..." :class="{ 'p-invalid': placementErrors.reason }" />
                 <small v-if="placementErrors.reason" class="text-red-500 text-xs">{{ placementErrors.reason[0] }}</small>
             </div>
 
-            <small v-if="selectedYearLocked" class="text-orange-600 dark:text-orange-400">
-                This school year is locked. Unlock it before placing students.
-            </small>
+            <small v-if="selectedYearLocked" class="text-orange-600 dark:text-orange-400"> This school year is locked. Unlock it before placing students. </small>
         </div>
         <template #footer>
             <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="isSubmittingPlacement" @click="placementDialog = false" />
-            <Button :label="placementMode === 'assign' ? 'Assign Class' : 'Transfer Student'"
-                    :icon="placementMode === 'assign' ? 'pi pi-user-plus' : 'pi pi-arrow-right-arrow-left'"
-                    :severity="placementMode === 'assign' ? 'info' : 'warn'"
-                    :loading="isSubmittingPlacement" :disabled="isSubmittingPlacement || selectedYearLocked"
-                    @click="confirmPlacement" />
+            <Button
+                :label="placementMode === 'assign' ? 'Assign Class' : 'Transfer Student'"
+                :icon="placementMode === 'assign' ? 'pi pi-user-plus' : 'pi pi-arrow-right-arrow-left'"
+                :severity="placementMode === 'assign' ? 'info' : 'warn'"
+                :loading="isSubmittingPlacement"
+                :disabled="isSubmittingPlacement || selectedYearLocked"
+                @click="confirmPlacement"
+            />
         </template>
     </Dialog>
 

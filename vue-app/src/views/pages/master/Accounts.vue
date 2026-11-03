@@ -10,19 +10,19 @@ import { referenceExportFunction } from '@/utils/referenceLabels.mjs';
 const exportReferenceCell = referenceExportFunction({ 'status_user.name': 'status-users' });
 
 // ── Local refs (tidak ada di composable) ──────────────────────────────────
-const dt              = ref();
-const filters         = ref();
+const dt = ref();
+const filters = ref();
 const length_rows_pick = ref(10);
-const length_rows      = ref([10, 25, 50, 100]);
+const length_rows = ref([10, 25, 50, 100]);
 
 // ── Role assignment (English UI) ──────────────────────────────────────────
-const rolesDialog      = ref(false);
-const rolesLoading     = ref(false);
-const rolesSaving      = ref(false);
-const allRoles         = ref([]);
-const roleTargetUser   = ref(null);
-const selectedRoleIds  = ref([]);
-const rolesError       = ref('');
+const rolesDialog = ref(false);
+const rolesLoading = ref(false);
+const rolesSaving = ref(false);
+const allRoles = ref([]);
+const roleTargetUser = ref(null);
+const selectedRoleIds = ref([]);
+const rolesError = ref('');
 
 const openRolesDialog = async (user) => {
     roleTargetUser.value = user;
@@ -99,30 +99,27 @@ const {
     confirmDeleteSelected,
     deleteSelectedManyDatas,
     search_Cat1,
-    search_Cat2,
+    search_Cat2
 } = useResourceManager({
-    endpoint:        'users',
-    endpoints:       [
-        'type-users',
-        'status-users',
-    ],
-    menuLabel:       'Account',
+    endpoint: 'users',
+    endpoints: ['type-users', 'status-users'],
+    menuLabel: 'Account',
     menuLabelPlural: 'Accounts',
     fieldLabels: {
-        name:               'Name',
-        email:              'Email',
-        username:           'Username',
-        nik:                'NIK',
-        'type_user.name':   'Type User',
-        'status_user.name': 'Status User',
+        name: 'Name',
+        email: 'Email',
+        username: 'Username',
+        nik: 'NIK',
+        'type_user.name': 'Type User',
+        'status_user.name': 'Status User'
     },
-    uniqueFields:     ['email', 'username', 'nik'],
+    uniqueFields: ['email', 'username', 'nik'],
     uniqueMinLengths: [3, 3, 16],
-    requiredFields:   ['name'],
+    requiredFields: ['name'],
     fkFields: [
-        { fk: 'type_user',   fk_id: 'type_user_id'   },
-        { fk: 'status_user', fk_id: 'status_user_id'  },
-    ],
+        { fk: 'type_user', fk_id: 'type_user_id' },
+        { fk: 'status_user', fk_id: 'status_user_id' }
+    ]
 });
 
 // ── Filter ────────────────────────────────────────────────────────────────
@@ -130,13 +127,13 @@ const clearFilter = () => initFilters();
 
 const initFilters = () => {
     filters.value = {
-        global:              { value: null, matchMode: FilterMatchMode.CONTAINS },
-        'name':              { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
-        'email':             { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
-        'username':          { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
-        'nik':               { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
-        'type_user.name':    { value: null, matchMode: FilterMatchMode.IN },
-        'status_user.name':  { value: null, matchMode: FilterMatchMode.IN },
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        name: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+        email: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+        username: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+        nik: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+        'type_user.name': { value: null, matchMode: FilterMatchMode.IN },
+        'status_user.name': { value: null, matchMode: FilterMatchMode.IN }
     };
 };
 
@@ -145,18 +142,30 @@ initFilters();
 // ── getSeverity ───────────────────────────────────────────────────────────
 const getSeverity = (status) => {
     switch (status) {
-        case 'unqualified':   return 'danger';
-        case 'Negeri':        return 'success';
-        case 'Swasta':        return 'warn';
-        case 'Laki-Laki':     return 'success';
-        case 'Perempuan':     return 'info';
-        case 'Aktif':         return 'success';
-        case 'Lulus':         return 'info';
-        case 'Mutasi Keluar': return 'danger';
-        case 'Drop Out':      return 'danger';
-        case 'Siswa Baru':    return 'success';
-        case 'Mutasi Masuk':  return 'info';
-        case 'renewal':       return null;
+        case 'unqualified':
+            return 'danger';
+        case 'Negeri':
+            return 'success';
+        case 'Swasta':
+            return 'warn';
+        case 'Laki-Laki':
+            return 'success';
+        case 'Perempuan':
+            return 'info';
+        case 'Aktif':
+            return 'success';
+        case 'Lulus':
+            return 'info';
+        case 'Mutasi Keluar':
+            return 'danger';
+        case 'Drop Out':
+            return 'danger';
+        case 'Siswa Baru':
+            return 'success';
+        case 'Mutasi Masuk':
+            return 'info';
+        case 'renewal':
+            return null;
     }
 };
 
@@ -181,7 +190,6 @@ onMounted(() => {
 <template>
     <Fluid>
         <div class="bg-surface-0 dark:bg-surface-950 px-6 py-8 md:px-12 lg:px-20">
-
             <div class="flex items-start flex-col md:justify-between md:flex-row">
                 <div>
                     <div class="font-bold text-3xl text-surface-900 dark:text-surface-0 mb-4">{{ entityLabelPlural }}</div>
@@ -202,31 +210,28 @@ onMounted(() => {
                 </Toolbar>
 
                 <DataTable
-                ref="dt"
-                v-model:selection="selectedManyDatas"
-                v-model:filters="filters"
-                :value="manyDatas"
-                paginator
-                showGridlines
-                :rows="length_rows_pick"
-                dataKey="id"
-                filterDisplay="menu"
-                :loading="loading"
-                :exportFunction="exportReferenceCell"
-                :globalFilterFields="['name', 'email', 'username', 'nik', 'status_user.display_name']"
-                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
+                    ref="dt"
+                    v-model:selection="selectedManyDatas"
+                    v-model:filters="filters"
+                    :value="manyDatas"
+                    paginator
+                    showGridlines
+                    :rows="length_rows_pick"
+                    dataKey="id"
+                    filterDisplay="menu"
+                    :loading="loading"
+                    :exportFunction="exportReferenceCell"
+                    :globalFilterFields="['name', 'email', 'username', 'nik', 'status_user.display_name']"
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
                 >
                     <template #header>
                         <div class="mb-3 flex flex-col md:flex-row gap-4">
-                            <div class="flex flex-wrap gap-2 w-full">
-                                Total {{ entityLabelPlural }}: {{ manyDatas ? manyDatas.length : "Loading" }}
-                            </div>
+                            <div class="flex flex-wrap gap-2 w-full">Total {{ entityLabelPlural }}: {{ manyDatas ? manyDatas.length : 'Loading' }}</div>
                         </div>
                         <div class="flex flex-col md:flex-row gap-2 items-end">
                             <div class="flex flex-wrap gap-2">
-                                <Select v-model="length_rows_pick" :options="length_rows" placeholder="Select">
-                                </Select>
+                                <Select v-model="length_rows_pick" :options="length_rows" placeholder="Select"> </Select>
                             </div>
                             <div class="flex flex-wrap gap-2">
                                 <Button type="button" icon="pi pi-filter-slash" label="Clear" variant="outlined" @click="clearFilter()" />
@@ -315,7 +320,7 @@ onMounted(() => {
                     <Column header="Roles" :exportable="false" style="min-width: 10rem">
                         <template #body="{ data }">
                             <div class="flex flex-wrap gap-1">
-                                <Tag v-for="role in (data.roles || [])" :key="role.id" :value="role.name" severity="info" />
+                                <Tag v-for="role in data.roles || []" :key="role.id" :value="role.name" severity="info" />
                                 <span v-if="!data.roles || !data.roles.length" class="text-surface-400">No roles</span>
                             </div>
                         </template>
@@ -328,13 +333,9 @@ onMounted(() => {
                             <Button icon="pi pi-trash" variant="outlined" rounded severity="danger" @click="confirmDeleteSingleData(slotProps.data)" />
                         </template>
                     </Column>
-
                 </DataTable>
-
             </div>
         </div>
-
-
     </Fluid>
 
     <!-- Assign Roles Dialog (English) -->
@@ -360,7 +361,6 @@ onMounted(() => {
             <Button label="Save" icon="pi pi-check" :loading="rolesSaving" @click="saveRoles" />
         </template>
     </Dialog>
-
 
     <!-- Confirm Delete Dialog -->
     <Dialog v-model:visible="deleteDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
@@ -388,7 +388,7 @@ onMounted(() => {
         </template>
     </Dialog>
     <!-- Confirm Edit Dialog -->
-    <Dialog v-model:visible="EditOrNewDialog" :style="{ width: '450px' }" :header="entityLabel+' Details'" :modal="true">
+    <Dialog v-model:visible="EditOrNewDialog" :style="{ width: '450px' }" :header="entityLabel + ' Details'" :modal="true">
         <div class="flex flex-col gap-6">
             <div>
                 <label for="name" class="block font-bold mb-3">Name</label>
@@ -439,7 +439,6 @@ onMounted(() => {
                 <label for="status_user" class="block font-bold mb-3 mt-3">Status User</label>
                 <AutoComplete id="status_user" v-model="singleData.status_user" required="true" optionLabel="display_name" forceSelection :suggestions="filtered_Cat2" @complete="search_Cat2" fluid />
                 <small v-if="submitted && !singleData.status_user" class="text-red-500">Status User is required.</small>
-
             </div>
         </div>
 
@@ -452,16 +451,13 @@ onMounted(() => {
     <Dialog v-model:visible="WaitingDialog" modal header="Processing Request">
         <div class="text-center justify-content-center align-items-center">
             <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: green"></i>
-            <p class="text-success mt-3" style="font-size: 1.1rem; font-weight: 500;">
-            Please wait, your data is being processed...
-        </p>
+            <p class="text-success mt-3" style="font-size: 1.1rem; font-weight: 500">Please wait, your data is being processed...</p>
         </div>
     </Dialog>
     <!-- Error Dialog -->
-    <Dialog v-model:visible="ErrorDialog" modal :header="titleError" style=" width: 25rem; color: red;">
-        <div style="color: black;">
+    <Dialog v-model:visible="ErrorDialog" modal :header="titleError" style="width: 25rem; color: red">
+        <div style="color: black">
             {{ fieldError }}
         </div>
     </Dialog>
-
 </template>

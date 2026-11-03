@@ -61,24 +61,39 @@ const mergeOptions = (base, extra) => {
     return [...map.values()].sort((a, b) => String(a.name ?? '').localeCompare(String(b.name ?? '')));
 };
 
-const levelOptions = computed(() => mergeOptions(
-    levels.value,
-    rows.value.map((row) => row.school_level).filter(Boolean).map((level) => ({ id: level.id, name: level.name })),
-));
+const levelOptions = computed(() =>
+    mergeOptions(
+        levels.value,
+        rows.value
+            .map((row) => row.school_level)
+            .filter(Boolean)
+            .map((level) => ({ id: level.id, name: level.name }))
+    )
+);
 
-const majorOptions = computed(() => mergeOptions(
-    majors.value,
-    rows.value.map((row) => row.student_major).filter(Boolean).map((major) => ({ id: major.id, name: major.name })),
-));
+const majorOptions = computed(() =>
+    mergeOptions(
+        majors.value,
+        rows.value
+            .map((row) => row.student_major)
+            .filter(Boolean)
+            .map((major) => ({ id: major.id, name: major.name }))
+    )
+);
 
-const yearOptions = computed(() => mergeOptions(
-    years.value,
-    rows.value.map((row) => row.school_year).filter(Boolean).map((year) => ({
-        id: year.id,
-        name: year.name,
-        is_locked: year.is_locked,
-    })),
-));
+const yearOptions = computed(() =>
+    mergeOptions(
+        years.value,
+        rows.value
+            .map((row) => row.school_year)
+            .filter(Boolean)
+            .map((year) => ({
+                id: year.id,
+                name: year.name,
+                is_locked: year.is_locked
+            }))
+    )
+);
 
 const unlockedYears = computed(() => yearOptions.value.filter((year) => !year.is_locked));
 
@@ -94,14 +109,7 @@ const filteredRows = computed(() => {
         if (teacherQuery && !teacherName.includes(teacherQuery)) return false;
 
         if (!query) return true;
-        const haystack = [
-            row.name,
-            row.school_year?.name,
-            row.school_level?.name,
-            row.student_major?.name,
-            row.class_teach_employee?.name,
-            row.class_teach?.name,
-        ].filter(Boolean).join(' ').toLowerCase();
+        const haystack = [row.name, row.school_year?.name, row.school_level?.name, row.student_major?.name, row.class_teach_employee?.name, row.class_teach?.name].filter(Boolean).join(' ').toLowerCase();
 
         return haystack.includes(query);
     });
@@ -109,9 +117,7 @@ const filteredRows = computed(() => {
 
 const activePeriodLabel = computed(() => {
     if (!activeSchoolYearId.value) return null;
-    const name = yearOptions.value.find((year) => year.id === activeSchoolYearId.value)?.name
-        ?? activeYearName.value
-        ?? 'Active year';
+    const name = yearOptions.value.find((year) => year.id === activeSchoolYearId.value)?.name ?? activeYearName.value ?? 'Active year';
     return activeSemesterName.value ? `${name} · ${activeSemesterName.value}` : name;
 });
 
@@ -134,12 +140,7 @@ const errorMessage = (error, fallback) => error.response?.data?.message ?? fallb
 const fieldError = (errors, field) => errors?.[field]?.[0] ?? '';
 
 const loadReference = async () => {
-    const results = await Promise.allSettled([
-        apiLogin.get('/api/school-years'),
-        apiLogin.get('/api/school-levels'),
-        apiLogin.get('/api/student-majors'),
-        apiLogin.get('/api/academic/period'),
-    ]);
+    const results = await Promise.allSettled([apiLogin.get('/api/school-years'), apiLogin.get('/api/school-levels'), apiLogin.get('/api/student-majors'), apiLogin.get('/api/academic/period')]);
 
     const [yearsResult, levelsResult, majorsResult, periodResult] = results;
 
@@ -160,14 +161,9 @@ const loadReference = async () => {
     }
 
     const failed = results.filter((result) => result.status === 'rejected').length;
-    optionsError.value = failed > 0
-        ? 'Some reference options could not be loaded. Existing values remain visible; ask an administrator to check your permissions.'
-        : '';
+    optionsError.value = failed > 0 ? 'Some reference options could not be loaded. Existing values remain visible; ask an administrator to check your permissions.' : '';
 
-    yearFilter.value = activeSchoolYearId.value
-        && years.value.some((year) => year.id === activeSchoolYearId.value)
-        ? activeSchoolYearId.value
-        : null;
+    yearFilter.value = activeSchoolYearId.value && years.value.some((year) => year.id === activeSchoolYearId.value) ? activeSchoolYearId.value : null;
 };
 
 const fetchClasses = async () => {
@@ -227,7 +223,7 @@ const applyRowToForm = (row) => {
         school_level_id: row.school_level_id,
         student_major_id: row.student_major_id ?? null,
         class_teach_employee_id: row.class_teach_employee_id ?? null,
-        expected_version: row.version,
+        expected_version: row.version
     };
     editorHasHistory.value = (row.memberships_count ?? 0) > 0;
     selectedTeacher.value = row.class_teach_employee ?? null;
@@ -240,12 +236,12 @@ const openCreate = () => {
         return;
     }
 
-    const preferredYearId = yearFilter.value
-        && unlockedYears.value.some((year) => year.id === yearFilter.value)
-        ? yearFilter.value
-        : (activeSchoolYearId.value && unlockedYears.value.some((year) => year.id === activeSchoolYearId.value)
-            ? activeSchoolYearId.value
-            : unlockedYears.value[0].id);
+    const preferredYearId =
+        yearFilter.value && unlockedYears.value.some((year) => year.id === yearFilter.value)
+            ? yearFilter.value
+            : activeSchoolYearId.value && unlockedYears.value.some((year) => year.id === activeSchoolYearId.value)
+              ? activeSchoolYearId.value
+              : unlockedYears.value[0].id;
 
     classEditing.value = false;
     classSubmitted.value = false;
@@ -263,7 +259,7 @@ const openCreate = () => {
         school_level_id: null,
         student_major_id: null,
         class_teach_employee_id: null,
-        expected_version: null,
+        expected_version: null
     };
     classDialog.value = true;
 };
@@ -294,9 +290,7 @@ const searchTeachers = (event) => {
             teacherSuggestions.value = response.data?.data ?? [];
         } catch (error) {
             teacherSuggestions.value = [];
-            teacherOptionsError.value = error.response?.status === 403
-                ? 'You do not have permission to view the teacher list. You can still save the class without a homeroom teacher.'
-                : 'Failed to load homeroom teacher options.';
+            teacherOptionsError.value = error.response?.status === 403 ? 'You do not have permission to view the teacher list. You can still save the class without a homeroom teacher.' : 'Failed to load homeroom teacher options.';
         } finally {
             teacherLoading.value = false;
         }
@@ -335,7 +329,7 @@ const submitClass = async () => {
             school_year_id: classForm.value.school_year_id,
             school_level_id: classForm.value.school_level_id,
             student_major_id: classForm.value.student_major_id || null,
-            class_teach_employee_id: classForm.value.class_teach_employee_id || null,
+            class_teach_employee_id: classForm.value.class_teach_employee_id || null
         };
 
         let response;
@@ -419,7 +413,7 @@ const confirmDelete = async () => {
 
     try {
         const response = await apiLogin.delete(`/api/school-rombels/${deleteTarget.value.id}`, {
-            data: { expected_version: deleteTarget.value.version },
+            data: { expected_version: deleteTarget.value.version }
         });
         notify('success', response.data?.message ?? 'Class deleted.');
         deleteDialog.value = false;
@@ -452,9 +446,7 @@ onMounted(async () => {
             <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div>
                     <div class="font-bold text-3xl text-surface-900 dark:text-surface-0 mb-2">Classes</div>
-                    <p class="text-surface-500 dark:text-surface-400">
-                        Class groups per academic year with homeroom teachers from active teacher records.
-                    </p>
+                    <p class="text-surface-500 dark:text-surface-400">Class groups per academic year with homeroom teachers from active teacher records.</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                     <Tag v-if="activePeriodLabel" severity="success" :value="`Active period: ${activePeriodLabel}`" />
@@ -465,10 +457,8 @@ onMounted(async () => {
             <div class="card mt-6 flex flex-col gap-4">
                 <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
                     <div class="flex flex-wrap gap-2">
-                        <Button v-if="canManage" label="New Class" icon="pi pi-plus"
-                            :disabled="unlockedYears.length === 0" @click="openCreate" />
-                        <Button icon="pi pi-filter-slash" label="Clear" severity="secondary" variant="outlined"
-                            @click="resetFilters" />
+                        <Button v-if="canManage" label="New Class" icon="pi pi-plus" :disabled="unlockedYears.length === 0" @click="openCreate" />
+                        <Button icon="pi pi-filter-slash" label="Clear" severity="secondary" variant="outlined" @click="resetFilters" />
                     </div>
                     <div class="flex flex-wrap items-center gap-3">
                         <span class="text-sm text-surface-500">Total classes: {{ filteredRows.length }}</span>
@@ -476,12 +466,9 @@ onMounted(async () => {
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
-                    <Select v-model="yearFilter" :options="yearOptions" optionLabel="name" optionValue="id"
-                        placeholder="All school years" showClear class="w-full" @change="onYearFilterChange" />
-                    <Select v-model="levelFilter" :options="levelOptions" optionLabel="name" optionValue="id"
-                        placeholder="All levels" showClear class="w-full" />
-                    <Select v-model="majorFilter" :options="majorOptions" optionLabel="name" optionValue="id"
-                        placeholder="All majors" showClear class="w-full" />
+                    <Select v-model="yearFilter" :options="yearOptions" optionLabel="name" optionValue="id" placeholder="All school years" showClear class="w-full" @change="onYearFilterChange" />
+                    <Select v-model="levelFilter" :options="levelOptions" optionLabel="name" optionValue="id" placeholder="All levels" showClear class="w-full" />
+                    <Select v-model="majorFilter" :options="majorOptions" optionLabel="name" optionValue="id" placeholder="All majors" showClear class="w-full" />
                     <InputText v-model="teacherSearch" placeholder="Homeroom teacher" class="w-full" />
                     <IconField class="w-full">
                         <InputIcon><i class="pi pi-search" /></InputIcon>
@@ -491,10 +478,18 @@ onMounted(async () => {
 
                 <small v-if="optionsError" class="text-orange-600 dark:text-orange-400">{{ optionsError }}</small>
 
-                <DataTable :value="filteredRows" paginator showGridlines :rows="rowsPerPage"
-                    :rowsPerPageOptions="rowsPerPageOptions" dataKey="id" :loading="loading" @page="onPage"
+                <DataTable
+                    :value="filteredRows"
+                    paginator
+                    showGridlines
+                    :rows="rowsPerPage"
+                    :rowsPerPageOptions="rowsPerPageOptions"
+                    dataKey="id"
+                    :loading="loading"
+                    @page="onPage"
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords}">
+                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
+                >
                     <template #empty>
                         <div class="flex flex-col items-center gap-3 py-6">
                             <span v-if="listError" class="text-red-500">{{ listError }}</span>
@@ -547,14 +542,8 @@ onMounted(async () => {
                     </Column>
                     <Column v-if="canManage" header="Action" :exportable="false" style="min-width: 9rem">
                         <template #body="{ data }">
-                            <Button icon="pi pi-pencil" variant="outlined" rounded class="mr-2"
-                                :disabled="!!rowActionBlockReason(data)"
-                                v-tooltip.top="rowActionBlockReason(data) || 'Edit'"
-                                @click="openEdit(data)" />
-                            <Button icon="pi pi-trash" variant="outlined" rounded severity="danger"
-                                :disabled="!!deleteBlockReason(data)"
-                                v-tooltip.top="deleteBlockReason(data) || 'Delete'"
-                                @click="openDelete(data)" />
+                            <Button icon="pi pi-pencil" variant="outlined" rounded class="mr-2" :disabled="!!rowActionBlockReason(data)" v-tooltip.top="rowActionBlockReason(data) || 'Edit'" @click="openEdit(data)" />
+                            <Button icon="pi pi-trash" variant="outlined" rounded severity="danger" :disabled="!!deleteBlockReason(data)" v-tooltip.top="deleteBlockReason(data) || 'Delete'" @click="openDelete(data)" />
                         </template>
                     </Column>
                 </DataTable>
@@ -562,13 +551,11 @@ onMounted(async () => {
         </div>
     </Fluid>
 
-    <Dialog v-model:visible="classDialog" modal :style="{ width: '560px', maxWidth: '95vw' }"
-        :header="classEditing ? 'Edit Class' : 'New Class'" :draggable="false">
+    <Dialog v-model:visible="classDialog" modal :style="{ width: '560px', maxWidth: '95vw' }" :header="classEditing ? 'Edit Class' : 'New Class'" :draggable="false">
         <div class="flex flex-col gap-4">
             <div class="flex flex-col gap-2">
                 <label for="className" class="font-medium">Name <span class="text-red-500">*</span></label>
-                <InputText id="className" v-model="classForm.name" maxlength="100" autofocus fluid
-                    :invalid="classSubmitted && !classForm.name?.trim()" />
+                <InputText id="className" v-model="classForm.name" maxlength="100" autofocus fluid :invalid="classSubmitted && !classForm.name?.trim()" />
                 <small v-if="classSubmitted && !classForm.name?.trim()" class="text-red-500">Name is required.</small>
                 <small v-else-if="fieldError(classErrors, 'name')" class="text-red-500">
                     {{ fieldError(classErrors, 'name') }}
@@ -578,17 +565,14 @@ onMounted(async () => {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-2">
                     <label for="classYear" class="font-medium">School Year <span class="text-red-500">*</span></label>
-                    <Select id="classYear" v-model="classForm.school_year_id" :options="yearOptions" optionLabel="name"
-                        optionValue="id" placeholder="Select school year" :disabled="editorHasHistory" fluid />
+                    <Select id="classYear" v-model="classForm.school_year_id" :options="yearOptions" optionLabel="name" optionValue="id" placeholder="Select school year" :disabled="editorHasHistory" fluid />
                     <small v-if="fieldError(classErrors, 'school_year_id')" class="text-red-500">
                         {{ fieldError(classErrors, 'school_year_id') }}
                     </small>
                 </div>
                 <div class="flex flex-col gap-2">
                     <label for="classLevel" class="font-medium">School Level <span class="text-red-500">*</span></label>
-                    <Select id="classLevel" v-model="classForm.school_level_id" :options="levelOptions"
-                        optionLabel="name" optionValue="id" placeholder="Select school level"
-                        :disabled="editorHasHistory" fluid />
+                    <Select id="classLevel" v-model="classForm.school_level_id" :options="levelOptions" optionLabel="name" optionValue="id" placeholder="Select school level" :disabled="editorHasHistory" fluid />
                     <small v-if="fieldError(classErrors, 'school_level_id')" class="text-red-500">
                         {{ fieldError(classErrors, 'school_level_id') }}
                     </small>
@@ -597,8 +581,7 @@ onMounted(async () => {
 
             <div class="flex flex-col gap-2">
                 <label for="classMajor" class="font-medium">Student Major</label>
-                <Select id="classMajor" v-model="classForm.student_major_id" :options="majorOptions" optionLabel="name"
-                    optionValue="id" placeholder="No student major" showClear :disabled="editorHasHistory" fluid />
+                <Select id="classMajor" v-model="classForm.student_major_id" :options="majorOptions" optionLabel="name" optionValue="id" placeholder="No student major" showClear :disabled="editorHasHistory" fluid />
                 <small v-if="fieldError(classErrors, 'student_major_id')" class="text-red-500">
                     {{ fieldError(classErrors, 'student_major_id') }}
                 </small>
@@ -607,12 +590,20 @@ onMounted(async () => {
             <div class="flex flex-col gap-2">
                 <label for="classTeacher" class="font-medium">Homeroom Teacher</label>
                 <div class="flex items-center gap-2">
-                    <AutoComplete id="classTeacher" v-model="selectedTeacher" :suggestions="teacherSuggestions"
-                        optionLabel="name" forceSelection dropdown display="chip" fluid
-                        placeholder="Search an active teacher" :loading="teacherLoading"
-                        @complete="searchTeachers" />
-                    <Button v-if="selectedTeacher" icon="pi pi-times" text rounded severity="secondary"
-                        v-tooltip.top="'Clear homeroom teacher'" @click="clearTeacher" />
+                    <AutoComplete
+                        id="classTeacher"
+                        v-model="selectedTeacher"
+                        :suggestions="teacherSuggestions"
+                        optionLabel="name"
+                        forceSelection
+                        dropdown
+                        display="chip"
+                        fluid
+                        placeholder="Search an active teacher"
+                        :loading="teacherLoading"
+                        @complete="searchTeachers"
+                    />
+                    <Button v-if="selectedTeacher" icon="pi pi-times" text rounded severity="secondary" v-tooltip.top="'Clear homeroom teacher'" @click="clearTeacher" />
                 </div>
                 <small v-if="fieldError(classErrors, 'class_teach_employee_id')" class="text-red-500">
                     {{ fieldError(classErrors, 'class_teach_employee_id') }}
@@ -620,66 +611,51 @@ onMounted(async () => {
                 <small v-if="teacherOptionsError" class="text-orange-600 dark:text-orange-400">
                     {{ teacherOptionsError }}
                 </small>
-                <small v-if="legacyTeacherName" class="text-surface-500">
-                    Legacy homeroom teacher: {{ legacyTeacherName }}. Select an active teacher to replace it.
-                </small>
+                <small v-if="legacyTeacherName" class="text-surface-500"> Legacy homeroom teacher: {{ legacyTeacherName }}. Select an active teacher to replace it. </small>
                 <small class="text-surface-500">Only active teachers (Pendidik) are eligible.</small>
             </div>
 
-            <div v-if="selectedYearLocked" class="text-orange-600 dark:text-orange-400 text-sm">
-                The selected school year is locked. Unlock it before saving class changes.
-            </div>
+            <div v-if="selectedYearLocked" class="text-orange-600 dark:text-orange-400 text-sm">The selected school year is locked. Unlock it before saving class changes.</div>
 
-            <div v-if="editorHasHistory" class="text-surface-500 text-sm">
-                Academic year, school level, and student major cannot be changed because this class already has membership history.
-            </div>
+            <div v-if="editorHasHistory" class="text-surface-500 text-sm">Academic year, school level, and student major cannot be changed because this class already has membership history.</div>
 
             <div v-if="classMessage" class="text-red-500 text-sm">{{ classMessage }}</div>
         </div>
         <template #footer>
-            <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="classSaving"
-                @click="classDialog = false" />
-            <Button :label="classEditing ? 'Save Changes' : 'Create'" icon="pi pi-check" :loading="classSaving"
-                :disabled="!canSubmitClass" @click="submitClass" />
+            <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="classSaving" @click="classDialog = false" />
+            <Button :label="classEditing ? 'Save Changes' : 'Create'" icon="pi pi-check" :loading="classSaving" :disabled="!canSubmitClass" @click="submitClass" />
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="conflictDialog" modal :style="{ width: '520px', maxWidth: '95vw' }"
-        header="Data Conflict Detected" :draggable="false">
+    <Dialog v-model:visible="conflictDialog" modal :style="{ width: '520px', maxWidth: '95vw' }" header="Data Conflict Detected" :draggable="false">
         <div class="flex items-start gap-4">
             <i class="pi pi-exclamation-triangle !text-3xl text-orange-500" />
             <div>
                 <p class="mb-2">{{ conflictMessage }}</p>
-                <p class="text-surface-500 text-sm">
-                    Click "Reload Latest" to fetch the newest class data. Your current input will be replaced by the latest record.
-                </p>
+                <p class="text-surface-500 text-sm">Click "Reload Latest" to fetch the newest class data. Your current input will be replaced by the latest record.</p>
             </div>
         </div>
         <template #footer>
-            <Button label="Close" icon="pi pi-times" text severity="secondary" :disabled="reloadingConflict"
-                @click="conflictDialog = false" />
-            <Button label="Reload Latest" icon="pi pi-refresh" :loading="reloadingConflict"
-                :disabled="reloadingConflict" @click="reloadAfterConflict" />
+            <Button label="Close" icon="pi pi-times" text severity="secondary" :disabled="reloadingConflict" @click="conflictDialog = false" />
+            <Button label="Reload Latest" icon="pi pi-refresh" :loading="reloadingConflict" :disabled="reloadingConflict" @click="reloadAfterConflict" />
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="deleteDialog" modal :style="{ width: '460px', maxWidth: '95vw' }" header="Delete Class"
-        :draggable="false">
+    <Dialog v-model:visible="deleteDialog" modal :style="{ width: '460px', maxWidth: '95vw' }" header="Delete Class" :draggable="false">
         <div class="flex items-start gap-4">
             <i class="pi pi-exclamation-triangle !text-3xl text-red-500" />
             <div>
-                <p>Are you sure you want to delete <strong>{{ deleteTarget?.name }}</strong>?</p>
-                <p class="text-sm text-surface-500 mt-2">
-                    This action is only allowed when the class has no membership history. The deletion is recorded in the audit log.
+                <p>
+                    Are you sure you want to delete <strong>{{ deleteTarget?.name }}</strong
+                    >?
                 </p>
+                <p class="text-sm text-surface-500 mt-2">This action is only allowed when the class has no membership history. The deletion is recorded in the audit log.</p>
                 <p v-if="deleteError" class="text-red-500 text-sm mt-2">{{ deleteError }}</p>
             </div>
         </div>
         <template #footer>
-            <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="deleteSaving"
-                @click="deleteDialog = false" />
-            <Button label="Delete" icon="pi pi-trash" severity="danger" :loading="deleteSaving" :disabled="deleteSaving"
-                @click="confirmDelete" />
+            <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="deleteSaving" @click="deleteDialog = false" />
+            <Button label="Delete" icon="pi pi-trash" severity="danger" :loading="deleteSaving" :disabled="deleteSaving" @click="confirmDelete" />
         </template>
     </Dialog>
 </template>

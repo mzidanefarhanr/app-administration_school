@@ -146,17 +146,19 @@ const loadAssets = async () => {
     const assets = ['logo'];
     if (canManageSignatory.value) assets.push('signature', 'stamp');
 
-    await Promise.all(assets.map(async (asset) => {
-        if (!available[`${asset}_available`]) return;
+    await Promise.all(
+        assets.map(async (asset) => {
+            if (!available[`${asset}_available`]) return;
 
-        try {
-            const response = await apiLogin.get(`/api/letters/settings/assets/${asset}`, { responseType: 'blob' });
-            const type = response.headers?.['content-type'] || 'image/png';
-            assetUrls[asset] = URL.createObjectURL(new Blob([response.data], { type }));
-        } catch {
-            assetUrls[asset] = '';
-        }
-    }));
+            try {
+                const response = await apiLogin.get(`/api/letters/settings/assets/${asset}`, { responseType: 'blob' });
+                const type = response.headers?.['content-type'] || 'image/png';
+                assetUrls[asset] = URL.createObjectURL(new Blob([response.data], { type }));
+            } catch {
+                assetUrls[asset] = '';
+            }
+        })
+    );
 };
 
 const load = async () => {
@@ -420,7 +422,12 @@ onBeforeUnmount(() => {
                             <div class="border border-surface-200 dark:border-surface-700 rounded p-3 flex flex-col gap-3">
                                 <div class="font-medium">Logo</div>
                                 <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-                                    <img v-if="filePreviews.logo || (assetUrls.logo && !headerRemoveLogo)" :src="filePreviews.logo || assetUrls.logo" alt="School logo preview" class="h-16 w-16 object-contain rounded border border-surface-200 dark:border-surface-700 bg-white p-1" />
+                                    <img
+                                        v-if="filePreviews.logo || (assetUrls.logo && !headerRemoveLogo)"
+                                        :src="filePreviews.logo || assetUrls.logo"
+                                        alt="School logo preview"
+                                        class="h-16 w-16 object-contain rounded border border-surface-200 dark:border-surface-700 bg-white p-1"
+                                    />
                                     <span v-else class="text-sm text-surface-500">No logo uploaded.</span>
                                     <div class="flex flex-col gap-2">
                                         <input ref="headerLogoInput" type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg" class="block w-full text-sm" aria-label="Choose a school logo" @change="onLogoSelected" />
@@ -444,11 +451,26 @@ onBeforeUnmount(() => {
 
                         <div v-else class="flex flex-col gap-3 text-sm">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div><div class="text-surface-500">Government line</div><div class="font-medium break-words">{{ settings?.government_line || '-' }}</div></div>
-                                <div><div class="text-surface-500">School name</div><div class="font-medium break-words">{{ settings?.school_name || '-' }}</div></div>
-                                <div class="md:col-span-2"><div class="text-surface-500">Address</div><div class="font-medium break-words">{{ settings?.address_line || '-' }}</div></div>
-                                <div><div class="text-surface-500">Contact line</div><div class="font-medium break-words">{{ settings?.contact_line || '-' }}</div></div>
-                                <div><div class="text-surface-500">Place of issue</div><div class="font-medium">{{ settings?.place_of_issue || '-' }}</div></div>
+                                <div>
+                                    <div class="text-surface-500">Government line</div>
+                                    <div class="font-medium break-words">{{ settings?.government_line || '-' }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-surface-500">School name</div>
+                                    <div class="font-medium break-words">{{ settings?.school_name || '-' }}</div>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <div class="text-surface-500">Address</div>
+                                    <div class="font-medium break-words">{{ settings?.address_line || '-' }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-surface-500">Contact line</div>
+                                    <div class="font-medium break-words">{{ settings?.contact_line || '-' }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-surface-500">Place of issue</div>
+                                    <div class="font-medium">{{ settings?.place_of_issue || '-' }}</div>
+                                </div>
                             </div>
                             <div class="flex items-center gap-3">
                                 <img v-if="assetUrls.logo" :src="assetUrls.logo" alt="School logo" class="h-16 w-16 object-contain rounded border border-surface-200 dark:border-surface-700 bg-white p-1" />
@@ -495,7 +517,12 @@ onBeforeUnmount(() => {
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="border border-surface-200 dark:border-surface-700 rounded p-3 flex flex-col gap-3">
                                 <div class="font-medium">Signature image <span class="text-red-500">*</span></div>
-                                <img v-if="filePreviews.signature || assetUrls.signature" :src="filePreviews.signature || assetUrls.signature" alt="Signature preview" class="h-20 max-w-full object-contain rounded border border-surface-200 dark:border-surface-700 bg-white p-1" />
+                                <img
+                                    v-if="filePreviews.signature || assetUrls.signature"
+                                    :src="filePreviews.signature || assetUrls.signature"
+                                    alt="Signature preview"
+                                    class="h-20 max-w-full object-contain rounded border border-surface-200 dark:border-surface-700 bg-white p-1"
+                                />
                                 <span v-else class="text-sm text-surface-500">No signature uploaded yet.</span>
                                 <input ref="signatureInput" type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg" class="block w-full text-sm" aria-label="Choose a signature image" @change="onSignatureSelected" />
                                 <small v-if="settings?.signature_available" class="text-surface-500">Uploading a new image replaces the current signature.</small>
@@ -504,7 +531,12 @@ onBeforeUnmount(() => {
 
                             <div class="border border-surface-200 dark:border-surface-700 rounded p-3 flex flex-col gap-3">
                                 <div class="font-medium">Stamp</div>
-                                <img v-if="filePreviews.stamp || (assetUrls.stamp && !stampRemove)" :src="filePreviews.stamp || assetUrls.stamp" alt="Stamp preview" class="h-20 max-w-full object-contain rounded border border-surface-200 dark:border-surface-700 bg-white p-1" />
+                                <img
+                                    v-if="filePreviews.stamp || (assetUrls.stamp && !stampRemove)"
+                                    :src="filePreviews.stamp || assetUrls.stamp"
+                                    alt="Stamp preview"
+                                    class="h-20 max-w-full object-contain rounded border border-surface-200 dark:border-surface-700 bg-white p-1"
+                                />
                                 <span v-else class="text-sm text-surface-500">No stamp uploaded.</span>
                                 <input ref="stampInput" type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg" class="block w-full text-sm" aria-label="Choose a stamp image" @change="onStampSelected" />
                                 <div v-if="settings?.stamp_available" class="flex items-center gap-2">
@@ -526,9 +558,18 @@ onBeforeUnmount(() => {
 
                     <div v-else class="flex flex-col gap-3 text-sm">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div><div class="text-surface-500">Name</div><div class="font-medium break-words">{{ settings?.signatory_name || '-' }}</div></div>
-                            <div><div class="text-surface-500">Title</div><div class="font-medium break-words">{{ settings?.signatory_title || '-' }}</div></div>
-                            <div><div class="text-surface-500">{{ settings?.signatory_identifier_label || 'Identifier' }}</div><div class="font-medium break-words">{{ settings?.signatory_identifier || '-' }}</div></div>
+                            <div>
+                                <div class="text-surface-500">Name</div>
+                                <div class="font-medium break-words">{{ settings?.signatory_name || '-' }}</div>
+                            </div>
+                            <div>
+                                <div class="text-surface-500">Title</div>
+                                <div class="font-medium break-words">{{ settings?.signatory_title || '-' }}</div>
+                            </div>
+                            <div>
+                                <div class="text-surface-500">{{ settings?.signatory_identifier_label || 'Identifier' }}</div>
+                                <div class="font-medium break-words">{{ settings?.signatory_identifier || '-' }}</div>
+                            </div>
                             <div>
                                 <div class="text-surface-500">Signature</div>
                                 <div class="font-medium">{{ settings?.signature_available ? 'On file' : 'Not available' }}</div>
@@ -542,9 +583,7 @@ onBeforeUnmount(() => {
                     </div>
                 </div>
 
-                <div v-if="settings?.updated_by" class="mt-4 text-xs text-surface-500">
-                    Last updated by {{ settings.updated_by.name }} on {{ settings.updated_at ? new Date(settings.updated_at).toLocaleString('en-GB') : '-' }}.
-                </div>
+                <div v-if="settings?.updated_by" class="mt-4 text-xs text-surface-500">Last updated by {{ settings.updated_by.name }} on {{ settings.updated_at ? new Date(settings.updated_at).toLocaleString('en-GB') : '-' }}.</div>
             </template>
         </div>
     </Fluid>

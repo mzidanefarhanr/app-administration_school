@@ -14,279 +14,183 @@ const router = createRouter({
                 {
                     path: '/',
                     name: 'dashboard',
+                    meta: { breadcrumb: 'Dasbor' },
                     component: () => import('@/views/Dashboard.vue')
                 },
                 {
                     path: '/public/schoolprofile',
                     name: 'schoolprofile',
-                    meta: { breadcrumb: 'School Profile' },
+                    meta: { breadcrumb: 'Profil Sekolah' },
                     component: () => import('@/views/pages/public/SchoolProfile.vue')
                 },
                 {
                     path: '/public/tasks',
                     name: 'tasks',
-                    meta: { breadcrumb: 'Tasks & Reminders', requiresAbility: 'tasks.view' },
+                    meta: { breadcrumb: 'Pusat Tugas & Pengingat', requiresAbility: 'tasks.view' },
                     component: () => import('@/views/tasks/TasksView.vue')
                 },
                 {
                     path: '/public/educationlevels',
                     name: 'educationLevels',
-                    meta: { breadcrumb: 'Education Levels', requiresAbility: 'master.view' },
+                    meta: { breadcrumb: 'Jenjang Pendidikan', requiresAbility: 'master.view' },
                     component: () => import('@/views/pages/public/EducationLevels.vue')
                 },
                 {
                     path: '/public/educationschools',
                     name: 'educationSchools',
-                    meta: { breadcrumb: 'Education Schools', requiresAbility: 'master.view' },
+                    meta: { breadcrumb: 'Sekolah', requiresAbility: 'master.view' },
                     component: () => import('@/views/pages/public/EducationSchools.vue')
                 },
                 {
                     path: '/public/phasestatuses',
                     name: 'phasestatuses',
-                    meta: { breadcrumb: 'Phase Status', requiresAbility: 'master.view' },
+                    meta: { breadcrumb: 'Status Fase', requiresAbility: 'master.view' },
                     component: () => import('@/views/pages/public/PhaseStatus.vue')
                 },
                 {
                     path: '/public/professions',
                     name: 'professions',
-                    meta: { breadcrumb: 'Profession', requiresAbility: 'master.view' },
+                    meta: { breadcrumb: 'Profesi', requiresAbility: 'master.view' },
                     component: () => import('@/views/pages/public/Profession.vue')
                 },
                 {
                     path: '/public/schoolyears',
                     name: 'schoolyears',
-                    meta: { breadcrumb: 'School Years', requiresAbility: 'master.view' },
+                    meta: { breadcrumb: 'Tahun Ajaran', requiresAbility: 'master.view' },
                     component: () => import('@/views/pages/public/SchoolYears.vue')
                 },
                 {
                     path: '/public/schoolrombels',
                     name: 'schoolrombels',
-                    meta: { breadcrumb: 'Classes', requiresAbility: 'students.view' },
+                    meta: { breadcrumb: 'Rombongan Belajar', requiresAbility: 'students.view' },
                     component: () => import('@/views/pages/public/SchoolRombels.vue')
                 },
                 {
                     path: '/public/progression',
                     name: 'progression',
-                    meta: { breadcrumb: 'Progression', requiresAbility: 'students.view' },
+                    meta: { breadcrumb: 'Kenaikan & Kelulusan', requiresAbility: 'students.view' },
                     component: () => import('@/views/pages/public/StudentProgression.vue')
                 },
                 {
                     path: '/public/studentmajors',
                     name: 'studentmajors',
-                    meta: { breadcrumb: 'Student Majors', requiresAbility: 'master.view' },
+                    meta: { breadcrumb: 'Jurusan Siswa', requiresAbility: 'master.view' },
                     component: () => import('@/views/pages/public/StudentMajors.vue')
                 },
                 {
                     path: '/public/students',
                     name: 'students',
-                    meta: { breadcrumb: 'Students', requiresAbility: 'students.view' },
+                    meta: { breadcrumb: 'Data Siswa', requiresAbility: 'students.view' },
                     component: () => import('@/views/pages/public/Student.vue')
                 },
                 {
                     path: '/public/letters/incoming',
                     name: 'incomingLetters',
-                    meta: { breadcrumb: 'Incoming Letters', requiresAbility: 'letters.view' },
+                    meta: { breadcrumb: 'Surat Masuk', requiresAbility: 'letters.view' },
                     component: () => import('@/views/pages/public/IncomingLetters.vue')
                 },
                 {
                     path: '/public/letters/outgoing',
                     name: 'outgoingLetters',
-                    meta: { breadcrumb: 'Outgoing Letters', requiresAbility: 'letters.view' },
+                    meta: { breadcrumb: 'Surat Keluar', requiresAbility: 'letters.view' },
                     component: () => import('@/views/pages/public/OutgoingLetters.vue')
                 },
                 {
                     path: '/public/letters/settings',
                     name: 'letterSettings',
-                    meta: { breadcrumb: 'Letter Settings', requiresAbility: 'letters.view' },
+                    meta: { breadcrumb: 'Pengaturan Surat', requiresAbility: 'letters.view' },
                     component: () => import('@/views/pages/public/LetterSettings.vue')
                 },
                 {
                     path: '/public/letters/dispositions',
                     name: 'letterDispositions',
-                    meta: { breadcrumb: 'Letter Dispositions', requiresAbility: 'letters.view' },
+                    meta: { breadcrumb: 'Disposisi Surat', requiresAbility: 'letters.view' },
                     component: () => import('@/views/pages/public/LetterDispositions.vue')
                 },
                 {
                     path: '/public/leaves',
                     name: 'leaves',
-                    meta: { breadcrumb: 'Leaves', requiresAbility: ['leaves.view', 'leaves.request'] },
+                    meta: { breadcrumb: 'Pengajuan Izin & Cuti', requiresAbility: ['leaves.view', 'leaves.request'] },
                     component: () => import('@/views/pages/public/Leaves.vue')
                 },
                 {
                     path: '/public/archives',
                     name: 'archives',
-                    meta: { breadcrumb: 'Archives', requiresAbility: 'archives.view' },
+                    meta: { breadcrumb: 'Repositori Arsip', requiresAbility: 'archives.view' },
                     component: () => import('@/views/pages/public/Archives.vue')
                 },
                 {
                     path: '/public/teaching/schedules',
                     alias: '/teaching/schedules',
                     name: 'teachingSchedules',
-                    meta: { breadcrumb: 'Assignments & Timetable', requiresAbility: 'teaching.view' },
+                    meta: { breadcrumb: 'Penugasan & Jadwal', requiresAbility: 'teaching.view' },
                     component: () => import('@/views/teaching/TeachingSchedulesView.vue')
                 },
                 {
                     path: '/public/teaching/journals',
                     alias: '/teaching/journals',
                     name: 'teachingJournals',
-                    meta: { breadcrumb: 'Sessions & Journals', requiresAbility: 'teaching.view' },
+                    meta: { breadcrumb: 'Jurnal Mengajar', requiresAbility: 'teaching.view' },
                     component: () => import('@/views/teaching/TeachingJournalsView.vue')
                 },
                 {
                     path: '/public/teaching/reports',
                     alias: '/teaching/reports',
                     name: 'teachingReports',
-                    meta: { breadcrumb: 'Journal Reports', requiresAbility: 'teaching.view' },
+                    meta: { breadcrumb: 'Laporan Kepatuhan Jurnal', requiresAbility: 'teaching.view' },
                     component: () => import('@/views/teaching/TeachingReportsView.vue')
                 },
                 {
                     path: '/public/data-quality',
                     name: 'dataquality',
-                    meta: { breadcrumb: 'Data Quality', requiresAbility: ['students.view', 'employees.view'] },
+                    meta: { breadcrumb: 'Kualitas Data', requiresAbility: ['students.view', 'employees.view'] },
                     component: () => import('@/views/pages/public/DataQuality.vue')
                 },
                 {
                     path: '/public/reports/school',
                     name: 'schoolReports',
-                    meta: { breadcrumb: 'School Reports', requiresAbility: 'students.view' },
+                    meta: { breadcrumb: 'Laporan Sekolah', requiresAbility: 'students.view' },
                     component: () => import('@/views/reports/SchoolReportsView.vue')
                 },
                 {
                     path: '/public/teachers',
                     name: 'teachers',
-                    meta: { breadcrumb: 'Teachers', requiresAbility: 'employees.view' },
+                    meta: { breadcrumb: 'Direktori Guru', requiresAbility: 'employees.view' },
                     props: { employeeTypeName: 'Pendidik' },
                     component: () => import('@/views/pages/public/EmployeeDirectory.vue')
                 },
                 {
                     path: '/public/employees',
                     name: 'employees',
-                    meta: { breadcrumb: 'Employees', requiresAbility: 'employees.view' },
+                    meta: { breadcrumb: 'Direktori Pegawai', requiresAbility: 'employees.view' },
                     props: { employeeTypeName: 'Tenaga Kependidikan' },
                     component: () => import('@/views/pages/public/EmployeeDirectory.vue')
                 },
                 {
                     path: '/profile/user',
                     name: 'profileUser',
-                    meta: { breadcrumb: 'Profile' },
+                    meta: { breadcrumb: 'Profil Pengguna' },
                     component: () => import('@/views/pages/auth/Profile.vue')
                 },
                 {
                     path: '/master/accounts',
                     name: 'masteraccounts',
-                    meta: { breadcrumb: 'Accounts', requiresAbility: 'users.view' },
+                    meta: { breadcrumb: 'Manajemen Pengguna', requiresAbility: 'users.view' },
                     component: () => import('@/views/pages/master/Accounts.vue')
                 },
                 {
                     path: '/master/typeusers',
                     name: 'mastertypeusers',
-                    meta: { breadcrumb: 'Type Users', requiresAbility: 'master.manage' },
+                    meta: { breadcrumb: 'Tipe Pengguna', requiresAbility: 'master.manage' },
                     component: () => import('@/views/pages/master/TypeUsers.vue')
                 },
                 {
                     path: '/master/roles',
                     name: 'masterroles',
-                    meta: { breadcrumb: 'Roles & Abilities', requiresAbility: 'roles.view' },
+                    meta: { breadcrumb: 'Peran & Hak Akses', requiresAbility: 'roles.view' },
                     component: () => import('@/views/pages/master/Roles.vue')
-                },
-                {
-                    path: '/uikit/formlayout',
-                    name: 'formlayout',
-                    component: () => import('@/views/uikit/FormLayout.vue')
-                },
-                {
-                    path: '/uikit/input',
-                    name: 'input',
-                    component: () => import('@/views/uikit/InputDoc.vue')
-                },
-                {
-                    path: '/uikit/button',
-                    name: 'button',
-                    component: () => import('@/views/uikit/ButtonDoc.vue')
-                },
-                {
-                    path: '/uikit/table',
-                    name: 'table',
-                    component: () => import('@/views/uikit/TableDoc.vue')
-                },
-                {
-                    path: '/uikit/list',
-                    name: 'list',
-                    component: () => import('@/views/uikit/ListDoc.vue')
-                },
-                {
-                    path: '/uikit/tree',
-                    name: 'tree',
-                    component: () => import('@/views/uikit/TreeDoc.vue')
-                },
-                {
-                    path: '/uikit/panel',
-                    name: 'panel',
-                    component: () => import('@/views/uikit/PanelsDoc.vue')
-                },
-
-                {
-                    path: '/uikit/overlay',
-                    name: 'overlay',
-                    component: () => import('@/views/uikit/OverlayDoc.vue')
-                },
-                {
-                    path: '/uikit/media',
-                    name: 'media',
-                    component: () => import('@/views/uikit/MediaDoc.vue')
-                },
-                {
-                    path: '/uikit/message',
-                    name: 'message',
-                    component: () => import('@/views/uikit/MessagesDoc.vue')
-                },
-                {
-                    path: '/uikit/file',
-                    name: 'file',
-                    component: () => import('@/views/uikit/FileDoc.vue')
-                },
-                {
-                    path: '/uikit/menu',
-                    name: 'menu',
-                    component: () => import('@/views/uikit/MenuDoc.vue')
-                },
-                {
-                    path: '/uikit/charts',
-                    name: 'charts',
-                    component: () => import('@/views/uikit/ChartDoc.vue')
-                },
-                {
-                    path: '/uikit/misc',
-                    name: 'misc',
-                    component: () => import('@/views/uikit/MiscDoc.vue')
-                },
-                {
-                    path: '/uikit/timeline',
-                    name: 'timeline',
-                    component: () => import('@/views/uikit/TimelineDoc.vue')
-                },
-                {
-                    path: '/pages/empty',
-                    name: 'empty',
-                    component: () => import('@/views/pages/Empty.vue')
-                },
-                {
-                    path: '/pages/crud',
-                    name: 'crud',
-                    component: () => import('@/views/pages/Crud.vue')
-                },
-                {
-                    path: '/documentation',
-                    name: 'documentation',
-                    component: () => import('@/views/pages/Documentation.vue')
                 }
             ]
-        },
-        {
-            path: '/landing',
-            name: 'landing',
-            meta: { public: true },
-            component: () => import('@/views/pages/Landing.vue')
         },
         {
             path: '/pages/notfound',
@@ -294,7 +198,6 @@ const router = createRouter({
             meta: { public: true },
             component: () => import('@/views/pages/NotFound.vue')
         },
-
         {
             path: '/auth/login',
             name: 'login',

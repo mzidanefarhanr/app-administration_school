@@ -207,7 +207,7 @@ onMounted(() => {
         <Dialog v-model:visible="visibleStaticBackdropWaiting" modal :header="titleWaiting">
             <div class="text-center justify-content-center align-items-center">
                 <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: green"></i>
-                <p class="text-success mt-3" style="font-size: 1.1rem; font-weight: 500;">
+                <p class="text-success mt-3" style="font-size: 1.1rem; font-weight: 500">
                     {{ fieldWaiting }}
                 </p>
             </div>

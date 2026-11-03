@@ -1,6 +1,23 @@
 # Konteks proyek
 
-## Current addendum — 2026-11-03 (Subfase 12b IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18; DEC-46 IMPLEMENTED; Rencana Subfase 12c DISUSUN — DEC-47 PROPOSED)
+## Current addendum — 2026-11-03 (Subfase 12c IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18; DEC-47 IMPLEMENTED; FASE 12 SELESAI LENGKAP)
+
+Subfase **12c — Konsistensi Antarmenu, Form/Dialog, dan Penghapusan Menu Demo** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`7d9cd3e`** (dokumentasi persetujuan rencana `DEC-47 APPROVED`). Disampaikan:
+- **Pembersihan Demo & UI/UX Standardization:**
+  1. Pembersihan total menu demo template Sakai dari `AppMenu.vue` (`UI Components`, `Pages`, `Hierarchy`, `Get Started`) dan rute demo tidak terpakai di `router/index.js`.
+  2. Standardisasi 10 kelompok navigasi sidebar ke dalam bahasa Indonesia baku dan penyelarasan seluruh breadcrumbs router.
+  3. Formatter visual terpusat `vue-app/src/utils/formatters.js` (formatDate, formatTime, formatDateTime, formatNumber, formatPercentage, emptyPlaceholder).
+  4. Aturan styling global: `:focus-visible` A11y focus rings, media query 576px untuk tabel responsif & dialog 95vw, serta kontras tinggi pada mode gelap `.app-dark`.
+- **Verifikasi & Kualitas:**
+  - ESLint: PASS (0 errors, 0 warnings).
+  - Vite build: PASS (built in 33.63s, reduksi ke 666 modul).
+  - Laravel Pint: PASS (0 issues).
+  - UAT probe: `scripts/phase10-uat.php probe-ui-consistency` 5/5 probes PASS.
+  - Server UAT port 18028 dan 14028 bebas per DEC-27 (`PORTS_18028_14028_FREE`).
+  - MariaDB operasional port 3306 dan Apache port 80/443 tidak disentuh.
+- **Status:** Menunggu review manual pemilik checklist #1–#18 di `reports/feature-update/PHASE-12C-MANUAL-REVIEW.md`.
+
+## Previous addendum — 2026-11-03 (Subfase 12b IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18; DEC-46 IMPLEMENTED; Rencana Subfase 12c DISUSUN — DEC-47 PROPOSED)
 
 Subfase **12b — Background Jobs, Queue Resilience, Observability dan Error Handling** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas main @ baseline **2df2de** (dokumentasi persetujuan rencana DEC-46 APPROVED). Disampaikan:
 - **Backend Migrations, Models, Services & Error Hardening:**

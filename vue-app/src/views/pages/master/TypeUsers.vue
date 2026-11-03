@@ -5,10 +5,10 @@ import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 import { useResourceManager } from '@/utils/useResourceManager';
 
 // ── Local refs (tidak ada di composable) ──────────────────────────────────
-const dt              = ref();
-const filters         = ref();
+const dt = ref();
+const filters = ref();
 const length_rows_pick = ref(10);
-const length_rows      = ref([10, 25, 50, 100]);
+const length_rows = ref([10, 25, 50, 100]);
 
 // ── Composable — semua state & method CRUD diambil dari sini ──────────────
 const {
@@ -37,16 +37,16 @@ const {
     confirmDeleteSingleData,
     deleteSingleData,
     confirmDeleteSelected,
-    deleteSelectedManyDatas,
+    deleteSelectedManyDatas
 } = useResourceManager({
-    endpoint:        'type-users',
-    menuLabel:       'Type User',
+    endpoint: 'type-users',
+    menuLabel: 'Type User',
     menuLabelPlural: 'Type Users',
     fieldLabels: {
-        name:               'Name',
+        name: 'Name'
     },
-    uniqueFields:     ['name'],
-    uniqueMinLengths: [3],
+    uniqueFields: ['name'],
+    uniqueMinLengths: [3]
 });
 
 // ── Filter ────────────────────────────────────────────────────────────────
@@ -54,8 +54,8 @@ const clearFilter = () => initFilters();
 
 const initFilters = () => {
     filters.value = {
-        global:              { value: null, matchMode: FilterMatchMode.CONTAINS },
-        'name':              { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        name: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] }
     };
 };
 
@@ -82,7 +82,6 @@ onMounted(() => {
 <template>
     <Fluid>
         <div class="bg-surface-0 dark:bg-surface-950 px-6 py-8 md:px-12 lg:px-20">
-
             <div class="flex items-start flex-col md:justify-between md:flex-row">
                 <div>
                     <div class="font-bold text-3xl text-surface-900 dark:text-surface-0 mb-4">{{ entityLabelPlural }}</div>
@@ -103,30 +102,27 @@ onMounted(() => {
                 </Toolbar>
 
                 <DataTable
-                ref="dt"
-                v-model:selection="selectedManyDatas"
-                v-model:filters="filters"
-                :value="manyDatas"
-                paginator
-                showGridlines
-                :rows="length_rows_pick"
-                dataKey="id"
-                filterDisplay="menu"
-                :loading="loading"
-                :globalFilterFields="['name']"
-                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
+                    ref="dt"
+                    v-model:selection="selectedManyDatas"
+                    v-model:filters="filters"
+                    :value="manyDatas"
+                    paginator
+                    showGridlines
+                    :rows="length_rows_pick"
+                    dataKey="id"
+                    filterDisplay="menu"
+                    :loading="loading"
+                    :globalFilterFields="['name']"
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
                 >
                     <template #header>
                         <div class="mb-3 flex flex-col md:flex-row gap-4">
-                            <div class="flex flex-wrap gap-2 w-full">
-                                Total {{ entityLabelPlural }}: {{ manyDatas ? manyDatas.length : "Loading" }}
-                            </div>
+                            <div class="flex flex-wrap gap-2 w-full">Total {{ entityLabelPlural }}: {{ manyDatas ? manyDatas.length : 'Loading' }}</div>
                         </div>
                         <div class="flex flex-col md:flex-row gap-2 items-end">
                             <div class="flex flex-wrap gap-2">
-                                <Select v-model="length_rows_pick" :options="length_rows" placeholder="Select">
-                                </Select>
+                                <Select v-model="length_rows_pick" :options="length_rows" placeholder="Select"> </Select>
                             </div>
                             <div class="flex flex-wrap gap-2">
                                 <Button type="button" icon="pi pi-filter-slash" label="Clear" variant="outlined" @click="clearFilter()" />
@@ -166,15 +162,10 @@ onMounted(() => {
                             <Button icon="pi pi-trash" variant="outlined" rounded severity="danger" @click="confirmDeleteSingleData(slotProps.data)" />
                         </template>
                     </Column>
-
                 </DataTable>
-
             </div>
         </div>
-
-
     </Fluid>
-
 
     <!-- Confirm Delete Dialog -->
     <Dialog v-model:visible="deleteDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
@@ -202,7 +193,7 @@ onMounted(() => {
         </template>
     </Dialog>
     <!-- Confirm Edit Dialog -->
-    <Dialog v-model:visible="EditOrNewDialog" :style="{ width: '450px' }" :header="entityLabel+' Details'" :modal="true">
+    <Dialog v-model:visible="EditOrNewDialog" :style="{ width: '450px' }" :header="entityLabel + ' Details'" :modal="true">
         <div class="flex flex-col gap-6">
             <div>
                 <label for="name" class="block font-bold mb-3">Name</label>
@@ -212,7 +203,6 @@ onMounted(() => {
                 <small v-else-if="singleData.name && singleData.name === previousData.name" class="text-blue-500">Current Name (no changes).</small>
                 <small v-else-if="isCat1Used" class="text-red-500">This name is already taken.</small>
                 <small v-else-if="singleData.name && singleData.name.trim().length > 3" class="text-green-500">Name is available!</small>
-
             </div>
         </div>
 
@@ -225,16 +215,13 @@ onMounted(() => {
     <Dialog v-model:visible="WaitingDialog" modal header="Processing Request">
         <div class="text-center justify-content-center align-items-center">
             <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: green"></i>
-            <p class="text-success mt-3" style="font-size: 1.1rem; font-weight: 500;">
-            Please wait, your data is being processed...
-        </p>
+            <p class="text-success mt-3" style="font-size: 1.1rem; font-weight: 500">Please wait, your data is being processed...</p>
         </div>
     </Dialog>
     <!-- Error Dialog -->
-    <Dialog v-model:visible="ErrorDialog" modal :header="titleError" style=" width: 25rem; color: red;">
-        <div style="color: black;">
+    <Dialog v-model:visible="ErrorDialog" modal :header="titleError" style="width: 25rem; color: red">
+        <div style="color: black">
             {{ fieldError }}
         </div>
     </Dialog>
-
 </template>

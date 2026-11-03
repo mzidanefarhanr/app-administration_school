@@ -1,4 +1,4 @@
-import { ref, watch, computed } from 'vue';
+import { ref, computed } from 'vue';
 
 export function useUniqueValidation(sourceArray, oldData, fieldName) {
     const isAlreadyUsed = ref(false);
@@ -6,10 +6,8 @@ export function useUniqueValidation(sourceArray, oldData, fieldName) {
 
     // Menyiapkan Set data yang sudah ada (kecuali data yang sedang diedit)
     const existingSet = computed(() => {
-        const filtered = sourceArray.value.filter(
-            item => Number(item.id) !== Number(oldData.value?.id)
-        );
-        return new Set(filtered.map(item => item[fieldName]?.toString().toLowerCase().trim()));
+        const filtered = sourceArray.value.filter((item) => Number(item.id) !== Number(oldData.value?.id));
+        return new Set(filtered.map((item) => item[fieldName]?.toString().toLowerCase().trim()));
     });
 
     const validate = (value) => {

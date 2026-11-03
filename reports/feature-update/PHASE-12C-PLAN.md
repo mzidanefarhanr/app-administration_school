@@ -4,10 +4,11 @@
 
 - **Subfase:** 12c — Konsistensi Antarmenu, Form/Dialog, dan Penghapusan Menu Demo (*UI/UX Consistency, Sakai Demo Cleanup, Bahasa Indonesia Standardization, Theme Polish & A11y/Mobile Verification*).
 - **Milestone Induk:** Fase 12 — Performa, Observability dan Konsistensi.
-- **Usulan Keputusan Arsitektur:** **DEC-47 PROPOSED (D1–D10)**.
-- **Baseline Kode:** `main` pada commit setelah penyelesaian Subfase 12b (*Job, Observability & Error Resilience*).
-- **Status Rencana:** **PLAN — AWAITING OWNER APPROVAL (D1–D10)**.
-- **Status Implementasi:** **NOT STARTED** (menunggu persetujuan tertulis pemilik terhadap usulan keputusan D1–D10).
+- **Usulan Keputusan Arsitektur:** **DEC-47 APPROVED (D1–D10)** pada 2026-11-03 WIB.
+- **Baseline Kode:** `main` pada commit [`7d9cd3e`](https://github.com/mzidanefarhanr/app-administration_school/commit/7d9cd3e) setelah penyelesaian Subfase 12b (*Job, Observability & Error Resilience*).
+- **Status Rencana:** **PLAN — APPROVED (DEC-47: D1–D10)** berdasarkan instruksi tertulis pemilik: *"Saya setuju D1-D10"*.
+- **Status Implementasi:** **IMPLEMENTED & DIVERIFIKASI AGEN (2026-11-03)**.
+- **Status Review Pemilik:** **AWAITING OWNER REVIEW (#1–#18)** (Panduan review: [`PHASE-12C-MANUAL-REVIEW.md`](./PHASE-12C-MANUAL-REVIEW.md); Laporan lengkap: [`PHASE-12C-REPORT.md`](./PHASE-12C-REPORT.md)).
 
 ---
 

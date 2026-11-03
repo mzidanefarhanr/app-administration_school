@@ -100,15 +100,8 @@ let lastDateFilterKey = '|';
 
 const categoryOptions = computed(() => (options.value?.categories ?? []).map((category) => ({ label: category, value: category })));
 const typedLetterTypes = computed(() => options.value?.letter_types ?? []);
-const letterTypeOptions = computed(() => [
-    { label: 'General Letter', value: 'general' },
-    ...typedLetterTypes.value.map((type) => ({ label: type.label, value: type.value, subject_type: type.subject_type }))
-]);
-const typeFilterOptions = computed(() => [
-    { label: 'All types', value: 'all' },
-    { label: 'General Letter', value: 'general' },
-    ...typedLetterTypes.value.map((type) => ({ label: type.label, value: type.value }))
-]);
+const letterTypeOptions = computed(() => [{ label: 'General Letter', value: 'general' }, ...typedLetterTypes.value.map((type) => ({ label: type.label, value: type.value, subject_type: type.subject_type }))]);
+const typeFilterOptions = computed(() => [{ label: 'All types', value: 'all' }, { label: 'General Letter', value: 'general' }, ...typedLetterTypes.value.map((type) => ({ label: type.label, value: type.value }))]);
 const settingsReady = computed(() => options.value?.settings_ready !== false);
 const settingsMissing = computed(() => options.value?.settings_missing ?? []);
 const settingsMissingLabel = computed(() => settingsMissing.value.join(', '));
@@ -311,11 +304,12 @@ const subjectError = ref('');
 let subjectRequestId = 0;
 let subjectSearchTimer = null;
 
-const subjectEndpoint = (letterType) => ({
-    student_active: '/api/letters/outgoing/subjects/students',
-    student_mutation: '/api/letters/outgoing/subjects/student-mutations',
-    employee_duty: '/api/letters/outgoing/subjects/employees'
-}[letterType] ?? null);
+const subjectEndpoint = (letterType) =>
+    ({
+        student_active: '/api/letters/outgoing/subjects/students',
+        student_mutation: '/api/letters/outgoing/subjects/student-mutations',
+        employee_duty: '/api/letters/outgoing/subjects/employees'
+    })[letterType] ?? null;
 
 const mapSubjectItem = (item) => {
     if (form.letterType === 'student_active') {
@@ -430,9 +424,7 @@ const startEdit = async (source) => {
     form.notes = data.notes ?? '';
     form.version = data.version;
     form.letterType = data.letter_type ?? 'general';
-    form.documentSubject = data.document_subject
-        ? { id: data.document_subject.id, label: data.document_subject.label ?? `#${data.document_subject.id}` }
-        : null;
+    form.documentSubject = data.document_subject ? { id: data.document_subject.id, label: data.document_subject.label ?? `#${data.document_subject.id}` } : null;
     form.purpose = data.document_fields?.purpose ?? '';
     form.dutyDescription = data.document_fields?.duty_description ?? '';
     form.dutyStart = isoToDate(data.document_fields?.start_date);
@@ -1162,16 +1154,7 @@ onMounted(async () => {
 
             <div class="flex flex-col gap-2">
                 <label for="outgoingLetterType" class="font-medium">Letter Type</label>
-                <Select
-                    inputId="outgoingLetterType"
-                    v-model="form.letterType"
-                    :options="letterTypeOptions"
-                    optionLabel="label"
-                    optionValue="value"
-                    :disabled="formMode === 'edit'"
-                    fluid
-                    @change="onLetterTypeChange"
-                />
+                <Select inputId="outgoingLetterType" v-model="form.letterType" :options="letterTypeOptions" optionLabel="label" optionValue="value" :disabled="formMode === 'edit'" fluid @change="onLetterTypeChange" />
                 <small v-if="formMode === 'edit'" class="text-surface-500">The letter type and subject cannot be changed after the letter is created.</small>
                 <small v-if="fieldError(formErrors, 'letter_type')" class="text-red-500">{{ fieldError(formErrors, 'letter_type') }}</small>
             </div>
@@ -1350,9 +1333,18 @@ onMounted(async () => {
                         <div class="whitespace-pre-line break-words">{{ detail.document_fields?.duty_description || '-' }}</div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div><div class="text-surface-500">Start date</div><div class="font-medium">{{ formatDate(detail.document_fields?.start_date) }}</div></div>
-                        <div><div class="text-surface-500">End date</div><div class="font-medium">{{ formatDate(detail.document_fields?.end_date) }}</div></div>
-                        <div><div class="text-surface-500">Location</div><div class="font-medium break-words">{{ detail.document_fields?.location || '-' }}</div></div>
+                        <div>
+                            <div class="text-surface-500">Start date</div>
+                            <div class="font-medium">{{ formatDate(detail.document_fields?.start_date) }}</div>
+                        </div>
+                        <div>
+                            <div class="text-surface-500">End date</div>
+                            <div class="font-medium">{{ formatDate(detail.document_fields?.end_date) }}</div>
+                        </div>
+                        <div>
+                            <div class="text-surface-500">Location</div>
+                            <div class="font-medium break-words">{{ detail.document_fields?.location || '-' }}</div>
+                        </div>
                     </div>
                 </template>
                 <div v-else class="text-surface-500">The certificate content follows the selected mutation record. The final layout is fixed when the letter is issued.</div>
@@ -1362,23 +1354,8 @@ onMounted(async () => {
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <div class="font-semibold">Document</div>
                     <div class="flex flex-wrap gap-2">
-                        <Button
-                            v-if="canPreviewDocument(detail)"
-                            label="Preview PDF"
-                            icon="pi pi-eye"
-                            size="small"
-                            variant="outlined"
-                            :loading="documentBusy === 'preview'"
-                            @click="previewDocument(detail)"
-                        />
-                        <Button
-                            v-if="canDownloadDocument(detail)"
-                            label="Download PDF"
-                            icon="pi pi-download"
-                            size="small"
-                            :loading="documentBusy === 'download'"
-                            @click="downloadDocument(detail)"
-                        />
+                        <Button v-if="canPreviewDocument(detail)" label="Preview PDF" icon="pi pi-eye" size="small" variant="outlined" :loading="documentBusy === 'preview'" @click="previewDocument(detail)" />
+                        <Button v-if="canDownloadDocument(detail)" label="Download PDF" icon="pi pi-download" size="small" :loading="documentBusy === 'download'" @click="downloadDocument(detail)" />
                     </div>
                 </div>
 
@@ -1404,9 +1381,7 @@ onMounted(async () => {
                             <div class="font-medium">{{ formatSize(detail.document.size_bytes) }}</div>
                         </div>
                     </div>
-                    <div v-else-if="['draft', 'review', 'approved'].includes(detail.workflow_status)" class="text-sm text-surface-500">
-                        A watermarked preview is available. The final PDF is generated and stored when the letter is issued.
-                    </div>
+                    <div v-else-if="['draft', 'review', 'approved'].includes(detail.workflow_status)" class="text-sm text-surface-500">A watermarked preview is available. The final PDF is generated and stored when the letter is issued.</div>
                     <div v-else class="text-sm text-surface-500">No stored PDF is available for this letter.</div>
                 </template>
             </div>
@@ -1484,24 +1459,11 @@ onMounted(async () => {
         </div>
     </Dialog>
 
-    <Dialog
-        v-model:visible="documentPreviewVisible"
-        modal
-        :draggable="false"
-        :style="{ width: 'min(96vw, 72rem)' }"
-        header="Letter PDF Preview"
-        @hide="closeDocumentPreview"
-    >
+    <Dialog v-model:visible="documentPreviewVisible" modal :draggable="false" :style="{ width: 'min(96vw, 72rem)' }" header="Letter PDF Preview" @hide="closeDocumentPreview">
         <div v-if="documentPreviewLoading" class="flex justify-center py-12">
             <i class="pi pi-spin pi-spinner text-2xl" aria-hidden="true"></i>
         </div>
-        <iframe
-            v-else-if="documentPreviewUrl"
-            :src="documentPreviewUrl"
-            title="Letter PDF preview"
-            class="w-full rounded border border-surface-200 dark:border-surface-700"
-            style="height: 75vh"
-        ></iframe>
+        <iframe v-else-if="documentPreviewUrl" :src="documentPreviewUrl" title="Letter PDF preview" class="w-full rounded border border-surface-200 dark:border-surface-700" style="height: 75vh"></iframe>
         <template #footer>
             <Button label="Close" severity="secondary" variant="text" @click="closeDocumentPreview" />
         </template>

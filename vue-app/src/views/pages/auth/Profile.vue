@@ -2,8 +2,8 @@
 import { ref, reactive, onMounted } from 'vue';
 import Button from 'primevue/button';
 import { authStore } from '@/stores/authStore';
-import { useConfirm } from "primevue/useconfirm";
-import { useToast } from "primevue/usetoast";
+import { useConfirm } from 'primevue/useconfirm';
+import { useToast } from 'primevue/usetoast';
 import apiLogin from '@/apiLogin';
 import gifSuccess from '@/assets/gif/success.gif';
 
@@ -30,7 +30,7 @@ const getDefaultFormData = () => ({
     username: '',
     password_old: '',
     password_new: '',
-    password_new_confirm: '',
+    password_new_confirm: ''
 });
 // const form = ref({
 //     username: '',
@@ -39,7 +39,7 @@ const getDefaultFormData = () => ({
 //     password_new_confirm: '',
 // });
 const form = reactive(getDefaultFormData());
-const _method= "PATCH";
+const _method = 'PATCH';
 
 const visibleStaticBackdropDanger = ref(false);
 const titleDanger = ref('');
@@ -146,45 +146,47 @@ const submitNewPassword = async () => {
                 toast.add({ severity: 'info', summary: 'Cancelled', detail: 'Password change cancelled.', life: 3000 });
             }
         });
-
     }
-}
+};
 //method fetchDataNewPassword
 const fetchDataNewPassword = async () => {
-    await apiLogin.post(`/api/users/${saveUser.value.id}`, {
-        name              : saveUser.value.name,
-        email             : saveUser.value.email,
-        username          : saveUser.value.username,
-        nik               : saveUser.value.nik,
-        password          : form.password_old,
-        password_new      : form.password_new_confirm,
-        type_user_id      : saveUser.value.type_user_id,
-        status_user_id    : saveUser.value.status_user_id,
-        _method: _method,
-    }).then(response => {
-        if (response.data.success === true) {
-            visibleStaticBackdropWaitings();
-            visibleStaticBackdropSuccesss();
-            titleSuccess.value = 'Success';
-            fieldSuccess.value = 'Password changed successfully!';
-            setTimeout(function () {
+    await apiLogin
+        .post(`/api/users/${saveUser.value.id}`, {
+            name: saveUser.value.name,
+            email: saveUser.value.email,
+            username: saveUser.value.username,
+            nik: saveUser.value.nik,
+            password: form.password_old,
+            password_new: form.password_new_confirm,
+            type_user_id: saveUser.value.type_user_id,
+            status_user_id: saveUser.value.status_user_id,
+            _method: _method
+        })
+        .then((response) => {
+            if (response.data.success === true) {
+                visibleStaticBackdropWaitings();
                 visibleStaticBackdropSuccesss();
-                fetchDataUserRole();
-                Object.assign(form, getDefaultFormData());
-            }, 2000);
-        }
-    }).catch(error => {
-        console.error(error);
-        visibleStaticBackdropWaitings();
-        titleDanger.value = 'Failed';
-        if (error.response?.status === 422) {
-            fieldDanger.value = error.response?.data?.message || 'Validation error. Please check your input.';
-        } else {
-            fieldDanger.value = error.response?.data?.message || 'An unexpected error occurred.';
-        }
-        visibleStaticBackdropDangers();
-    });
-}
+                titleSuccess.value = 'Success';
+                fieldSuccess.value = 'Password changed successfully!';
+                setTimeout(function () {
+                    visibleStaticBackdropSuccesss();
+                    fetchDataUserRole();
+                    Object.assign(form, getDefaultFormData());
+                }, 2000);
+            }
+        })
+        .catch((error) => {
+            console.error(error);
+            visibleStaticBackdropWaitings();
+            titleDanger.value = 'Failed';
+            if (error.response?.status === 422) {
+                fieldDanger.value = error.response?.data?.message || 'Validation error. Please check your input.';
+            } else {
+                fieldDanger.value = error.response?.data?.message || 'An unexpected error occurred.';
+            }
+            visibleStaticBackdropDangers();
+        });
+};
 
 onMounted(() => {
     fetchDataUserRole();
@@ -294,7 +296,7 @@ onMounted(() => {
                                 </IconField>
                             </div>
                         </div>
-                        <div style="text-align: right;">
+                        <div style="text-align: right">
                             <Button class="md:w-1/6 flex items-center" type="submit" label="Save" :fluid="false" />
                         </div>
                     </div>
@@ -358,8 +360,8 @@ onMounted(() => {
     </ConfirmDialog>
 
     <!-- <Button label="Danger" @click="visibleStaticBackdropDangers" /> -->
-    <Dialog v-model:visible="visibleStaticBackdropDanger" modal :header="titleDanger" style=" width: 25rem; color: red;">
-        <div style="color: black;">
+    <Dialog v-model:visible="visibleStaticBackdropDanger" modal :header="titleDanger" style="width: 25rem; color: red">
+        <div style="color: black">
             {{ fieldDanger }}
         </div>
     </Dialog>

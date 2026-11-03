@@ -17,6 +17,34 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 12c — Konsistensi antarmenu, form/dialog, dan penghapusan menu demo (DEC-47 IMPLEMENTED; FASE 12 SELESAI LENGKAP)
+- Type: Feature | Chore | Refactor | UX
+- Scope / fase: Fase 12 — Subfase 12c: Konsistensi Antarmenu, Form/Dialog, dan Penghapusan Menu Demo (DEC-47 IMPLEMENTED; FASE 12 SELESAI LENGKAP).
+- Files touched:
+  - `vue-app/src/layout/AppMenu.vue` (pembersihan grup demo Sakai & standardisasi bahasa Indonesia pada 10 grup navigasi)
+  - `vue-app/src/router/index.js` (pembersihan rute demo & sinkronisasi breadcrumb bahasa Indonesia)
+  - `vue-app/src/utils/formatters.js` (formatter terpusat tanggal DD/MM/YYYY, jam WIB, persentase, angka)
+  - `vue-app/src/assets/styles.scss` (styling A11y focus rings, responsivitas mobile 390px, dan kontras dark mode)
+  - `vue-app/src/layout/AppTopbar.vue` & `vue-app/src/views/pages/NotFound.vue` (pembersihan unused imports)
+  - `vue-app/src/utils/useUniqueValidation.js` (pembersihan unused imports)
+  - `vue-app/src/components/dashboard/` (pembersihan 6 file widget demo lama yang tidak terpakai)
+  - `laravel-api/scripts/phase10-uat.php` (handler probe-ui-consistency)
+  - `docs/DECISIONS.md`, `roadmap/phases/PHASE-12-PERFORMANCE.md`, `roadmap/ROADMAP.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+  - `reports/feature-update/PHASE-12C-PLAN.md`, `reports/feature-update/PHASE-12C-REPORT.md`, `reports/feature-update/PHASE-12C-MANUAL-REVIEW.md`.
+- What changed:
+  1. Mengeliminasi seluruh menu demo Sakai (`UI Components`, `Pages`, `Hierarchy`, `Get Started`) dan rute demo (`/uikit/*`, `/pages/crud`, `/landing`, `/documentation`). Reduksi bundle dari 827 modul menjadi 666 modul.
+  2. Menstandarisasi seluruh label navigasi dan breadcrumbs ke bahasa Indonesia baku.
+  3. Memastikan eliminasi pemanggilan dialog native browser (`window.confirm()`, `window.alert()`).
+  4. Menyediakan utilitas formatting terpadu `formatters.js`.
+  5. Menambahkan styling global untuk fokus aksesibilitas (`:focus-visible`), responsivitas ponsel (viewport 390px, dialog 95vw), dan kontras mode gelap.
+- Validation:
+  - `npm run lint`: 0 errors, 0 warnings.
+  - `npm run build`: PASS (built in 33.63s).
+  - `php scripts/phase10-uat.php probe-ui-consistency`: 5/5 PROBES PASSED.
+  - Laravel Pint: PASS (0 issues).
+  - Port isolation: Ports 18028 & 14028 free (DEC-27).
+- Evidence: `reports/feature-update/PHASE-12C-REPORT.md` dan `reports/feature-update/PHASE-12C-MANUAL-REVIEW.md`.
+
 ## [2026-11-03] Fase 12b — Background jobs, queue resilience, observability dan error handling (DEC-46 IMPLEMENTED)
 - Type: Feature | Schema Change | Reliability | Observability
 - Scope / fase: Fase 12 — Subfase 12b: Background Jobs, Queue Resilience, Observability dan Error Handling (DEC-46 IMPLEMENTED).

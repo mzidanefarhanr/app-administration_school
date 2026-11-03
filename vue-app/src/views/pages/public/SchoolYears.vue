@@ -31,14 +31,9 @@ const activeSemester = computed(() => savedPeriod.value?.active?.semester ?? nul
 const periodDirty = computed(() => {
     const currentYearId = activeYear.value?.id ?? 0;
     const currentSemesterId = activeSemester.value?.id ?? 0;
-    return Number(draftYearId.value ?? 0) !== Number(currentYearId)
-        || Number(draftSemesterId.value ?? 0) !== Number(currentSemesterId);
+    return Number(draftYearId.value ?? 0) !== Number(currentYearId) || Number(draftSemesterId.value ?? 0) !== Number(currentSemesterId);
 });
-const canSavePeriod = computed(() => canManage.value
-    && draftYearId.value
-    && draftSemesterId.value
-    && periodDirty.value
-    && !periodSaving.value);
+const canSavePeriod = computed(() => canManage.value && draftYearId.value && draftSemesterId.value && periodDirty.value && !periodSaving.value);
 
 const filteredYears = computed(() => {
     const query = search.value.trim().toLowerCase();
@@ -77,9 +72,7 @@ const notify = (severity, detail, summary = 'School Years') => {
 const validationErrors = (error) => {
     const data = error.response?.data ?? {};
     if (data.errors && typeof data.errors === 'object') return data.errors;
-    const mapped = Object.fromEntries(
-        Object.entries(data).filter(([, value]) => Array.isArray(value)),
-    );
+    const mapped = Object.fromEntries(Object.entries(data).filter(([, value]) => Array.isArray(value)));
     return mapped;
 };
 
@@ -121,9 +114,7 @@ const loadPeriod = async () => {
         periodMessage.value = '';
     } catch (error) {
         savedPeriod.value = null;
-        periodUnavailable.value = error.response?.status === 403
-            ? 'The active academic period is not available for your role.'
-            : errorMessage(error, 'Failed to load the active academic period.');
+        periodUnavailable.value = error.response?.status === 403 ? 'The active academic period is not available for your role.' : errorMessage(error, 'Failed to load the active academic period.');
     }
 };
 
@@ -148,7 +139,7 @@ const savePeriod = async () => {
     if (!draftYearId.value || !draftSemesterId.value) {
         periodErrors.value = {
             active_school_year_id: draftYearId.value ? [] : ['Active school year is required.'],
-            active_semester_id: draftSemesterId.value ? [] : ['Active semester is required.'],
+            active_semester_id: draftSemesterId.value ? [] : ['Active semester is required.']
         };
         return;
     }
@@ -157,7 +148,7 @@ const savePeriod = async () => {
     try {
         const response = await apiLogin.put('/api/academic/period', {
             active_school_year_id: draftYearId.value,
-            active_semester_id: draftSemesterId.value,
+            active_semester_id: draftSemesterId.value
         });
         savedPeriod.value = response.data?.data ?? savedPeriod.value;
         semesters.value = savedPeriod.value?.semesters ?? semesters.value;
@@ -192,7 +183,7 @@ const openEditYear = (year) => {
         id: year.id,
         name: year.name ?? '',
         start_date: dateToInput(year.start_date),
-        end_date: dateToInput(year.end_date),
+        end_date: dateToInput(year.end_date)
     };
     yearDialog.value = true;
 };
@@ -218,9 +209,7 @@ const submitYear = async () => {
     yearSaving.value = true;
     try {
         const payload = { name, start_date: startDate, end_date: endDate };
-        const response = yearEditing.value
-            ? await apiLogin.put(`/api/school-years/${yearForm.value.id}`, payload)
-            : await apiLogin.post('/api/school-years', payload);
+        const response = yearEditing.value ? await apiLogin.put(`/api/school-years/${yearForm.value.id}`, payload) : await apiLogin.post('/api/school-years', payload);
 
         notify('success', response.data?.message ?? 'School year saved.');
         yearDialog.value = false;
@@ -257,10 +246,7 @@ const submitLock = async () => {
     lockSaving.value = true;
     try {
         const response = await apiLogin.post(`/api/school-years/${lockTarget.value.id}/${lockMode.value}`, { reason });
-        notify(
-            'success',
-            response.data?.message ?? (lockMode.value === 'lock' ? 'School year locked.' : 'School year unlocked.'),
-        );
+        notify('success', response.data?.message ?? (lockMode.value === 'lock' ? 'School year locked.' : 'School year unlocked.'));
         lockDialog.value = false;
         await loadAll();
     } catch (error) {
@@ -294,7 +280,7 @@ const confirmDelete = async () => {
     deleteError.value = '';
     try {
         const response = await apiLogin.delete(`/api/school-years/${deleteTarget.value.id}`, {
-            data: { delete: 'true' },
+            data: { delete: 'true' }
         });
         notify('success', response.data?.message ?? 'School year deleted.');
         deleteDialog.value = false;
@@ -319,13 +305,10 @@ onMounted(async () => {
             <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div>
                     <div class="font-bold text-3xl text-surface-900 dark:text-surface-0 mb-2">School Years</div>
-                    <p class="text-surface-500 dark:text-surface-400">
-                        Academic periods, start and end dates, and per-year locks.
-                    </p>
+                    <p class="text-surface-500 dark:text-surface-400">Academic periods, start and end dates, and per-year locks.</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
-                    <Tag v-if="activeYear" severity="success"
-                        :value="`Active: ${activeYear.name}${activeSemester ? ' · ' + activeSemester.name : ''}`" />
+                    <Tag v-if="activeYear" severity="success" :value="`Active: ${activeYear.name}${activeSemester ? ' · ' + activeSemester.name : ''}`" />
                     <Tag v-else value="No active period" severity="warn" />
                     <Tag v-if="activeYear?.is_locked" value="Active year locked" severity="danger" />
                 </div>
@@ -334,9 +317,7 @@ onMounted(async () => {
             <div class="card mt-6 flex flex-col gap-4">
                 <div>
                     <div class="font-semibold text-xl text-surface-900 dark:text-surface-0">Academic Period</div>
-                    <p class="text-sm text-surface-500 dark:text-surface-400">
-                        The active period is the default school year for students and classes. Locked years cannot be set as active.
-                    </p>
+                    <p class="text-sm text-surface-500 dark:text-surface-400">The active period is the default school year for students and classes. Locked years cannot be set as active.</p>
                 </div>
 
                 <div v-if="periodUnavailable" class="text-orange-600 dark:text-orange-400 text-sm">
@@ -346,30 +327,25 @@ onMounted(async () => {
                 <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
                     <div class="flex flex-col gap-2">
                         <label for="activeSchoolYear" class="font-medium">Active School Year</label>
-                        <Select id="activeSchoolYear" v-model="draftYearId" :options="years" optionLabel="name"
-                            optionValue="id" placeholder="Select school year" :disabled="!canManage" class="w-full" />
+                        <Select id="activeSchoolYear" v-model="draftYearId" :options="years" optionLabel="name" optionValue="id" placeholder="Select school year" :disabled="!canManage" class="w-full" />
                         <small v-if="fieldError(periodErrors, 'active_school_year_id')" class="text-red-500">
                             {{ fieldError(periodErrors, 'active_school_year_id') }}
                         </small>
                     </div>
                     <div class="flex flex-col gap-2">
                         <label for="activeSemester" class="font-medium">Active Semester</label>
-                        <Select id="activeSemester" v-model="draftSemesterId" :options="semesters" optionLabel="name"
-                            optionValue="id" placeholder="Select semester" :disabled="!canManage" class="w-full" />
+                        <Select id="activeSemester" v-model="draftSemesterId" :options="semesters" optionLabel="name" optionValue="id" placeholder="Select semester" :disabled="!canManage" class="w-full" />
                         <small v-if="fieldError(periodErrors, 'active_semester_id')" class="text-red-500">
                             {{ fieldError(periodErrors, 'active_semester_id') }}
                         </small>
                     </div>
                     <div v-if="canManage" class="flex flex-col gap-2 md:pt-7">
-                        <Button label="Save Active Period" icon="pi pi-check" :loading="periodSaving"
-                            :disabled="!canSavePeriod" @click="savePeriod" />
+                        <Button label="Save Active Period" icon="pi pi-check" :loading="periodSaving" :disabled="!canSavePeriod" @click="savePeriod" />
                     </div>
                 </div>
 
                 <small v-if="periodMessage" class="text-red-500">{{ periodMessage }}</small>
-                <small v-if="!canManage && activeYear" class="text-surface-500">
-                    Only users with master data management permission can change the active period.
-                </small>
+                <small v-if="!canManage && activeYear" class="text-surface-500"> Only users with master data management permission can change the active period. </small>
             </div>
 
             <div class="card mt-6 flex flex-col gap-4">
@@ -384,11 +360,18 @@ onMounted(async () => {
                     </IconField>
                 </div>
 
-                <DataTable :value="filteredYears" paginator showGridlines :rows="rowsPerPage"
-                    :rowsPerPageOptions="rowsPerPageOptions" dataKey="id"
-                    :loading="loading" @page="onPage"
+                <DataTable
+                    :value="filteredYears"
+                    paginator
+                    showGridlines
+                    :rows="rowsPerPage"
+                    :rowsPerPageOptions="rowsPerPageOptions"
+                    dataKey="id"
+                    :loading="loading"
+                    @page="onPage"
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords}">
+                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
+                >
                     <template #empty>
                         <div class="flex flex-col items-center gap-3 py-6">
                             <span v-if="loadError" class="text-red-500">{{ loadError }}</span>
@@ -429,17 +412,18 @@ onMounted(async () => {
                     </Column>
                     <Column v-if="canManage" header="Action" :exportable="false" style="min-width: 10rem">
                         <template #body="{ data }">
-                            <Button icon="pi pi-pencil" variant="outlined" rounded class="mr-2"
-                                v-tooltip.top="'Edit'" @click="openEditYear(data)" />
-                            <Button :icon="data.is_locked ? 'pi pi-lock-open' : 'pi pi-lock'" variant="outlined"
-                                rounded class="mr-2" :severity="data.is_locked ? 'success' : 'warn'"
+                            <Button icon="pi pi-pencil" variant="outlined" rounded class="mr-2" v-tooltip.top="'Edit'" @click="openEditYear(data)" />
+                            <Button
+                                :icon="data.is_locked ? 'pi pi-lock-open' : 'pi pi-lock'"
+                                variant="outlined"
+                                rounded
+                                class="mr-2"
+                                :severity="data.is_locked ? 'success' : 'warn'"
                                 :disabled="!data.is_locked && data.is_active"
                                 v-tooltip.top="data.is_locked ? 'Unlock' : data.is_active ? 'The active year cannot be locked' : 'Lock'"
-                                @click="openLockDialog(data)" />
-                            <Button icon="pi pi-trash" variant="outlined" rounded severity="danger"
-                                :disabled="!!deleteBlockReason(data)"
-                                v-tooltip.top="deleteBlockReason(data) || 'Delete'"
-                                @click="openDeleteDialog(data)" />
+                                @click="openLockDialog(data)"
+                            />
+                            <Button icon="pi pi-trash" variant="outlined" rounded severity="danger" :disabled="!!deleteBlockReason(data)" v-tooltip.top="deleteBlockReason(data) || 'Delete'" @click="openDeleteDialog(data)" />
                         </template>
                     </Column>
                 </DataTable>
@@ -447,13 +431,11 @@ onMounted(async () => {
         </div>
     </Fluid>
 
-    <Dialog v-model:visible="yearDialog" modal :style="{ width: '480px', maxWidth: '95vw' }"
-        :header="yearEditing ? 'Edit School Year' : 'New School Year'" :draggable="false">
+    <Dialog v-model:visible="yearDialog" modal :style="{ width: '480px', maxWidth: '95vw' }" :header="yearEditing ? 'Edit School Year' : 'New School Year'" :draggable="false">
         <div class="flex flex-col gap-4">
             <div class="flex flex-col gap-2">
                 <label for="yearName" class="font-medium">Name <span class="text-red-500">*</span></label>
-                <InputText id="yearName" v-model="yearForm.name" maxlength="100" autofocus fluid
-                    :invalid="yearSubmitted && !yearForm.name?.trim()" />
+                <InputText id="yearName" v-model="yearForm.name" maxlength="100" autofocus fluid :invalid="yearSubmitted && !yearForm.name?.trim()" />
                 <small v-if="yearSubmitted && !yearForm.name?.trim()" class="text-red-500">Name is required.</small>
                 <small v-else-if="fieldError(yearErrors, 'name')" class="text-red-500">
                     {{ fieldError(yearErrors, 'name') }}
@@ -478,15 +460,12 @@ onMounted(async () => {
             <small class="text-surface-500">Dates use the YYYY-MM-DD format. The start date must be earlier than the end date.</small>
         </div>
         <template #footer>
-            <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="yearSaving"
-                @click="yearDialog = false" />
-            <Button :label="yearEditing ? 'Save Changes' : 'Create'" icon="pi pi-check" :loading="yearSaving"
-                :disabled="yearSaving" @click="submitYear" />
+            <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="yearSaving" @click="yearDialog = false" />
+            <Button :label="yearEditing ? 'Save Changes' : 'Create'" icon="pi pi-check" :loading="yearSaving" :disabled="yearSaving" @click="submitYear" />
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="lockDialog" modal :style="{ width: '480px', maxWidth: '95vw' }"
-        :header="lockMode === 'lock' ? 'Lock School Year' : 'Unlock School Year'" :draggable="false">
+    <Dialog v-model:visible="lockDialog" modal :style="{ width: '480px', maxWidth: '95vw' }" :header="lockMode === 'lock' ? 'Lock School Year' : 'Unlock School Year'" :draggable="false">
         <div class="flex flex-col gap-4">
             <p class="text-sm">
                 <template v-if="lockMode === 'lock'">
@@ -497,43 +476,41 @@ onMounted(async () => {
                 </template>
             </p>
             <div class="flex flex-col gap-2">
-                <label for="lockReason" class="font-medium">
-                    {{ lockMode === 'lock' ? 'Lock' : 'Unlock' }} Reason <span class="text-red-500">*</span>
-                </label>
-                <Textarea id="lockReason" v-model="lockReason" rows="3" autoResize maxlength="255"
-                    placeholder="Explain why this academic year is being locked or unlocked" />
+                <label for="lockReason" class="font-medium"> {{ lockMode === 'lock' ? 'Lock' : 'Unlock' }} Reason <span class="text-red-500">*</span> </label>
+                <Textarea id="lockReason" v-model="lockReason" rows="3" autoResize maxlength="255" placeholder="Explain why this academic year is being locked or unlocked" />
                 <small v-if="fieldError(lockErrors, 'reason')" class="text-red-500">
                     {{ fieldError(lockErrors, 'reason') }}
                 </small>
             </div>
         </div>
         <template #footer>
-            <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="lockSaving"
-                @click="lockDialog = false" />
-            <Button :label="lockMode === 'lock' ? 'Lock Year' : 'Unlock Year'"
+            <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="lockSaving" @click="lockDialog = false" />
+            <Button
+                :label="lockMode === 'lock' ? 'Lock Year' : 'Unlock Year'"
                 :icon="lockMode === 'lock' ? 'pi pi-lock' : 'pi pi-lock-open'"
-                :severity="lockMode === 'lock' ? 'warn' : 'success'" :loading="lockSaving" :disabled="lockSaving"
-                @click="submitLock" />
+                :severity="lockMode === 'lock' ? 'warn' : 'success'"
+                :loading="lockSaving"
+                :disabled="lockSaving"
+                @click="submitLock"
+            />
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="deleteDialog" modal :style="{ width: '460px', maxWidth: '95vw' }" header="Delete School Year"
-        :draggable="false">
+    <Dialog v-model:visible="deleteDialog" modal :style="{ width: '460px', maxWidth: '95vw' }" header="Delete School Year" :draggable="false">
         <div class="flex items-start gap-4">
             <i class="pi pi-exclamation-triangle !text-3xl text-red-500" />
             <div>
-                <p>Are you sure you want to delete <strong>{{ deleteTarget?.name }}</strong>?</p>
-                <p class="text-sm text-surface-500 mt-2">
-                    A school year can only be deleted when it is not active, not locked, and has no classes.
+                <p>
+                    Are you sure you want to delete <strong>{{ deleteTarget?.name }}</strong
+                    >?
                 </p>
+                <p class="text-sm text-surface-500 mt-2">A school year can only be deleted when it is not active, not locked, and has no classes.</p>
                 <p v-if="deleteError" class="text-red-500 text-sm mt-2">{{ deleteError }}</p>
             </div>
         </div>
         <template #footer>
-            <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="deleteSaving"
-                @click="deleteDialog = false" />
-            <Button label="Delete" icon="pi pi-trash" severity="danger" :loading="deleteSaving" :disabled="deleteSaving"
-                @click="confirmDelete" />
+            <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="deleteSaving" @click="deleteDialog = false" />
+            <Button label="Delete" icon="pi pi-trash" severity="danger" :loading="deleteSaving" :disabled="deleteSaving" @click="confirmDelete" />
         </template>
     </Dialog>
 </template>

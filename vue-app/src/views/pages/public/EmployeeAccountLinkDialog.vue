@@ -6,7 +6,7 @@ import { firstValidationMessage } from './employeeDirectoryParams.mjs';
 
 const props = defineProps({
     visible: { type: Boolean, default: false },
-    employee: { type: Object, default: null },
+    employee: { type: Object, default: null }
 });
 
 const emit = defineEmits(['update:visible', 'saved', 'conflict']);
@@ -44,18 +44,21 @@ const onSearchInput = () => {
     timer.value = setTimeout(loadCandidates, 300);
 };
 
-watch(() => props.visible, (visible) => {
-    if (!visible) return;
+watch(
+    () => props.visible,
+    (visible) => {
+        if (!visible) return;
 
-    search.value = '';
-    selectedAccount.value = null;
-    candidates.value = [];
-    generalMessage.value = '';
-    fieldError.value = '';
-    saving.value = false;
+        search.value = '';
+        selectedAccount.value = null;
+        candidates.value = [];
+        generalMessage.value = '';
+        fieldError.value = '';
+        saving.value = false;
 
-    if (!isLinked.value) loadCandidates();
-});
+        if (!isLinked.value) loadCandidates();
+    }
+);
 
 const submit = async () => {
     if (saving.value || !props.employee) return;
@@ -67,7 +70,7 @@ const submit = async () => {
     try {
         if (isLinked.value) {
             await apiLogin.post(`/api/employees/${props.employee.id}/unlink-account`, {
-                version: props.employee.version,
+                version: props.employee.version
             });
         } else {
             if (!selectedAccount.value) {
@@ -77,7 +80,7 @@ const submit = async () => {
 
             await apiLogin.post(`/api/employees/${props.employee.id}/link-account`, {
                 user_id: selectedAccount.value.id,
-                version: props.employee.version,
+                version: props.employee.version
             });
         }
 
@@ -89,7 +92,7 @@ const submit = async () => {
             emit('update:visible', false);
         } else if (error.response?.status === 422) {
             fieldError.value = error.response?.data?.errors?.user_id?.[0] ?? '';
-            generalMessage.value = fieldError.value ? '' : firstValidationMessage(error.response) ?? '';
+            generalMessage.value = fieldError.value ? '' : (firstValidationMessage(error.response) ?? '');
         } else {
             generalMessage.value = firstValidationMessage(error.response) ?? 'Failed to update the account link.';
         }
@@ -100,21 +103,11 @@ const submit = async () => {
 </script>
 
 <template>
-    <Dialog
-        :visible="visible"
-        :header="isLinked ? 'Unlink Account' : 'Link Account'"
-        modal
-        :style="{ width: '34rem' }"
-        :breakpoints="{ '768px': '92vw' }"
-        :closable="!saving"
-        @update:visible="emit('update:visible', $event)">
+    <Dialog :visible="visible" :header="isLinked ? 'Unlink Account' : 'Link Account'" modal :style="{ width: '34rem' }" :breakpoints="{ '768px': '92vw' }" :closable="!saving" @update:visible="emit('update:visible', $event)">
         <div class="flex flex-col gap-3">
             <p class="text-sm font-medium">{{ employee?.name }}</p>
 
-            <p v-if="isLinked" class="text-sm">
-                Unlinking keeps the account and its roles unchanged. The staff profile will no longer
-                resolve to this account, and the legacy NIK fallback stays disabled.
-            </p>
+            <p v-if="isLinked" class="text-sm">Unlinking keeps the account and its roles unchanged. The staff profile will no longer resolve to this account, and the legacy NIK fallback stays disabled.</p>
 
             <Message v-if="generalMessage" severity="error" :closable="false">{{ generalMessage }}</Message>
 
@@ -131,12 +124,7 @@ const submit = async () => {
 
         <template #footer>
             <Button label="Cancel" severity="secondary" variant="outlined" :disabled="saving" @click="emit('update:visible', false)" />
-            <Button
-                :label="isLinked ? 'Unlink' : 'Link'"
-                :icon="isLinked ? 'pi pi-user-minus' : 'pi pi-user-plus'"
-                :severity="isLinked ? 'warn' : 'info'"
-                :loading="saving"
-                @click="submit" />
+            <Button :label="isLinked ? 'Unlink' : 'Link'" :icon="isLinked ? 'pi pi-user-minus' : 'pi pi-user-plus'" :severity="isLinked ? 'warn' : 'info'" :loading="saving" @click="submit" />
         </template>
     </Dialog>
 </template>

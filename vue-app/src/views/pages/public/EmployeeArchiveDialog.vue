@@ -6,7 +6,7 @@ import { firstValidationMessage } from './employeeDirectoryParams.mjs';
 
 const props = defineProps({
     visible: { type: Boolean, default: false },
-    employee: { type: Object, default: null },
+    employee: { type: Object, default: null }
 });
 
 const emit = defineEmits(['update:visible', 'archived', 'conflict']);
@@ -15,16 +15,19 @@ const reason = ref('');
 const saving = ref(false);
 const generalMessage = ref('');
 const fieldError = ref('');
-const recordLabel = computed(() => props.employee?.employee_type?.name === 'Pendidik' ? 'Teacher' : 'Employee');
+const recordLabel = computed(() => (props.employee?.employee_type?.name === 'Pendidik' ? 'Teacher' : 'Employee'));
 
-watch(() => props.visible, (visible) => {
-    if (visible) {
-        reason.value = '';
-        saving.value = false;
-        generalMessage.value = '';
-        fieldError.value = '';
+watch(
+    () => props.visible,
+    (visible) => {
+        if (visible) {
+            reason.value = '';
+            saving.value = false;
+            generalMessage.value = '';
+            fieldError.value = '';
+        }
     }
-});
+);
 
 const submit = async () => {
     if (saving.value || !props.employee) return;
@@ -42,8 +45,8 @@ const submit = async () => {
         await apiLogin.delete(`/api/employees/${props.employee.id}`, {
             data: {
                 version: props.employee.version,
-                archive_reason: reason.value.trim(),
-            },
+                archive_reason: reason.value.trim()
+            }
         });
         emit('archived');
         emit('update:visible', false);
@@ -53,7 +56,7 @@ const submit = async () => {
             emit('update:visible', false);
         } else if (error.response?.status === 422) {
             fieldError.value = error.response?.data?.errors?.archive_reason?.[0] ?? '';
-            generalMessage.value = fieldError.value ? '' : firstValidationMessage(error.response) ?? '';
+            generalMessage.value = fieldError.value ? '' : (firstValidationMessage(error.response) ?? '');
         } else {
             generalMessage.value = firstValidationMessage(error.response) ?? 'Failed to archive the employee. Please try again.';
         }
@@ -64,19 +67,9 @@ const submit = async () => {
 </script>
 
 <template>
-    <Dialog
-        :visible="visible"
-        :header="`Archive ${recordLabel}`"
-        modal
-        :style="{ width: '32rem' }"
-        :breakpoints="{ '768px': '92vw' }"
-        :closable="!saving"
-        @update:visible="emit('update:visible', $event)">
+    <Dialog :visible="visible" :header="`Archive ${recordLabel}`" modal :style="{ width: '32rem' }" :breakpoints="{ '768px': '92vw' }" :closable="!saving" @update:visible="emit('update:visible', $event)">
         <div class="flex flex-col gap-3">
-            <p class="text-sm">
-                Archiving keeps the record, its history, and its NIK. This record will be hidden from the
-                active directory and can be restored later.
-            </p>
+            <p class="text-sm">Archiving keeps the record, its history, and its NIK. This record will be hidden from the active directory and can be restored later.</p>
             <p class="text-sm font-medium">{{ employee?.name }}</p>
             <Message v-if="generalMessage" severity="error" :closable="false">{{ generalMessage }}</Message>
             <div>

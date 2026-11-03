@@ -62,8 +62,8 @@ registerAuthHandlers({
 
 if (import.meta.env.PROD) {
     console.error = () => {};
-    console.warn  = () => {};
-    console.log   = () => {};
+    console.warn = () => {};
+    console.log = () => {};
 }
 
 app.mount('#app');

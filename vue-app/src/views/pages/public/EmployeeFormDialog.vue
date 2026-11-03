@@ -8,7 +8,7 @@ const props = defineProps({
     visible: { type: Boolean, default: false },
     employee: { type: Object, default: null },
     fixedTypeId: { type: Number, default: null },
-    options: { type: Object, default: () => ({}) },
+    options: { type: Object, default: () => ({}) }
 });
 
 const emit = defineEmits(['update:visible', 'saved']);
@@ -69,7 +69,7 @@ const emptyForm = () => ({
     master_entry: '',
     master_graduation: '',
     master_nim: '',
-    master_passing_grade: '',
+    master_passing_grade: ''
 });
 
 const form = ref(emptyForm());
@@ -90,7 +90,7 @@ const selectedTypeName = computed(() => {
 });
 
 const isTeacher = computed(() => selectedTypeName.value === 'Pendidik');
-const recordLabel = computed(() => isTeacher.value ? 'Teacher' : 'Employee');
+const recordLabel = computed(() => (isTeacher.value ? 'Teacher' : 'Employee'));
 
 const educationSections = [
     {
@@ -100,8 +100,8 @@ const educationSections = [
             { key: 'elementary_school_entry', label: 'Entry Date', type: 'date' },
             { key: 'elementary_school_graduation', label: 'Graduation Date', type: 'date' },
             { key: 'nisn', label: 'NISN' },
-            { key: 'elementary_school_passing_grade', label: 'Passing Grade' },
-        ],
+            { key: 'elementary_school_passing_grade', label: 'Passing Grade' }
+        ]
     },
     {
         title: 'Junior High School',
@@ -109,8 +109,8 @@ const educationSections = [
             { key: 'junior_high_school_name', label: 'School Name' },
             { key: 'junior_high_school_entry', label: 'Entry Date', type: 'date' },
             { key: 'junior_high_school_graduation', label: 'Graduation Date', type: 'date' },
-            { key: 'junior_high_school_passing_grade', label: 'Passing Grade' },
-        ],
+            { key: 'junior_high_school_passing_grade', label: 'Passing Grade' }
+        ]
     },
     {
         title: 'Senior High School',
@@ -118,8 +118,8 @@ const educationSections = [
             { key: 'senior_high_school_name', label: 'School Name' },
             { key: 'senior_high_school_entry', label: 'Entry Date', type: 'date' },
             { key: 'senior_high_school_graduation', label: 'Graduation Date', type: 'date' },
-            { key: 'senior_high_school_passing_grade', label: 'Passing Grade' },
-        ],
+            { key: 'senior_high_school_passing_grade', label: 'Passing Grade' }
+        ]
     },
     {
         title: 'Bachelor Degree',
@@ -130,8 +130,8 @@ const educationSections = [
             { key: 'bachelor_entry', label: 'Entry Date', type: 'date' },
             { key: 'bachelor_graduation', label: 'Graduation Date', type: 'date' },
             { key: 'bachelor_nim', label: 'NIM' },
-            { key: 'bachelor_passing_grade', label: 'Passing Grade' },
-        ],
+            { key: 'bachelor_passing_grade', label: 'Passing Grade' }
+        ]
     },
     {
         title: 'Master Degree',
@@ -142,9 +142,9 @@ const educationSections = [
             { key: 'master_entry', label: 'Entry Date', type: 'date' },
             { key: 'master_graduation', label: 'Graduation Date', type: 'date' },
             { key: 'master_nim', label: 'NIM' },
-            { key: 'master_passing_grade', label: 'Passing Grade' },
-        ],
-    },
+            { key: 'master_passing_grade', label: 'Passing Grade' }
+        ]
+    }
 ];
 
 const buildForm = (employee) => {
@@ -191,9 +191,12 @@ const reset = () => {
     saving.value = false;
 };
 
-watch(() => props.visible, (visible) => {
-    if (visible) reset();
-});
+watch(
+    () => props.visible,
+    (visible) => {
+        if (visible) reset();
+    }
+);
 
 const errorFor = (field) => (Array.isArray(errors.value[field]) ? errors.value[field][0] : '');
 
@@ -216,9 +219,7 @@ const submit = async () => {
     if (isEdit.value) payload.version = version.value;
 
     try {
-        const response = isEdit.value
-            ? await apiLogin.put(`/api/employees/${employeeId()}`, payload)
-            : await apiLogin.post('/api/employees', payload);
+        const response = isEdit.value ? await apiLogin.put(`/api/employees/${employeeId()}`, payload) : await apiLogin.post('/api/employees', payload);
 
         snapshot.value = JSON.stringify(form.value);
         emit('saved', response.data?.data ?? null);
@@ -262,14 +263,7 @@ const reloadLatest = async () => {
 </script>
 
 <template>
-    <Dialog
-        :visible="visible"
-        :header="`${isEdit ? 'Edit' : 'New'} ${recordLabel}`"
-        modal
-        :style="{ width: '64rem' }"
-        :breakpoints="{ '1200px': '92vw', '768px': '96vw' }"
-        :closable="!saving"
-        @update:visible="requestClose">
+    <Dialog :visible="visible" :header="`${isEdit ? 'Edit' : 'New'} ${recordLabel}`" modal :style="{ width: '64rem' }" :breakpoints="{ '1200px': '92vw', '768px': '96vw' }" :closable="!saving" @update:visible="requestClose">
         <div class="flex flex-col gap-5">
             <Message v-if="generalMessage" :severity="conflict ? 'warn' : 'error'" :closable="false">
                 {{ generalMessage }}
@@ -326,13 +320,7 @@ const reloadLatest = async () => {
                 <div class="grid grid-cols-12 gap-4">
                     <div class="col-span-12 md:col-span-4">
                         <label class="block mb-2">Employee Type</label>
-                        <Select
-                            :modelValue="form.employee_type_id"
-                            :options="options.employeeTypes ?? []"
-                            optionLabel="display_name"
-                            optionValue="id"
-                            class="w-full"
-                            disabled />
+                        <Select :modelValue="form.employee_type_id" :options="options.employeeTypes ?? []" optionLabel="display_name" optionValue="id" class="w-full" disabled />
                     </div>
                     <div class="col-span-12 md:col-span-4">
                         <label class="block mb-2">Employee Status *</label>

@@ -10,218 +10,86 @@ const useAuthStore = authStore();
 // `null` berarti tersedia untuk semua pengguna yang login.
 const model = ref([
     {
-        label: 'Home',
+        label: 'Beranda',
         requires: null,
         items: [
-            { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' },
-            { label: 'School Profile', icon: 'pi pi-fw pi-building-columns', to: '/public/schoolprofile' },
-            { label: 'Tasks & Reminders', icon: 'pi pi-fw pi-check-square', to: '/public/tasks', requires: 'tasks.view' }
+            { label: 'Dasbor', icon: 'pi pi-fw pi-home', to: '/' },
+            { label: 'Profil Sekolah', icon: 'pi pi-fw pi-building-columns', to: '/public/schoolprofile' },
+            { label: 'Pusat Tugas & Pengingat', icon: 'pi pi-fw pi-check-square', to: '/public/tasks', requires: 'tasks.view' }
         ]
     },
     {
-        label: 'Master Data',
+        label: 'Data Master',
         requires: 'master.view',
         items: [
-            { label: 'Education Levels', icon: 'pi pi-fw pi-chart-bar', to: '/public/educationlevels' },
-            { label: 'Education Schools', icon: 'pi pi-fw pi-building-columns', to: '/public/educationschools' },
-            { label: 'Phase Status', icon: 'pi pi-fw pi-building', to: '/public/phasestatuses', class: 'rotated-icon' },
-            { label: 'Professions', icon: 'pi pi-fw pi-briefcase', to: '/public/professions', class: 'rotated-icon' },
-            { label: 'Student Majors', icon: 'pi pi-fw pi-calendar', to: '/public/studentmajors', class: 'rotated-icon' }
+            { label: 'Jenjang Pendidikan', icon: 'pi pi-fw pi-chart-bar', to: '/public/educationlevels' },
+            { label: 'Sekolah', icon: 'pi pi-fw pi-building-columns', to: '/public/educationschools' },
+            { label: 'Status Fase', icon: 'pi pi-fw pi-building', to: '/public/phasestatuses', class: 'rotated-icon' },
+            { label: 'Profesi', icon: 'pi pi-fw pi-briefcase', to: '/public/professions', class: 'rotated-icon' },
+            { label: 'Jurusan Siswa', icon: 'pi pi-fw pi-calendar', to: '/public/studentmajors', class: 'rotated-icon' }
         ]
     },
     {
-        label: 'Academic',
+        label: 'Akademik',
         requires: null,
         items: [
-            { label: 'Classes', icon: 'pi pi-fw pi-book', to: '/public/schoolrombels', requires: 'students.view' },
-            { label: 'Progression', icon: 'pi pi-fw pi-sitemap', to: '/public/progression', requires: 'students.view' },
-            { label: 'School Years', icon: 'pi pi-fw pi-calendar', to: '/public/schoolyears', requires: 'master.view' }
+            { label: 'Rombongan Belajar', icon: 'pi pi-fw pi-book', to: '/public/schoolrombels', requires: 'students.view' },
+            { label: 'Kenaikan & Kelulusan', icon: 'pi pi-fw pi-sitemap', to: '/public/progression', requires: 'students.view' },
+            { label: 'Tahun Ajaran', icon: 'pi pi-fw pi-calendar', to: '/public/schoolyears', requires: 'master.view' }
         ]
     },
     {
-        label: 'Public',
+        label: 'Kesiswaan & Kepegawaian',
         requires: null,
         items: [
-            { label: 'Students', icon: 'pi pi-fw pi-graduation-cap', to: '/public/students', requires: 'students.view' },
-            { label: 'Teachers', icon: 'pi pi-fw pi-slack', to: '/public/teachers', requires: 'employees.view' },
-            { label: 'Employees', icon: 'pi pi-fw pi-address-book', to: '/public/employees', requires: 'employees.view' },
-            { label: 'Data Quality', icon: 'pi pi-fw pi-check-circle', to: '/public/data-quality', requires: ['students.view', 'employees.view'] },
-            { label: 'School Reports', icon: 'pi pi-fw pi-chart-line', to: '/public/reports/school', requires: 'students.view' }
+            { label: 'Data Siswa', icon: 'pi pi-fw pi-graduation-cap', to: '/public/students', requires: 'students.view' },
+            { label: 'Direktori Guru', icon: 'pi pi-fw pi-slack', to: '/public/teachers', requires: 'employees.view' },
+            { label: 'Direktori Pegawai', icon: 'pi pi-fw pi-address-book', to: '/public/employees', requires: 'employees.view' },
+            { label: 'Kualitas Data', icon: 'pi pi-fw pi-check-circle', to: '/public/data-quality', requires: ['students.view', 'employees.view'] },
+            { label: 'Laporan Sekolah', icon: 'pi pi-fw pi-chart-line', to: '/public/reports/school', requires: 'students.view' }
         ]
     },
     {
-        label: 'Letters',
+        label: 'Tata Persuratan',
         requires: 'letters.view',
         items: [
-            { label: 'Incoming Letters', icon: 'pi pi-fw pi-inbox', to: '/public/letters/incoming', requires: 'letters.view' },
-            { label: 'Outgoing Letters', icon: 'pi pi-fw pi-send', to: '/public/letters/outgoing', requires: 'letters.view' },
-            { label: 'Dispositions', icon: 'pi pi-fw pi-user-plus', to: '/public/letters/dispositions', requires: 'letters.view' },
-            { label: 'Letter Settings', icon: 'pi pi-fw pi-cog', to: '/public/letters/settings', requires: 'letters.view' }
+            { label: 'Surat Masuk', icon: 'pi pi-fw pi-inbox', to: '/public/letters/incoming', requires: 'letters.view' },
+            { label: 'Surat Keluar', icon: 'pi pi-fw pi-send', to: '/public/letters/outgoing', requires: 'letters.view' },
+            { label: 'Disposisi Surat', icon: 'pi pi-fw pi-user-plus', to: '/public/letters/dispositions', requires: 'letters.view' },
+            { label: 'Pengaturan Surat', icon: 'pi pi-fw pi-cog', to: '/public/letters/settings', requires: 'letters.view' }
         ]
     },
     {
-        label: 'Leaves',
+        label: 'Perizinan Pegawai',
         requires: ['leaves.view', 'leaves.request'],
-        items: [{ label: 'Leave Requests', icon: 'pi pi-fw pi-calendar-minus', to: '/public/leaves', requires: ['leaves.view', 'leaves.request'] }]
+        items: [{ label: 'Pengajuan Izin & Cuti', icon: 'pi pi-fw pi-calendar-minus', to: '/public/leaves', requires: ['leaves.view', 'leaves.request'] }]
     },
     {
-        label: 'Archives',
+        label: 'Arsip Dokumen',
         requires: 'archives.view',
-        items: [{ label: 'Archive Documents', icon: 'pi pi-fw pi-folder', to: '/public/archives', requires: 'archives.view' }]
+        items: [{ label: 'Repositori Arsip', icon: 'pi pi-fw pi-folder', to: '/public/archives', requires: 'archives.view' }]
     },
     {
-        label: 'Teaching',
+        label: 'Administrasi Pembelajaran',
         requires: 'teaching.view',
         items: [
-            { label: 'Assignments & Timetable', icon: 'pi pi-fw pi-calendar-clock', to: '/public/teaching/schedules', requires: 'teaching.view' },
-            { label: 'Sessions & Journals', icon: 'pi pi-fw pi-book', to: '/public/teaching/journals', requires: 'teaching.view' },
-            { label: 'Journal Reports', icon: 'pi pi-fw pi-chart-bar', to: '/public/teaching/reports', requires: 'teaching.view' }
+            { label: 'Penugasan & Jadwal', icon: 'pi pi-fw pi-calendar-clock', to: '/public/teaching/schedules', requires: 'teaching.view' },
+            { label: 'Jurnal Mengajar', icon: 'pi pi-fw pi-book', to: '/public/teaching/journals', requires: 'teaching.view' },
+            { label: 'Laporan Kepatuhan Jurnal', icon: 'pi pi-fw pi-chart-bar', to: '/public/teaching/reports', requires: 'teaching.view' }
         ]
     },
     {
-        label: 'Personal',
+        label: 'Akun Saya',
         requires: null,
-        items: [{ label: 'Profile', icon: 'pi pi-fw pi-user', to: '/profile/user' }]
+        items: [{ label: 'Profil Pengguna', icon: 'pi pi-fw pi-user', to: '/profile/user' }]
     },
     {
-        label: 'Admin',
+        label: 'Pengaturan Akses',
         requires: 'users.view',
         items: [
-            { label: 'Accounts', icon: 'pi pi-fw pi-users', to: '/master/accounts', requires: 'users.view' },
-            { label: 'User Type', icon: 'pi pi-fw pi-user-edit', to: '/master/typeusers', requires: 'master.manage' },
-            { label: 'Roles & Abilities', icon: 'pi pi-fw pi-shield', to: '/master/roles', requires: 'roles.view' }
-        ]
-    },
-    {
-        label: 'UI Components',
-        requires: null,
-        items: [
-            { label: 'Form Layout', icon: 'pi pi-fw pi-id-card', to: '/uikit/formlayout' },
-            { label: 'Input', icon: 'pi pi-fw pi-check-square', to: '/uikit/input' },
-            { label: 'Button', icon: 'pi pi-fw pi-mobile', to: '/uikit/button', class: 'rotated-icon' },
-            { label: 'Table', icon: 'pi pi-fw pi-table', to: '/uikit/table' },
-            { label: 'List', icon: 'pi pi-fw pi-list', to: '/uikit/list' },
-            { label: 'Tree', icon: 'pi pi-fw pi-share-alt', to: '/uikit/tree' },
-            { label: 'Panel', icon: 'pi pi-fw pi-tablet', to: '/uikit/panel' },
-            { label: 'Overlay', icon: 'pi pi-fw pi-clone', to: '/uikit/overlay' },
-            { label: 'Media', icon: 'pi pi-fw pi-image', to: '/uikit/media' },
-            { label: 'Menu', icon: 'pi pi-fw pi-bars', to: '/uikit/menu' },
-            { label: 'Message', icon: 'pi pi-fw pi-comment', to: '/uikit/message' },
-            { label: 'File', icon: 'pi pi-fw pi-file', to: '/uikit/file' },
-            { label: 'Chart', icon: 'pi pi-fw pi-chart-bar', to: '/uikit/charts' },
-            { label: 'Timeline', icon: 'pi pi-fw pi-calendar', to: '/uikit/timeline' },
-            { label: 'Misc', icon: 'pi pi-fw pi-circle', to: '/uikit/misc' }
-        ]
-    },
-    {
-        label: 'Pages',
-        requires: null,
-        icon: 'pi pi-fw pi-briefcase',
-        to: '/pages',
-        items: [
-            {
-                label: 'Landing',
-                icon: 'pi pi-fw pi-globe',
-                to: '/landing'
-            },
-            {
-                label: 'Auth',
-                icon: 'pi pi-fw pi-user',
-                items: [
-                    {
-                        label: 'Login',
-                        icon: 'pi pi-fw pi-sign-in',
-                        to: '/auth/login'
-                    },
-                    {
-                        label: 'Error',
-                        icon: 'pi pi-fw pi-times-circle',
-                        to: '/auth/error'
-                    },
-                    {
-                        label: 'Access Denied',
-                        icon: 'pi pi-fw pi-lock',
-                        to: '/auth/access'
-                    }
-                ]
-            },
-            {
-                label: 'Crud',
-                icon: 'pi pi-fw pi-pencil',
-                to: '/pages/crud'
-            },
-            {
-                label: 'Not Found',
-                icon: 'pi pi-fw pi-exclamation-circle',
-                to: '/pages/notfound'
-            },
-            {
-                label: 'Empty',
-                icon: 'pi pi-fw pi-circle-off',
-                to: '/pages/empty'
-            }
-        ]
-    },
-    {
-        label: 'Hierarchy',
-        requires: null,
-        items: [
-            {
-                label: 'Submenu 1',
-                icon: 'pi pi-fw pi-bookmark',
-                items: [
-                    {
-                        label: 'Submenu 1.1',
-                        icon: 'pi pi-fw pi-bookmark',
-                        items: [
-                            { label: 'Submenu 1.1.1', icon: 'pi pi-fw pi-bookmark' },
-                            { label: 'Submenu 1.1.2', icon: 'pi pi-fw pi-bookmark' },
-                            { label: 'Submenu 1.1.3', icon: 'pi pi-fw pi-bookmark' }
-                        ]
-                    },
-                    {
-                        label: 'Submenu 1.2',
-                        icon: 'pi pi-fw pi-bookmark',
-                        items: [{ label: 'Submenu 1.2.1', icon: 'pi pi-fw pi-bookmark' }]
-                    }
-                ]
-            },
-            {
-                label: 'Submenu 2',
-                icon: 'pi pi-fw pi-bookmark',
-                items: [
-                    {
-                        label: 'Submenu 2.1',
-                        icon: 'pi pi-fw pi-bookmark',
-                        items: [
-                            { label: 'Submenu 2.1.1', icon: 'pi pi-fw pi-bookmark' },
-                            { label: 'Submenu 2.1.2', icon: 'pi pi-fw pi-bookmark' }
-                        ]
-                    },
-                    {
-                        label: 'Submenu 2.2',
-                        icon: 'pi pi-fw pi-bookmark',
-                        items: [{ label: 'Submenu 2.2.1', icon: 'pi pi-fw pi-bookmark' }]
-                    }
-                ]
-            }
-        ]
-    },
-    {
-        label: 'Get Started',
-        requires: null,
-        items: [
-            {
-                label: 'Documentation',
-                icon: 'pi pi-fw pi-question',
-                to: '/documentation'
-            },
-            {
-                label: 'View Source',
-                icon: 'pi pi-fw pi-github',
-                url: 'https://github.com/primefaces/sakue-vue',
-                target: '_blank'
-            }
+            { label: 'Manajemen Pengguna', icon: 'pi pi-fw pi-users', to: '/master/accounts', requires: 'users.view' },
+            { label: 'Tipe Pengguna', icon: 'pi pi-fw pi-user-edit', to: '/master/typeusers', requires: 'master.manage' },
+            { label: 'Peran & Hak Akses', icon: 'pi pi-fw pi-shield', to: '/master/roles', requires: 'roles.view' }
         ]
     }
 ]);

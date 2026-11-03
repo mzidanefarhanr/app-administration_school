@@ -3,3 +3,43 @@
 @use '@/assets/tailwind.css';
 @use '@/assets/layout/layout.scss';
 @use '@/assets/demo/demo.scss';
+
+/* ── Standardisasi UI / UX Subfase 12c (DEC-47) ── */
+
+/* Indikator fokus aksesibilitas (A11y focus rings) */
+:focus-visible {
+    outline: 2px solid var(--primary-color, #10b981) !important;
+    outline-offset: 2px !important;
+}
+
+/* Responsivitas layar ponsel / mobile viewport <= 576px (D7) */
+@media (max-width: 576px) {
+    .p-datatable-responsive-scroll > .p-datatable-table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .p-dialog {
+        max-width: 95vw !important;
+        width: 95vw !important;
+        margin: 0.5rem auto !important;
+    }
+
+    /* Target sentuh tombol minimal 40px pada ponsel */
+    .p-button {
+        min-height: 2.5rem;
+    }
+}
+
+/* Keterbacaan kontras mode gelap */
+.app-dark {
+    .p-card {
+        background-color: var(--surface-card);
+        color: var(--text-color);
+    }
+
+    .p-datatable .p-datatable-thead > tr > th {
+        background-color: var(--surface-section);
+        color: var(--text-color);
+    }
+}

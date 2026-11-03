@@ -1,12 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {
-    buildEmployeeListParams,
-    buildEmployeeExportParams,
-    resolveEmployeeTypeId,
-    normalizeEmployeePayload,
-    firstValidationMessage,
-} from '../src/views/pages/public/employeeDirectoryParams.mjs';
+import { buildEmployeeListParams, buildEmployeeExportParams, resolveEmployeeTypeId, normalizeEmployeePayload, firstValidationMessage } from '../src/views/pages/public/employeeDirectoryParams.mjs';
 
 test('list params keep server defaults and omit empty filters', () => {
     const params = buildEmployeeListParams({ search: '   ', onlyArchived: false });
@@ -25,7 +19,7 @@ test('list params include active filters and archive mode', () => {
         perPage: 50,
         sort: 'tmt_employee',
         direction: 'desc',
-        onlyArchived: true,
+        onlyArchived: true
     });
 
     assert.equal(params.search, 'budi');
@@ -57,7 +51,7 @@ test('export params mirror filters without paging, sorting, or archive mode', ()
         perPage: 50,
         sort: 'id',
         direction: 'desc',
-        onlyArchived: true,
+        onlyArchived: true
     });
 
     assert.deepEqual(params, { search: 'siti', employee_type_id: 4 });
@@ -79,7 +73,7 @@ test('export params omit columns when the selection is empty or invalid', () => 
 test('employee type id resolves by name for the fixed route type', () => {
     const options = [
         { id: 1, name: 'Tenaga Kependidikan' },
-        { id: 2, name: 'Pendidik' },
+        { id: 2, name: 'Pendidik' }
     ];
 
     assert.equal(resolveEmployeeTypeId(options, 'pendidik'), 2);

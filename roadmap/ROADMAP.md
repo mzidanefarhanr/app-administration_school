@@ -4,7 +4,21 @@ Versi dokumen: 1.0, 14 Oktober 2026 (WIB); audit HEAD 15 Oktober 2026.
 Baseline kode: `b02a87f0d57adffec297ed465a8afcd8e8d7ec59`; HEAD audit `b699feccd65357a10f7430c165400906e6394d49` (delta = paket docs saja, kode tidak berubah).
 Historical drafting status (2026-10-14/15): DRAFT; Fase 00 PARTIAL. The original “all other phases not started” statement is obsolete; current statuses are in the table and correction addendum below.
 
-## Addendum — 2026-11-03 (Subfase 12b IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18; DEC-46 IMPLEMENTED; Rencana Subfase 12c DISUSUN — DEC-47 PROPOSED)
+## Addendum — 2026-11-03 (Subfase 12c IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18; DEC-47 IMPLEMENTED; FASE 12 SELESAI LENGKAP)
+
+Subfase **12c — Konsistensi Antarmenu, Form/Dialog, dan Penghapusan Menu Demo** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`7d9cd3e`** (dokumentasi persetujuan rencana `DEC-47 APPROVED`), dengan laporan implementasi di `reports/feature-update/PHASE-12C-REPORT.md` dan paket review manual di `reports/feature-update/PHASE-12C-MANUAL-REVIEW.md` (#1–#18). Disampaikan pada 12c:
+1. Pembersihan menyeluruh grup menu demo template Sakai dari `vue-app/src/layout/AppMenu.vue` (`UI Components`, `Pages`, `Hierarchy`, `Get Started`) dan rute-rute demo dari `vue-app/src/router/index.js` (`/uikit/*`, `/pages/crud`, `/landing`, `/documentation`). Modul kompilasi Vite berkurang dari 827 modul menjadi 666 modul (-161 modul, -100+ kB bundle size).
+2. Standardisasi 10 grup navigasi sidebar ke dalam bahasa Indonesia baku: `Beranda`, `Data Master`, `Akademik`, `Kesiswaan & Kepegawaian`, `Tata Persuratan`, `Perizinan Pegawai`, `Arsip Dokumen`, `Administrasi Pembelajaran`, `Akun Saya`, `Pengaturan Akses`.
+3. Sinkronisasi metadata `breadcrumb` pada Vue Router yang serasi dengan nama menu navigasi aktif.
+4. Verifikasi eliminasi seluruh dialog bawaan native browser (`window.confirm()`, `window.alert()`), digantikan oleh komponen dialog modal standar PrimeVue.
+5. Pembuatan utilitas formatting terpusat `vue-app/src/utils/formatters.js` untuk format tanggal (`DD/MM/YYYY` atau `D MMMM YYYY`), waktu (`HH:mm WIB`), persentase (`0.0%`), dan penanganan nilai kosong (`-`).
+6. Aksesibilitas keyboard fokus (:focus-visible rings) dan responsivitas layar ponsel mobile viewport 390px (dialog 95vw, tombol touch target >= 40 px, horizontal scroll tabel mulus).
+7. Harmonisasi kontras tema mode gelap (`.app-dark`) untuk memastikan keterbacaan teks kartu dasbor dan tabel data.
+8. Verifikasi kualitas: `npm run lint` 0 errors/warnings, `npm run build` PASS (built in 33.63s), Pint PASS (0 issues), dan probe UAT `scripts/phase10-uat.php probe-ui-consistency` 5/5 PROBES PASSED.
+9. Kepatuhan DEC-27: port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
+Dengan diselesaikannya Subfase 12a, 12b, dan 12c, seluruh lingkup **FASE 12 (Performa, Observability dan Konsistensi)** telah diimplementasikan penuh.
+
+## Previous addendum — 2026-11-03 (Subfase 12b IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18; DEC-46 IMPLEMENTED; Rencana Subfase 12c DISUSUN — DEC-47 PROPOSED)
 
 Subfase **12b — Background Jobs, Queue Resilience, Observability dan Error Handling** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`b2df2de`** (dokumentasi persetujuan rencana `DEC-46 APPROVED`), dengan laporan implementasi di `reports/feature-update/PHASE-12B-REPORT.md` dan paket review manual di `reports/feature-update/PHASE-12B-MANUAL-REVIEW.md` (#1–#18). Disampaikan pada 12b:
 1. Migrasi database aditif `2029_12_02_000001_create_queue_jobs_and_tracking_tables.php` (`jobs`, `job_batches`, `job_execution_statuses`) dan model Eloquent `JobExecutionStatus.php`.

@@ -11,15 +11,10 @@ import EmployeeArchiveDialog from './EmployeeArchiveDialog.vue';
 import EmployeeAccountLinkDialog from './EmployeeAccountLinkDialog.vue';
 import EmployeeImportDialog from './EmployeeImportDialog.vue';
 import EmployeeExportDialog from './EmployeeExportDialog.vue';
-import {
-    buildEmployeeListParams,
-    resolveEmployeeTypeId,
-    firstValidationMessage,
-    EMPLOYEE_PER_PAGE_OPTIONS,
-} from './employeeDirectoryParams.mjs';
+import { buildEmployeeListParams, resolveEmployeeTypeId, firstValidationMessage, EMPLOYEE_PER_PAGE_OPTIONS } from './employeeDirectoryParams.mjs';
 
 const props = defineProps({
-    employeeTypeName: { type: String, required: true },
+    employeeTypeName: { type: String, required: true }
 });
 
 const toast = useToast();
@@ -54,7 +49,7 @@ const options = ref({
     genders: [],
     religions: [],
     districts: [],
-    maritalStatuses: [],
+    maritalStatuses: []
 });
 
 const fixedTypeId = ref(null);
@@ -80,7 +75,7 @@ const loadReference = async () => {
         genders: '/api/genders',
         religions: '/api/religions',
         districts: '/api/districts',
-        maritalStatuses: '/api/marital-statuses',
+        maritalStatuses: '/api/marital-statuses'
     };
 
     const entries = Object.entries(endpoints);
@@ -113,7 +108,7 @@ const fetchList = async () => {
             perPage: perPage.value,
             sort: sortField.value,
             direction: sortOrder.value === -1 ? 'desc' : 'asc',
-            onlyArchived: onlyArchived.value,
+            onlyArchived: onlyArchived.value
         });
 
         const response = await apiLogin.get('/api/employees', { params });
@@ -183,7 +178,7 @@ const notify = (severity, detail, summary = null) => {
         severity,
         summary: summary ?? (severity === 'success' ? 'Success' : 'Notice'),
         detail,
-        life: 4000,
+        life: 4000
     });
 };
 
@@ -267,11 +262,7 @@ const onAccountSaved = () => {
 };
 
 const onConflict = (currentVersion) => {
-    notify(
-        'warn',
-        `The record was changed by another user${currentVersion ? ` (version ${currentVersion})` : ''}. The latest data has been reloaded.`,
-        'Conflict',
-    );
+    notify('warn', `The record was changed by another user${currentVersion ? ` (version ${currentVersion})` : ''}. The latest data has been reloaded.`, 'Conflict');
     fetchList();
 };
 
@@ -296,7 +287,7 @@ const exportFilters = computed(() => ({
     employeeTypeId: fixedTypeId.value,
     employeeStatusId: statusFilter.value,
     employmentId: employmentFilter.value,
-    subjectId: isTeacherPage.value ? subjectFilter.value : null,
+    subjectId: isTeacherPage.value ? subjectFilter.value : null
 }));
 
 const openExport = () => {
@@ -328,20 +319,21 @@ onMounted(async () => {
 
 // Routes share this component, so a direct switch between Teachers and
 // Employees must re-resolve the fixed type instead of reusing stale rows.
-watch(() => props.employeeTypeName, (name) => {
-    onlyArchived.value = false;
-    search.value = '';
-    statusFilter.value = null;
-    employmentFilter.value = null;
-    subjectFilter.value = null;
-    page.value = 1;
-    fixedTypeId.value = resolveEmployeeTypeId(options.value.employeeTypes, name);
-    listError.value = fixedTypeId.value === null
-        ? `${pageTitle.value} reference data is not available. Ask an administrator to seed the reference data.`
-        : '';
+watch(
+    () => props.employeeTypeName,
+    (name) => {
+        onlyArchived.value = false;
+        search.value = '';
+        statusFilter.value = null;
+        employmentFilter.value = null;
+        subjectFilter.value = null;
+        page.value = 1;
+        fixedTypeId.value = resolveEmployeeTypeId(options.value.employeeTypes, name);
+        listError.value = fixedTypeId.value === null ? `${pageTitle.value} reference data is not available. Ask an administrator to seed the reference data.` : '';
 
-    if (fixedTypeId.value !== null) fetchList();
-});
+        if (fixedTypeId.value !== null) fetchList();
+    }
+);
 </script>
 
 <template>
@@ -355,22 +347,9 @@ watch(() => props.employeeTypeName, (name) => {
             </div>
             <div class="flex flex-wrap gap-2">
                 <Button v-if="canExport" icon="pi pi-external-link" label="Export CSV" :disabled="fixedTypeId === null" @click="openExport" />
-                <Button
-                    v-if="canImport && !onlyArchived"
-                    icon="pi pi-upload"
-                    label="Import CSV"
-                    severity="secondary"
-                    variant="outlined"
-                    :disabled="fixedTypeId === null"
-                    @click="importVisible = true" />
+                <Button v-if="canImport && !onlyArchived" icon="pi pi-upload" label="Import CSV" severity="secondary" variant="outlined" :disabled="fixedTypeId === null" @click="importVisible = true" />
                 <Button v-if="canManage && !onlyArchived" icon="pi pi-plus" :label="isTeacherPage ? 'New Teacher' : 'New Employee'" @click="openCreate" />
-                <Button
-                    v-if="canManage"
-                    :icon="onlyArchived ? 'pi pi-users' : 'pi pi-inbox'"
-                    :label="onlyArchived ? 'Active Records' : 'Archived'"
-                    severity="secondary"
-                    variant="outlined"
-                    @click="toggleArchived" />
+                <Button v-if="canManage" :icon="onlyArchived ? 'pi pi-users' : 'pi pi-inbox'" :label="onlyArchived ? 'Active Records' : 'Archived'" severity="secondary" variant="outlined" @click="toggleArchived" />
                 <Button icon="pi pi-filter-slash" label="Clear" severity="secondary" variant="outlined" @click="resetFilters" />
             </div>
         </div>
@@ -380,35 +359,9 @@ watch(() => props.employeeTypeName, (name) => {
                 <InputIcon><i class="pi pi-search" /></InputIcon>
                 <InputText v-model="search" placeholder="Search name or NUPTK" class="w-full" @input="onSearchInput" />
             </IconField>
-            <Select
-                v-model="statusFilter"
-                :options="options.employeeStatuses"
-                optionLabel="display_name"
-                optionValue="id"
-                placeholder="Employee Status"
-                showClear
-                class="w-full xl:w-52"
-                @change="onFilterChange" />
-            <Select
-                v-model="employmentFilter"
-                :options="options.employments"
-                optionLabel="display_name"
-                optionValue="id"
-                placeholder="Employment"
-                showClear
-                class="w-full xl:w-52"
-                @change="onFilterChange" />
-            <Select
-                v-if="isTeacherPage"
-                v-model="subjectFilter"
-                :options="options.subjects"
-                optionLabel="display_name"
-                optionValue="id"
-                placeholder="Subject"
-                showClear
-                filter
-                class="w-full xl:w-52"
-                @change="onFilterChange" />
+            <Select v-model="statusFilter" :options="options.employeeStatuses" optionLabel="display_name" optionValue="id" placeholder="Employee Status" showClear class="w-full xl:w-52" @change="onFilterChange" />
+            <Select v-model="employmentFilter" :options="options.employments" optionLabel="display_name" optionValue="id" placeholder="Employment" showClear class="w-full xl:w-52" @change="onFilterChange" />
+            <Select v-if="isTeacherPage" v-model="subjectFilter" :options="options.subjects" optionLabel="display_name" optionValue="id" placeholder="Subject" showClear filter class="w-full xl:w-52" @change="onFilterChange" />
         </div>
 
         <DataTable
@@ -428,7 +381,8 @@ watch(() => props.employeeTypeName, (name) => {
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} records"
             @page="onPage"
-            @sort="onSort">
+            @sort="onSort"
+        >
             <template #loading>Loading employees. Please wait.</template>
             <template #empty>
                 <div class="flex flex-col items-center gap-3 py-6">
@@ -475,7 +429,8 @@ watch(() => props.employeeTypeName, (name) => {
                                 severity="info"
                                 class="mr-2"
                                 v-tooltip.top="data.account?.linked ? 'Unlink Account' : 'Link Account'"
-                                @click="openAccount(data)" />
+                                @click="openAccount(data)"
+                            />
                             <Button icon="pi pi-inbox" variant="outlined" rounded severity="danger" v-tooltip.top="'Archive'" @click="openArchive(data)" />
                         </template>
                         <Button v-else icon="pi pi-replay" variant="outlined" rounded severity="success" v-tooltip.top="'Restore'" @click="restore(data)" />
@@ -483,34 +438,13 @@ watch(() => props.employeeTypeName, (name) => {
                 </template>
             </Column>
         </DataTable>
-        <EmployeeFormDialog
-            v-model:visible="formVisible"
-            :employee="selectedEmployee"
-            :fixed-type-id="fixedTypeId"
-            :options="options"
-            @saved="onSaved" />
+        <EmployeeFormDialog v-model:visible="formVisible" :employee="selectedEmployee" :fixed-type-id="fixedTypeId" :options="options" @saved="onSaved" />
 
-        <EmployeeDetailDialog
-            v-model:visible="detailVisible"
-            :employee="selectedDetail"
-            :can-manage="canManage"
-            @edit="openEdit"
-            @archive="openArchive"
-            @restore="restore"
-            @link="openAccount"
-            @unlink="openAccount" />
+        <EmployeeDetailDialog v-model:visible="detailVisible" :employee="selectedDetail" :can-manage="canManage" @edit="openEdit" @archive="openArchive" @restore="restore" @link="openAccount" @unlink="openAccount" />
 
-        <EmployeeArchiveDialog
-            v-model:visible="archiveVisible"
-            :employee="selectedEmployee"
-            @archived="onArchived"
-            @conflict="onConflict" />
+        <EmployeeArchiveDialog v-model:visible="archiveVisible" :employee="selectedEmployee" @archived="onArchived" @conflict="onConflict" />
 
-        <EmployeeAccountLinkDialog
-            v-model:visible="accountVisible"
-            :employee="selectedEmployee"
-            @saved="onAccountSaved"
-            @conflict="onConflict" />
+        <EmployeeAccountLinkDialog v-model:visible="accountVisible" :employee="selectedEmployee" @saved="onAccountSaved" @conflict="onConflict" />
 
         <EmployeeImportDialog v-model:visible="importVisible" @imported="onImported" />
 

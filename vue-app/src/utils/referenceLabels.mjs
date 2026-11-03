@@ -8,11 +8,7 @@ export function referenceLabel(domain, name) {
 
 export function displayReferenceOptions(domain, options) {
     if (!Array.isArray(options)) return options;
-    return options.map((option) =>
-        isRecord(option) && typeof option.name === 'string'
-            ? { ...option, display_name: referenceLabel(domain, option.name) }
-            : option
-    );
+    return options.map((option) => (isRecord(option) && typeof option.name === 'string' ? { ...option, display_name: referenceLabel(domain, option.name) } : option));
 }
 
 const domains = {
@@ -24,18 +20,36 @@ const domains = {
     religions: ['religion'],
     'marital-statuses': ['marital_status', 'maritalStatus'],
     'education-levels': [
-        'education_level', 'educationLevel',
-        'father_education_level', 'fatherEducationLevel',
-        'mother_education_level', 'motherEducationLevel',
-        'guardian_education_level', 'guardianEducationLevel',
-        'parent_education_level', 'parentEducationLevel'
+        'education_level',
+        'educationLevel',
+        'father_education_level',
+        'fatherEducationLevel',
+        'mother_education_level',
+        'motherEducationLevel',
+        'guardian_education_level',
+        'guardianEducationLevel',
+        'parent_education_level',
+        'parentEducationLevel'
     ],
     professions: [
-        'occupation', 'profession',
-        'father_profession', 'fatherProfession', 'father_occupation', 'fatherOccupation',
-        'mother_profession', 'motherProfession', 'mother_occupation', 'motherOccupation',
-        'guardian_profession', 'guardianProfession', 'guardian_occupation', 'guardianOccupation',
-        'parent_profession', 'parentProfession', 'parent_occupation', 'parentOccupation'
+        'occupation',
+        'profession',
+        'father_profession',
+        'fatherProfession',
+        'father_occupation',
+        'fatherOccupation',
+        'mother_profession',
+        'motherProfession',
+        'mother_occupation',
+        'motherOccupation',
+        'guardian_profession',
+        'guardianProfession',
+        'guardian_occupation',
+        'guardianOccupation',
+        'parent_profession',
+        'parentProfession',
+        'parent_occupation',
+        'parentOccupation'
     ],
     'family-statuses': ['family_status', 'familyStatus'],
     'student-statuses': ['student_status', 'studentStatus'],

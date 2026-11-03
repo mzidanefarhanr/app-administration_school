@@ -27,13 +27,13 @@ const search = (event) => {
             });
         }
     }, 250);
-}
+};
 
 const getBadge = (user) => {
     if (user?.type_user?.name === 'User') return 'info';
     else if (user?.type_user?.name === 'Guest') return 'warn';
     else return null;
-}
+};
 
 //method fetchDataUsersOnline
 const fetchDataUsersOnline = async () => {
@@ -54,7 +54,7 @@ const fetchDataUsersOnline = async () => {
     } finally {
         loading.value = false;
     }
-}
+};
 
 //function toggleUserVisibility
 function toggleUserVisibility() {
@@ -76,7 +76,7 @@ onMounted(() => {
             </template>
             <template #end>
                 <div class="flex items-center gap-2">
-                    <AutoComplete v-model="selectedUser" optionLabel="name" placeholder="Search" :suggestions="filteredUsers" @complete="search" class="w-full"/>
+                    <AutoComplete v-model="selectedUser" optionLabel="name" placeholder="Search" :suggestions="filteredUsers" @complete="search" class="w-full" />
                     <i v-if="filteredUsers && filteredUsers.length > 0" @click="toggleUserVisibility" class="pi pi-times"></i>
                 </div>
             </template>
@@ -91,16 +91,12 @@ onMounted(() => {
 
         <ScrollPanel v-else-if="filteredUsers && filteredUsers.length > 0" style="width: 100%; height: 20rem">
             <ul class="m-0 list-none rounded p-4 flex flex-col gap-2 w-full">
-                <li
-                    v-for="user in filteredUsers"
-                    :key="user.id"
-                    class="p-2 hover:bg-emphasis rounded border border-transparent transition-all duration-200 flex items-center justify-content-between"
-                >
+                <li v-for="user in filteredUsers" :key="user.id" class="p-2 hover:bg-emphasis rounded border border-transparent transition-all duration-200 flex items-center justify-content-between">
                     <div class="flex flex-1 items-center gap-2">
                         <OverlayBadge severity="success" v-if="user.status_active">
                             <img :alt="user.name" :src="`https://primefaces.org/cdn/primevue/images/avatar/bernardodominic.png`" class="w-8 h-8" />
                         </OverlayBadge>
-                        <img :alt="user.name" :src="`https://primefaces.org/cdn/primevue/images/avatar/bernardodominic.png`" class="w-8 h-8" v-else/>
+                        <img :alt="user.name" :src="`https://primefaces.org/cdn/primevue/images/avatar/bernardodominic.png`" class="w-8 h-8" v-else />
                         <span class="font-bold">{{ user.name }}</span>
                     </div>
                     <Tag :value="user.type_user ? user.type_user.name : ''" :severity="getBadge(user)" />
@@ -112,16 +108,12 @@ onMounted(() => {
 
         <ScrollPanel v-else style="width: 100%; height: 20rem">
             <ul class="m-0 list-none rounded p-4 flex flex-col gap-2 w-full">
-                <li
-                    v-for="user in userOnline"
-                    :key="user.id"
-                    class="p-2 hover:bg-emphasis rounded border border-transparent transition-all duration-200 flex items-center justify-content-between"
-                >
+                <li v-for="user in userOnline" :key="user.id" class="p-2 hover:bg-emphasis rounded border border-transparent transition-all duration-200 flex items-center justify-content-between">
                     <div class="flex flex-1 items-center gap-2">
                         <OverlayBadge severity="success" v-if="user.status_active">
                             <img :alt="user.name" :src="`https://primefaces.org/cdn/primevue/images/avatar/bernardodominic.png`" class="w-8 h-8" />
                         </OverlayBadge>
-                        <img :alt="user.name" :src="`https://primefaces.org/cdn/primevue/images/avatar/bernardodominic.png`" class="w-8 h-8" v-else/>
+                        <img :alt="user.name" :src="`https://primefaces.org/cdn/primevue/images/avatar/bernardodominic.png`" class="w-8 h-8" v-else />
                         <span class="font-bold">{{ user.name }}</span>
                     </div>
                     <Tag :value="user.type_user ? user.type_user.name : ''" :severity="getBadge(user)" />

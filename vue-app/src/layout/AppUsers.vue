@@ -20,7 +20,7 @@ const roleLabels = {
     'kepala-sekolah': 'Principal',
     'wakil-kesiswaan': 'Vice Principal for Student Affairs'
 };
-const displayedRoles = computed(() => useAuthStore.roles.map(role => roleLabels[role] ?? role).join(', '));
+const displayedRoles = computed(() => useAuthStore.roles.map((role) => roleLabels[role] ?? role).join(', '));
 
 //function visibleStaticBackdropWaitings
 function visibleStaticBackdropWaitings() {
@@ -39,9 +39,7 @@ function clickLogOt() {
         visibleStaticBackdropWaitings();
         visibleStaticBackdropSuccesss();
         titleSuccess.value = 'Signed out';
-        fieldSuccess.value = result?.serverSuccess !== false
-            ? 'You have been signed out. Please wait a moment.'
-            : 'Signed out locally. Could not reach server to terminate session.';
+        fieldSuccess.value = result?.serverSuccess !== false ? 'You have been signed out. Please wait a moment.' : 'Signed out locally. Could not reach server to terminate session.';
         setTimeout(function () {
             visibleStaticBackdropSuccesss();
             router.push({ path: '/auth/login' });
@@ -69,7 +67,7 @@ onMounted(() => {
                 <button v-ripple class="relative overflow-hidden w-full border-0 bg-transparent flex items-start p-2 pl-4 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-none cursor-pointer transition-colors duration-200">
                     <Avatar image="https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png" class="mr-2" shape="circle" />
                     <span class="inline-flex flex-col items-start">
-                        <span class="font-bold">{{ userName || "Loading..." }}</span>
+                        <span class="font-bold">{{ userName || 'Loading...' }}</span>
                         <span class="text-sm">{{ displayedRoles }}</span>
                     </span>
                 </button>

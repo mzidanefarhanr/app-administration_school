@@ -1,6 +1,6 @@
 # Fase 12 — Performa, observability dan konsistensi
 
-Status teknis: IN PROGRESS (12a & 12b IMPLEMENTED & DIVERIFIKASI AGEN; 12c PLANNED). Status review: AWAITING OWNER REVIEW (12a & 12b #1–#18; 12c PLAN PROPOSED via DEC-47).
+Status teknis: IMPLEMENTED & DIVERIFIKASI AGEN (12a, 12b, 12c IMPLEMENTED). Status review: AWAITING OWNER REVIEW (12c #1–#18; DEC-47 IMPLEMENTED).
 Dependensi: Modul aktif; audit 00. Baseline rencana: `9a7eeb6`; audit ulang HEAD saat pelaksanaan.
 
 ## Tujuan dan scope
@@ -45,9 +45,16 @@ Scope: Audit halaman aktif, form/detail/dialog/filter/export, bahasa Indonesia, 
 
 Kriteria penerimaan: Tidak ada link/tombol dummy; tema dan state konsisten; build/lint relevan dan browser/manual diberi hasil nyata.
 
-Status teknis: **PLANNED — AWAITING OWNER APPROVAL (DEC-47 PROPOSED; D1–D10)**.
-- Usulan rencana: `reports/feature-update/PHASE-12C-PLAN.md`.
-- Belum dieksekusi sebelum instruksi tertulis persetujuan D1–D10 dari pemilik.
+Status teknis: **IMPLEMENTED & DIVERIFIKASI AGEN (2026-11-03)**; **DEC-47 APPROVED (D1–D10)**.
+- Pembersihan seluruh menu dan rute demo template Sakai: `UI Components`, `Pages`, `Hierarchy`, `Get Started`, `/uikit/*`, `/pages/crud`, `/landing`, `/documentation`. Modul kompilasi berkurang dari 827 ke 666 modul.
+- Standardisasi 10 grup navigasi sidebar ke bahasa Indonesia baku (`Beranda`, `Data Master`, `Akademik`, `Kesiswaan & Kepegawaian`, `Tata Persuratan`, `Perizinan Pegawai`, `Arsip Dokumen`, `Administrasi Pembelajaran`, `Akun Saya`, `Pengaturan Akses`).
+- Sinkronisasi breadcrumb di seluruh view rute aktif.
+- Formatter visual terpusat: `vue-app/src/utils/formatters.js` (formatDate, formatTime, formatDateTime, formatNumber, formatPercentage, emptyPlaceholder).
+- Aksesibilitas keyboard focus rings (`:focus-visible`) dan responsivitas mobile viewport 390px (dialog 95vw, touch target $\ge 40$ px).
+- Harmonisasi kontras tema mode gelap (`.app-dark`).
+- Probe UAT: `scripts/phase10-uat.php probe-ui-consistency` 5/5 PROBES PASSED.
+- Linter & Build: `npm run lint` 0 errors, `npm run build` PASS (built in 33.63s).
+- Laporan: `reports/feature-update/PHASE-12C-REPORT.md`; Panduan review manual: `reports/feature-update/PHASE-12C-MANUAL-REVIEW.md` (#1–#18).
 
 ## Batas pekerjaan
 Bukan upgrade framework mayor atau cleanup massal. Performa diukur, bukan diklaim dari adanya index saja.
@@ -61,8 +68,8 @@ ARCHITECTURE; DESIGN_SYSTEM; TESTING; OPERATIONS; API-CONTRACTS; CHANGELOG; lapo
 ## Syarat keluar subfase
 - [x] Scope 12a selesai dan diverifikasi agen (S1–S8).
 - [x] Scope 12b selesai dan diverifikasi agen (S1–S8).
-- [x] Kontrak request/response/schema/permission yang berubah didokumentasikan (tabel queue, job_execution_statuses, X-Correlation-ID, PII redaction, standard error contract).
-- [x] Uji relevan benar-benar dijalankan (QueueAndErrorResilienceTest 7/7 PASS, probe-resilience 5/5 PASS, Pint PASS, Vite build PASS).
-- [x] Checklist manual tersedia (`PHASE-12B-MANUAL-REVIEW.md` #1–#18).
+- [x] Scope 12c selesai dan diverifikasi agen (S1–S8).
+- [x] Kontrak request/response/schema/permission yang berubah didokumentasikan (tabel queue, job_execution_statuses, X-Correlation-ID, PII redaction, standard error contract, UI Indonesian nav).
+- [x] Uji relevan benar-benar dijalankan (probe-ui-consistency 5/5 PASS, ESLint 0 errors, Pint PASS, Vite build PASS).
+- [x] Checklist manual tersedia (`PHASE-12C-MANUAL-REVIEW.md` #1–#18).
 - [x] SHA/working tree, known issues dan langkah berikutnya dicatat.
-- [x] Scope berikutnya (Subfase 12c) diusulkan via DEC-47 (D1–D10) di `PHASE-12C-PLAN.md`.

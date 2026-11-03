@@ -90,30 +90,16 @@ const submitForgotPassword = async () => {
                         <IconField>
                             <InputIcon class="pi pi-envelope !text-white/70" />
                             <FloatLabel variant="on">
-                                <InputText
-                                    id="email"
-                                    type="email"
-                                    class="!ps-9 !appearance-none !border !border-white/0 !w-full !outline-0 !bg-white/10 !text-white placeholder:!text-white/50 !rounded-3xl !shadow-sm"
-                                    v-model="email"
-                                    required
-                                />
+                                <InputText id="email" type="email" class="!ps-9 !appearance-none !border !border-white/0 !w-full !outline-0 !bg-white/10 !text-white placeholder:!text-white/50 !rounded-3xl !shadow-sm" v-model="email" required />
                                 <label for="email" class="ps-7 !appearance-none !outline-0 !bg-white/0 !text-white placeholder:!text-white/50 !rounded-3xl !shadow-sm">Email Address</label>
                             </FloatLabel>
                         </IconField>
                     </div>
 
-                    <Button
-                        type="submit"
-                        label="Send Reset Link"
-                        :loading="isSubmitting"
-                        :disabled="isSubmitting"
-                        class="!w-full !rounded-3xl !bg-surface-950 !border !border-surface-950 !text-white hover:!bg-surface-950/80"
-                    />
+                    <Button type="submit" label="Send Reset Link" :loading="isSubmitting" :disabled="isSubmitting" class="!w-full !rounded-3xl !bg-surface-950 !border !border-surface-950 !text-white hover:!bg-surface-950/80" />
                 </div>
 
-                <router-link to="/auth/login" class="text-white/80 cursor-pointer hover:text-white/90 text-sm">
-                    Back to Sign In
-                </router-link>
+                <router-link to="/auth/login" class="text-white/80 cursor-pointer hover:text-white/90 text-sm"> Back to Sign In </router-link>
             </div>
         </form>
 

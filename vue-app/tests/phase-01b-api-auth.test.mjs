@@ -101,7 +101,9 @@ test('419 CSRF recovery refreshes token once, coordinates concurrent requests, a
                     url: '/sanctum/csrf-cookie',
                     _isCsrfRefresh: true
                 }).finally(() => {
-                    setTimeout(() => { csrfRefreshPromise = null; }, 50);
+                    setTimeout(() => {
+                        csrfRefreshPromise = null;
+                    }, 50);
                 });
             }
 
@@ -119,11 +121,7 @@ test('419 CSRF recovery refreshes token once, coordinates concurrent requests, a
     const payload2 = { item: 'data-2' };
     const payload3 = { item: 'data-3' };
 
-    const [res1, res2, res3] = await Promise.all([
-        mockApiLogin({ url: '/api/update-1', data: payload1 }),
-        mockApiLogin({ url: '/api/update-2', data: payload2 }),
-        mockApiLogin({ url: '/api/update-3', data: payload3 }),
-    ]);
+    const [res1, res2, res3] = await Promise.all([mockApiLogin({ url: '/api/update-1', data: payload1 }), mockApiLogin({ url: '/api/update-2', data: payload2 }), mockApiLogin({ url: '/api/update-3', data: payload3 })]);
 
     // Verify: csrf-cookie was requested EXACTLY ONCE despite 3 concurrent 419s
     assert.equal(csrfRefreshCalls, 1);
@@ -269,17 +267,15 @@ test('401 on active session deduplicates notifications; guest/login check is exc
     let isSessionExpiredHandled = false;
 
     function handle401(config) {
-        const isAuthEndpoint =
-            config.skipAuthRedirect ||
-            config.url?.includes('/check-auth') ||
-            config.url?.includes('/login') ||
-            config.url?.includes('/sanctum/csrf-cookie');
+        const isAuthEndpoint = config.skipAuthRedirect || config.url?.includes('/check-auth') || config.url?.includes('/login') || config.url?.includes('/sanctum/csrf-cookie');
 
         if (!isAuthEndpoint) {
             if (!isSessionExpiredHandled) {
                 isSessionExpiredHandled = true;
                 sessionExpiredHandledCount++;
-                setTimeout(() => { isSessionExpiredHandled = false; }, 200);
+                setTimeout(() => {
+                    isSessionExpiredHandled = false;
+                }, 200);
             }
         }
     }
@@ -304,8 +300,7 @@ test('403 feature permission preserves session; inactive account triggers logout
     let notified = [];
 
     function handle403(status, message) {
-        const isInactive = message?.toLowerCase().includes('inactive') ||
-                           message?.toLowerCase().includes('tidak aktif');
+        const isInactive = message?.toLowerCase().includes('inactive') || message?.toLowerCase().includes('tidak aktif');
         if (isInactive) {
             loggedOut = true;
             notified.push('account-inactive');
@@ -351,54 +346,30 @@ test('route guard evaluates ability requirements per page and across child route
     }
 
     // 1. Guest visiting protected route
-    const guestNav = evaluateGuard(
-        { path: '/master/roles', meta: { requiresAuth: true, requiresAbility: 'roles.view' } },
-        [],
-        false
-    );
+    const guestNav = evaluateGuard({ path: '/master/roles', meta: { requiresAuth: true, requiresAbility: 'roles.view' } }, [], false);
     assert.equal(guestNav.action, 'redirect');
     assert.equal(guestNav.path, '/auth/login');
 
     // 2. Operator navigating to /master/roles (needs roles.view) -> denied
-    const opNavRoles = evaluateGuard(
-        { path: '/master/roles', meta: { requiresAuth: true, requiresAbility: 'roles.view' } },
-        operatorAbilities,
-        true
-    );
+    const opNavRoles = evaluateGuard({ path: '/master/roles', meta: { requiresAuth: true, requiresAbility: 'roles.view' } }, operatorAbilities, true);
     assert.equal(opNavRoles.action, 'redirect');
     assert.equal(opNavRoles.path, '/auth/access');
 
     // 3. Operator navigating to /master/typeusers (needs master.manage) -> allowed
-    const opNavTypeUsers = evaluateGuard(
-        { path: '/master/typeusers', meta: { requiresAuth: true, requiresAbility: 'master.manage' } },
-        operatorAbilities,
-        true
-    );
+    const opNavTypeUsers = evaluateGuard({ path: '/master/typeusers', meta: { requiresAuth: true, requiresAbility: 'master.manage' } }, operatorAbilities, true);
     assert.equal(opNavTypeUsers.action, 'allow');
 
     // 4. Operator navigating to /master/accounts (needs users.view) -> denied
-    const opNavAccounts = evaluateGuard(
-        { path: '/master/accounts', meta: { requiresAuth: true, requiresAbility: 'users.view' } },
-        operatorAbilities,
-        true
-    );
+    const opNavAccounts = evaluateGuard({ path: '/master/accounts', meta: { requiresAuth: true, requiresAbility: 'users.view' } }, operatorAbilities, true);
     assert.equal(opNavAccounts.action, 'redirect');
     assert.equal(opNavAccounts.path, '/auth/access');
 
     // 5. Admin navigating to /master/roles -> allowed
-    const adminNavRoles = evaluateGuard(
-        { path: '/master/roles', meta: { requiresAuth: true, requiresAbility: 'roles.view' } },
-        adminAbilities,
-        true
-    );
+    const adminNavRoles = evaluateGuard({ path: '/master/roles', meta: { requiresAuth: true, requiresAbility: 'roles.view' } }, adminAbilities, true);
     assert.equal(adminNavRoles.action, 'allow');
 
     // 6. Logged in user visiting login page -> redirected to /
-    const loggedInVisitLogin = evaluateGuard(
-        { path: '/auth/login', meta: { guestOnly: true } },
-        operatorAbilities,
-        true
-    );
+    const loggedInVisitLogin = evaluateGuard({ path: '/auth/login', meta: { guestOnly: true } }, operatorAbilities, true);
     assert.equal(loggedInVisitLogin.action, 'redirect');
     assert.equal(loggedInVisitLogin.path, '/');
 });

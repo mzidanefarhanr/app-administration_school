@@ -1,6 +1,22 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Subfase 12b IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-46 IMPLEMENTED; Rencana Subfase 12c DISUSUN — DEC-47 PROPOSED)
+## Current checkpoint — 2026-11-03 (Subfase 12c IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-47 IMPLEMENTED; FASE 12 SELESAI LENGKAP)
+
+- **Status:** Subfase **12c — Konsistensi Antarmenu, Form/Dialog, dan Penghapusan Menu Demo** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`7d9cd3e`** (dokumentasi persetujuan rencana `DEC-47 APPROVED`). Paket implementasi dilaporkan di `reports/feature-update/PHASE-12C-REPORT.md` dan checklist pengujian manual pemilik disediakan di `reports/feature-update/PHASE-12C-MANUAL-REVIEW.md` (#1–#18).
+- **Implementasi yang diselesaikan (S1–S8):**
+  1. Pembersihan menu demo template Sakai dari `vue-app/src/layout/AppMenu.vue` (`UI Components`, `Pages`, `Hierarchy`, `Get Started`) dan pembersihan rute demo di `vue-app/src/router/index.js`. Pengurangan beban modul dari 827 ke 666 modul.
+  2. Standardisasi 10 kelompok navigasi sidebar ke dalam bahasa Indonesia baku (`Beranda`, `Data Master`, `Akademik`, `Kesiswaan & Kepegawaian`, `Tata Persuratan`, `Perizinan Pegawai`, `Arsip Dokumen`, `Administrasi Pembelajaran`, `Akun Saya`, `Pengaturan Akses`).
+  3. Sinkronisasi breadcrumb di seluruh view rute aktif sesuai nama menu.
+  4. Verifikasi 0 penggunaan dialog native browser (`window.confirm()`, `window.alert()`).
+  5. Utilitas formatting visual terpusat `vue-app/src/utils/formatters.js` untuk format tanggal, jam WIB, persentase, dan strip kosong `-`.
+  6. Aksesibilitas keyboard fokus rings (`:focus-visible`) dan responsivitas layar ponsel mobile viewport 390px (dialog 95vw, tombol touch target >= 40 px, table scroll mulus).
+  7. Harmonisasi kontras tema mode gelap (`.app-dark`).
+  8. Kualitas: `npm run lint` 0 errors, `npm run build` PASS (built in 33.63s), Pint PASS (0 issues), probe UAT `scripts/phase10-uat.php probe-ui-consistency` 5/5 PROBES PASSED.
+  9. Port isolation DEC-27: port 18028 dan 14028 dipastikan bebas listener (`PORTS_18028_14028_FREE`).
+- **Server UAT:** Server UAT port `18028` dan `14028` diverifikasi bebas listener (`PORTS_18028_14028_FREE`). Apache dan MariaDB operasional tidak disentuh.
+- **Next:** Pemilik menguji checklist manual #1–#18 pada `reports/feature-update/PHASE-12C-MANUAL-REVIEW.md` dan memberikan persetujuan penerimaan bila sesuai.
+
+## Previous checkpoint — 2026-11-03 (Subfase 12b IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-46 IMPLEMENTED; Rencana Subfase 12c DISUSUN — DEC-47 PROPOSED)
 
 - **Status:** Subfase **12b — Background Jobs, Queue Resilience, Observability dan Error Handling** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas main @ baseline **2df2de** (dokumentasi persetujuan rencana DEC-46 APPROVED). Paket implementasi dilaporkan di 
 eports/feature-update/PHASE-12B-REPORT.md dan checklist pengujian manual pemilik disediakan di 

@@ -1015,24 +1015,8 @@ onBeforeUnmount(() => {
                         <InputIcon><i class="pi pi-search" /></InputIcon>
                         <InputText v-model="filters.q" placeholder="Search title or document number" class="w-full" :maxlength="searchMax" aria-label="Search archive documents" @input="onSearchInput" />
                     </IconField>
-                    <Select
-                        v-model="filters.category"
-                        :options="categoryFilterOptions"
-                        optionLabel="label"
-                        optionValue="value"
-                        class="w-full xl:w-48"
-                        aria-label="Archive category"
-                        @change="onFilterChange"
-                    />
-                    <Select
-                        v-model="filters.subjectType"
-                        :options="subjectTypeFilterOptions"
-                        optionLabel="label"
-                        optionValue="value"
-                        class="w-full xl:w-44"
-                        aria-label="Subject type"
-                        @change="onSubjectTypeFilterChange"
-                    />
+                    <Select v-model="filters.category" :options="categoryFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-48" aria-label="Archive category" @change="onFilterChange" />
+                    <Select v-model="filters.subjectType" :options="subjectTypeFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-44" aria-label="Subject type" @change="onSubjectTypeFilterChange" />
                     <Select
                         v-model="filters.subjectId"
                         :options="filterSubjects"
@@ -1047,24 +1031,8 @@ onBeforeUnmount(() => {
                         aria-label="Subject"
                         @change="onFilterChange"
                     />
-                    <Select
-                        v-model="filters.validity"
-                        :options="validityFilterOptions"
-                        optionLabel="label"
-                        optionValue="value"
-                        class="w-full xl:w-48"
-                        aria-label="Validity status"
-                        @change="onFilterChange"
-                    />
-                    <Select
-                        v-model="filters.status"
-                        :options="statusFilterOptions"
-                        optionLabel="label"
-                        optionValue="value"
-                        class="w-full xl:w-40"
-                        aria-label="Archive status"
-                        @change="onFilterChange"
-                    />
+                    <Select v-model="filters.validity" :options="validityFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-48" aria-label="Validity status" @change="onFilterChange" />
+                    <Select v-model="filters.status" :options="statusFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-40" aria-label="Archive status" @change="onFilterChange" />
                     <DatePicker
                         v-model="filters.dateFrom"
                         placeholder="Document date from"
@@ -1184,16 +1152,7 @@ onBeforeUnmount(() => {
                                     v-tooltip.top="'Edit'"
                                     @click="openEdit(data)"
                                 />
-                                <Button
-                                    v-if="data.can?.add_version"
-                                    icon="pi pi-upload"
-                                    aria-label="Add archive version"
-                                    size="small"
-                                    variant="outlined"
-                                    rounded
-                                    v-tooltip.top="'Add Version'"
-                                    @click="openAddVersion(data)"
-                                />
+                                <Button v-if="data.can?.add_version" icon="pi pi-upload" aria-label="Add archive version" size="small" variant="outlined" rounded v-tooltip.top="'Add Version'" @click="openAddVersion(data)" />
                                 <Button
                                     v-if="data.can?.preview"
                                     icon="pi pi-search-plus"
@@ -1215,17 +1174,7 @@ onBeforeUnmount(() => {
                                     v-tooltip.top="'Download'"
                                     @click="downloadVersion(data.id, data.current_version)"
                                 />
-                                <Button
-                                    v-if="data.can?.archive"
-                                    icon="pi pi-box"
-                                    aria-label="Archive document"
-                                    size="small"
-                                    variant="outlined"
-                                    rounded
-                                    severity="warn"
-                                    v-tooltip.top="'Archive'"
-                                    @click="openArchive(data)"
-                                />
+                                <Button v-if="data.can?.archive" icon="pi pi-box" aria-label="Archive document" size="small" variant="outlined" rounded severity="warn" v-tooltip.top="'Archive'" @click="openArchive(data)" />
                                 <Button
                                     v-if="data.can?.restore"
                                     icon="pi pi-undo"
@@ -1467,16 +1416,14 @@ onBeforeUnmount(() => {
                             <template v-if="detail.latest_version">
                                 <div class="text-sm font-medium break-all">{{ detail.latest_version.original_name }}</div>
                                 <div class="text-xs text-surface-500">
-                                    {{ detail.latest_version.mime_type }} · {{ formatSize(detail.latest_version.size_bytes) }} · uploaded by
-                                    {{ detail.latest_version.uploaded_by?.name ?? '-' }} · {{ formatDateTime(detail.latest_version.created_at) }}
+                                    {{ detail.latest_version.mime_type }} · {{ formatSize(detail.latest_version.size_bytes) }} · uploaded by {{ detail.latest_version.uploaded_by?.name ?? '-' }} · {{ formatDateTime(detail.latest_version.created_at) }}
                                 </div>
                                 <div v-if="detail.latest_version.note" class="text-sm mt-2 whitespace-pre-line break-words">{{ detail.latest_version.note }}</div>
                             </template>
                             <span v-else class="text-sm text-surface-500">No file recorded.</span>
                         </div>
                         <div class="text-xs text-surface-500">
-                            Created by {{ detail.created_by?.name ?? '-' }} · {{ formatDateTime(detail.created_at) }}. Last updated by
-                            {{ detail.updated_by?.name ?? '-' }} · {{ formatDateTime(detail.updated_at) }}.
+                            Created by {{ detail.created_by?.name ?? '-' }} · {{ formatDateTime(detail.created_at) }}. Last updated by {{ detail.updated_by?.name ?? '-' }} · {{ formatDateTime(detail.updated_at) }}.
                         </div>
                         <div class="flex flex-col gap-2">
                             <div class="font-semibold">Version History</div>
@@ -1611,7 +1558,14 @@ onBeforeUnmount(() => {
             </TabView>
             <div v-else class="flex flex-col items-center gap-3 py-8">
                 <span class="text-red-500">{{ detailError || 'The archive document could not be loaded.' }}</span>
-                <Button icon="pi pi-refresh" label="Retry" @click="detailError = ''; loadDetail(detail?.id)" />
+                <Button
+                    icon="pi pi-refresh"
+                    label="Retry"
+                    @click="
+                        detailError = '';
+                        loadDetail(detail?.id);
+                    "
+                />
             </div>
         </div>
         <template #footer>

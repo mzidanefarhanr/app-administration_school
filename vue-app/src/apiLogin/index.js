@@ -136,11 +136,7 @@ apiLogin.interceptors.response.use(
 
         // 3. 401 Unauthorized / Session Expired
         if (status === 401) {
-            const isAuthEndpoint =
-                config.skipAuthRedirect ||
-                config.url?.includes('/check-auth') ||
-                config.url?.includes('/login') ||
-                config.url?.includes('/sanctum/csrf-cookie');
+            const isAuthEndpoint = config.skipAuthRedirect || config.url?.includes('/check-auth') || config.url?.includes('/login') || config.url?.includes('/sanctum/csrf-cookie');
 
             if (!isAuthEndpoint) {
                 if (!isSessionExpiredHandled) {

@@ -11,6 +11,6 @@ export function buildStudentExportParams({ schoolYearId, placement, search, romb
         school_year_id: schoolYearId,
         placement: selectedPlacement,
         search: search && search.trim() ? search.trim() : undefined,
-        rombel: selectedPlacement !== 'unplaced' && rombelId ? rombelId : undefined,
+        rombel: selectedPlacement !== 'unplaced' && rombelId ? rombelId : undefined
     };
 }

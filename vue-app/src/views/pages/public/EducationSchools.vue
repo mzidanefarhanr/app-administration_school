@@ -8,10 +8,10 @@ import { referenceLabel, referenceExportFunction } from '@/utils/referenceLabels
 const exportReferenceCell = referenceExportFunction({ 'education_level.name': 'education-levels', status_education: 'school-status' });
 
 // ── Local refs (tidak ada di composable) ──────────────────────────────────
-const dt              = ref();
-const filters         = ref();
+const dt = ref();
+const filters = ref();
 const length_rows_pick = ref(10);
-const length_rows      = ref([10, 25, 50, 100]);
+const length_rows = ref([10, 25, 50, 100]);
 
 // ── Composable — semua state & method CRUD diambil dari sini ──────────────
 const {
@@ -47,29 +47,26 @@ const {
     confirmDeleteSelected,
     deleteSelectedManyDatas,
     search_Cat1,
-    search_Cat2,
+    search_Cat2
 } = useResourceManager({
-    endpoint:        'education-schools',
-    endpoints:       [
-        'education-levels',
-        'districts',
-    ],
-    menuLabel:       'Education School',
+    endpoint: 'education-schools',
+    endpoints: ['education-levels', 'districts'],
+    menuLabel: 'Education School',
     menuLabelPlural: 'Education Schools',
     fieldLabels: {
-        name:                   'Name',
-        npsn:                   'NPSN',
-        'education_level.name':  'Education Level',
-        status_education:       'School Status',
-        address:                'address',
-        'district.name':        'District',
+        name: 'Name',
+        npsn: 'NPSN',
+        'education_level.name': 'Education Level',
+        status_education: 'School Status',
+        address: 'address',
+        'district.name': 'District'
     },
-    uniqueFields:     ['name', 'npsn'],
+    uniqueFields: ['name', 'npsn'],
     uniqueMinLengths: [3, 8],
     fkFields: [
-        { fk: 'education_level',   fk_id: 'education_level_id'   },
-        { fk: 'district', fk_id: 'district_id'  },
-    ],
+        { fk: 'education_level', fk_id: 'education_level_id' },
+        { fk: 'district', fk_id: 'district_id' }
+    ]
 });
 
 // ── Filter ────────────────────────────────────────────────────────────────
@@ -78,12 +75,12 @@ const clearFilter = () => initFilters();
 const initFilters = () => {
     filters.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        'name': { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
-        'npsn': { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+        name: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+        npsn: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
         'education_level.name': { value: null, matchMode: FilterMatchMode.IN },
-        'status_education': { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-        'address': { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
-        'district.name': { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+        status_education: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+        address: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+        'district.name': { value: null, matchMode: FilterMatchMode.STARTS_WITH }
     };
 };
 
@@ -103,7 +100,7 @@ const getSeverity = (status) => {
         case 'renewal':
             return null;
     }
-}
+};
 
 // ── Export CSV ────────────────────────────────────────────────────────────
 const exportCSV = () => {
@@ -126,7 +123,6 @@ onMounted(() => {
 <template>
     <Fluid>
         <div class="bg-surface-0 dark:bg-surface-950 px-6 py-8 md:px-12 lg:px-20">
-
             <div class="flex items-start flex-col md:justify-between md:flex-row">
                 <div>
                     <div class="font-bold text-3xl text-surface-900 dark:text-surface-0 mb-4">{{ entityLabelPlural }}</div>
@@ -147,31 +143,28 @@ onMounted(() => {
                 </Toolbar>
 
                 <DataTable
-                ref="dt"
-                v-model:selection="selectedManyDatas"
-                v-model:filters="filters"
-                :value="manyDatas"
-                paginator
-                showGridlines
-                :rows="length_rows_pick"
-                dataKey="id"
-                filterDisplay="menu"
-                :loading="loading"
-                :exportFunction="exportReferenceCell"
-                :globalFilterFields="['name', 'education_level.display_name', 'status_education_display_name']"
-                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
+                    ref="dt"
+                    v-model:selection="selectedManyDatas"
+                    v-model:filters="filters"
+                    :value="manyDatas"
+                    paginator
+                    showGridlines
+                    :rows="length_rows_pick"
+                    dataKey="id"
+                    filterDisplay="menu"
+                    :loading="loading"
+                    :exportFunction="exportReferenceCell"
+                    :globalFilterFields="['name', 'education_level.display_name', 'status_education_display_name']"
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
                 >
                     <template #header>
                         <div class="mb-3 flex flex-col md:flex-row gap-4">
-                            <div class="flex flex-wrap gap-2 w-full">
-                                Total {{ entityLabelPlural }}: {{ manyDatas ? manyDatas.length : "Loading" }}
-                            </div>
+                            <div class="flex flex-wrap gap-2 w-full">Total {{ entityLabelPlural }}: {{ manyDatas ? manyDatas.length : 'Loading' }}</div>
                         </div>
                         <div class="flex flex-col md:flex-row gap-2 items-end">
                             <div class="flex flex-wrap gap-2">
-                                <Select v-model="length_rows_pick" :options="length_rows" placeholder="Select">
-                                </Select>
+                                <Select v-model="length_rows_pick" :options="length_rows" placeholder="Select"> </Select>
                             </div>
                             <div class="flex flex-wrap gap-2">
                                 <Button type="button" icon="pi pi-filter-slash" label="Clear" variant="outlined" @click="clearFilter()" />
@@ -261,15 +254,10 @@ onMounted(() => {
                             <Button icon="pi pi-trash" variant="outlined" rounded severity="danger" @click="confirmDeleteSingleData(slotProps.data)" />
                         </template>
                     </Column>
-
                 </DataTable>
-
             </div>
         </div>
-
-
     </Fluid>
-
 
     <!-- Confirm Delete Dialog -->
     <Dialog v-model:visible="deleteDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
@@ -297,7 +285,7 @@ onMounted(() => {
         </template>
     </Dialog>
     <!-- Confirm Edit Dialog -->
-    <Dialog v-model:visible="EditOrNewDialog" :style="{ width: '450px' }" :header="entityLabel+' Details'" :modal="true">
+    <Dialog v-model:visible="EditOrNewDialog" :style="{ width: '450px' }" :header="entityLabel + ' Details'" :modal="true">
         <div class="flex flex-col gap-6">
             <div>
                 <label for="name" class="block font-bold mb-3">Name</label>
@@ -317,7 +305,19 @@ onMounted(() => {
                 <small v-else-if="singleData.npsn && singleData.npsn.trim().length > 7" class="text-green-500">NPSN is available! </small>
 
                 <label for="education_level" class="block font-bold mb-3 mt-3">Education Level</label>
-                <AutoComplete id="education_level" v-model="singleData.education_level" :suggestions="filtered_Cat1" required="true" optionLabel="display_name" forceSelection placeholder="Search for Education Level" dropdown display="chip" @complete="search_Cat1" fluid />
+                <AutoComplete
+                    id="education_level"
+                    v-model="singleData.education_level"
+                    :suggestions="filtered_Cat1"
+                    required="true"
+                    optionLabel="display_name"
+                    forceSelection
+                    placeholder="Search for Education Level"
+                    dropdown
+                    display="chip"
+                    @complete="search_Cat1"
+                    fluid
+                />
                 <small v-if="submitted && !singleData.education_level" class="text-red-500">Education Level is required.</small>
 
                 <label for="status_education" class="block font-bold mb-3">School Status</label>
@@ -330,7 +330,6 @@ onMounted(() => {
                 <label for="district" class="block font-bold mb-3 mt-3">District</label>
                 <AutoComplete id="district" v-model="singleData.district" :suggestions="filtered_Cat2" required="true" optionLabel="name" forceSelection placeholder="Search for District" @complete="search_Cat2" fluid />
                 <small v-if="submitted && !singleData.district" class="text-red-500">District is required.</small>
-
             </div>
         </div>
 
@@ -343,16 +342,13 @@ onMounted(() => {
     <Dialog v-model:visible="WaitingDialog" modal header="Processing Request">
         <div class="text-center justify-content-center align-items-center">
             <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: green"></i>
-            <p class="text-success mt-3" style="font-size: 1.1rem; font-weight: 500;">
-            Please wait, your data is being processed...
-        </p>
+            <p class="text-success mt-3" style="font-size: 1.1rem; font-weight: 500">Please wait, your data is being processed...</p>
         </div>
     </Dialog>
     <!-- Error Dialog -->
-    <Dialog v-model:visible="ErrorDialog" modal :header="titleError" style=" width: 25rem; color: red;">
-        <div style="color: black;">
+    <Dialog v-model:visible="ErrorDialog" modal :header="titleError" style="width: 25rem; color: red">
+        <div style="color: black">
             {{ fieldError }}
         </div>
     </Dialog>
-
 </template>
