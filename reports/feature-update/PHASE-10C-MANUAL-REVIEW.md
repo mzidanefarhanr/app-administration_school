@@ -3,7 +3,7 @@
 Subfase: 10c — Laporan Belum Mengisi Jurnal (Missing Teaching Journal Compliance Report), rekap kepatuhan guru skala sekolah, aturan penyebut eksak (denominator rules), segmentasi batas waktu grace window vs overdue, otorisasi RBAC berlapis, aksi pengisian jurnal terintegrasi, dan streaming ekspor file CSV.
 Keputusan pemilik: **DEC-41 APPROVED** (D1–D9, 2026-11-03 WIB; pernyataan **"Saya setuju D1-D9"**).
 Laporan teknis lengkap: [`reports/feature-update/PHASE-10C-REPORT.md`](./PHASE-10C-REPORT.md); rencana kerja: [`reports/feature-update/PHASE-10C-PLAN.md`](./PHASE-10C-PLAN.md).
-Baseline induk: `main` pada `122e044` (pencatatan `DEC-41 APPROVED` di atas paket penerimaan 10b `35728bb`). Status teknis: **IMPLEMENTED — agent-verified (2026-11-03)**. Status review pemilik: **AWAITING OWNER REVIEW (#1–#18, 2026-11-03 WIB)**.
+Baseline induk: `main` pada `122e044` (pencatatan `DEC-41 APPROVED` di atas paket penerimaan 10b `35728bb`). Status teknis: **IMPLEMENTED — agent-verified (2026-11-03)**. Status review pemilik: **APPROVED (#1–#18, 2026-11-03 WIB)** berdasarkan pernyataan: *"Pengujian nomor 1-18 sudah berhasil dan saya approved."*.
 
 ---
 
@@ -142,8 +142,20 @@ npx vite --host 127.0.0.1 --port 14028
 
 ---
 
-## Format Persetujuan Pemilik
+---
 
-Setelah menguji skenario #1 s.d. #18 di atas, pemilik dapat memberikan konfirmasi dengan format:
+## Hasil Review Manual Pemilik (APPROVED 2026-11-03 WIB)
 
-> *"Pengujian nomor 1-18 sudah berhasil dan saya approved."*
+Pemilik menyatakan:
+> **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** (2026-11-03 WIB)
+
+Seluruh 18 skenario uji manual di atas dinyatakan **APPROVED**:
+- **#1 s.d. #5**: Navigasi, konteks default, filter presets cepat, kartu KPI sekolah, konsistensi matematika denominator & status $ightarrow$ **APPROVED**
+- **#6 s.d. #8**: Tab rekapitulasi kepatuhan per guru, aturan penyebut guru tanpa jadwal tidak dianggap menunggak, navigasi drilldown otomatis $ightarrow$ **APPROVED**
+- **#9 s.d. #12**: Tab rincian sesi belum terisi, segmentasi badge grace window ($le 7$ hari) vs overdue ($> 7$ hari), paginasi server, filter status $ightarrow$ **APPROVED**
+- **#13 s.d. #14**: Integrasi aksi langsung pengisian jurnal dari laporan dan kalkulasi ulang instan $ightarrow$ **APPROVED**
+- **#15**: Ekspor CSV dengan UTF-8 BOM, judul kolom rapi, dan streaming aman $ightarrow$ **APPROVED**
+- **#16 s.d. #17**: RBAC guru terisolasi ke `scope=mine` dan otorisasi pimpinan sekolah (read-only school-wide) $ightarrow$ **APPROVED**
+- **#18**: Pembacaan arsip tahun ajaran terkunci 2024/2025 secara read-only + penghentian server UAT port 18028/14028 per DEC-27 $ightarrow$ **APPROVED**
+
+Dengan persetujuan ini, **Subfase 10c resmi DITERIMA PEMILIK dan DITUTUP**, sehingga **seluruh rangkaian Fase 10 (10a, 10b, 10c) telah LENGKAP dan SELESAI**.

@@ -187,6 +187,7 @@ Storage uji memakai fake/temp disk; backup/restore mengarah ke target test, tida
   5. Ekspor CSV: streaming download berhasil dengan status 200, UTF-8 BOM `\xEF\xBB\xBF`, header `X-Content-Type-Options: nosniff`, dan `Content-Disposition: attachment; filename="missing-teaching-journals-2026-11-03.csv"`.
 - Penghentian server UAT (DEC-27): port `18028` dan `14028` diverifikasi ulang bebas listener (`PORTS_18028_14028_FREE`); data `.uat-phase10` dipertahankan untuk review manual pemilik `#1–#18`.
 - **NOT RUN:** suite penuh PHPUnit tanpa filter (karena `MariaDbIntegrationTest`); otomasi browser visual/screenshot (diserahkan ke checklist manual pemilik `#1–#18` di `PHASE-10C-MANUAL-REVIEW.md`); race condition MariaDB/InnoDB multi-proses nyata; Fase 11+ (belum diotorisasi).
+- **Review manual pemilik: APPROVED (#1–#18, 2026-11-03 WIB)** berdasarkan pernyataan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** (`reports/feature-update/PHASE-10C-MANUAL-REVIEW.md`; paket review **`96db43b`**). Agen tidak mengulang skenario dan item NOT RUN tetap NOT RUN. Port `18028` dan `14028` diverifikasi ulang tetap bebas, `.uat-phase10` dipertahankan.
 
 ## Matriks minimum per perubahan
 | Area | Kasus wajib |

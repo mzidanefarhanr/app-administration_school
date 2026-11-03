@@ -1,6 +1,10 @@
 # Indeks laporan pengembangan
 
-## Current checkpoint — 2026-11-03 (Subfase 10c IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-41 IMPLEMENTED)
+## Current checkpoint — 2026-11-03 (Subfase 10c OWNER APPROVED #1–#18; Fase 10 SELESAI LENGKAP & DITUTUP)
+
+Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** (2026-11-03 WIB); checklist manual 10c **#1–#18 APPROVED**. **Subfase 10c — Laporan belum mengisi jurnal** tetap **IMPLEMENTED & DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`122e044`** (paket review **`96db43b`**). Agen tidak mengulang skenario dan item NOT RUN tetap NOT RUN; penerimaan dicatat pada commit dokumentasi terpisah. Dengan diterimanya 10c, **Fase 10 (Administrasi Pembelajaran: 10a, 10b, 10c) resmi SELESAI LENGKAP & DITUTUP**. Port 18028/14028 bebas listener (`PORTS_18028_14028_FREE`), `.uat-phase10` dipertahankan. Fase berikutnya: **Fase 11 — Dashboard Operator dan Laporan**.
+
+## Previous checkpoint — 2026-11-03 (Subfase 10c IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-41 IMPLEMENTED)
 
 Subfase **10c — Laporan belum mengisi jurnal** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`122e044`** (dokumentasi persetujuan rencana `DEC-41 APPROVED`). Seluruh implementasi S1–S8 selesai: backend `TeachingReportService`, form request `TeachingReportIndexRequest`, controller `TeachingReportController`, 2 route `/api/teaching/reports/*` (total 20 route `/api/teaching/*`), view `TeachingReportsView.vue` (`/public/teaching/reports`), router & menu `Teaching -> Journal Reports`, 14 tes feature `TeachingReportApiTest` (`T1–T14`), Pint PASS, ESLint 0 error, build PASS, dan 5 probe HTTP UAT `.uat-phase10` PASS (port 18028/14028 dihentikan sesuai DEC-27). Dokumen laporan rinci: **`PHASE-10C-REPORT.md`**; checklist review manual pemilik: **`PHASE-10C-MANUAL-REVIEW.md`** (#1–#18).
 

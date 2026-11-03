@@ -1,6 +1,12 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Subfase 10c IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-41 IMPLEMENTED)
+## Current checkpoint — 2026-11-03 (Subfase 10c OWNER APPROVED #1–#18; Fase 10 SELESAI LENGKAP & DITUTUP)
+
+- **Status:** Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** (2026-11-03 WIB); checklist manual 10c **#1–#18 APPROVED**. Subfase 10c remains **IMPLEMENTED, agent-verified** above `main` @ baseline **`122e044`** under **DEC-41 APPROVED**; review package **`96db43b`** (pushed to `origin/main`); acceptance is recorded in a separate documentation commit. **Seluruh subfase Fase 10 (10a, 10b, 10c) kini OWNER APPROVED — FASE 10 SELESAI LENGKAP & DITUTUP**.
+- **Server UAT:** Server UAT `.uat-phase10` pada port `18028` dan `14028` diverifikasi tetap bebas listener (`PORTS_18028_14028_FREE`). Data `.uat-phase10` dipertahankan. Apache dan MariaDB operasional tidak disentuh.
+- **Next:** Menyusun rencana rinci untuk fase berikutnya: **Fase 11 — Dashboard Operator dan Laporan (Subfase 11a: Ganti widget demo)** (`reports/feature-update/PHASE-11A-PLAN.md` dengan usulan `DEC-42 PROPOSED`) untuk persetujuan pemilik sebelum implementasi kode.
+
+## Previous checkpoint — 2026-11-03 (Subfase 10c IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-41 IMPLEMENTED)
 
 - **Status:** Subfase **10c — Laporan belum mengisi jurnal** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`122e044`** (dokumentasi persetujuan rencana `DEC-41 APPROVED`). Paket implementasi dilaporkan di `reports/feature-update/PHASE-10C-REPORT.md` dan checklist pengujian manual pemilik disediakan di `reports/feature-update/PHASE-10C-MANUAL-REVIEW.md` (#1–#18). **Subfase 10a & 10b tetap OWNER APPROVED (#1–#18, 2026-11-03 WIB)**.
 - **Server UAT:** Server UAT `.uat-phase10` pada port `18028` dan `14028` telah diverifikasi dihentikan per DEC-27 (`PORTS_18028_14028_FREE`). Data `.uat-phase10` dipertahankan untuk review manual pemilik. Apache dan MariaDB operasional tidak disentuh.

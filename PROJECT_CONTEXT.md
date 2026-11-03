@@ -1,6 +1,10 @@
 # Konteks proyek
 
-## Current addendum — 2026-11-03 (Subfase 10c IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18)
+## Current addendum — 2026-11-03 (Subfase 10c OWNER APPROVED #1–#18; Fase 10 SELESAI LENGKAP & DITUTUP)
+
+Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** (2026-11-03 WIB); checklist manual 10c **#1–#18 APPROVED**. Subfase **10c — Laporan belum mengisi jurnal** tetap **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`122e044`** (paket review **`96db43b`**). Dengan penerimaan ini, **Fase 10 (Administrasi Pembelajaran: 10a, 10b, 10c) resmi SELESAI LENGKAP & DITUTUP**. Port 18028/14028 bebas listener (`PORTS_18028_14028_FREE`). Milestone aktif bergeser ke **Fase 11 — Dashboard Operator dan Laporan** (Subfase 11a: Ganti widget demo operasional).
+
+## Previous addendum — 2026-11-03 (Subfase 10c IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18)
 
 Subfase **10c — Laporan belum mengisi jurnal** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`122e044`** (dokumentasi persetujuan rencana `DEC-41 APPROVED`). Tersedia laporan kepatuhan analitik murni read-only (`TeachingReportService`), aturan denominator presisi (exclude holiday/cancelled/rescheduled_out, include rescheduled in; guru tanpa sesi tidak dianggap missing), segmentasi `missing_within_grace` ($\\le 7$ hari) vs `missing_overdue` ($> 7$ hari), batas rentang tanggal maks 90 hari, otorisasi berbasis peran (`guru` dipaksa `scope=mine`, penolakan `403` lintas guru, `teaching.manage` & pimpinan sekolah penuh), streaming unduhan CSV ber-BOM UTF-8, 2 endpoint baru (`GET /api/teaching/reports/missing-journals` dan `GET /api/teaching/reports/missing-journals/export`; total **20 route `/api/teaching/*`**), antarmuka `/public/teaching/reports` (2 tab: Rekap Kepatuhan Guru & Rincian Sesi Belum Mengisi + tombol langsung form 10b), 14 tes feature `TeachingReportApiTest` (total Teaching suite 32 tes / 336 assertions PASS, total backend 179 tes / 2.338 assertions PASS), serta 5 probe HTTP UAT `.uat-phase10` PASS (port 18028/14028 dihentikan per DEC-27). Menunggu review manual pemilik #1–#18.
 

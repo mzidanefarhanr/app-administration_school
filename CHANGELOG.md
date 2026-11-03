@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 10c — Penerimaan manual pemilik checklist #1–#18; Fase 10 SELESAI LENGKAP & DITUTUP
+- Type: Docs
+- Scope / fase: Pencatatan penerimaan pemilik atas Subfase 10c (checklist #1–#18) dan penutupan lengkap Fase 10 (Administrasi Pembelajaran). Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `reports/feature-update/PHASE-10C-MANUAL-REVIEW.md`, `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `docs/TESTING.md`, `roadmap/phases/PHASE-10-TEACHING.md`, `roadmap/ROADMAP.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: mencatat pernyataan pemilik **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** (2026-11-03 WIB); checklist manual #1–#18 pada `PHASE-10C-MANUAL-REVIEW.md` disahkan sebagai **APPROVED**; DEC-41 status disahkan menjadi **APPROVED & CLOSED**; FR-12 ditandai selesai lengkap; seluruh subfase Fase 10 (10a, 10b, 10c) disahkan selesai dan Fase 10 ditutup.
+- Why: memisahkan commit pencatatan penerimaan pemilik dari implementasi kode dan rencana fase berikutnya sesuai konvensi repositori.
+- Validation: **NOT RUN** — commit dokumentasi penerimaan. Verifikasi port 18028 dan 14028 tetap bebas (`PORTS_18028_14028_FREE`).
+- Notes / risks: Tidak ada mutasi kode atau skema. Tahap berikutnya adalah penyusunan rencana Fase 11 (Dashboard Operator dan Laporan).
+- Evidence: `reports/feature-update/PHASE-10C-MANUAL-REVIEW.md`; paket review `96db43b`.
+
 ## [2026-11-03] Fase 10c — Laporan belum mengisi jurnal, rekap kepatuhan guru, dan ekspor CSV (DEC-41 IMPLEMENTED)
 - Type: Feature
 - Scope / fase: Fase 10 — Subfase 10c: Laporan Belum Mengisi Jurnal (DEC-41 IMPLEMENTED).
