@@ -1,6 +1,21 @@
 # Konteks proyek
 
-## Current addendum — 2026-11-03 (Subfase 12c IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18; DEC-47 IMPLEMENTED; FASE 12 SELESAI LENGKAP)
+## Current addendum — 2026-11-03 (Subfase 12c OWNER APPROVED #1–#18; FASE 12 SELESAI LENGKAP & DITUTUP; Rencana Subfase 13a DISUSUN — DEC-48 PROPOSED)
+
+Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual Subfase 12c **#1–#18 APPROVED**. **Subfase 12c — Konsistensi Antarmenu, Form/Dialog, dan Penghapusan Menu Demo** resmi **SELESAI LENGKAP & DITUTUP** (`0af991d`). **DEC-47 disahkan menjadi APPROVED & CLOSED**. Dengan disetujuinya seluruh subfase 12a, 12b, dan 12c, **FASE 12 (Performa, Observability dan Konsistensi) RESMI SELESAI LENGKAP & DITUTUP**. Port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
+
+Tonggak aktif bergeser ke **Fase 13 — QA Akhir, Rilis dan Handoff Operasional**, dengan rencana teknis rinci untuk **Subfase 13a: QA Integrasi dan UAT** telah disusun di `reports/feature-update/PHASE-13A-PLAN.md` dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D10)** dan usulan **DEC-48 PROPOSED**. Paket ini murni perencanaan dokumentatif tanpa pekerjaan implementasi kode baru, migrasi skema database baru (*zero schema change*), atau mutasi lingkungan operasional:
+- Inventarisasi katalog resmi 334 endpoint HTTP API dan 27 halaman rute aktif Vue SPA.
+- Audit matriks wewenang hak akses (Full Role Matrix) 5 profil peran (`admin-sistem`, `operator-sekolah`, `kepala-sekolah`, `waka-kurikulum`, `guru`).
+- Pengujian 4 alur integrasi end-to-end (E2E-1 Siswa->Surat->Arsip, E2E-2 Guru->Jadwal->Jurnal->Rekap, E2E-3 Izin Pegawai->Pusat Tugas->Approval Kepala Sekolah, E2E-4 Integritas Cadangan Data).
+- Audit komprehensif zero PII leak pada log Monolog dan response API publik.
+- Verifikasi antarmuka multi-viewport (1440px Desktop, 768px Tablet, 390px Layar Ponsel Mobile) & tema Light/Dark.
+- Test suite otomatis `EndToEndIntegrationTest.php`.
+- Probe UAT `probe-integration` pada `phase10-uat.php`.
+- Rekonsiliasi status gerbang keputusan arsitektur (DEC-01 s.d. DEC-48) dan penentuan batasan rilis kandidat v1.0.
+- Panduan review manual pemilik #1–#18 di `PHASE-13A-MANUAL-REVIEW.md` dan penegakan kepatuhan DEC-27 (`PORTS_18028_14028_FREE`).
+
+## Previous addendum — 2026-11-03 (Subfase 12c IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18; DEC-47 IMPLEMENTED; FASE 12 SELESAI LENGKAP)
 
 Subfase **12c — Konsistensi Antarmenu, Form/Dialog, dan Penghapusan Menu Demo** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`7d9cd3e`** (dokumentasi persetujuan rencana `DEC-47 APPROVED`). Disampaikan:
 - **Pembersihan Demo & UI/UX Standardization:**

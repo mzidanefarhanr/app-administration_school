@@ -1,6 +1,13 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Subfase 12c IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-47 IMPLEMENTED; FASE 12 SELESAI LENGKAP)
+## Current checkpoint — 2026-11-03 (Subfase 12c OWNER APPROVED #1–#18; FASE 12 SELESAI LENGKAP & DITUTUP; Rencana Subfase 13a DISUSUN — DEC-48 PROPOSED)
+
+- **Status:** Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual Subfase 12c **#1–#18 APPROVED**. **Subfase 12c — Konsistensi Antarmenu, Form/Dialog, dan Penghapusan Menu Demo** resmi **SELESAI LENGKAP & DITUTUP** (`0af991d`). **DEC-47 disahkan menjadi APPROVED & CLOSED**. Dengan disetujuinya seluruh subfase 12a, 12b, dan 12c, **FASE 12 (Performa, Observability dan Konsistensi) RESMI SELESAI LENGKAP & DITUTUP**.
+- **Perencanaan Subfase 13a:** Rencana teknis rinci untuk **Subfase 13a: QA Integrasi dan UAT** telah disusun di `reports/feature-update/PHASE-13A-PLAN.md` dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D10)** dan usulan **DEC-48 PROPOSED**. Paket ini murni perencanaan tanpa pekerjaan implementasi kode baru, migrasi database baru, atau deployment aktual. Cakupan mencakup inventarisasi 334 endpoint & 27 rute SPA aktif, audit matriks hak akses 5 peran, 4 alur pengujian E2E, audit zero PII leak, verifikasi UI multi-viewport (1440/768/390px) & tema Light/Dark, test suite `EndToEndIntegrationTest.php`, probe UAT `probe-integration` di `phase10-uat.php`, rekonsiliasi keputusan & batasan rilis v1.0, serta checklist review manual #1–#18.
+- **Server UAT:** Server UAT port `18028` dan `14028` diverifikasi bebas listener (`PORTS_18028_14028_FREE`). Apache dan MariaDB operasional tidak disentuh.
+- **Next:** Pemilik meninjau usulan rencana Subfase 13a (DEC-48: D1–D10) pada `reports/feature-update/PHASE-13A-PLAN.md` dan memberikan persetujuan dengan instruksi *"Saya setuju D1-D10"* untuk mengotorisasi pelaksanaan implementasi.
+
+## Previous checkpoint — 2026-11-03 (Subfase 12c IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-47 IMPLEMENTED; FASE 12 SELESAI LENGKAP)
 
 - **Status:** Subfase **12c — Konsistensi Antarmenu, Form/Dialog, dan Penghapusan Menu Demo** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`7d9cd3e`** (dokumentasi persetujuan rencana `DEC-47 APPROVED`). Paket implementasi dilaporkan di `reports/feature-update/PHASE-12C-REPORT.md` dan checklist pengujian manual pemilik disediakan di `reports/feature-update/PHASE-12C-MANUAL-REVIEW.md` (#1–#18).
 - **Implementasi yang diselesaikan (S1–S8):**

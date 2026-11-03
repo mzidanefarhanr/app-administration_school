@@ -17,6 +17,31 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 12c — Penerimaan manual pemilik checklist #1–#18 (FASE 12 SELESAI LENGKAP & DITUTUP); Usulan rencana Subfase 13a (DEC-48 PROPOSED)
+- Type: Docs | Acceptance | Architecture Planning
+- Scope / fase: Fase 12 (Subfase 12c APPROVED; FASE 12 CLOSED) & Fase 13 (Subfase 13a: QA Integrasi dan UAT — DEC-48 PROPOSED: D1–D10).
+- Files touched:
+  - `docs/DECISIONS.md` (DEC-47 APPROVED & CLOSED, DEC-48 PROPOSED)
+  - `reports/feature-update/PHASE-12C-PLAN.md` (status APPROVED #1–#18 & CLOSED)
+  - `roadmap/phases/PHASE-12-PERFORMANCE.md` (FASE 12 SELESAI LENGKAP & DITUTUP)
+  - `roadmap/phases/PHASE-13-QA-RELEASE.md` (Subfase 13a PLAN PROPOSED — DEC-48: D1–D10)
+  - `reports/feature-update/PHASE-13A-PLAN.md` (dokumen rencana komprehensif Subfase 13a dengan 10 usulan keputusan D1–D10)
+  - `roadmap/ROADMAP.md` (addendum persetujuan Subfase 12c, penutupan Fase 12, dan pengajuan rencana Subfase 13a)
+  - `reports/feature-update/INDEX.md` (checkpoint pembaruan Fase 12 & perencanaan Subfase 13a)
+  - `reports/feature-update/HANDOFF.md` (checkpoint pembaruan Fase 12 & perencanaan Subfase 13a)
+  - `PROJECT_CONTEXT.md` (addendum kontekstual peralihan fase ke Subfase 13a)
+- What changed:
+  1. Mencatat persetujuan pemilik untuk checklist manual Subfase 12c (#1–#18) berdasarkan instruksi: "Pengujian nomor 1-18 sudah berhasil dan saya approved."
+  2. Menutup secara resmi DEC-47 dan FASE 12 (Performa, Observability dan Konsistensi) secara lengkap.
+  3. Menyusun rencana teknis terinci untuk Subfase 13a (QA Integrasi dan UAT) yang memuat usulan DEC-48 (D1–D10): inventarisasi 334 endpoint & 27 halaman aktif, matriks peran 5 profil, 4 skenario alur integrasi E2E, audit zero PII leak, multi-viewport UI (1440/768/390px) & tema light/dark, automated test suite `EndToEndIntegrationTest.php`, probe UAT terisolasi `probe-integration`, known issues & scope release v1.0, serta checklist manual review #1–#18 dan kepatuhan DEC-27.
+- Why: Memenuhi instruksi pemilik untuk mencatat penerimaan Fase 12 dan menyiapkan perencanaan resmi untuk tahap berikutnya (Fase 13 / Subfase 13a).
+- Validation:
+  - Verifikasi isolasi port DEC-27: port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
+  - Basis data operasional MariaDB 3306 dan web server Apache 80/443 tidak disentuh.
+  - Zero schema change; tidak ada pekerjaan implementasi kode sebelum persetujuan pemilik atas D1–D10.
+- Evidence: `reports/feature-update/PHASE-13A-PLAN.md`, `reports/feature-update/PHASE-12C-PLAN.md`, `docs/DECISIONS.md`.
+
+
 ## [2026-11-03] Fase 12c — Konsistensi antarmenu, form/dialog, dan penghapusan menu demo (DEC-47 IMPLEMENTED; FASE 12 SELESAI LENGKAP)
 - Type: Feature | Chore | Refactor | UX
 - Scope / fase: Fase 12 — Subfase 12c: Konsistensi Antarmenu, Form/Dialog, dan Penghapusan Menu Demo (DEC-47 IMPLEMENTED; FASE 12 SELESAI LENGKAP).

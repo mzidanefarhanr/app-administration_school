@@ -1,7 +1,7 @@
 # Fase 13 — QA akhir, rilis dan handoff operasional
 
-Status teknis: NOT STARTED. Status review: PENDING. Semua tes/browser/manual: NOT RUN.
-Dependensi: Fase yang dipilih selesai; keputusan kritis ditutup. Baseline rencana: b02a87f; audit ulang HEAD saat pelaksanaan.
+Status teknis: IN PROGRESS (Subfase 13a PLAN PROPOSED). Status review: PENDING (DEC-48 PROPOSED; menunggu persetujuan pemilik D1–D10). Semua tes/browser/manual: NOT RUN (implementasi belum diotorisasi).
+Dependensi: Fase 00 s.d. Fase 12 SELESAI LENGKAP & DITUTUP. Baseline rencana: `0af991d`; audit ulang HEAD saat pelaksanaan.
 
 ## Tujuan dan scope
 QA akhir, rilis dan handoff operasional. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis. Tidak ada pekerjaan implementasi yang telah dilakukan dalam penyusunan dokumen ini.
@@ -9,7 +9,7 @@ QA akhir, rilis dan handoff operasional. Kerjakan satu subfase per instruksi pem
 ## Subfase
 
 ### 13a — QA integrasi dan UAT
-Scope: Inventory semua endpoint/halaman aktif; full role matrix; end-to-end siswa→rombel→surat→arsip, guru→jadwal→jurnal, izin dan backup. Catat open issues dan scope release nyata.
+Scope: Inventory semua endpoint/halaman aktif (334 endpoint, 27 halaman); full role matrix (5 peran); end-to-end siswa→rombel→surat→arsip, guru→jadwal→jurnal→rekap, izin→tugas→approval dan backup; audit zero PII leak; multi-viewport (1440/768/390px) & light/dark; test suite otomatis EndToEndIntegrationTest.php; probe UAT probe-integration; catat open issues dan scope release nyata. Detail rencana: `reports/feature-update/PHASE-13A-PLAN.md` (DEC-48: D1–D10). Status: **PLAN PROPOSED — MENUNGGU PERSETUJUAN PEMILIK (D1–D10)**.
 
 Kriteria penerimaan: Suite dan UAT sesuai hasil; semua NOT RUN/FAIL/BLOCKED eksplisit; approval manual tidak melampaui checklist.
 
