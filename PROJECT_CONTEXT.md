@@ -1,6 +1,28 @@
 # Konteks proyek
 
-## Current addendum — 2026-11-03 (Subfase 13a OWNER APPROVED #1–#18; SUBFASE 13A SELESAI LENGKAP & DITUTUP; Rencana Subfase 13b DISUSUN — DEC-49 PROPOSED)
+## Current addendum — 2026-11-03 (Subfase 13b IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18; DEC-49 IMPLEMENTED)
+
+Pernyataan pemilik **"Saya setuju D1-D10"** (2026-11-03 WIB) dicatat sebagai **DEC-49 APPROVED**; implementasi **Subfase 13b — Kesiapan Rilis (Release Readiness)** diotorisasi dan telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`303b624`**, dengan laporan implementasi di `reports/feature-update/PHASE-13B-REPORT.md` dan paket review manual di `reports/feature-update/PHASE-13B-MANUAL-REVIEW.md` (#1–#18). Disampaikan:
+- **Kesiapan Cadangan & Restore Drill:**
+  1. Validasi pencadangan database SQL (10 domain modul) dan media penyimpanan privat `storage/app/attachments/` (letters, leaves, archives, letter-settings, letter-documents) ber-checksum SHA-256 dan enkripsi ZIP AES-256.
+  2. Rangkaian uji otomatis `BackupRunTest`, `RestoreDrillTest`, `BackupMonitoringTest`, `BackupPruneTest`, dan `BackupScheduleTest` lulus 100% (43/43 tests, 200 assertions).
+  3. Penegakan isolasi target restore drill disposable dan larangan mutlak menyentuh `backdata_administrations`.
+- **Pengerasan Produksi & Prosedur Operasional:**
+  1. Template pengerasan produksi `laravel-api/.env.production.example` (`APP_DEBUG=false`, `SESSION_SECURE_COOKIE=true`, `SESSION_HTTP_ONLY=true`).
+  2. Panduan 10 langkah migrasi produksi dan 9 langkah prosedur rollback darurat di `docs/RELEASE_MIGRATION_ROLLBACK_PLAN.md`.
+  3. Konfigurasi queue worker antrean dan Cron scheduler harian 02:00 WIB.
+  4. Runbook & SOP Operasional Sekolah komprehensif (6 bab) di `docs/SCHOOL_IT_OPERATIONAL_RUNBOOK.md` (arsitektur, instalasi server, bootstrap superadmin `app:bootstrap-admin`, operasi rutin, rollover tahun ajaran, dan troubleshooting).
+- **Verifikasi & Kualitas:**
+  - Probe UAT kesiapan rilis: `scripts/phase10-uat.php probe-release-readiness` 5/5 probes PASS.
+  - Probe UAT integrasi: `scripts/phase10-uat.php probe-integration` 5/5 probes PASS.
+  - ESLint: PASS (0 errors, 0 warnings).
+  - Vite build: PASS (code 0, 17.73s).
+  - Laravel Pint: PASS (clean).
+  - Port isolation DEC-27: port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
+  - MariaDB operasional port 3306 dan Apache port 80/443 tidak disentuh. Zero schema change.
+- **Status:** Menunggu review manual pemilik checklist #1–#18 di `reports/feature-update/PHASE-13B-MANUAL-REVIEW.md`.
+
+## Previous addendum — 2026-11-03 (Subfase 13a OWNER APPROVED #1–#18; SUBFASE 13A SELESAI LENGKAP & DITUTUP; Rencana Subfase 13b DISUSUN — DEC-49 PROPOSED)
 
 Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual Subfase 13a **#1–#18 APPROVED**. **Subfase 13a — QA Integrasi dan UAT** resmi **SELESAI LENGKAP & DITUTUP** (`cace7d3`). **DEC-48 disahkan menjadi APPROVED & CLOSED**. Port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
 

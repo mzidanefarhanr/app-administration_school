@@ -1,7 +1,7 @@
 # Fase 13 — QA akhir, rilis dan handoff operasional
 
-Status teknis: IN PROGRESS (Subfase 13a SELESAI LENGKAP & DITUTUP; Subfase 13b PLAN PROPOSED — DEC-49: D1–D10). Status review: Subfase 13a OWNER APPROVED (#1–#18, 2026-11-03 WIB); Subfase 13b MENUNGGU PERSETUJUAN RENCANA PEMILIK (D1–D10). Verifikasi otomatis: EndToEndIntegrationTest 6/6 PASS, probe-integration 5/5 PASS, lint & build pass.
-Dependensi: Fase 00 s.d. Fase 12 SELESAI LENGKAP & DITUTUP. Baseline implementasi 13a: `6d79fdd`; baseline rencana 13b: `cace7d3`.
+Status teknis: IN PROGRESS (Subfase 13a SELESAI LENGKAP & DITUTUP; Subfase 13b IMPLEMENTED & DIVERIFIKASI AGEN — DEC-49 APPROVED). Status review: Subfase 13a OWNER APPROVED (#1–#18, 2026-11-03 WIB); Subfase 13b MENUNGGU REVIEW MANUAL PEMILIK (#1–#18 pada `reports/feature-update/PHASE-13B-MANUAL-REVIEW.md`). Verifikasi otomatis: EndToEndIntegrationTest 6/6 PASS, probe-integration 5/5 PASS, probe-release-readiness 5/5 PASS, Backup/Restore test suite 43/43 PASS, lint & build pass.
+Dependensi: Fase 00 s.d. Fase 12 SELESAI LENGKAP & DITUTUP. Baseline implementasi 13a: `6d79fdd`; baseline implementasi 13b: `303b624`.
 
 ## Tujuan dan scope
 QA akhir, rilis dan handoff operasional. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis.
@@ -27,7 +27,7 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 ```
 
 ### 13b — Release readiness
-Scope: Restore drill baru pada kandidat release, backup lengkap setelah modul file berkembang, cek manifest/schema, env/HTTPS/worker/scheduler/storage, migration dan rollback plan; dokumentasi operator. Detail rencana: `reports/feature-update/PHASE-13B-PLAN.md` (DEC-49: D1–D10). Status: **PLAN PROPOSED — MENUNGGU PERSETUJUAN PEMILIK (DEC-49: D1–D10)**.
+Scope: Restore drill baru pada kandidat release, backup lengkap setelah modul file berkembang, cek manifest/schema, env/HTTPS/worker/scheduler/storage, migration dan rollback plan; dokumentasi operator. Detail rencana: `reports/feature-update/PHASE-13B-PLAN.md` (DEC-49 APPROVED). Laporan: `reports/feature-update/PHASE-13B-REPORT.md`. Checklist review manual: `reports/feature-update/PHASE-13B-MANUAL-REVIEW.md` (#1–#18). Status: **IMPLEMENTED & DIVERIFIKASI AGEN (2026-11-03 WIB) — MENUNGGU REVIEW MANUAL PEMILIK (#1–#18)**.
 
 Kriteria penerimaan: Backup terbaru mencakup seluruh domain/file; smoke test dan rencana rollback tersedia; tidak ada blocker kritis dalam scope release.
 

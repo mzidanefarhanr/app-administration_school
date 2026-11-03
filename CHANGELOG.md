@@ -16,6 +16,46 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 ```
 
 ## Entries
+## Entries
+
+## [2026-11-03] Fase 13b — Kesiapan rilis, audit backup & restore drill, pengerasan produksi, rollback plan, dan SOP runbook (DEC-49 IMPLEMENTED)
+- Type: Feature | Docs | Quality Assurance | Release Readiness
+- Scope / fase: Fase 13 — Subfase 13b: Kesiapan Rilis (DEC-49 IMPLEMENTED).
+- Files touched:
+  - `laravel-api/.env.production.example` (template konfigurasi pengerasan produksi: APP_DEBUG=false, session secure cookies, permission direktori)
+  - `docs/RELEASE_MIGRATION_ROLLBACK_PLAN.md` (panduan standar 10 langkah migrasi produksi Golden Path dan 9 langkah SOP rollback darurat)
+  - `docs/SCHOOL_IT_OPERATIONAL_RUNBOOK.md` (runbook operasional staf IT sekolah 6 bab: inisialisasi server, bootstrap admin, operasi harian, rollover tahun ajaran, troubleshooting)
+  - `laravel-api/scripts/phase10-uat.php` (handler UAT probe terisolasi `probe-release-readiness`, 5/5 probes passed)
+  - `reports/feature-update/PHASE-13B-REPORT.md` (laporan hasil kerja komprehensif Subfase 13b)
+  - `reports/feature-update/PHASE-13B-MANUAL-REVIEW.md` (panduan review manual pemilik #1–#18)
+  - `docs/DECISIONS.md` (DEC-49 disahkan menjadi APPROVED & IMPLEMENTED)
+  - `reports/feature-update/PHASE-13B-PLAN.md` (status APPROVED & IMPLEMENTED)
+  - `roadmap/phases/PHASE-13-QA-RELEASE.md` (Subfase 13b IMPLEMENTED & AWAITING OWNER REVIEW #1–#18)
+  - `roadmap/ROADMAP.md` (addendum implementasi Subfase 13b dan pembaruan tabel roadmap)
+  - `reports/feature-update/INDEX.md` (checkpoint pembaruan Subfase 13b)
+  - `reports/feature-update/HANDOFF.md` (checkpoint handoff Subfase 13b)
+  - `PROJECT_CONTEXT.md` (addendum kontekstual implementasi Subfase 13b)
+- What changed:
+  1. Melakukan audit kelengkapan backup basis data SQL (10 domain modul) dan media penyimpanan berkas privat `storage/app/attachments/` (letters, leaves, archives, letter-settings, letter-documents) ber-checksum SHA-256 dan enkripsi ZIP AES-256.
+  2. Memverifikasi seluruh rangkaian tes otomatis backup dan restore drill: `BackupRunTest` (11/11 pass), `RestoreDrillTest` (10/10 pass), `BackupMonitoringTest` (7/7 pass), `BackupPruneTest` (9/9 pass), dan `BackupScheduleTest` (6/6 pass) — total 43 tests (200 assertions).
+  3. Menerbitkan template konfigurasi pengerasan lingkungan produksi `laravel-api/.env.production.example` dengan penutupan mode debug (`APP_DEBUG=false`), keamanan cookie HTTPS (`SESSION_SECURE_COOKIE=true`), dan izin direktori berkas.
+  4. Menyusun dokumen `docs/RELEASE_MIGRATION_ROLLBACK_PLAN.md` yang memuat 10 langkah migrasi terstruktur (*Golden Path*) dan 9 langkah SOP mitigasi darurat pemulihan (*disaster recovery rollback* $\le 15$ menit).
+  5. Mendokumentasikan kesiapan background queue worker (`queue:work` dengan exponential backoff dan tabel pelacakan `job_execution_statuses`) serta scheduler Cron harian otomatis pukul 02:00 WIB (backup) dan 02:30 WIB (prune) dengan pemantauan kesehatan pasif di `/api/backups/status`.
+  6. Menyusun dokumen `docs/SCHOOL_IT_OPERATIONAL_RUNBOOK.md` yang memuat 6 bab panduan definitif bagi staf IT sekolah: arsitektur, instalasi server baru & bootstrap superadmin (`php artisan app:bootstrap-admin`), operasi harian/mingguan, backup/restore drill, rollover tahun ajaran, dan troubleshooting.
+  7. Menambahkan handler probe otomatis baru `probe-release-readiness` pada `laravel-api/scripts/phase10-uat.php` dan memverifikasi kelulusan penuh 5/5 PROBES PASSED di runtime terisolasi `.uat-phase10`.
+  8. Menegakkan kepatuhan DEC-27: port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`), Apache 80/443 dan MariaDB 3306 tidak disentuh, dan zero schema change.
+- Why: Memenuhi instruksi pemilik yang menyetujui D1–D10 pada DEC-49 untuk pelaksanaan Subfase 13b (Kesiapan Rilis / Release Readiness).
+- Validation:
+  - `php scripts/phase10-uat.php probe-release-readiness`: PASS (5/5 probes passed).
+  - `php scripts/phase10-uat.php probe-integration`: PASS (5/5 probes passed).
+  - `php artisan test tests/Feature/Backup/BackupRunTest.php tests/Feature/Backup/RestoreDrillTest.php`: PASS (21/21 passed, 84 assertions).
+  - `php artisan test tests/Feature/Backup/BackupMonitoringTest.php tests/Feature/Backup/BackupPruneTest.php tests/Feature/Backup/BackupScheduleTest.php`: PASS (22/22 passed, 116 assertions).
+  - `php artisan test tests/Feature/Access/BootstrapAdminTest.php`: PASS (8/8 passed, 61 assertions).
+  - `npm run lint`: PASS (0 errors, 0 warnings).
+  - `npm run build`: PASS (built in 17.73s).
+  - `vendor/bin/pint scripts/phase10-uat.php`: PASS (clean).
+  - Status port 18028 dan 14028 terverifikasi bebas listener (`PORTS_18028_14028_FREE`).
+- Evidence: `reports/feature-update/PHASE-13B-REPORT.md`; `reports/feature-update/PHASE-13B-MANUAL-REVIEW.md` (#1–#18).
 
 ## [2026-11-03] Fase 13a: penerimaan manual pemilik checklist #1–#18 (SUBFASE 13A SELESAI LENGKAP & DITUTUP); usulan rencana Subfase 13b (DEC-49 PROPOSED)
 - Type: Docs | Quality Assurance | Release Readiness

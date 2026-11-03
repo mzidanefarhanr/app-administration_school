@@ -1,6 +1,21 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Subfase 13a OWNER APPROVED #1–#18; SUBFASE 13A SELESAI LENGKAP & DITUTUP; Rencana Subfase 13b DISUSUN — DEC-49 PROPOSED)
+## Current checkpoint — 2026-11-03 (Subfase 13b IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-49 IMPLEMENTED)
+
+- **Status:** Subfase **13b — Kesiapan Rilis (Release Readiness)** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`303b624`** (dokumentasi persetujuan rencana `DEC-49 APPROVED` via instruksi pemilik: *"Saya setuju D1-D10"*). Paket implementasi dilaporkan di `reports/feature-update/PHASE-13B-REPORT.md` dan checklist pengujian manual pemilik disediakan di `reports/feature-update/PHASE-13B-MANUAL-REVIEW.md` (#1–#18).
+- **Implementasi yang diselesaikan (S1–S8):**
+  1. Validasi kelengkapan pencadangan database SQL (10 modul) dan seluruh media penyimpanan berkas privat `storage/app/attachments/` dengan enkripsi AES-256 dan berkas pendamping `.sha256`; test suite otomatis `BackupRunTest`, `RestoreDrillTest`, `BackupMonitoringTest`, `BackupPruneTest`, `BackupScheduleTest` passing 43/43 tests (200 assertions).
+  2. Eksekusi simulasi restore drill ke basis data terisolasi disposable dengan proteksi penolakan mutlak database operasional `backdata_administrations`.
+  3. Template konfigurasi pengerasan lingkungan produksi `laravel-api/.env.production.example` (`APP_DEBUG=false`, `APP_ENV=production`, `SESSION_SECURE_COOKIE=true`, `SESSION_HTTP_ONLY=true`).
+  4. Dokumen panduan teknis `docs/RELEASE_MIGRATION_ROLLBACK_PLAN.md` (10 langkah migrasi produksi Golden Path dan 9 langkah mitigasi pemulihan darurat).
+  5. Konfigurasi background worker antrean dan penjadwalan Cron harian pukul 02:00 WIB (backup) dan 02:30 WIB (prune) dengan pemantauan status kesehatan di `/api/backups/status`.
+  6. Penyusunan Runbook & SOP Operasional Sekolah definitif 6 bab di `docs/SCHOOL_IT_OPERATIONAL_RUNBOOK.md` (arsitektur, instalasi server baru, bootstrap superadmin `app:bootstrap-admin`, SOP harian/mingguan, rollover tahun ajaran, dan FAQ pemecahan masalah).
+  7. Handler probe UAT terisolasi `php scripts/phase10-uat.php probe-release-readiness`: 5/5 PROBES PASSED.
+  8. Kepatuhan DEC-27: port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`). Apache dan MariaDB operasional tidak disentuh. Zero schema change.
+- **Server UAT:** Server UAT port `18028` dan `14028` diverifikasi bebas listener (`PORTS_18028_14028_FREE`). Apache dan MariaDB operasional tidak disentuh.
+- **Next:** Pemilik menguji checklist manual #1–#18 pada `reports/feature-update/PHASE-13B-MANUAL-REVIEW.md` dan memberikan persetujuan penerimaan bila sesuai.
+
+## Previous checkpoint — 2026-11-03 (Subfase 13a OWNER APPROVED #1–#18; SUBFASE 13A SELESAI LENGKAP & DITUTUP; Rencana Subfase 13b DISUSUN — DEC-49 PROPOSED)
 
 - **Status:** Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual Subfase 13a **#1–#18 APPROVED**. **Subfase 13a — QA Integrasi dan UAT** resmi **SELESAI LENGKAP & DITUTUP** (`cace7d3`). **DEC-48 disahkan menjadi APPROVED & CLOSED**. Port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
 - **Perencanaan Subfase 13b:** Rencana teknis rinci untuk **Subfase 13b: Kesiapan Rilis (Release Readiness)** telah disusun di `reports/feature-update/PHASE-13B-PLAN.md` dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D10)** dan usulan **DEC-49 PROPOSED**. Paket ini murni perencanaan tanpa pekerjaan implementasi kode baru, migrasi skema database baru (*zero schema change*), atau mutasi operasional. Cakupan mencakup audit kelengkapan backup database SQL & direktori storage privat (`storage/app/private` dengan checksum SHA-256), eksekusi simulasi restore drill pada basis data kandidat rilis terisolasi, audit hardening konfigurasi produksi (`APP_ENV=production`, `APP_DEBUG=false`, `APP_KEY`, secure session cookie, CSP headers, directory permissions), rencana migrasi dan prosedur rollback darurat (*rollback plan*), panduan background worker queue & scheduler Cron harian 02:00 WIB, penyusunan Runbook & SOP Operasional Sekolah definitif, pre-release smoke test checklist $\le 10$ detik, probe UAT terisolasi `probe-release-readiness` di `phase10-uat.php`, serta checklist review manual #1–#18 dan kepatuhan port DEC-27.

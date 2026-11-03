@@ -1,6 +1,19 @@
 # Indeks laporan pengembangan
 
-## Current checkpoint — 2026-11-03 (Subfase 13a OWNER APPROVED #1–#18; SUBFASE 13A SELESAI LENGKAP & DITUTUP; Rencana Subfase 13b DISUSUN — DEC-49 PROPOSED)
+## Current checkpoint — 2026-11-03 (Subfase 13b IMPLEMENTED & DIVERIFIKASI AGEN; DEC-49 IMPLEMENTED; MENUNGGU REVIEW MANUAL PEMILIK #1–#18)
+
+Subfase **13b — Kesiapan Rilis (Release Readiness)** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`303b624`** (dokumentasi persetujuan rencana `DEC-49 APPROVED` via instruksi pemilik: *"Saya setuju D1-D10"*). Seluruh implementasi S1–S8 selesai:
+1. Validasi komprehensif modul backup database SQL dan berkas lampiran privat `storage/app/attachments/` (letters, leaves, archives, letter-settings, letter-documents) ber-checksum SHA-256 dan enkripsi ZIP AES-256; test suite otomatis backup/restore drill passing 100% (43/43 pass, 200 assertions).
+2. Penegakan isolasi target restore drill disposable dan penolakan keras database operasional `backdata_administrations`.
+3. Penerbitan template pengerasan lingkungan produksi `laravel-api/.env.production.example` (`APP_DEBUG=false`, secure cookies, log rotation 14 hari, queue database).
+4. Pembuatan SOP urutan migrasi 10 langkah (Golden Path) dan 9 langkah mitigasi pemulihan darurat di `docs/RELEASE_MIGRATION_ROLLBACK_PLAN.md`.
+5. Spesifikasi queue worker antrean dan scheduler Cron harian otomatis pukul 02:00 WIB (backup) dan 02:30 WIB (prune) dengan pemantauan kesehatan pasif di `/api/backups/status`.
+6. Penyusunan Runbook & SOP Operasional Sekolah lengkap (6 bab) di `docs/SCHOOL_IT_OPERATIONAL_RUNBOOK.md` mencakup inisialisasi server, bootstrap superadmin, pemeliharaan berkala, rollover tahun ajaran, dan troubleshooting.
+7. Handler probe UAT kesiapan rilis `php scripts/phase10-uat.php probe-release-readiness` lulus 5/5 PROBES PASSED.
+8. Kepatuhan DEC-27: port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`), Apache 80/443 & MariaDB 3306 tidak disentuh.
+Dokumen laporan rinci: **`PHASE-13B-REPORT.md`**; checklist review manual pemilik: **`PHASE-13B-MANUAL-REVIEW.md`** (#1–#18). Menunggu review manual pemilik.
+
+## Previous checkpoint — 2026-11-03 (Subfase 13a OWNER APPROVED #1–#18; SUBFASE 13A SELESAI LENGKAP & DITUTUP; Rencana Subfase 13b DISUSUN — DEC-49 PROPOSED)
 
 Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual Subfase 13a **#1–#18 APPROVED**. **Subfase 13a — QA Integrasi dan UAT** resmi **SELESAI LENGKAP & DITUTUP** (`cace7d3`). **DEC-48 disahkan menjadi APPROVED & CLOSED**. Port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
 
