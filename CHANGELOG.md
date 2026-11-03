@@ -17,6 +17,16 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 10b — Penerimaan manual pemilik #1–#18 (OWNER APPROVED; UAT stopped)
+- Type: Docs
+- Scope / fase: Penerimaan manual pemilik atas Subfase **10b — Sesi dan jurnal pembelajaran** (`#1–#18 APPROVED`). Tidak ada perubahan kode aplikasi pada entri ini.
+- Files touched: `reports/feature-update/PHASE-10B-REPORT.md`, `reports/feature-update/PHASE-10B-MANUAL-REVIEW.md`, `reports/feature-update/PHASE-10B-PLAN.md`, `docs/DECISIONS.md`, `docs/REQUIREMENTS.md`, `docs/TESTING.md`, `roadmap/phases/PHASE-10-TEACHING.md`, `roadmap/ROADMAP.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`.
+- What changed: mencatat pernyataan pemilik **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** (2026-11-03 WIB) untuk checklist manual `#1–#18` pada paket review `df9f925` (baseline `1c2c48c`); mengonfirmasi verifikasi status port UAT `18028`/`14028` bebas listener (`PORTS_18028_14028_FREE`) dan `.uat-phase10` (8 akun / 66 jurnal) dipertahankan sesuai DEC-27; menetapkan Subfase 10b berstatus **OWNER APPROVED**; serta mempersiapkan penyusunan rencana Subfase 10c.
+- Why: mendokumentasikan penerimaan manual pemilik secara eksplisit sebelum menyusun rencana Subfase 10c.
+- Validation: **NOT RUN** — commit dokumentasi penerimaan manual pemilik.
+- Notes / risks: implementasi Subfase 10c belum diotorisasi dan memerlukan rencana rinci serta persetujuan keputusan terpisah (`DEC-41`).
+- Evidence: `reports/feature-update/PHASE-10B-REPORT.md`; `reports/feature-update/PHASE-10B-MANUAL-REVIEW.md`; paket review `df9f925`.
+
 ## [2026-11-03] Fase 10b — Sesi pembelajaran efektif dan jurnal mengajar (IMPLEMENTED; agent-verified; review pemilik PENDING)
 - Type: Feature | Schema Change
 - Scope / fase: Subfase **10b — sesi pembelajaran efektif harian/rentang dan jurnal mengajar (`teaching_journals`)** (`DEC-40 APPROVED`). Subfase 10c (laporan belum mengisi jurnal) tidak termasuk dalam entri ini.

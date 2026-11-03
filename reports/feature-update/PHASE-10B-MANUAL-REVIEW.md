@@ -2,7 +2,13 @@
 
 Subfase: 10b — evaluasi deterministik sesi pembelajaran efektif harian/rentang (`GET /api/teaching/sessions`), pencatatan jurnal mengajar (`teaching_journals` — `UNIQUE (teaching_schedule_id, session_date)`), penanganan idempotent retry (`200` vs `201` vs `409`), otorisasi `own assignment` (`employees.user_id`) vs koreksi `teaching.manage` (`correction_reason`), penegakan jendela waktu `journal_grace_days = 7` hari kalender WIB (`DEC-10`), serta guard konsistensi dua arah terhadap jadwal & exception 10a.
 Keputusan: **DEC-40 APPROVED** (D1–D9, 2026-11-03 WIB; **"Saya setuju D1-D9"**). Laporan teknis: `reports/feature-update/PHASE-10B-REPORT.md`; rencana: `reports/feature-update/PHASE-10B-PLAN.md`.
-Baseline induk: `main` pada `1c2c48c` (pencatatan DEC-40 APPROVED di atas paket rencana `8ce345b` dan baseline 10a `a304df8`). Status teknis: **IMPLEMENTED — agent-verified (2026-11-03)**. Status review pemilik: **PENDING (#1–#18)**.
+Baseline induk: `main` pada `1c2c48c` (pencatatan DEC-40 APPROVED di atas paket rencana `8ce345b` dan baseline 10a `a304df8`); paket review: `df9f925`. Status teknis: **IMPLEMENTED — agent-verified (2026-11-03)**. Status review pemilik: **APPROVED (#1–#18, 2026-11-03 WIB)**.
+
+## Status penerimaan pemilik
+
+- **APPROVED (#1–#18, 2026-11-03 WIB)** — pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."**; agen tidak mengulang skenario manual dan item NOT RUN tetap NOT RUN.
+- Server UAT `.uat-phase10` (`127.0.0.1:18028` dan `127.0.0.1:14028`) **telah dihentikan oleh agen pada 2026-11-03 WIB** segera setelah verifikasi teknis selesai dan diverifikasi ulang setelah penerimaan sesuai kebijakan `DEC-27`: port `18028` dan `14028` bebas listener (`PORTS_18028_14028_FREE`), data `.uat-phase10` dipertahankan utuh (`101` penugasan, `121` jadwal, `6` exception, `66` jurnal mengajar), dan layanan Apache/MariaDB tidak disentuh.
+- Batas: penerimaan 10b tidak mengotorisasi implementasi Subfase 10c tanpa persetujuan rencana terpisah, merge/deploy/force-push, migrasi database operasional/MariaDB, perubahan dependency/lockfile, atau perubahan service/`.env`.
 
 ## Lingkungan UAT (terisolasi)
 
