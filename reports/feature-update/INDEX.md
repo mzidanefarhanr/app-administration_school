@@ -1,6 +1,12 @@
 # Indeks laporan pengembangan
 
-## Current checkpoint — 2026-11-03 (Subfase 13a IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-48 IMPLEMENTED)
+## Current checkpoint — 2026-11-03 (Subfase 13a OWNER APPROVED #1–#18; SUBFASE 13A SELESAI LENGKAP & DITUTUP; Rencana Subfase 13b DISUSUN — DEC-49 PROPOSED)
+
+Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual Subfase 13a **#1–#18 APPROVED**. **Subfase 13a — QA Integrasi dan UAT** resmi **SELESAI LENGKAP & DITUTUP** (`cace7d3`). **DEC-48 disahkan menjadi APPROVED & CLOSED**. Port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
+
+Tonggak aktif bergeser ke **Subfase 13b — Kesiapan Rilis (Release Readiness)**, dengan rencana teknis rinci telah disusun di **`PHASE-13B-PLAN.md`** dengan usulan **DEC-49 PROPOSED (D1–D10)**. Paket ini murni perencanaan dokumentatif (tanpa perubahan skema basis data baru / zero schema change, tanpa rilis aktual ke produksi). Cakupan 13b meliputi: verifikasi kelengkapan backup database SQL & media storage privat (`storage/app/private` ber-checksum SHA-256), eksekusi simulasi pemulihan (*restore drill*) ke database kandidat rilis terisolasi, audit hardening konfigurasi produksi (`APP_ENV=production`, `APP_DEBUG=false`, `APP_KEY`, secure session cookie, CSP headers, permission direktori), rencana migrasi dan prosedur rollback darurat (*rollback plan*), konfigurasi background worker queue & penjadwalan Cron harian 02:00 WIB, penyusunan Runbook & SOP Operasional Sekolah, pre-release smoke test checklist $\le 10$ detik, penyediaan handler probe UAT `probe-release-readiness` pada `scripts/phase10-uat.php`, serta checklist review manual #1–#18 dan kepatuhan port DEC-27.
+
+## Previous checkpoint — 2026-11-03 (Subfase 13a IMPLEMENTED & DIVERIFIKASI AGEN; DEC-48 IMPLEMENTED; FASE 13A SELESAI)
 
 Subfase **13a — QA Integrasi dan UAT** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`6d79fdd`** (dokumentasi persetujuan rencana `DEC-48 APPROVED` via instruksi pemilik: *"Saya setuju D1-D10"*). Seluruh implementasi S1–S8 selesai:
 1. Audit & inventarisasi 334 endpoint backend (10 domain modul) dan 27 rute antarmuka aktif Vue SPA terdaftar tanpa dead links atau rute yatim.

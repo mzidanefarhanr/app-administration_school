@@ -17,6 +17,32 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 13a: penerimaan manual pemilik checklist #1–#18 (SUBFASE 13A SELESAI LENGKAP & DITUTUP); usulan rencana Subfase 13b (DEC-49 PROPOSED)
+- Type: Docs | Quality Assurance | Release Readiness
+- Scope / fase: Fase 13 — Subfase 13a selesai dan ditutup; perencanaan Subfase 13b (DEC-49 PROPOSED).
+- Files touched:
+  - `docs/DECISIONS.md` (DEC-48 APPROVED & CLOSED; DEC-49 PROPOSED: D1–D10)
+  - `reports/feature-update/PHASE-13A-PLAN.md` (Subfase 13a disahkan APPROVED & CLOSED)
+  - `reports/feature-update/PHASE-13B-PLAN.md` (dokumen rencana komprehensif Subfase 13b: D1–D10)
+  - `roadmap/phases/PHASE-13-QA-RELEASE.md` (Subfase 13a OWNER APPROVED #1–#18 & CLOSED; Subfase 13b PLAN PROPOSED)
+  - `roadmap/ROADMAP.md` (pembaruan tabel roadmap dan addendum transisi Subfase 13b)
+  - `reports/feature-update/INDEX.md` (checkpoint indeks Subfase 13a penutupan & usulan Subfase 13b)
+  - `reports/feature-update/HANDOFF.md` (checkpoint handoff penerimaan Subfase 13a & usulan Subfase 13b)
+  - `PROJECT_CONTEXT.md` (addendum kontekstual penerimaan Subfase 13a & usulan Subfase 13b)
+  - `CHANGELOG.md` (entri riwayat penerimaan Subfase 13a dan perencanaan Subfase 13b)
+- What changed:
+  1. Mencatat persetujuan penuh pemilik atas 18 butir checklist pengujian manual Subfase 13a (#1–#18) pada `reports/feature-update/PHASE-13A-MANUAL-REVIEW.md` berdasarkan instruksi tertulis pemilik: *"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."*
+  2. Menutup secara resmi **Subfase 13a (QA Integrasi dan UAT)** dan mensahkan keputusan arsitektur **DEC-48** menjadi **APPROVED & CLOSED**.
+  3. Menyusun rencana kerja komprehensif untuk **Subfase 13b (Kesiapan Rilis / Release Readiness)** di `reports/feature-update/PHASE-13B-PLAN.md` dengan usulan keputusan arsitektur **DEC-49 (D1–D10)**.
+  4. Menetapkan 10 butir usulan keputusan arsitektur (D1–D10) mencakup batasan non-goals (tanpa fitur baru, tanpa deploy aktual produksi, zero schema change, port 18028/14028 bebas listener per DEC-27), backup komprehensif basis data & storage privat (`storage/app/private` ber-checksum SHA-256), prosedur simulasi restore drill pada kandidat rilis, audit hardening konfigurasi lingkungan produksi, rencana migrasi dan prosedur rollback darurat, kesiapan worker antrean & scheduler Cron harian 02:00 WIB, Runbook & SOP Operasional Sekolah definitif, pre-release smoke test checklist $\le 10$ detik, probe UAT terisolasi `probe-release-readiness` pada `scripts/phase10-uat.php`, serta checklist review manual pemilik 18 butir (#1–#18).
+- Why: Memenuhi instruksi pemilik untuk mencatat penerimaan resmi Subfase 13a dan merumuskan rencana operasional definitif untuk kesiapan rilis pada Subfase 13b.
+- Validation:
+  - Pemeriksaan kelengkapan dokumen rencana `reports/feature-update/PHASE-13B-PLAN.md` (D1–D10, S1–S8).
+  - Status port 18028 dan 14028 terverifikasi bebas listener (`PORTS_18028_14028_FREE`).
+  - Apache dan MariaDB operasional tidak terganggu.
+- Notes / risks: Tidak ada modifikasi kode aplikasi atau skema basis data sebelum pemilik menyetujui DEC-49 (D1–D10).
+- Evidence: `reports/feature-update/PHASE-13B-PLAN.md`; commit perencanaan.
+
 ## [2026-11-03] Fase 13a — QA integrasi menyeluruh, role matrix, alur E2E, audit PII, dan UAT probe (DEC-48 IMPLEMENTED)
 - Type: Feature | Test | Quality Assurance | Observability
 - Scope / fase: Fase 13 — Subfase 13a: QA Integrasi dan UAT (DEC-48 IMPLEMENTED).

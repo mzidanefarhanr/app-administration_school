@@ -1,7 +1,7 @@
 # Fase 13 — QA akhir, rilis dan handoff operasional
 
-Status teknis: IN PROGRESS (Subfase 13a IMPLEMENTED; AWAITING OWNER REVIEW #1–#18). Status review: AWAITING OWNER REVIEW (Checklist #1–#18 pada `reports/feature-update/PHASE-13A-MANUAL-REVIEW.md`). Verifikasi otomatis: EndToEndIntegrationTest 6/6 PASS, probe-integration 5/5 PASS, lint & build pass.
-Dependensi: Fase 00 s.d. Fase 12 SELESAI LENGKAP & DITUTUP. Baseline implementasi: `6d79fdd`.
+Status teknis: IN PROGRESS (Subfase 13a SELESAI LENGKAP & DITUTUP; Subfase 13b PLAN PROPOSED — DEC-49: D1–D10). Status review: Subfase 13a OWNER APPROVED (#1–#18, 2026-11-03 WIB); Subfase 13b MENUNGGU PERSETUJUAN RENCANA PEMILIK (D1–D10). Verifikasi otomatis: EndToEndIntegrationTest 6/6 PASS, probe-integration 5/5 PASS, lint & build pass.
+Dependensi: Fase 00 s.d. Fase 12 SELESAI LENGKAP & DITUTUP. Baseline implementasi 13a: `6d79fdd`; baseline rencana 13b: `cace7d3`.
 
 ## Tujuan dan scope
 QA akhir, rilis dan handoff operasional. Kerjakan satu subfase per instruksi pemilik; jangan mengeksekusi seluruh fase secara otomatis.
@@ -9,7 +9,7 @@ QA akhir, rilis dan handoff operasional. Kerjakan satu subfase per instruksi pem
 ## Subfase
 
 ### 13a — QA integrasi dan UAT
-Scope: Inventory semua endpoint/halaman aktif (334 endpoint, 27 halaman); full role matrix (5 peran); end-to-end siswa→rombel→surat→arsip, guru→jadwal→jurnal→rekap, izin→tugas→approval dan backup; audit zero PII leak; multi-viewport (1440/768/390px) & light/dark; test suite otomatis EndToEndIntegrationTest.php (6/6 pass); probe UAT probe-integration (5/5 pass); catat open issues dan scope release nyata. Detail rencana: `reports/feature-update/PHASE-13A-PLAN.md` (DEC-48 APPROVED). Laporan: `reports/feature-update/PHASE-13A-REPORT.md`. Checklist review manual: `reports/feature-update/PHASE-13A-MANUAL-REVIEW.md` (#1–#18). Status: **IMPLEMENTED & DIVERIFIKASI AGEN (2026-11-03 WIB) — MENUNGGU REVIEW MANUAL PEMILIK (#1–#18)**.
+Scope: Inventory semua endpoint/halaman aktif (334 endpoint, 27 halaman); full role matrix (5 peran); end-to-end siswa→rombel→surat→arsip, guru→jadwal→jurnal→rekap, izin→tugas→approval dan backup; audit zero PII leak; multi-viewport (1440/768/390px) & light/dark; test suite otomatis EndToEndIntegrationTest.php (6/6 pass); probe UAT probe-integration (5/5 pass); catat open issues dan scope release nyata. Detail rencana: `reports/feature-update/PHASE-13A-PLAN.md` (DEC-48 APPROVED). Laporan: `reports/feature-update/PHASE-13A-REPORT.md`. Checklist review manual: `reports/feature-update/PHASE-13A-MANUAL-REVIEW.md` (#1–#18). Status: **OWNER APPROVED (#1–#18, 2026-11-03 WIB; DEC-48 CLOSED) — SUBFASE 13A SELESAI LENGKAP & DITUTUP**.
 
 Kriteria penerimaan: Suite dan UAT sesuai hasil; semua NOT RUN/FAIL/BLOCKED eksplisit; approval manual tidak melampaui checklist.
 
@@ -27,7 +27,7 @@ Berhenti setelah hasil subfase siap review; jangan lanjut subfase berikutnya.
 ```
 
 ### 13b — Release readiness
-Scope: Restore drill baru pada kandidat release, backup lengkap setelah modul file berkembang, cek manifest/schema, env/HTTPS/worker/scheduler/storage, migration dan rollback plan; dokumentasi operator.
+Scope: Restore drill baru pada kandidat release, backup lengkap setelah modul file berkembang, cek manifest/schema, env/HTTPS/worker/scheduler/storage, migration dan rollback plan; dokumentasi operator. Detail rencana: `reports/feature-update/PHASE-13B-PLAN.md` (DEC-49: D1–D10). Status: **PLAN PROPOSED — MENUNGGU PERSETUJUAN PEMILIK (DEC-49: D1–D10)**.
 
 Kriteria penerimaan: Backup terbaru mencakup seluruh domain/file; smoke test dan rencana rollback tersedia; tidak ada blocker kritis dalam scope release.
 

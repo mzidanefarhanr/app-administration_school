@@ -4,7 +4,23 @@ Versi dokumen: 1.0, 14 Oktober 2026 (WIB); audit HEAD 15 Oktober 2026.
 Baseline kode: `b02a87f0d57adffec297ed465a8afcd8e8d7ec59`; HEAD audit `b699feccd65357a10f7430c165400906e6394d49` (delta = paket docs saja, kode tidak berubah).
 Historical drafting status (2026-10-14/15): DRAFT; Fase 00 PARTIAL. The original “all other phases not started” statement is obsolete; current statuses are in the table and correction addendum below.
 
-## Addendum — 2026-11-03 (Rencana Subfase 13a DISETUJUI — DEC-48 APPROVED; Subfase 13a IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18)
+## Addendum — 2026-11-03 (Subfase 13a OWNER APPROVED #1–#18; SUBFASE 13A SELESAI LENGKAP & DITUTUP; Rencana Subfase 13b DISUSUN — DEC-49 PROPOSED)
+
+Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual Subfase 13a **#1–#18 APPROVED**. **Subfase 13a — QA Integrasi dan UAT** resmi **SELESAI LENGKAP & DITUTUP** (`cace7d3`). **DEC-48 disahkan menjadi APPROVED & CLOSED**. Port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
+
+Tonggak aktif bergeser ke **Subfase 13b — Kesiapan Rilis (Release Readiness)**, dengan rencana teknis rinci telah disusun di `reports/feature-update/PHASE-13B-PLAN.md` dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D10)** dan usulan **DEC-49 PROPOSED**. Paket ini **hanya dokumentasi**: tidak ada kode aplikasi, migration, alur bisnis baru, perubahan skema database baru (*zero schema change*), atau rilis produksi aktual yang dilakukan, dan implementasi 13b **belum diotorisasi** sampai pemilik menyetujui **D1–D10**. Usulan 13b mencakup:
+1. Verifikasi kelengkapan berkas backup database SQL dan seluruh media storage privat (`storage/app/private/` mencakup surat, lampiran izin, dan versi arsip dokumen) ber-checksum SHA-256.
+2. Pelaksanaan simulasi pemulihan (*restore drill*) ke database kandidat rilis terisolasi untuk membuktikan zero data loss dan integritas relasional data.
+3. Audit konfigurasi hardening lingkungan produksi (`APP_ENV=production`, `APP_DEBUG=false`, `APP_KEY`, secure session cookie, CSP headers, permission direktori).
+4. Penyusunan urutan migrasi aman dan rencana mitigasi darurat pemulihan (*rollback plan*).
+5. Konfigurasi background worker queue dan penjadwalan otomatis (*task scheduler*) Cron harian 02:00 WIB.
+6. Penyusunan Runbook & SOP Operasional Sekolah (panduan instalasi, pemeliharaan rutin, backup, rollover tahun ajaran).
+7. Pre-release smoke test checklist untuk validasi cepat kesehatan sistem dalam $\le 10$ detik.
+8. Penyediaan handler probe UAT terisolasi `probe-release-readiness` pada `scripts/phase10-uat.php`.
+9. Panduan review manual pemilik #1–#18 di `PHASE-13B-MANUAL-REVIEW.md` dan penegakan kepatuhan port DEC-27 (`PORTS_18028_14028_FREE`).
+Detail: `reports/feature-update/PHASE-13B-PLAN.md`.
+
+## Previous addendum — 2026-11-03 (Rencana Subfase 13a DISETUJUI — DEC-48 APPROVED; Subfase 13a IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18)
 
 Pernyataan pemilik **"Saya setuju D1-D10"** (2026-11-03 WIB) dicatat sebagai **DEC-48 APPROVED**; implementasi **Subfase 13a — QA Integrasi dan UAT** diotorisasi dan telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`6d79fdd`**, dengan laporan implementasi di `reports/feature-update/PHASE-13A-REPORT.md` dan paket review manual di `reports/feature-update/PHASE-13A-MANUAL-REVIEW.md` (#1–#18). Disampaikan pada 13a:
 1. Audit dan katalog definitif 334 endpoint backend (10 domain modul) dan 27 rute antarmuka frontend aktif tanpa orphaned routes atau dead links.
@@ -362,7 +378,7 @@ Fondasi keamanan + backup dahulu; penyelesaian pendataan; pengolahan massal dan 
 | 10 | [Administrasi pembelajaran](phases/PHASE-10-TEACHING.md) | 04,06; DEC-10 (CLOSED via DEC-39) | **10a, 10b, 10c IMPLEMENTED + OWNER APPROVED (#1–#18, 2026-11-03 WIB) — FASE 10 SELESAI LENGKAP & DITUTUP**: penugasan & jadwal mingguan + deteksi bentrok 3D (10a); sesi efektif & jurnal mengajar idempotent retry + own-assignment grace window (10b); laporan kepatuhan guru, aturan denominator eksak, segmentasi grace vs overdue, streaming CSV ber-BOM (10c); total 20 route `/api/teaching/*`, 2 halaman mandiri, 32 tes Teaching + 147 regresi (179 passed / 2.338 assertions) | **10a, 10b, 10c OWNER APPROVED (#1–#18, 2026-11-03 WIB; Fase 10 DITUTUP)** |
 | 11 | [Dashboard operator dan laporan](phases/PHASE-11-ANALYTICS.md) | Modul sumber 03–10; boleh bertahap setelah sumber siap; DEC-42; DEC-43; DEC-44; DEC-12 CLOSED | **11a, 11b, 11c IMPLEMENTED + OWNER APPROVED (#1–#18, 2026-11-03 WIB) — FASE 11 SELESAI LENGKAP & DITUTUP** | **11a APPROVED; 11b APPROVED; 11c APPROVED (DEC-44 CLOSED); FASE 11 DITUTUP** |
 | 12 | [Performa, observability dan konsistensi](phases/PHASE-12-PERFORMANCE.md) | Modul aktif; audit 00; DEC-45; DEC-46; DEC-47 | **12a, 12b, 12c IMPLEMENTED & OWNER APPROVED (#1–#18, 2026-11-03 WIB) — FASE 12 SELESAI LENGKAP & DITUTUP** | **12a APPROVED; 12b APPROVED; 12c APPROVED (DEC-47 CLOSED); FASE 12 DITUTUP** |
-| 13 | [QA akhir, rilis dan handoff operasional](phases/PHASE-13-QA-RELEASE.md) | Fase 00–12 selesai lengkap; DEC-48 | **IN PROGRESS (Subfase 13a IMPLEMENTED & DIVERIFIKASI AGEN — DEC-48 APPROVED)** | **13a IMPLEMENTED; MENUNGGU REVIEW MANUAL PEMILIK (#1–#18)** |
+| 13 | [QA akhir, rilis dan handoff operasional](phases/PHASE-13-QA-RELEASE.md) | Fase 00–12 selesai lengkap; DEC-48; DEC-49 | **IN PROGRESS (Subfase 13a APPROVED & CLOSED; Subfase 13b PLAN PROPOSED — DEC-49: D1–D10)** | **13a APPROVED & CLOSED; 13b PLAN PROPOSED; MENUNGGU PERSETUJUAN PEMILIK (D1–D10)** |
 
 Setiap fase memiliki subfase, prompt, kriteria dan bukti. Fase11 dashboard dapat bertahap berdasarkan modul sumber yang sudah siap; tidak harus menunggu semua modul untuk mengganti widget demo, tetapi jangan menampilkan angka palsu untuk modul belum tersedia.
 

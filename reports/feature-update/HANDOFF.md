@@ -1,6 +1,13 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Subfase 13a IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-48 IMPLEMENTED)
+## Current checkpoint — 2026-11-03 (Subfase 13a OWNER APPROVED #1–#18; SUBFASE 13A SELESAI LENGKAP & DITUTUP; Rencana Subfase 13b DISUSUN — DEC-49 PROPOSED)
+
+- **Status:** Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual Subfase 13a **#1–#18 APPROVED**. **Subfase 13a — QA Integrasi dan UAT** resmi **SELESAI LENGKAP & DITUTUP** (`cace7d3`). **DEC-48 disahkan menjadi APPROVED & CLOSED**. Port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
+- **Perencanaan Subfase 13b:** Rencana teknis rinci untuk **Subfase 13b: Kesiapan Rilis (Release Readiness)** telah disusun di `reports/feature-update/PHASE-13B-PLAN.md` dengan status **PLAN — AWAITING OWNER APPROVAL (D1–D10)** dan usulan **DEC-49 PROPOSED**. Paket ini murni perencanaan tanpa pekerjaan implementasi kode baru, migrasi skema database baru (*zero schema change*), atau mutasi operasional. Cakupan mencakup audit kelengkapan backup database SQL & direktori storage privat (`storage/app/private` dengan checksum SHA-256), eksekusi simulasi restore drill pada basis data kandidat rilis terisolasi, audit hardening konfigurasi produksi (`APP_ENV=production`, `APP_DEBUG=false`, `APP_KEY`, secure session cookie, CSP headers, directory permissions), rencana migrasi dan prosedur rollback darurat (*rollback plan*), panduan background worker queue & scheduler Cron harian 02:00 WIB, penyusunan Runbook & SOP Operasional Sekolah definitif, pre-release smoke test checklist $\le 10$ detik, probe UAT terisolasi `probe-release-readiness` di `phase10-uat.php`, serta checklist review manual #1–#18 dan kepatuhan port DEC-27.
+- **Server UAT:** Server UAT port `18028` dan `14028` diverifikasi bebas listener (`PORTS_18028_14028_FREE`). Apache dan MariaDB operasional tidak disentuh.
+- **Next:** Pemilik meninjau usulan rencana Subfase 13b (DEC-49: D1–D10) pada `reports/feature-update/PHASE-13B-PLAN.md` dan memberikan persetujuan dengan instruksi *"Saya setuju D1-D10"* untuk mengotorisasi pelaksanaan implementasi.
+
+## Previous checkpoint — 2026-11-03 (Subfase 13a IMPLEMENTED & DIVERIFIKASI AGEN — DEC-48 IMPLEMENTED; FASE 13A SELESAI)
 
 - **Status:** Subfase **13a — QA Integrasi dan UAT** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`6d79fdd`** (dokumentasi persetujuan rencana `DEC-48 APPROVED` via instruksi pemilik: *"Saya setuju D1-D10"*). Paket implementasi dilaporkan di `reports/feature-update/PHASE-13A-REPORT.md` dan checklist pengujian manual pemilik disediakan di `reports/feature-update/PHASE-13A-MANUAL-REVIEW.md` (#1–#18).
 - **Implementasi yang diselesaikan (S1–S8):**

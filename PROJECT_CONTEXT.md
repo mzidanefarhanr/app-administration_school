@@ -1,6 +1,21 @@
 # Konteks proyek
 
-## Current addendum — 2026-11-03 (Subfase 13a IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18; DEC-48 IMPLEMENTED)
+## Current addendum — 2026-11-03 (Subfase 13a OWNER APPROVED #1–#18; SUBFASE 13A SELESAI LENGKAP & DITUTUP; Rencana Subfase 13b DISUSUN — DEC-49 PROPOSED)
+
+Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual Subfase 13a **#1–#18 APPROVED**. **Subfase 13a — QA Integrasi dan UAT** resmi **SELESAI LENGKAP & DITUTUP** (`cace7d3`). **DEC-48 disahkan menjadi APPROVED & CLOSED**. Port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
+
+Tonggak aktif bergeser ke **Subfase 13b — Kesiapan Rilis (Release Readiness)**, dengan rencana teknis rinci telah disusun di `reports/feature-update/PHASE-13B-PLAN.md` dengan usulan **DEC-49 PROPOSED (D1–D10)**. Paket ini murni perencanaan dokumentatif (tanpa perubahan skema database baru / zero schema change, tanpa rilis aktual ke produksi):
+- Verifikasi kelengkapan backup database SQL dan seluruh media penyimpanan berkas privat (`storage/app/private` dengan checksum SHA-256).
+- Eksekusi simulasi restore drill pada basis data kandidat rilis terisolasi.
+- Audit konfigurasi lingkungan produksi dan hardening keamanan (`APP_ENV=production`, `APP_DEBUG=false`, `APP_KEY`, secure session cookie, CSP headers, permission direktori).
+- Penyusunan rencana migrasi dan prosedur rollback darurat (*rollback plan*).
+- Kesiapan background worker queue & task scheduler Cron harian 02:00 WIB.
+- Penyusunan Runbook & SOP Operasional Sekolah komprehensif bagi tim IT sekolah.
+- Penyusunan pre-release smoke test checklist $\le 10$ detik.
+- Penyediaan probe UAT terisolasi `probe-release-readiness` pada `scripts/phase10-uat.php`.
+- Checklist review manual pemilik #1–#18 di `PHASE-13B-MANUAL-REVIEW.md` dan kepatuhan port DEC-27 (`PORTS_18028_14028_FREE`).
+
+## Previous addendum — 2026-11-03 (Subfase 13a IMPLEMENTED & DIVERIFIKASI AGEN — DEC-48 IMPLEMENTED; FASE 13A SELESAI)
 
 Pernyataan pemilik **"Saya setuju D1-D10"** (2026-11-03 WIB) dicatat sebagai **DEC-48 APPROVED**; implementasi **Subfase 13a — QA Integrasi dan UAT** diotorisasi dan telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`6d79fdd`**, dengan laporan implementasi di `reports/feature-update/PHASE-13A-REPORT.md` dan paket review manual di `reports/feature-update/PHASE-13A-MANUAL-REVIEW.md` (#1–#18). Disampaikan:
 - **Integrasi Lintas Domain & Full Role Matrix:**
