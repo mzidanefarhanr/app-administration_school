@@ -71,6 +71,10 @@ final class AbilityCatalog
             // Pembelajaran (Fase 10)
             'teaching.view' => self::def('teaching', 'Melihat jadwal/jurnal pembelajaran.', false),
             'teaching.manage' => self::def('teaching', 'Mengelola jadwal/jurnal pembelajaran.', false),
+
+            // Tugas & Pengingat Operasional (Fase 11c)
+            'tasks.view' => self::def('tasks', 'Melihat daftar tugas dan pengingat operasional.', false),
+            'tasks.manage' => self::def('tasks', 'Mengelola pengingat internal operasional.', false),
         ];
     }
 
@@ -101,6 +105,7 @@ final class AbilityCatalog
                     'leaves.view', 'leaves.manage', 'leaves.request',
                     'archives.view', 'archives.manage',
                     'teaching.view', 'teaching.manage',
+                    'tasks.view', 'tasks.manage',
                 ],
                 // Perhatikan: admin TIDAK diberi letters.approve, letters.sign,
                 // atau leaves.approve secara default (sesuai DEC-03).
@@ -117,6 +122,7 @@ final class AbilityCatalog
                     'leaves.view', 'leaves.manage', 'leaves.request',
                     'archives.view', 'archives.manage',
                     'teaching.view', 'teaching.manage',
+                    'tasks.view', 'tasks.manage',
                 ],
             ],
             'kepala-sekolah' => [
@@ -131,6 +137,7 @@ final class AbilityCatalog
                     'leaves.view', 'leaves.approve', 'leaves.request',
                     'archives.view',
                     'teaching.view',
+                    'tasks.view',
                     'audit.view',
                 ],
             ],
@@ -147,6 +154,7 @@ final class AbilityCatalog
                     'leaves.view', 'leaves.request',
                     'letters.view',
                     'archives.view',
+                    'tasks.view',
                 ],
             ],
             'guru' => [
@@ -156,6 +164,7 @@ final class AbilityCatalog
                 'abilities' => [
                     'leaves.request',
                     'teaching.view',
+                    'tasks.view',
                 ],
             ],
         ];

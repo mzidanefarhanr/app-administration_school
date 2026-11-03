@@ -125,5 +125,9 @@ defineExpose({ load });
                 <Button icon="pi pi-arrow-right" size="small" variant="text" severity="secondary" class="shrink-0 self-center" aria-label="Tindak Lanjuti" @click.stop="openTask(task)" />
             </li>
         </ul>
+
+        <div class="mt-4 pt-3 border-t border-surface-200 dark:border-surface-700 flex justify-end">
+            <Button label="Buka Pusat Tugas & Pengingat" icon="pi pi-arrow-right" icon-pos="right" size="small" variant="text" @click="router.push('/public/tasks')" />
+        </div>
     </div>
 </template>

@@ -1,6 +1,30 @@
 # Konteks proyek
 
-## Current addendum — 2026-11-03 (Rencana Subfase 11c DISETUJUI — DEC-44 APPROVED; implementasi diotorisasi)
+## Current addendum — 2026-11-03 (Subfase 11c IMPLEMENTED & DIVERIFIKASI AGEN; AWAITING OWNER REVIEW #1–#18; DEC-44 IMPLEMENTED)
+
+Subfase **11c — Tugas Operasional dan Pengingat Internal Operator** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`035987a`** (dokumentasi persetujuan rencana `DEC-44 APPROVED`). Disampaikan:
+- **Backend Migrations, Models, Services & Controllers:**
+  1. Migrasi `2029_11_01_000001_create_operator_reminders_table.php`: tabel baru `operator_reminders` dengan kolom `id`, `user_id`, `system_source_key`, `category`, `title`, `description`, `priority`, `due_date`, `status`, `completed_at`, `completed_by`, dan timestamps.
+  2. Migrasi `2029_11_01_000002_sync_task_abilities_to_default_roles.php`: mendaftarkan ability `tasks.view` dan `tasks.manage` serta menyinkronkannya ke role default.
+  3. Model `OperatorReminder.php`: konstanta status (`pending`, `completed`, `cancelled`), prioritas (`high`, `warn`, `info`), dan relasi ke `User`.
+  4. Service `OperationalTaskService.php`: agregasi tugas sistem multi-domain real-time (surat masuk belum disposisi, surat keluar review approval, permohonan izin pending keputusan, dokumen arsip kedaluwarsa & akan kedaluwarsa, sesi missing jurnal grace/overdue, anomali kesiswaan, status backup sistem), penggabungan dengan pengingat manual staf, deduplikasi deterministik, penyaringan multi-kriteria (tab, domain, urgensi, search), serta pencatatan dismissal tugas sistem ke tab riwayat selesai.
+  5. Controller `OperationalTaskController.php`: 8 endpoint di bawah prefix `/api/tasks/*` terproteksi `auth:sanctum`, `tasks.view`, dan `tasks.manage`.
+- **Frontend Components & Navigation:**
+  1. `TasksView.vue`: antarmuka SPA terpadu di `/public/tasks` dengan 4 KPI cards (Total Aktif, Tindakan Segera, Peringatan Operasional, Selesai Hari Ini), toolbar filter (domain, urgensi, kata kunci), 4 tab navigasi (`all`, `system`, `manual`, `completed`), daftar tugas dengan badge visual, aksi cepat modul, dan modal dialog untuk membuat/memperbarui pengingat internal staf.
+  2. `PendingTasksWidget.vue`: integrasi tombol footer pintasan cepat menuju Pusat Tugas & Pengingat (`/public/tasks`).
+  3. Router & Menu: rute terdaftar di `router/index.js` dengan guard `tasks.view` dan menu "Tasks & Reminders" di `AppMenu.vue` di bawah grup Home.
+- **Verifikasi & Kualitas:**
+  - 12 tes feature `OperationalTaskApiTest.php` PASS (85 assertions).
+  - Full PHPUnit/Pest suite: 678 passed, 13 skipped, 7.957 assertions PASS (530.24s, 0 regresi).
+  - Laravel Pint: PASS (0 issues) pada seluruh file PHP baru dan termodifikasi.
+  - ESLint: 0 errors, 0 warnings pada seluruh file frontend terkait.
+  - Vite build: PASS (`dist/assets/TasksView-CjX5QH5P.js` 21.40 kB, 31.20s).
+  - UAT probe: `scripts/phase10-uat.php probe-tasks` 5/5 probes PASS (16 synthetic reminders disiapkan via `prepare-tasks`).
+  - Server UAT port 18028 dan 14028 dipastikan dihentikan dan port bebas per DEC-27 (`PORTS_18028_14028_FREE`).
+  - MariaDB operasional port 3306 dan Apache port 80/443 tidak disentuh.
+- **Status:** Menunggu review manual pemilik checklist #1–#18 di `reports/feature-update/PHASE-11C-MANUAL-REVIEW.md`.
+
+## Previous addendum — 2026-11-03 (Rencana Subfase 11c DISETUJUI — DEC-44 APPROVED; implementasi diotorisasi)
 
 Pernyataan pemilik **"Saya setuju D1-D10"** (2026-11-03 WIB) dicatat sebagai **DEC-44 APPROVED**; implementasi **Subfase 11c — Tugas Operasional dan Pengingat Internal Operator** diotorisasi sesuai `reports/feature-update/PHASE-11C-PLAN.md` (baseline **`3cf80cf`**; paket rencana **`38e5856`**). **Subfase 11a & 11b tetap OWNER APPROVED (#1–#18, 2026-11-03 WIB; DEC-42 & DEC-43 CLOSED; DEC-12 CLOSED)**, dan **Fase 10 tetap SELESAI LENGKAP & DITUTUP** (`2a36800`). Scope 11c yang disetujui: tabel additive `operator_reminders`; mesin agregasi terpadu tugas live dari 6 domain (surat, izin, pembelajaran, arsip/dokumen, kualitas data/siswa, sistem/backup); deduplikasi deterministik; siklus hidup status tugas & pengakuan (*dismissal*); otorisasi peran ketat; 8 endpoint `/api/tasks/*`; antarmuka SPA terpadu `/public/tasks` (4 kartu KPI & 4 tab kerja); integrasi tautan balik dari widget dashboard 11a; serta UAT terisolasi yang dihentikan per DEC-27. Detail: `reports/feature-update/PHASE-11C-PLAN.md`.
 

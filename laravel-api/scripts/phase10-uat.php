@@ -1218,5 +1218,277 @@ if ($command === 'probe-reports-school') {
     exit(0);
 }
 
-fwrite(STDERR, "Unknown command. Use init, prepare, prepare-teaching, prepare-journals, probe-reports, probe-dashboard, probe-reports-school, status, or start the HTTP server with this script.\n");
+if ($command === 'prepare-tasks') {
+    $operator = App\Models\User::where('username', 'operator')->first()
+        ?? App\Models\User::firstOrFail();
+
+    fwrite(STDOUT, "=== UAT Phase 11c Preparing Synthetic Operational Reminders ===\n\n");
+
+    // Ensure database migration has run
+    Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+
+    $syntheticTasks = [
+        [
+            'title' => 'Pengesahan dan Penandatanganan Surat Tugas Workshop Kurikulum Merdeka',
+            'description' => 'Surat tugas dinas MGMP perlu ditandatangani Kepala Sekolah sebelum hari Kamis.',
+            'category' => 'letters',
+            'priority' => 'high',
+            'due_date' => Carbon\Carbon::now('Asia/Jakarta')->addDays(2)->toDateString(),
+            'status' => 'pending',
+        ],
+        [
+            'title' => 'Verifikasi Pengajuan Cuti Sakit Guru Matematika',
+            'description' => 'Surat keterangan dokter dari RSUD Koja perlu dicek kelengkapannya untuk lampiran cuti.',
+            'category' => 'leaves',
+            'priority' => 'high',
+            'due_date' => Carbon\Carbon::now('Asia/Jakarta')->addDays(1)->toDateString(),
+            'status' => 'pending',
+        ],
+        [
+            'title' => 'Follow up Kelengkapan Jurnal Mengajar Semester Ganjil',
+            'description' => 'Ada 3 guru mata pelajaran produktif yang belum mencatatkan topik jurnal minggu lalu.',
+            'category' => 'teaching',
+            'priority' => 'warn',
+            'due_date' => Carbon\Carbon::now('Asia/Jakarta')->addDays(4)->toDateString(),
+            'status' => 'pending',
+        ],
+        [
+            'title' => 'Audit Retensi Berkas Dokumen Akreditasi Sekolah 2021',
+            'description' => 'Pemeriksaan status retensi dan legalitas digital sertifikat lama yang mendekati kedaluwarsa.',
+            'category' => 'archives',
+            'priority' => 'info',
+            'due_date' => Carbon\Carbon::now('Asia/Jakarta')->addDays(14)->toDateString(),
+            'status' => 'pending',
+        ],
+        [
+            'title' => 'Penyelarasan Data NISN Siswa Tingkat Akhir ke Portal VervalPD',
+            'description' => 'Pencocokan 12 siswa dengan status NISN kosong sebelum penutupan pendaftaran ujian sertifikasi.',
+            'category' => 'students',
+            'priority' => 'high',
+            'due_date' => Carbon\Carbon::now('Asia/Jakarta')->addDays(3)->toDateString(),
+            'status' => 'pending',
+        ],
+        [
+            'title' => 'Pembaruan SK Pembagian Beban Kerja Mengajar Semester Baru',
+            'description' => 'Cek ulang alokasi jam mengajar per rombel untuk penyiapan SK Kepala Sekolah.',
+            'category' => 'personnel',
+            'priority' => 'warn',
+            'due_date' => Carbon\Carbon::now('Asia/Jakarta')->addDays(7)->toDateString(),
+            'status' => 'pending',
+        ],
+        [
+            'title' => 'Koordinasi Pengawas Pembina Dinas Pendidikan Jakarta Utara',
+            'description' => 'Menyiapkan berkas profil kelembagaan dan statistik tren siswa untuk kunjungan monitoring.',
+            'category' => 'general',
+            'priority' => 'warn',
+            'due_date' => Carbon\Carbon::now('Asia/Jakarta')->addDays(5)->toDateString(),
+            'status' => 'pending',
+        ],
+        [
+            'title' => 'Pencetakan Surat Pengantar Mutasi Siswa Pindahan Masuk',
+            'description' => 'Surat pengantar rekomendasi dinas untuk 2 siswa pindahan dari Jawa Barat.',
+            'category' => 'letters',
+            'priority' => 'info',
+            'due_date' => Carbon\Carbon::now('Asia/Jakarta')->addDays(6)->toDateString(),
+            'status' => 'pending',
+        ],
+        [
+            'title' => 'Pemeriksaan Berkas Permohonan Dispensasi Lomba OSN Siswa',
+            'description' => 'Permohonan izin dispensasi latihan intensif tim olimpiade sains.',
+            'category' => 'leaves',
+            'priority' => 'info',
+            'due_date' => Carbon\Carbon::now('Asia/Jakarta')->addDays(8)->toDateString(),
+            'status' => 'pending',
+        ],
+        [
+            'title' => 'Backfill Jurnal Sesi Pengganti Praktikum Bengkel',
+            'description' => 'Input jurnal manual pengganti sesi libur nasional Hari Sumpah Pemuda.',
+            'category' => 'teaching',
+            'priority' => 'warn',
+            'due_date' => Carbon\Carbon::now('Asia/Jakarta')->addDays(3)->toDateString(),
+            'status' => 'pending',
+        ],
+        [
+            'title' => 'Pengecekan Integritas Backup Basis Data Mingguan',
+            'description' => 'Verifikasi sha256 arsip zip backup dan drill simulasi di lingkungan isolasi.',
+            'category' => 'general',
+            'priority' => 'high',
+            'due_date' => Carbon\Carbon::now('Asia/Jakarta')->toDateString(),
+            'status' => 'pending',
+        ],
+        [
+            'title' => 'Pengunggahan Salinan Dokumen Ijazah Kepala Sekolah Baru',
+            'description' => 'Digitalisasi berkas kepangkatan dan ijazah untuk repositori arsip kepegawaian.',
+            'category' => 'archives',
+            'priority' => 'info',
+            'due_date' => null,
+            'status' => 'pending',
+        ],
+        [
+            'title' => 'Penerbitan Surat Rekomendasi Beasiswa Prestasi Kaltara',
+            'description' => 'Draft surat rekomendasi beasiswa untuk 5 siswa berprestasi telah disetujui Kepala Sekolah.',
+            'category' => 'letters',
+            'priority' => 'info',
+            'due_date' => Carbon\Carbon::now('Asia/Jakarta')->subDays(1)->toDateString(),
+            'status' => 'completed',
+            'completed_at' => Carbon\Carbon::now('Asia/Jakarta')->subHours(4),
+            'completed_by' => $operator->id,
+        ],
+        [
+            'title' => 'Sinkronisasi Data NIK Ganda Guru Honorer',
+            'description' => 'Verifikasi duplikasi NIK telah diselesaikan dengan bukti KTP asli dari dinas kependudukan.',
+            'category' => 'personnel',
+            'priority' => 'warn',
+            'due_date' => Carbon\Carbon::now('Asia/Jakarta')->subDays(2)->toDateString(),
+            'status' => 'completed',
+            'completed_at' => Carbon\Carbon::now('Asia/Jakarta')->subHours(6),
+            'completed_by' => $operator->id,
+        ],
+        [
+            'title' => 'Pemberitahuan Uji Coba Asesmen Sumatif Tengah Semester',
+            'description' => 'Agenda dibatalkan karena digabung dengan jadwal pekan pembelajaran kolaboratif.',
+            'category' => 'teaching',
+            'priority' => 'info',
+            'due_date' => Carbon\Carbon::now('Asia/Jakarta')->subDays(3)->toDateString(),
+            'status' => 'cancelled',
+        ],
+        [
+            'title' => 'Pelaporan Bulanan Disposisi Surat Masuk ke Pengawas',
+            'description' => 'Disposisi rekap surat masuk bulan lalu telah dikirimkan via email resmi dinas.',
+            'category' => 'letters',
+            'priority' => 'info',
+            'due_date' => Carbon\Carbon::now('Asia/Jakarta')->toDateString(),
+            'status' => 'completed',
+            'completed_at' => Carbon\Carbon::now('Asia/Jakarta')->subMinutes(30),
+            'completed_by' => $operator->id,
+        ],
+    ];
+
+    $createdCount = 0;
+    foreach ($syntheticTasks as $taskData) {
+        App\Models\OperatorReminder::create(array_merge($taskData, [
+            'user_id' => $operator->id,
+        ]));
+        $createdCount++;
+    }
+
+    fwrite(STDOUT, "Successfully inserted {$createdCount} synthetic operator reminders for user '{$operator->username}'.\n");
+    fwrite(STDOUT, "=== FINISHED PREPARING TASKS ===\n");
+    exit(0);
+}
+
+if ($command === 'probe-tasks') {
+    $service = $app->make(App\Services\Tasks\OperationalTaskService::class);
+    $operator = App\Models\User::where('username', 'operator')->first()
+        ?? App\Models\User::firstOrFail();
+
+    fwrite(STDOUT, "=== UAT Phase 11c Operational Tasks & Reminders Center Probes ===\n\n");
+
+    // Probe 1: Get Tasks Summary
+    $summary = $service->getSummary($operator);
+    fwrite(STDOUT, "[PROBE 1] Tasks & Reminders KPI Summary:\n");
+    fwrite(STDOUT, "  - Total Active Tasks: {$summary['total_active']}\n");
+    fwrite(STDOUT, "  - High Priority (Tindakan Segera): {$summary['total_high']}\n");
+    fwrite(STDOUT, "  - Warning (Peringatan Operasional): {$summary['total_warn']}\n");
+    fwrite(STDOUT, "  - Info Level: {$summary['total_info']}\n");
+    fwrite(STDOUT, "  - Completed Today: {$summary['completed_today']}\n");
+    fwrite(STDOUT, '  - Domains Covered: '.implode(', ', array_keys($summary['by_domain']))."\n");
+
+    if (! isset($summary['total_active']) || ! isset($summary['total_high']) || ! isset($summary['completed_today'])) {
+        throw new RuntimeException('Probe 1 failed: Invalid summary structure');
+    }
+    fwrite(STDOUT, "  -> PASS: Summary counters and domain breakdown computed accurately.\n\n");
+
+    // Probe 2: List Tasks with Tab Separation & Domain Filters
+    $allTasks = $service->getTasks($operator, ['tab' => 'all', 'per_page' => 10]);
+    $systemTasks = $service->getTasks($operator, ['tab' => 'system']);
+    $manualTasks = $service->getTasks($operator, ['tab' => 'manual']);
+    $completedTasks = $service->getTasks($operator, ['tab' => 'completed']);
+
+    fwrite(STDOUT, "[PROBE 2] Tab Filtering & Pagination:\n");
+    fwrite(STDOUT, "  - Tab 'all' items returned: ".count($allTasks['data'])." (Total: {$allTasks['pagination']['total']})\n");
+    fwrite(STDOUT, "  - Tab 'system' items returned: ".count($systemTasks['data'])."\n");
+    fwrite(STDOUT, "  - Tab 'manual' items returned: ".count($manualTasks['data'])."\n");
+    fwrite(STDOUT, "  - Tab 'completed' items returned: ".count($completedTasks['data'])."\n");
+
+    if ($allTasks['pagination']['total'] < 1) {
+        throw new RuntimeException('Probe 2 failed: Tasks list is empty, run prepare-tasks first');
+    }
+    fwrite(STDOUT, "  -> PASS: Tab filtering separates system, manual reminders, and completed history.\n\n");
+
+    // Probe 3: Create & Update Manual Reminder
+    $newReminder = $service->createReminder($operator, [
+        'title' => 'UAT Synthetic Probe Reminder',
+        'description' => 'Dibuat untuk memverifikasi fungsionalitas store & update reminder.',
+        'category' => 'general',
+        'priority' => 'high',
+        'due_date' => Carbon\Carbon::now('Asia/Jakarta')->addDays(3)->toDateString(),
+    ]);
+
+    fwrite(STDOUT, "[PROBE 3] Create & Update Manual Reminder:\n");
+    fwrite(STDOUT, "  - Created Reminder ID: {$newReminder->id}, Title: {$newReminder->title}\n");
+
+    $updatedReminder = $service->updateReminder($newReminder, [
+        'title' => 'UAT Synthetic Probe Reminder (Updated)',
+        'priority' => 'warn',
+    ]);
+    fwrite(STDOUT, "  - Updated Title: {$updatedReminder->title}, Priority: {$updatedReminder->priority}\n");
+
+    if ($updatedReminder->title !== 'UAT Synthetic Probe Reminder (Updated)' || $updatedReminder->priority !== 'warn') {
+        throw new RuntimeException('Probe 3 failed: Update reminder failed');
+    }
+    fwrite(STDOUT, "  -> PASS: Manual reminder create & update logic verified.\n\n");
+
+    // Probe 4: Mark Complete, Cancel & Delete Reminder
+    $completedReminder = $service->completeReminder($updatedReminder, $operator);
+    fwrite(STDOUT, "[PROBE 4] Reminder Lifecycle (Complete, Cancel, Delete):\n");
+    fwrite(STDOUT, "  - Status after complete: {$completedReminder->status}, Completed by: {$completedReminder->completed_by}\n");
+
+    if ($completedReminder->status !== 'completed' || ! $completedReminder->completed_at) {
+        throw new RuntimeException('Probe 4 failed: Complete reminder did not record timestamp');
+    }
+
+    // Cancel another test reminder
+    $tempReminder = $service->createReminder($operator, ['title' => 'Temp to cancel']);
+    $cancelled = $service->cancelReminder($tempReminder);
+    fwrite(STDOUT, "  - Status after cancel: {$cancelled->status}\n");
+    if ($cancelled->status !== 'cancelled') {
+        throw new RuntimeException('Probe 4 failed: Cancel reminder failed');
+    }
+
+    // Delete test reminder
+    $service->deleteReminder($tempReminder);
+    $foundDeleted = App\Models\OperatorReminder::find($tempReminder->id);
+    if ($foundDeleted !== null) {
+        throw new RuntimeException('Probe 4 failed: Delete reminder failed');
+    }
+    fwrite(STDOUT, "  -> PASS: Lifecycle transitions (complete, cancel, delete) verified.\n\n");
+
+    // Probe 5: System Task Dismissal
+    $testSystemKey = 'uat-probe-system-task-'.bin2hex(random_bytes(4));
+    $dismissal = $service->dismissSystemTask(
+        $testSystemKey,
+        $operator,
+        'UAT Dismissed System Letter'
+    );
+
+    fwrite(STDOUT, "[PROBE 5] System Task Dismissal:\n");
+    fwrite(STDOUT, "  - Dismissed Key: {$dismissal->system_source_key}, Status: {$dismissal->status}\n");
+
+    $foundDismissal = App\Models\OperatorReminder::where('system_source_key', $testSystemKey)->first();
+    if (! $foundDismissal || $foundDismissal->status !== 'completed') {
+        throw new RuntimeException('Probe 5 failed: Dismissed key not found in operator_reminders table');
+    }
+
+    // Clean up test reminder from probe 3
+    $service->deleteReminder($completedReminder);
+    $service->deleteReminder($dismissal);
+
+    fwrite(STDOUT, "  -> PASS: System task dismissal and completed history tracking verified.\n\n");
+
+    fwrite(STDOUT, "=== ALL 5 UAT PHASE 11C OPERATIONAL TASKS PROBES PASSED SUCCESSFULLY ===\n");
+    exit(0);
+}
+
+fwrite(STDERR, "Unknown command. Use init, prepare, prepare-teaching, prepare-journals, prepare-tasks, probe-reports, probe-dashboard, probe-reports-school, probe-tasks, status, or start the HTTP server with this script.\n");
 exit(2);

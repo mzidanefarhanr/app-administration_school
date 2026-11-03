@@ -17,6 +17,42 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 
 ## Entries
 
+## [2026-11-03] Fase 11c — Tugas operasional dan pengingat internal operator (DEC-44 IMPLEMENTED)
+- Type: Feature | Schema Change
+- Scope / fase: Fase 11 — Subfase 11c: Tugas Operasional dan Pengingat Internal Operator (DEC-44 IMPLEMENTED).
+- Files touched:
+  - `laravel-api/database/migrations/2029_11_01_000001_create_operator_reminders_table.php` (tabel baru aditif `operator_reminders`)
+  - `laravel-api/database/migrations/2029_11_01_000002_sync_task_abilities_to_default_roles.php` (sync `tasks.view`, `tasks.manage`)
+  - `laravel-api/app/Support/AbilityCatalog.php` (definisi ability baru dan mapping role awal)
+  - `laravel-api/app/Models/OperatorReminder.php` (Eloquent Model)
+  - `laravel-api/app/Services/Tasks/OperationalTaskService.php` (Service agregasi multi-domain & lifecycle reminder)
+  - `laravel-api/app/Http/Controllers/Tasks/OperationalTaskController.php` (Controller 8 endpoint)
+  - `laravel-api/routes/api.php` (registrasi 8 route `/api/tasks/*`)
+  - `laravel-api/tests/Feature/Tasks/OperationalTaskApiTest.php` (12 tes feature T1–T12)
+  - `laravel-api/scripts/phase10-uat.php` (handler `prepare-tasks` dan `probe-tasks`)
+  - `vue-app/src/views/tasks/TasksView.vue` (komponen antarmuka SPA terpadu 4 kartu KPI, filter & 4 tab)
+  - `vue-app/src/router/index.js` (rute `/public/tasks`)
+  - `vue-app/src/layout/AppMenu.vue` (menu item Home -> Tasks & Reminders)
+  - `vue-app/src/components/dashboard/PendingTasksWidget.vue` (tombol pintasan ke Pusat Tugas)
+  - `docs/API-CONTRACTS.md`, `docs/ACCESS-CONTROL.md`, `docs/TESTING.md`, `roadmap/ROADMAP.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`
+- What changed:
+  1. Migrasi aditif tabel baru `operator_reminders` dengan kolom: `id`, `user_id`, `system_source_key`, `category`, `title`, `description`, `priority`, `due_date`, `status`, `completed_at`, `completed_by`, dan timestamps.
+  2. Model Eloquent `OperatorReminder.php` dengan status, prioritas, dan relasi ke `User`.
+  3. Service `OperationalTaskService.php` yang mengagregasikan tugas sistem dinamis dari 6 domain (persuratan, perizinan, pembelajaran, arsip dokumen, kualitas kesiswaan, backup sistem), memadukannya dengan pengingat manual staf, melakukan deduplikasi deterministik, penyaringan multi-kriteria (tab, domain, urgensi, teks pencarian), serta mencatat dismissal tugas sistem ke tab riwayat selesai.
+  4. Controller `OperationalTaskController.php` dengan 8 endpoint `/api/tasks/*` terproteksi `auth:sanctum`, `tasks.view`, dan `tasks.manage`.
+  5. Antarmuka SPA terpadu `TasksView.vue` di `/public/tasks` dengan 4 KPI cards, filter domain & urgensi, 4 tab navigasi kerja (`all`, `system`, `manual`, `completed`), daftar tugas dengan badge visual, modal dialog pembuatan/edit pengingat staf, dan integrasi tombol navigasi cepat pada `PendingTasksWidget.vue` di beranda.
+- Why: Memenuhi kebutuhan tindak lanjut operasional harian terpadu bagi staf dan operator sekolah, serta mengkonsolidasikan seluruh tugas operasional tertunda lintas domain dalam satu pusat kendali sesuai mandat DEC-44.
+- Validation:
+  - Feature test `OperationalTaskApiTest.php`: 12 passed (85 assertions) in 6.44s (T1–T12).
+  - Regresi PHPUnit penuh: 678 passed, 13 skipped (7.957 assertions) in 530.24s (0 failures, 0 regressions).
+  - Laravel Pint: PASS (0 issues) pada seluruh file PHP baru dan termodifikasi.
+  - ESLint: 0 errors, 0 warnings pada seluruh file Vue/JS terkait.
+  - Vite build: PASS (`dist/assets/TasksView-CjX5QH5P.js` 21.40 kB, 31.20s).
+  - UAT probe: `php scripts/phase10-uat.php probe-tasks` 5/5 probes PASS (16 synthetic reminders disiapkan via `prepare-tasks`).
+  - Port 18028 dan 14028 dipastikan bebas per DEC-27 (`PORTS_18028_14028_FREE`).
+- Notes / risks: Tidak ada modifikasi tabel yang sudah ada (hanya tabel additive `operator_reminders`). MariaDB operasional port 3306 dan Apache port 80/443 tidak disentuh.
+- Evidence: `reports/feature-update/PHASE-11C-REPORT.md`; `reports/feature-update/PHASE-11C-MANUAL-REVIEW.md` (#1–#18).
+
 ## [2026-11-03] Fase 11c — Persetujuan rencana tugas operasional dan pengingat internal (DEC-44 APPROVED)
 - Type: Docs
 - Scope / fase: Pencatatan persetujuan pemilik atas rencana Subfase 11c (`D1–D10` sebagai `DEC-44 APPROVED`). Tidak ada perubahan kode aplikasi pada entri ini.

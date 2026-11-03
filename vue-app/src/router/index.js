@@ -23,6 +23,12 @@ const router = createRouter({
                     component: () => import('@/views/pages/public/SchoolProfile.vue')
                 },
                 {
+                    path: '/public/tasks',
+                    name: 'tasks',
+                    meta: { breadcrumb: 'Tasks & Reminders', requiresAbility: 'tasks.view' },
+                    component: () => import('@/views/tasks/TasksView.vue')
+                },
+                {
                     path: '/public/educationlevels',
                     name: 'educationLevels',
                     meta: { breadcrumb: 'Education Levels', requiresAbility: 'master.view' },

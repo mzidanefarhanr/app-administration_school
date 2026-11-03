@@ -54,6 +54,7 @@ use App\Http\Controllers\StudentProgressionController;
 use App\Http\Controllers\StudentRombelController;
 use App\Http\Controllers\StudentStatusController;
 use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\Tasks\OperationalTaskController;
 use App\Http\Controllers\TeachingAssignmentController;
 use App\Http\Controllers\TeachingJournalController;
 use App\Http\Controllers\TeachingOptionController;
@@ -604,6 +605,19 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
             ->middleware('can:students.import');
         Route::post('/dapodik-reconciliation/export', [DapodikReconciliationController::class, 'exportReconciliation'])
             ->middleware('can:students.import');
+    });
+
+    // Subfase 11c: Tugas Operasional dan Pengingat Internal (DEC-44)
+    Route::prefix('tasks')->group(function () {
+        Route::get('/', [OperationalTaskController::class, 'index'])->middleware('can:tasks.view');
+        Route::get('/summary', [OperationalTaskController::class, 'summary'])->middleware('can:tasks.view');
+        Route::post('/reminders', [OperationalTaskController::class, 'storeReminder'])->middleware('can:tasks.manage');
+        Route::get('/reminders/{reminder}', [OperationalTaskController::class, 'showReminder'])->middleware('can:tasks.view');
+        Route::match(['put', 'patch'], '/reminders/{reminder}', [OperationalTaskController::class, 'updateReminder'])->middleware('can:tasks.manage');
+        Route::post('/reminders/{reminder}/complete', [OperationalTaskController::class, 'completeReminder'])->middleware('can:tasks.manage');
+        Route::post('/reminders/{reminder}/cancel', [OperationalTaskController::class, 'cancelReminder'])->middleware('can:tasks.manage');
+        Route::delete('/reminders/{reminder}', [OperationalTaskController::class, 'destroyReminder'])->middleware('can:tasks.manage');
+        Route::post('/system/dismiss', [OperationalTaskController::class, 'dismissSystemTask'])->middleware('can:tasks.manage');
     });
 
 });

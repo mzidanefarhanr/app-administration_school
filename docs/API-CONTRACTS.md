@@ -624,6 +624,27 @@ Frontend 11a: `Dashboard.vue`, `OperationalStatsWidget.vue`, `PendingTasksWidget
 
 Frontend 11b: `SchoolReportsView.vue`, `MultiYearTrendsTab.vue`, `DemographicsTab.vue`, `DapodikReconciliationTab.vue`, `router/index.js`, `AppMenu.vue`.
 
+## Perubahan Subfase 11c (DEC-44 CLOSED) — Pusat Tugas Operasional & Pengingat Internal Operator
+
+**8 route baru** di `/api/tasks/*` dilindungi `auth:sanctum`. Ditambahkan tabel `operator_reminders` secara aditif (migrasi `2029_11_01_000001_create_operator_reminders_table.php` dan `2029_11_01_000002_sync_task_abilities_to_default_roles.php`).
+
+| Method | Endpoint | Izin | Perilaku |
+|---|---|---|---|
+| GET | `/api/tasks` | `tasks.view` | Mengambil daftar tugas terpadu lintas domain (persuratan, perizinan, pembelajaran, arsip, kesiswaan, ketenagaan, tugas manual staf). Parameter: `tab` (`all`, `system`, `manual`, `completed`), `domain`, `urgency` (`high`, `warn`, `info`), `search`, `page`, `per_page`. Mengembalikan array `data[]` dan `pagination`. |
+| GET | `/api/tasks/summary` | `tasks.view` | Mengambil metrik ringkasan tugas: `total_active`, `total_high`, `total_warn`, `total_info`, `completed_today`, dan `by_domain`. |
+| POST | `/api/tasks/reminders` | `tasks.manage` | Membuat pengingat manual baru: `title` (required, max 255), `description` (optional), `category` (default `general`), `priority` (`high`, `warn`, `info`), `due_date` (optional date). |
+| GET | `/api/tasks/reminders/{reminder}` | `tasks.view` | Mengambil rincian data pengingat manual beserta relasi `user` pembuat dan `completedBy`. |
+| PUT | `/api/tasks/reminders/{reminder}` | `tasks.manage` | Memperbarui pengingat manual: `title`, `description`, `category`, `priority`, `due_date`. |
+| POST | `/api/tasks/reminders/{reminder}/complete` | `tasks.manage` | Menandai pengingat manual selesai: status menjadi `completed`, mencatat `completed_at` dan `completed_by`. |
+| POST | `/api/tasks/reminders/{reminder}/cancel` | `tasks.manage` | Membatalkan pengingat manual: status menjadi `cancelled`. |
+| DELETE | `/api/tasks/reminders/{reminder}` | `tasks.manage` | Menghapus permanen baris pengingat manual dari database. |
+| POST | `/api/tasks/system/dismiss` | `tasks.manage` | Menandai tugas sistem tertentu telah ditinjau/selesai: menyimpan record `system_source_key`, status `completed`, memindahkannya dari daftar tugas aktif ke tab riwayat selesai. |
+
+- **Additive migration**: Tabel baru `operator_reminders` dengan indeks komposit efisien. Kemampuan baru `tasks.view` dan `tasks.manage` disinkronkan ke default roles `admin-sistem`, `operator-sekolah`, dan `tasks.view` ke `kepala-sekolah`, `waka-kurikulum`, `guru`, `tata-usaha`.
+- **UI**: Tampilan terpadu `/public/tasks` (`TasksView.vue`, route breadcrumb "Tasks & Reminders", menu item `AppMenu.vue` di bawah grup Home, dan footer pintasan cepat dari `PendingTasksWidget.vue`).
+
+Frontend 11c: `TasksView.vue`, `router/index.js`, `AppMenu.vue`, `PendingTasksWidget.vue`.
+
 ## Aktual
 
 Resource di `/api`, dilindungi auth:sanctum: users, status-users, type-users, firstlogin; provinces/regencies/districts/villages; school-years/semesters/education-levels; genders/religions/blood-types/professions/family-status; education-schools/student-statuses/student-entries/student-majors/phase-statuses; students/school-levels/school-rombels/student-rombels; employees (alias deprecated: employee)/employee-statuses/employee-types/employments/marital-statuses; school-profile/subjects/activities.

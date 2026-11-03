@@ -233,6 +233,17 @@ API mayoritas hanya auth:sanctum. Beberapa controller akun membedakan tipe secar
 - **UI**: Menu **Public → School Reports** (`/public/reports/school`, guard `requiresAbility: 'students.view'`) dengan 3 tab (**Tren Multi-Tahun**, **Demografi & Kesiapan Profil**, dan **Rekonsiliasi Data Dapodik**).
 - **UAT**: `.uat-phase10` diverifikasi via `php scripts/phase10-uat.php probe-reports-school` dengan 5 probe HTTP (tren multi-tahun 5 tahun, demografi terpilah gender/agama/rombel, audit kesiapan profil Dapodik, rekonsiliasi berkas dua arah, dan ekspor CSV streaming dengan UTF-8 BOM); server UAT dihentikan setelah verifikasi sesuai DEC-27.
 
+## Implementasi Subfase 11c (Pusat Tugas Operasional & Pengingat Internal Operator)
+- **Pengaktifan ability `tasks.view` dan `tasks.manage`** (DEC-44 D7 / migration `2029_11_01_000002_sync_task_abilities_to_default_roles.php`):
+  - `admin-sistem` dan `operator-sekolah` memperoleh `tasks.view` + `tasks.manage` secara default.
+  - `kepala-sekolah`, `waka-kurikulum`, `wakil-kesiswaan`, `guru`, dan `tata-usaha` memperoleh `tasks.view` (read-only terpadu terhadap tugas operasional dan pengingat internal).
+- **Pengendalian Akses Modul Tugas Operasional (`/api/tasks/*`)**:
+  - `GET /api/tasks`, `GET /api/tasks/summary`, dan `GET /api/tasks/reminders/{reminder}` diproteksi dengan kemampuan `tasks.view`.
+  - Endpoint mutasi `POST /api/tasks/reminders`, `PUT /api/tasks/reminders/{reminder}`, `POST /api/tasks/reminders/{reminder}/complete`, `POST /api/tasks/reminders/{reminder}/cancel`, `DELETE /api/tasks/reminders/{reminder}`, serta `POST /api/tasks/system/dismiss` diproteksi secara ketat dengan `tasks.manage` (hanya operator dan admin sistem).
+  - Pengguna tanpa `tasks.manage` (seperti guru atau pimpinan) yang mencoba membuat atau memodifikasi pengingat ditolak `403 Forbidden`.
+- **UI**: Menu **Home → Tasks & Reminders** (`/public/tasks`, guard `requiresAbility: 'tasks.view'`) dengan 4 KPI cards, filter domain & urgensi, 4 tab (Semua, Tugas Sistem, Pengingat Manual, Riwayat Selesai), modal dialog pengingat staf berizin `canManage`, dan tautan integratif dari widget dashboard `PendingTasksWidget.vue`.
+- **UAT**: `.uat-phase10` diverifikasi via `php scripts/phase10-uat.php probe-tasks` dengan 5 probe (KPI summary, pemisahan tab & filter, pembuatan & pembaruan pengingat manual, transisi status selesai/batal/hapus, serta dismissal tugas sistem); server UAT dihentikan setelah verifikasi sesuai DEC-27.
+
 | Kemampuan | Admin | Operator | Kepala sekolah | Guru/wali kelas |
 |---|---|---|---|---|
 | users.manage / roles.manage | Ya | Tidak | Tidak | Tidak |

@@ -14,7 +14,8 @@ const model = ref([
         requires: null,
         items: [
             { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' },
-            { label: 'School Profile', icon: 'pi pi-fw pi-building-columns', to: '/public/schoolprofile' }
+            { label: 'School Profile', icon: 'pi pi-fw pi-building-columns', to: '/public/schoolprofile' },
+            { label: 'Tasks & Reminders', icon: 'pi pi-fw pi-check-square', to: '/public/tasks', requires: 'tasks.view' }
         ]
     },
     {

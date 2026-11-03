@@ -1,6 +1,20 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (Rencana Subfase 11c DISETUJUI — DEC-44 APPROVED; implementasi diotorisasi)
+## Current checkpoint — 2026-11-03 (Subfase 11c IMPLEMENTED & DIVERIFIKASI AGEN — AWAITING OWNER REVIEW #1–#18; DEC-44 IMPLEMENTED)
+
+- **Status:** Subfase **11c — Tugas Operasional dan Pengingat Internal Operator** telah **IMPLEMENTED dan DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline **`035987a`** (dokumentasi persetujuan rencana `DEC-44 APPROVED`). Paket implementasi dilaporkan di `reports/feature-update/PHASE-11C-REPORT.md` dan checklist pengujian manual pemilik disediakan di `reports/feature-update/PHASE-11C-MANUAL-REVIEW.md` (#1–#18). **Subfase 11a & 11b tetap OWNER APPROVED (#1–#18, 2026-11-03 WIB; DEC-42 & DEC-43 CLOSED; DEC-12 CLOSED)**, dan **Fase 10 tetap SELESAI LENGKAP & DITUTUP** (`2a36800`).
+- **Implementasi yang diselesaikan (S1–S8):**
+  1. Migrasi aditif `2029_11_01_000001_create_operator_reminders_table.php` dan `2029_11_01_000002_sync_task_abilities_to_default_roles.php` (menambahkan tabel `operator_reminders` dan kemampuan `tasks.view`, `tasks.manage`).
+  2. Model Eloquent `OperatorReminder.php` dengan konstanta status (`pending`, `completed`, `cancelled`), prioritas (`high`, `warn`, `info`), dan relasi.
+  3. `OperationalTaskService.php`: agregasi tugas sistem multi-domain real-time (surat, izin, pembelajaran, arsip, kesiswaan, backup), penggabungan dengan pengingat manual staf, deduplikasi deterministik, filter multi-kriteria (tab, domain, urgensi, search), serta pencatatan dismissal tugas sistem ke tab riwayat selesai.
+  4. `OperationalTaskController.php`: 8 endpoint di `/api/tasks/*` dengan guard `tasks.view` untuk pembacaan dan `tasks.manage` untuk mutasi.
+  5. Suite feature test `OperationalTaskApiTest.php` mencakup skenario T1–T12 (12 passed / 85 assertions). Full suite 678 passed, 13 skipped, 7.957 assertions.
+  6. Komponen frontend: `TasksView.vue` di `/public/tasks`, router `/public/tasks`, menu utama `AppMenu.vue`, dan integrasi tombol navigasi cepat pada `PendingTasksWidget.vue` di beranda.
+  7. Kualitas: Pint PASS (0 issues), ESLint clean (0 errors, 0 warnings), Vite build clean (`dist/assets/TasksView-CjX5QH5P.js` 21.40 kB), dan UAT probe 5/5 PASS via `scripts/phase10-uat.php probe-tasks` (16 synthetic reminders).
+- **Server UAT:** Server UAT `.uat-phase10` pada port `18028` dan `14028` telah diverifikasi dihentikan per DEC-27 (`PORTS_18028_14028_FREE`). Data `.uat-phase10` dipertahankan untuk review manual pemilik. Apache dan MariaDB operasional tidak disentuh.
+- **Next:** Pemilik menjalankan checklist manual #1–#18 di `reports/feature-update/PHASE-11C-MANUAL-REVIEW.md` dan memberikan persetujuan penerimaan bila sesuai.
+
+## Previous checkpoint — 2026-11-03 (Rencana Subfase 11c DISETUJUI — DEC-44 APPROVED; implementasi diotorisasi)
 
 - **Status:** Pemilik menyatakan **"Saya setuju D1-D10"** (2026-11-03 WIB); dicatat sebagai **DEC-44 APPROVED**. Implementasi **Subfase 11c — Tugas Operasional dan Pengingat Internal Operator** diotorisasi sesuai `reports/feature-update/PHASE-11C-PLAN.md` (baseline `3cf80cf`; paket rencana `38e5856`). **Subfase 11a & 11b tetap OWNER APPROVED (#1–#18, 2026-11-03 WIB; DEC-42 & DEC-43 CLOSED; DEC-12 CLOSED)**, dan **Fase 10 tetap SELESAI LENGKAP & DITUTUP** (`2a36800`).
 - **Next:** Eksekusi S1–S8 Subfase 11c (Migration, Models, Services, Controllers, Routes, Tests T1–T12, Vue components, lint, build, UAT probe), verifikasi penuh, dan siapkan `PHASE-11C-REPORT.md` serta `PHASE-11C-MANUAL-REVIEW.md`.

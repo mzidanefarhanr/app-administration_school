@@ -219,7 +219,23 @@ Storage uji memakai fake/temp disk; backup/restore mengarah ke target test, tida
   -> **ALL 5 UAT PHASE 11B SCHOOL REPORTS & RECONCILIATION PROBES PASSED SUCCESSFULLY**.
 - Penghentian server UAT (DEC-27): port `18028` dan `14028` diverifikasi ulang bebas listener (`PORTS_18028_14028_FREE`); data `.uat-phase10` dipertahankan untuk review manual pemilik `#1–#18`.
 - **NOT RUN:** otomasi browser visual/screenshot (diserahkan ke checklist manual pemilik `#1–#18` di `PHASE-11B-MANUAL-REVIEW.md`); race condition MariaDB/InnoDB multi-proses nyata; Subfase 11c+ (belum direncanakan).
-- **Review manual pemilik: AWAITING OWNER REVIEW (#1–#18, 2026-11-03 WIB)** (`reports/feature-update/PHASE-11B-MANUAL-REVIEW.md`). Port `18028` dan `14028` tetap bebas.
+- **Review manual pemilik: APPROVED (#1–#18, 2026-11-03 WIB)** berdasarkan pernyataan **"Pengujian nomor 1-18 sudah berhasil dan saya approved."** (`reports/feature-update/PHASE-11B-MANUAL-REVIEW.md`; paket review **`3cf80cf`**). Port `18028` dan `14028` diverifikasi ulang tetap bebas.
+
+## Bukti Subfase 11c (2026-11-03 WIB)
+- Suite baru `Tests\Feature\Tasks\OperationalTaskApiTest` (SQLite in-memory): **12 passed (85 assertions) in 6.44s** mencakup skenario `T1–T12` — unauthenticated 401 (T1), list tugas untuk admin/operator (T2), ringkasan metrik summary (T3), validasi & create pengingat manual (T4), update pengingat manual (T5), penyelesaian tugas dengan timestamp dan aktor (T6), pembatalan tugas (T7), penghapusan permanen pengingat (T8), dismissal tugas sistem dan pemindahan ke riwayat selesai (T9), pemisahan tab (all, system, manual, completed) (T10), filter kata kunci & urgensi (T11), dan otorisasi guru/view-only dibatasi dari mutasi (T12).
+- Suite regresi penuh PHPUnit/Pest: **678 passed, 13 skipped (7,957 assertions) in 530.24s** (zero failures, zero regressions across all domains).
+- Pint pada seluruh file PHP tugas & pengingat: **PASS (7 files)**; `php artisan route:list --path=tasks` → **8 routes** (`/api/tasks/*`).
+- Frontend: `npx eslint` pada `TasksView.vue`, `router/index.js`, `AppMenu.vue`, `PendingTasksWidget.vue` → **0 errors, 0 warnings**; `npm run build` **PASS (31.20s)** (`dist/assets/TasksView-CjX5QH5P.js 21.40 kB`).
+- UAT terisolasi `.uat-phase10` (perintah baru `prepare-tasks` & `probe-tasks` pada `scripts/phase10-uat.php` terhadap database `.uat-phase10/database.sqlite`; API `127.0.0.1:18028`; SPA `127.0.0.1:14028`; cookie `school_phase10_session`): mengeksekusi 5 probe HTTP nyata:
+  1. Tasks KPI summary: total aktif, butuh tindakan segera (high), perhatian (warn), info, dan selesai hari ini teragregasi (PASS).
+  2. Tab filtering & pagination: pemisahan tab `all`, `system`, `manual`, dan `completed` berjalan akurat (PASS).
+  3. Create & update manual reminder: pembuatan pengingat sintesis dan pembaruan prioritas diverifikasi (PASS).
+  4. Reminder lifecycle: transisi status `completed` mencatat user & waktu, `cancelled`, dan `delete` menghapus record (PASS).
+  5. System task dismissal: peninjauan tugas sistem mencatat `system_source_key` dan memindahkannya ke tab riwayat selesai (PASS).
+  -> **ALL 5 UAT PHASE 11C OPERATIONAL TASKS PROBES PASSED SUCCESSFULLY**.
+- Penghentian server UAT (DEC-27): port `18028` dan `14028` diverifikasi ulang bebas listener (`PORTS_18028_14028_FREE`); data `.uat-phase10` dipertahankan untuk review manual pemilik `#1–#18`.
+- **NOT RUN:** otomasi browser visual/screenshot (diserahkan ke checklist manual pemilik `#1–#18` di `PHASE-11C-MANUAL-REVIEW.md`); race condition MariaDB/InnoDB multi-proses nyata; Fase 12+ (belum direncanakan).
+- **Review manual pemilik: AWAITING OWNER REVIEW (#1–#18, 2026-11-03 WIB)** (`reports/feature-update/PHASE-11C-MANUAL-REVIEW.md`). Port `18028` dan `14028` tetap bebas.
 
 ## Matriks minimum per perubahan
 | Area | Kasus wajib |
