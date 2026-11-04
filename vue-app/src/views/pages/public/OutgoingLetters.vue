@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import { useToast } from 'primevue/usetoast';
 import apiLogin from '@/apiLogin';
@@ -7,19 +8,20 @@ import { authStore } from '@/stores/authStore';
 
 const store = authStore();
 const toast = useToast();
+const { t, locale } = useI18n();
 
 const canManage = computed(() => store.can('letters.manage'));
 const canApprove = computed(() => store.can('letters.approve'));
 const canSign = computed(() => store.can('letters.sign'));
 const currentUserId = computed(() => store.identity?.id ?? null);
 
-const workflowLabels = {
-    draft: 'Draft',
-    review: 'In Review',
-    approved: 'Approved',
-    issued: 'Issued',
-    cancelled: 'Cancelled'
-};
+const workflowLabels = computed(() => ({
+    draft: t('letters.outgoing.workflow.draft'),
+    review: t('letters.outgoing.workflow.review'),
+    approved: t('letters.outgoing.workflow.approved'),
+    issued: t('letters.outgoing.workflow.issued'),
+    cancelled: t('letters.outgoing.workflow.cancelled')
+}));
 
 const workflowSeverity = {
     draft: 'secondary',
@@ -29,14 +31,14 @@ const workflowSeverity = {
     cancelled: 'danger'
 };
 
-const statusFilterOptions = [
-    { label: 'All workflow statuses', value: 'all' },
-    { label: 'Draft', value: 'draft' },
-    { label: 'In Review', value: 'review' },
-    { label: 'Approved', value: 'approved' },
-    { label: 'Issued', value: 'issued' },
-    { label: 'Cancelled', value: 'cancelled' }
-];
+const statusFilterOptions = computed(() => [
+    { label: t('letters.outgoing.workflow.all'), value: 'all' },
+    { label: t('letters.outgoing.workflow.draft'), value: 'draft' },
+    { label: t('letters.outgoing.workflow.review'), value: 'review' },
+    { label: t('letters.outgoing.workflow.approved'), value: 'approved' },
+    { label: t('letters.outgoing.workflow.issued'), value: 'issued' },
+    { label: t('letters.outgoing.workflow.cancelled'), value: 'cancelled' }
+]);
 
 const documentFilterOptions = [
     { label: 'All documents', value: 'all' },
@@ -111,7 +113,7 @@ const maxFileKb = computed(() => options.value?.max_file_kb ?? 10240);
 const allowedExtensions = computed(() => options.value?.allowed_extensions ?? ['pdf', 'jpg', 'jpeg', 'png']);
 const acceptAttr = computed(() => allowedExtensions.value.map((extension) => `.${extension}`).join(','));
 const maxFileLabel = computed(() => `${Math.floor(maxFileKb.value / 1024)} MB`);
-const perPageLabel = computed(() => `Rows: ${filters.perPage}`);
+const perPageLabel = computed(() => t('letters.common.perPageLabel', { count: filters.perPage }));
 const approvalNoteMax = computed(() => options.value?.approval_notes_max_length ?? 500);
 const cancelMin = computed(() => options.value?.cancel_reason_min_length ?? 10);
 const cancelMax = computed(() => options.value?.cancel_reason_max_length ?? 255);
@@ -163,7 +165,7 @@ const formatDate = (value) => {
     const raw = String(value).slice(0, 10);
     const parsed = new Date(`${raw}T00:00:00`);
     if (Number.isNaN(parsed.getTime())) return raw;
-    return parsed.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    return parsed.toLocaleDateString(locale.value === 'en' ? 'en-GB' : 'id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
 const formatDateTime = (value) => {
@@ -953,11 +955,12 @@ const confirmRemoveAttachment = async () => {
 };
 
 const changedFieldLabels = (fields) => {
+    const labels = fieldLabels.value;
     if (!Array.isArray(fields) || fields.length === 0) return '-';
-    return fields.map((field) => fieldLabels[field] ?? field).join(', ');
+    return fields.map((field) => labels[field] ?? field).join(', ');
 };
 
-const eventLabel = (event) => eventLabels[event] ?? event;
+const eventLabel = (event) => eventLabels.value[event] ?? event;
 const eventIcon = (event) => eventIcons[event] ?? 'pi pi-history';
 
 onMounted(async () => {
@@ -972,56 +975,56 @@ onMounted(async () => {
         <div class="bg-surface-0 dark:bg-surface-950 px-4 py-6 sm:px-6 sm:py-8 md:px-12 lg:px-20">
             <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div>
-                    <div class="font-bold text-2xl sm:text-3xl text-surface-900 dark:text-surface-0 mb-2">Outgoing Letters</div>
-                    <p class="text-surface-500 dark:text-surface-400">Drafts, approval and signing workflow, atomic official numbering, and private attachments.</p>
+                    <div class="font-bold text-2xl sm:text-3xl text-surface-900 dark:text-surface-0 mb-2">{{ t('letters.outgoing.title') }}</div>
+                    <p class="text-surface-500 dark:text-surface-400">{{ t('letters.outgoing.subtitle') }}</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
-                    <Tag :value="`${meta.total} letters`" severity="secondary" />
-                    <Button v-if="canManage" label="New Letter" icon="pi pi-plus" @click="openCreate" />
+                    <Tag :value="t('letters.outgoing.metaTotal', { count: meta.total })" severity="secondary" />
+                    <Button v-if="canManage" :label="t('letters.outgoing.newLetter')" icon="pi pi-plus" @click="openCreate" />
                 </div>
             </div>
 
             <div v-if="optionsError" class="mt-4 flex flex-col sm:flex-row sm:items-center gap-3 rounded border border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-950 px-4 py-3 text-sm text-orange-700 dark:text-orange-300">
                 <span class="flex-1">{{ optionsError }}</span>
-                <Button label="Retry" icon="pi pi-refresh" size="small" severity="secondary" variant="outlined" @click="loadOptions" />
+                <Button :label="t('letters.common.retry')" icon="pi pi-refresh" size="small" severity="secondary" variant="outlined" @click="loadOptions" />
             </div>
 
             <div class="card mt-6 flex flex-col gap-4">
                 <div class="flex flex-col xl:flex-row xl:items-center xl:flex-wrap gap-3">
                     <IconField class="w-full xl:max-w-sm">
                         <InputIcon><i class="pi pi-search" /></InputIcon>
-                        <InputText v-model="filters.search" placeholder="Search number, recipient, or subject" class="w-full" maxlength="100" aria-label="Search outgoing letters" @input="onSearchInput" />
+                        <InputText v-model="filters.search" :placeholder="t('letters.outgoing.searchPlaceholder')" class="w-full" maxlength="100" :aria-label="t('letters.outgoing.searchPlaceholder')" @input="onSearchInput" />
                     </IconField>
-                    <Select v-model="filters.workflowStatus" :options="statusFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-48" aria-label="Workflow status" @change="onFilterChange" />
-                    <Select v-model="filters.letterType" :options="typeFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-56" aria-label="Letter type" @change="onFilterChange" />
-                    <Select v-model="filters.hasDocument" :options="documentFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-44" aria-label="Document availability" @change="onFilterChange" />
+                    <Select v-model="filters.workflowStatus" :options="statusFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-48" :aria-label="t('letters.outgoing.columns.workflow')" @change="onFilterChange" />
+                    <Select v-model="filters.letterType" :options="typeFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-56" :aria-label="t('letters.outgoing.columns.type')" @change="onFilterChange" />
+                    <Select v-model="filters.hasDocument" :options="documentFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-44" :aria-label="t('letters.outgoing.columns.pdf')" @change="onFilterChange" />
                     <DatePicker
                         v-model="filters.letterFrom"
-                        placeholder="Letter date from"
+                        :placeholder="t('letters.outgoing.fields.letterDateFrom')"
                         dateFormat="yy-mm-dd"
                         showIcon
                         manualInput
                         fluid
                         class="w-full xl:w-44"
-                        aria-label="Letter date from"
+                        :aria-label="t('letters.outgoing.fields.letterDateFrom')"
                         @date-select="onDateFilterChange"
                         @blur="onDateFilterChange"
                     />
                     <DatePicker
                         v-model="filters.letterTo"
-                        placeholder="Letter date to"
+                        :placeholder="t('letters.outgoing.fields.letterDateTo')"
                         dateFormat="yy-mm-dd"
                         showIcon
                         manualInput
                         fluid
                         class="w-full xl:w-44"
-                        aria-label="Letter date to"
+                        :aria-label="t('letters.outgoing.fields.letterDateTo')"
                         @date-select="onDateFilterChange"
                         @blur="onDateFilterChange"
                     />
                     <div class="flex items-center gap-2 xl:ml-auto">
                         <Select v-model="filters.perPage" :options="perPageOptions" class="w-28" :aria-label="perPageLabel" @change="onFilterChange" />
-                        <Button label="Clear" icon="pi pi-filter-slash" severity="secondary" variant="outlined" @click="resetFilters" />
+                        <Button :label="t('letters.common.clear')" icon="pi pi-filter-slash" severity="secondary" variant="outlined" @click="resetFilters" />
                     </div>
                 </div>
 
@@ -1039,70 +1042,79 @@ onMounted(async () => {
                     :loading="listLoading"
                     tableStyle="min-width: 84rem"
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} letters"
+                    :currentPageReportTemplate="t('letters.outgoing.reportTemplate')"
                     @page="onPage"
                 >
-                    <template #loading>Loading outgoing letters. Please wait.</template>
+                    <template #loading>{{ t('letters.outgoing.messages.loading') }}</template>
                     <template #empty>
                         <div class="flex flex-col items-center gap-3 py-6">
                             <span v-if="listError" class="text-red-500">{{ listError }}</span>
-                            <span v-else>No outgoing letters match the current filters.</span>
-                            <Button v-if="listError" icon="pi pi-refresh" label="Retry" @click="loadLetters" />
+                            <span v-else>{{ t('letters.outgoing.messages.empty') }}</span>
+                            <Button v-if="listError" icon="pi pi-refresh" :label="t('letters.common.retry')" @click="loadLetters" />
                         </div>
                     </template>
-                    <Column header="Reference" style="min-width: 7rem">
+                    <Column :header="t('letters.outgoing.columns.reference')" style="min-width: 7rem">
                         <template #body="{ data }">
                             <span class="font-medium">{{ data.reference }}</span>
                         </template>
                     </Column>
-                    <Column header="Type" style="min-width: 11rem">
+                    <Column :header="t('letters.outgoing.columns.type')" style="min-width: 11rem">
                         <template #body="{ data }">
-                            <Tag :value="data.letter_type_label ?? 'General Letter'" :severity="data.letter_type ? 'info' : 'secondary'" />
+                            <Tag :value="data.letter_type_label ?? t('letters.outgoing.generalLetter')" :severity="data.letter_type ? 'info' : 'secondary'" />
                         </template>
                     </Column>
-                    <Column header="Recorded" style="min-width: 8rem">
+                    <Column :header="t('letters.outgoing.columns.recorded')" style="min-width: 8rem">
                         <template #body="{ data }">{{ formatDate(data.received_date) }}</template>
                     </Column>
-                    <Column header="Letter Date" style="min-width: 8rem">
+                    <Column :header="t('letters.outgoing.columns.letterDate')" style="min-width: 8rem">
                         <template #body="{ data }">{{ formatDate(data.letter_date) }}</template>
                     </Column>
-                    <Column header="Recipient" style="min-width: 12rem">
+                    <Column :header="t('letters.outgoing.columns.recipient')" style="min-width: 12rem">
                         <template #body="{ data }">
                             <span class="block truncate" :title="data.recipient ?? ''">{{ data.recipient || '-' }}</span>
                         </template>
                     </Column>
-                    <Column header="Subject" style="min-width: 14rem">
+                    <Column :header="t('letters.outgoing.columns.subject')" style="min-width: 14rem">
                         <template #body="{ data }">
                             <span class="block truncate" :title="data.subject">{{ data.subject }}</span>
                         </template>
                     </Column>
-                    <Column header="Official No." style="min-width: 10rem">
+                    <Column :header="t('letters.outgoing.columns.officialNo')" style="min-width: 10rem">
                         <template #body="{ data }">
                             <span class="block truncate" :title="data.official_number ?? ''">{{ data.official_number || '-' }}</span>
                         </template>
                     </Column>
-                    <Column header="Workflow" style="min-width: 8rem">
+                    <Column :header="t('letters.outgoing.columns.workflow')" style="min-width: 8rem">
                         <template #body="{ data }">
                             <Tag :value="workflowLabels[data.workflow_status] ?? (data.workflow_status || '-')" :severity="workflowSeverity[data.workflow_status] ?? 'secondary'" />
-                            <div class="text-xs text-surface-500 mt-1">Version {{ data.version }}</div>
+                            <div class="text-xs text-surface-500 mt-1">{{ t('letters.dispositions.version', { version: data.version }) }}</div>
                         </template>
                     </Column>
-                    <Column header="Files" style="min-width: 5rem">
+                    <Column :header="t('letters.outgoing.columns.files')" style="min-width: 5rem">
                         <template #body="{ data }">{{ data.attachments_count ?? 0 }}</template>
                     </Column>
-                    <Column header="PDF" style="min-width: 4rem">
+                    <Column :header="t('letters.outgoing.columns.pdf')" style="min-width: 4rem">
                         <template #body="{ data }">
                             <i v-if="data.has_document" class="pi pi-file-pdf text-green-600" aria-hidden="true"></i>
-                            <span v-if="data.has_document" class="sr-only">PDF available</span>
-                            <span v-else class="text-surface-400" aria-label="No PDF">—</span>
+                            <span v-if="data.has_document" class="sr-only">{{ t('letters.outgoing.documents.available') }}</span>
+                            <span v-else class="text-surface-400" :aria-label="t('letters.outgoing.documents.noPdf')">—</span>
                         </template>
                     </Column>
-                    <Column header="Actions" style="min-width: 9rem">
+                    <Column :header="t('letters.outgoing.columns.actions')" style="min-width: 9rem">
                         <template #body="{ data }">
                             <div class="flex flex-wrap items-center gap-2">
-                                <Button icon="pi pi-eye" aria-label="View letter" variant="outlined" rounded v-tooltip.top="'View'" @click="openDetail(data)" />
-                                <Button v-if="canEdit(data)" icon="pi pi-pencil" aria-label="Edit draft" variant="outlined" rounded v-tooltip.top="'Edit'" @click="startEdit(data)" />
-                                <Button v-if="canSubmit(data)" icon="pi pi-send" aria-label="Submit draft" severity="info" variant="outlined" rounded v-tooltip.top="'Submit'" @click="openAction('submit', data)" />
+                                <Button icon="pi pi-eye" :aria-label="t('letters.incoming.buttons.viewLetter')" variant="outlined" rounded v-tooltip.top="t('letters.common.view')" @click="openDetail(data)" />
+                                <Button v-if="canEdit(data)" icon="pi pi-pencil" :aria-label="t('letters.outgoing.buttons.editDraft')" variant="outlined" rounded v-tooltip.top="t('letters.common.edit')" @click="startEdit(data)" />
+                                <Button
+                                    v-if="canSubmit(data)"
+                                    icon="pi pi-send"
+                                    :aria-label="t('letters.outgoing.buttons.submitDraft')"
+                                    severity="info"
+                                    variant="outlined"
+                                    rounded
+                                    v-tooltip.top="t('letters.outgoing.tooltips.submit')"
+                                    @click="openAction('submit', data)"
+                                />
                             </div>
                         </template>
                     </Column>
@@ -1111,62 +1123,66 @@ onMounted(async () => {
         </div>
     </Fluid>
 
-    <Dialog v-model:visible="formVisible" modal :draggable="false" :style="{ width: 'min(94vw, 46rem)' }" :header="formMode === 'create' ? 'New Outgoing Letter' : `Edit Draft ${form.reference ?? ''}`">
+    <Dialog
+        v-model:visible="formVisible"
+        modal
+        :draggable="false"
+        :style="{ width: 'min(94vw, 46rem)' }"
+        :header="formMode === 'create' ? t('letters.outgoing.dialogs.newTitle') : t('letters.outgoing.dialogs.editTitle', { ref: form.reference ?? '' })"
+    >
         <div class="flex flex-col gap-4">
             <Message v-if="formError" severity="error" :closable="false">{{ formError }}</Message>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-2">
-                    <label for="outgoingRecordedDate" class="font-medium">Recorded Date <span class="text-red-500">*</span></label>
+                    <label for="outgoingRecordedDate" class="font-medium">{{ t('letters.outgoing.fields.recordedDate') }} <span class="text-red-500">*</span></label>
                     <DatePicker inputId="outgoingRecordedDate" v-model="form.recordedDate" dateFormat="yy-mm-dd" showIcon manualInput fluid />
                     <small v-if="fieldError(formErrors, 'received_date')" class="text-red-500">{{ fieldError(formErrors, 'received_date') }}</small>
                 </div>
                 <div class="flex flex-col gap-2">
-                    <label for="outgoingLetterDate" class="font-medium">Letter Date <span class="text-red-500">*</span></label>
+                    <label for="outgoingLetterDate" class="font-medium">{{ t('letters.outgoing.fields.letterDate') }} <span class="text-red-500">*</span></label>
                     <DatePicker inputId="outgoingLetterDate" v-model="form.letterDate" dateFormat="yy-mm-dd" showIcon manualInput fluid />
                     <small v-if="fieldError(formErrors, 'letter_date')" class="text-red-500">{{ fieldError(formErrors, 'letter_date') }}</small>
                 </div>
             </div>
 
             <div class="flex flex-col gap-2">
-                <label for="outgoingSender" class="font-medium">Sender <span class="text-red-500">*</span></label>
-                <InputText id="outgoingSender" v-model="form.sender" maxlength="150" placeholder="School or unit name" />
+                <label for="outgoingSender" class="font-medium">{{ t('letters.incoming.fields.sender') }} <span class="text-red-500">*</span></label>
+                <InputText id="outgoingSender" v-model="form.sender" maxlength="150" :placeholder="t('letters.outgoing.fields.schoolPlaceholder')" />
                 <small v-if="fieldError(formErrors, 'sender')" class="text-red-500">{{ fieldError(formErrors, 'sender') }}</small>
             </div>
 
             <div class="flex flex-col gap-2">
-                <label for="outgoingRecipient" class="font-medium">Recipient <span class="text-red-500">*</span></label>
-                <InputText id="outgoingRecipient" v-model="form.recipient" maxlength="150" placeholder="Destination institution or person" />
+                <label for="outgoingRecipient" class="font-medium">{{ t('letters.outgoing.fields.recipient') }} <span class="text-red-500">*</span></label>
+                <InputText id="outgoingRecipient" v-model="form.recipient" maxlength="150" :placeholder="t('letters.outgoing.fields.recipientPlaceholder')" />
                 <small v-if="fieldError(formErrors, 'recipient')" class="text-red-500">{{ fieldError(formErrors, 'recipient') }}</small>
             </div>
 
             <div class="flex flex-col gap-2">
-                <label for="outgoingSubject" class="font-medium">Subject <span class="text-red-500">*</span></label>
-                <InputText id="outgoingSubject" v-model="form.subject" maxlength="200" placeholder="Letter subject" />
+                <label for="outgoingSubject" class="font-medium">{{ t('letters.outgoing.fields.subject') }} <span class="text-red-500">*</span></label>
+                <InputText id="outgoingSubject" v-model="form.subject" maxlength="200" :placeholder="t('letters.outgoing.fields.subjectPlaceholder')" />
                 <small v-if="fieldError(formErrors, 'subject')" class="text-red-500">{{ fieldError(formErrors, 'subject') }}</small>
             </div>
 
             <div class="flex flex-col gap-2">
-                <label for="outgoingCategory" class="font-medium">Category <span class="text-red-500">*</span></label>
-                <Select inputId="outgoingCategory" v-model="form.category" :options="categoryOptions" optionLabel="label" optionValue="value" placeholder="Select category" filter fluid />
+                <label for="outgoingCategory" class="font-medium">{{ t('letters.outgoing.fields.category') }} <span class="text-red-500">*</span></label>
+                <Select inputId="outgoingCategory" v-model="form.category" :options="categoryOptions" optionLabel="label" optionValue="value" :placeholder="t('letters.outgoing.fields.selectCategory')" filter fluid />
                 <small v-if="fieldError(formErrors, 'category')" class="text-red-500">{{ fieldError(formErrors, 'category') }}</small>
             </div>
 
             <div class="flex flex-col gap-2">
-                <label for="outgoingLetterType" class="font-medium">Letter Type</label>
+                <label for="outgoingLetterType" class="font-medium">{{ t('letters.outgoing.fields.type') }}</label>
                 <Select inputId="outgoingLetterType" v-model="form.letterType" :options="letterTypeOptions" optionLabel="label" optionValue="value" :disabled="formMode === 'edit'" fluid @change="onLetterTypeChange" />
-                <small v-if="formMode === 'edit'" class="text-surface-500">The letter type and subject cannot be changed after the letter is created.</small>
+                <small v-if="formMode === 'edit'" class="text-surface-500">{{ t('letters.outgoing.typeLockedNotice') }}</small>
                 <small v-if="fieldError(formErrors, 'letter_type')" class="text-red-500">{{ fieldError(formErrors, 'letter_type') }}</small>
             </div>
 
             <template v-if="typedForm">
-                <Message v-if="!settingsReady" severity="warn" :closable="false">
-                    Letter settings are incomplete ({{ settingsMissingLabel || 'header, signatory, or signature' }}). You can save this draft, but it cannot be submitted until Letter Settings are complete.
-                </Message>
+                <Message v-if="!settingsReady" severity="warn" :closable="false">{{ t('letters.outgoing.settingsIncompleteNotice', { missing: settingsMissingLabel || 'header, signatory, or signature' }) }}</Message>
 
                 <div class="flex flex-col gap-2">
                     <label for="outgoingDocumentSubject" class="font-medium">
-                        {{ form.letterType === 'student_active' ? 'Student' : form.letterType === 'student_mutation' ? 'Mutation record' : 'Employee' }}
+                        {{ form.letterType === 'student_active' ? t('letters.outgoing.studentSubject') : form.letterType === 'student_mutation' ? t('letters.outgoing.mutationSubject') : t('letters.outgoing.employeeSubject') }}
                         <span class="text-red-500">*</span>
                     </label>
                     <AutoComplete
@@ -1179,7 +1195,7 @@ onMounted(async () => {
                         :minLength="0"
                         dropdown
                         forceSelection
-                        placeholder="Type to search"
+                        :placeholder="t('letters.outgoing.fields.recipientPlaceholder')"
                         fluid
                         @complete="searchSubjects"
                     />
@@ -1189,39 +1205,37 @@ onMounted(async () => {
                 </div>
 
                 <div v-if="form.letterType === 'student_active'" class="flex flex-col gap-2">
-                    <label for="outgoingPurpose" class="font-medium">Purpose <span class="text-red-500">*</span></label>
-                    <Textarea id="outgoingPurpose" v-model="form.purpose" rows="3" :maxlength="typedLimits.purpose_max_length ?? 500" autoResize placeholder="Purpose stated in the certificate" />
+                    <label for="outgoingPurpose" class="font-medium">{{ t('letters.outgoing.purpose') }} <span class="text-red-500">*</span></label>
+                    <Textarea id="outgoingPurpose" v-model="form.purpose" rows="3" :maxlength="typedLimits.purpose_max_length ?? 500" autoResize :placeholder="t('letters.outgoing.fields.certificatePlaceholder')" />
                     <small class="text-surface-500">{{ form.purpose.length }}/{{ typedLimits.purpose_max_length ?? 500 }}</small>
                     <small v-if="fieldError(formErrors, 'document_fields.purpose')" class="text-red-500">{{ fieldError(formErrors, 'document_fields.purpose') }}</small>
                 </div>
 
-                <Message v-if="form.letterType === 'student_mutation'" severity="info" :closable="false">
-                    The certificate uses the selected mutation record: class, destination school, NPSN, effective date, and reason. No additional fields are required.
-                </Message>
+                <Message v-if="form.letterType === 'student_mutation'" severity="info" :closable="false">{{ t('letters.outgoing.studentMutationNotice') }}</Message>
 
                 <template v-if="form.letterType === 'employee_duty'">
                     <div class="flex flex-col gap-2">
-                        <label for="outgoingDutyDescription" class="font-medium">Duty Description <span class="text-red-500">*</span></label>
-                        <Textarea id="outgoingDutyDescription" v-model="form.dutyDescription" rows="4" :maxlength="typedLimits.duty_description_max_length ?? 2000" autoResize placeholder="Describe the assigned duty" />
+                        <label for="outgoingDutyDescription" class="font-medium">{{ t('letters.outgoing.dutyDescription') }} <span class="text-red-500">*</span></label>
+                        <Textarea id="outgoingDutyDescription" v-model="form.dutyDescription" rows="4" :maxlength="typedLimits.duty_description_max_length ?? 2000" autoResize :placeholder="t('letters.outgoing.fields.dutyPlaceholder')" />
                         <small class="text-surface-500">{{ form.dutyDescription.length }}/{{ typedLimits.duty_description_max_length ?? 2000 }}</small>
                         <small v-if="fieldError(formErrors, 'document_fields.duty_description')" class="text-red-500">{{ fieldError(formErrors, 'document_fields.duty_description') }}</small>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="flex flex-col gap-2">
-                            <label for="outgoingDutyStart" class="font-medium">Start Date <span class="text-red-500">*</span></label>
+                            <label for="outgoingDutyStart" class="font-medium">{{ t('letters.outgoing.startDate') }} <span class="text-red-500">*</span></label>
                             <DatePicker inputId="outgoingDutyStart" v-model="form.dutyStart" dateFormat="yy-mm-dd" showIcon manualInput fluid />
                             <small v-if="fieldError(formErrors, 'document_fields.start_date')" class="text-red-500">{{ fieldError(formErrors, 'document_fields.start_date') }}</small>
                         </div>
                         <div class="flex flex-col gap-2">
-                            <label for="outgoingDutyEnd" class="font-medium">End Date <span class="text-red-500">*</span></label>
+                            <label for="outgoingDutyEnd" class="font-medium">{{ t('letters.outgoing.endDate') }} <span class="text-red-500">*</span></label>
                             <DatePicker inputId="outgoingDutyEnd" v-model="form.dutyEnd" dateFormat="yy-mm-dd" showIcon manualInput fluid />
                             <small v-if="fieldError(formErrors, 'document_fields.end_date')" class="text-red-500">{{ fieldError(formErrors, 'document_fields.end_date') }}</small>
                         </div>
                     </div>
 
                     <div class="flex flex-col gap-2">
-                        <label for="outgoingDutyLocation" class="font-medium">Location <span class="text-red-500">*</span></label>
+                        <label for="outgoingDutyLocation" class="font-medium">{{ t('letters.outgoing.location') }} <span class="text-red-500">*</span></label>
                         <InputText id="outgoingDutyLocation" v-model="form.location" :maxlength="typedLimits.location_max_length ?? 200" />
                         <small v-if="fieldError(formErrors, 'document_fields.location')" class="text-red-500">{{ fieldError(formErrors, 'document_fields.location') }}</small>
                     </div>
@@ -1229,20 +1243,20 @@ onMounted(async () => {
             </template>
 
             <div class="flex flex-col gap-2">
-                <label for="outgoingNotes" class="font-medium">Notes</label>
-                <Textarea id="outgoingNotes" v-model="form.notes" rows="3" maxlength="2000" autoResize placeholder="Optional internal notes" />
+                <label for="outgoingNotes" class="font-medium">{{ t('letters.incoming.fields.notes') }}</label>
+                <Textarea id="outgoingNotes" v-model="form.notes" rows="3" maxlength="2000" autoResize :placeholder="t('letters.incoming.fields.notesPlaceholder')" />
                 <small class="text-surface-500">{{ form.notes.length }}/2000</small>
                 <small v-if="fieldError(formErrors, 'notes')" class="text-red-500">{{ fieldError(formErrors, 'notes') }}</small>
             </div>
         </div>
 
         <template #footer>
-            <Button label="Cancel" severity="secondary" variant="text" :disabled="formSaving" @click="formVisible = false" />
-            <Button :label="formMode === 'create' ? 'Create Draft' : 'Save Changes'" icon="pi pi-check" :loading="formSaving" @click="submitForm" />
+            <Button :label="t('letters.common.cancel')" severity="secondary" variant="text" :disabled="formSaving" @click="formVisible = false" />
+            <Button :label="formMode === 'create' ? t('letters.outgoing.buttons.createDraft') : t('letters.outgoing.buttons.saveChanges')" icon="pi pi-check" :loading="formSaving" @click="submitForm" />
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="detailVisible" modal :draggable="false" :style="{ width: 'min(94vw, 62rem)' }" :header="detail ? `Outgoing Letter ${detail.reference}` : 'Outgoing Letter'">
+    <Dialog v-model:visible="detailVisible" modal :draggable="false" :style="{ width: 'min(94vw, 62rem)' }" :header="detail ? t('letters.outgoing.dialogs.viewTitle', { ref: detail.reference }) : t('letters.outgoing.dialogs.defaultViewTitle')">
         <div v-if="detailLoading" class="flex justify-center py-10">
             <i class="pi pi-spin pi-spinner text-2xl" aria-hidden="true"></i>
         </div>
@@ -1250,28 +1264,30 @@ onMounted(async () => {
         <div v-else-if="detail" class="flex flex-col gap-5">
             <div class="flex flex-wrap items-center gap-2">
                 <Tag :value="workflowLabels[detail.workflow_status] ?? detail.workflow_status" :severity="workflowSeverity[detail.workflow_status] ?? 'secondary'" />
-                <Tag :value="detail.status === 'void' ? 'Void' : 'Active'" :severity="detail.status === 'void' ? 'danger' : 'success'" />
-                <Tag :value="detail.letter_type_label ?? 'General Letter'" :severity="detail.letter_type ? 'info' : 'secondary'" />
+                <Tag :value="detail.status === 'void' ? t('letters.incoming.statuses.void') : t('letters.incoming.statuses.active')" :severity="detail.status === 'void' ? 'danger' : 'success'" />
+                <Tag :value="detail.letter_type_label ?? t('letters.outgoing.generalLetter')" :severity="detail.letter_type ? 'info' : 'secondary'" />
                 <Tag :value="detail.category" severity="secondary" />
                 <Tag :value="`Version ${detail.version}`" severity="contrast" />
                 <Tag v-if="detail.official_number" :value="detail.official_number" severity="success" />
                 <div class="flex flex-wrap gap-2 sm:ml-auto">
-                    <Button v-if="canEdit(detail)" label="Edit" icon="pi pi-pencil" size="small" variant="outlined" @click="startEdit(detail)" />
-                    <Button v-if="canSubmit(detail)" label="Submit" icon="pi pi-send" size="small" severity="info" variant="outlined" @click="openAction('submit', detail)" />
-                    <Button v-if="canApproveLetter(detail)" label="Approve" icon="pi pi-check" size="small" severity="success" variant="outlined" @click="openAction('approve', detail)" />
-                    <Button v-if="canApproveLetter(detail)" label="Reject" icon="pi pi-times" size="small" severity="warn" variant="outlined" @click="openAction('reject', detail)" />
-                    <Button v-if="canIssueLetter(detail)" label="Issue" icon="pi pi-verified" size="small" severity="success" @click="openAction('issue', detail)" />
-                    <Button v-if="canCancelLetter(detail)" label="Cancel" icon="pi pi-ban" size="small" severity="danger" variant="outlined" @click="openAction('cancel', detail)" />
+                    <Button v-if="canEdit(detail)" :label="t('letters.common.edit')" icon="pi pi-pencil" size="small" variant="outlined" @click="startEdit(detail)" />
+                    <Button v-if="canSubmit(detail)" :label="t('letters.outgoing.actions.submitButton')" icon="pi pi-send" size="small" severity="info" variant="outlined" @click="openAction('submit', detail)" />
+                    <Button v-if="canApproveLetter(detail)" :label="t('letters.outgoing.actions.approveButton')" icon="pi pi-check" size="small" severity="success" variant="outlined" @click="openAction('approve', detail)" />
+                    <Button v-if="canApproveLetter(detail)" :label="t('letters.outgoing.actions.rejectButton')" icon="pi pi-times" size="small" severity="warn" variant="outlined" @click="openAction('reject', detail)" />
+                    <Button v-if="canIssueLetter(detail)" :label="t('letters.outgoing.actions.issueButton')" icon="pi pi-verified" size="small" severity="success" @click="openAction('issue', detail)" />
+                    <Button v-if="canCancelLetter(detail)" :label="t('letters.common.cancel')" icon="pi pi-ban" size="small" severity="danger" variant="outlined" @click="openAction('cancel', detail)" />
                 </div>
             </div>
 
-            <Message v-if="detail.workflow_status === 'review' && isCreator(detail)" severity="info" :closable="false">You created this letter. A different user with approval ability must approve or reject it.</Message>
-            <Message v-if="detail.workflow_status === 'approved' && isCreator(detail)" severity="info" :closable="false">You created this letter. A different user with signing ability must issue it.</Message>
-            <Message v-if="detail.workflow_status === 'cancelled'" severity="error" :closable="false"> Cancelled by {{ detail.voided_by?.name ?? 'a user' }} on {{ formatDateTime(detail.voided_at) }}. Reason: {{ detail.void_reason }} </Message>
+            <Message v-if="detail.workflow_status === 'review' && isCreator(detail)" severity="info" :closable="false">{{ t('letters.outgoing.creatorReviewNotice') }}</Message>
+            <Message v-if="detail.workflow_status === 'approved' && isCreator(detail)" severity="info" :closable="false">{{ t('letters.outgoing.creatorApprovedNotice') }}</Message>
+            <Message v-if="detail.workflow_status === 'cancelled'" severity="error" :closable="false">{{
+                t('letters.outgoing.cancelledByNotice', { name: detail.voided_by?.name ?? t('letters.incoming.unknownUser'), date: formatDateTime(detail.voided_at), reason: detail.void_reason })
+            }}</Message>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm">
                 <div>
-                    <div class="text-surface-500">Recorded date</div>
+                    <div class="text-surface-500">{{ t('letters.outgoing.fields.recordedDate') }}</div>
                     <div class="font-medium">{{ formatDate(detail.received_date) }}</div>
                 </div>
                 <div>
@@ -1287,8 +1303,8 @@ onMounted(async () => {
                     <div class="font-medium break-words">{{ detail.recipient || '-' }}</div>
                 </div>
                 <div>
-                    <div class="text-surface-500">Official number</div>
-                    <div class="font-medium break-words">{{ detail.official_number || 'Not issued yet' }}</div>
+                    <div class="text-surface-500">{{ t('letters.outgoing.officialNumber') }}</div>
+                    <div class="font-medium break-words">{{ detail.official_number || t('letters.outgoing.notIssuedYet') }}</div>
                 </div>
                 <div>
                     <div class="text-surface-500">Category</div>
@@ -1299,19 +1315,19 @@ onMounted(async () => {
                     <div class="font-medium break-words">{{ detail.subject }}</div>
                 </div>
                 <div v-if="detail.letter_type">
-                    <div class="text-surface-500">Document subject</div>
+                    <div class="text-surface-500">{{ t('letters.outgoing.documentSubject') }}</div>
                     <div class="font-medium break-words">{{ detail.document_subject?.label ?? '-' }}</div>
                 </div>
                 <div>
-                    <div class="text-surface-500">Recorded by</div>
+                    <div class="text-surface-500">{{ t('letters.incoming.columns.received') }}</div>
                     <div class="font-medium">{{ detail.created_by?.name ?? '-' }} · {{ formatDateTime(detail.created_at) }}</div>
                 </div>
                 <div v-if="detail.approved_by">
-                    <div class="text-surface-500">Approved by</div>
+                    <div class="text-surface-500">{{ t('letters.outgoing.ledger.approvedBy') }}</div>
                     <div class="font-medium">{{ detail.approved_by.name ?? '-' }} · {{ formatDateTime(detail.approved_at) }}</div>
                 </div>
                 <div v-if="detail.issued_by">
-                    <div class="text-surface-500">Issued by</div>
+                    <div class="text-surface-500">{{ t('letters.outgoing.ledger.issuedBy') }}</div>
                     <div class="font-medium">{{ detail.issued_by.name ?? '-' }} · {{ formatDateTime(detail.issued_at) }}</div>
                 </div>
             </div>
@@ -1322,14 +1338,14 @@ onMounted(async () => {
             </div>
 
             <div v-if="detail.letter_type" class="border border-surface-200 dark:border-surface-700 rounded p-4 flex flex-col gap-3 text-sm">
-                <div class="font-semibold">Letter Content</div>
+                <div class="font-semibold">{{ t('letters.outgoing.letterContent') }}</div>
                 <div v-if="detail.letter_type === 'student_active'">
                     <div class="text-surface-500">Purpose</div>
                     <div class="whitespace-pre-line break-words">{{ detail.document_fields?.purpose || '-' }}</div>
                 </div>
                 <template v-else-if="detail.letter_type === 'employee_duty'">
                     <div>
-                        <div class="text-surface-500">Duty description</div>
+                        <div class="text-surface-500">{{ t('letters.outgoing.dutyDescription') }}</div>
                         <div class="whitespace-pre-line break-words">{{ detail.document_fields?.duty_description || '-' }}</div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -1347,52 +1363,52 @@ onMounted(async () => {
                         </div>
                     </div>
                 </template>
-                <div v-else class="text-surface-500">The certificate content follows the selected mutation record. The final layout is fixed when the letter is issued.</div>
+                <div v-else class="text-surface-500">{{ t('letters.outgoing.mutationNotice') }}</div>
             </div>
 
             <div class="border border-surface-200 dark:border-surface-700 rounded p-4 flex flex-col gap-3">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <div class="font-semibold">Document</div>
                     <div class="flex flex-wrap gap-2">
-                        <Button v-if="canPreviewDocument(detail)" label="Preview PDF" icon="pi pi-eye" size="small" variant="outlined" :loading="documentBusy === 'preview'" @click="previewDocument(detail)" />
-                        <Button v-if="canDownloadDocument(detail)" label="Download PDF" icon="pi pi-download" size="small" :loading="documentBusy === 'download'" @click="downloadDocument(detail)" />
+                        <Button v-if="canPreviewDocument(detail)" :label="t('letters.outgoing.documents.preview')" icon="pi pi-eye" size="small" variant="outlined" :loading="documentBusy === 'preview'" @click="previewDocument(detail)" />
+                        <Button v-if="canDownloadDocument(detail)" :label="t('letters.outgoing.documents.download')" icon="pi pi-download" size="small" :loading="documentBusy === 'download'" @click="downloadDocument(detail)" />
                     </div>
                 </div>
 
                 <Message v-if="documentError" severity="error" :closable="false">{{ documentError }}</Message>
 
-                <div v-if="detail.letter_type === null" class="text-sm text-surface-500">No PDF available (legacy letter).</div>
+                <div v-if="detail.letter_type === null" class="text-sm text-surface-500">{{ t('letters.outgoing.noPdfLegacy') }}</div>
                 <template v-else>
                     <div v-if="detail.document?.available" class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-sm">
                         <div>
-                            <div class="text-surface-500">Template</div>
+                            <div class="text-surface-500">{{ t('letters.outgoing.template') }}</div>
                             <div class="font-medium">{{ detail.document.template_code }} v{{ detail.document.template_version }}</div>
                         </div>
                         <div>
-                            <div class="text-surface-500">Pages</div>
+                            <div class="text-surface-500">{{ t('letters.outgoing.pages') }}</div>
                             <div class="font-medium">{{ detail.document.page_count }}</div>
                         </div>
                         <div>
-                            <div class="text-surface-500">Generated</div>
+                            <div class="text-surface-500">{{ t('letters.outgoing.generated') }}</div>
                             <div class="font-medium">{{ formatDateTime(detail.document.generated_at) }}</div>
                         </div>
                         <div>
-                            <div class="text-surface-500">Size</div>
+                            <div class="text-surface-500">{{ t('letters.outgoing.size') }}</div>
                             <div class="font-medium">{{ formatSize(detail.document.size_bytes) }}</div>
                         </div>
                     </div>
-                    <div v-else-if="['draft', 'review', 'approved'].includes(detail.workflow_status)" class="text-sm text-surface-500">A watermarked preview is available. The final PDF is generated and stored when the letter is issued.</div>
-                    <div v-else class="text-sm text-surface-500">No stored PDF is available for this letter.</div>
+                    <div v-else-if="['draft', 'review', 'approved'].includes(detail.workflow_status)" class="text-sm text-surface-500">{{ t('letters.outgoing.documents.watermarkNotice') }}</div>
+                    <div v-else class="text-sm text-surface-500">{{ t('letters.outgoing.noStoredPdf') }}</div>
                 </template>
             </div>
 
             <div class="border border-surface-200 dark:border-surface-700 rounded p-4">
-                <div class="font-semibold mb-3">Approval Ledger</div>
-                <div v-if="!detail.approvals || detail.approvals.length === 0" class="text-sm text-surface-500">No approval actions recorded.</div>
+                <div class="font-semibold mb-3">{{ t('letters.outgoing.ledger.title') }}</div>
+                <div v-if="!detail.approvals || detail.approvals.length === 0" class="text-sm text-surface-500">{{ t('letters.outgoing.noApprovals') }}</div>
                 <ul v-else class="flex flex-col gap-3">
                     <li v-for="approval in detail.approvals" :key="approval.id" class="text-sm">
                         <div class="flex flex-wrap items-center gap-2">
-                            <Tag :value="approval.action === 'approved' ? 'Approved' : 'Rejected'" :severity="approval.action === 'approved' ? 'success' : 'warn'" />
+                            <Tag :value="approval.action === 'approved' ? t('letters.outgoing.workflow.approved') : t('letters.outgoing.actions.rejectButton')" :severity="approval.action === 'approved' ? 'success' : 'warn'" />
                             <span class="font-medium">{{ approval.actor?.name ?? 'Unknown user' }}</span>
                             <span class="text-xs text-surface-500">{{ formatDateTime(approval.created_at) }}</span>
                         </div>
@@ -1409,7 +1425,7 @@ onMounted(async () => {
                         <Button label="Upload" icon="pi pi-upload" size="small" :loading="uploading" :disabled="!selectedFile" @click="uploadAttachment" />
                     </div>
                 </div>
-                <small class="text-surface-500"> PDF, JPG, JPEG, or PNG. Maximum {{ maxFileLabel }} per file and {{ maxFiles }} files per letter. Attachments are editable only while the letter is a draft. </small>
+                <small class="text-surface-500">{{ t('letters.outgoing.attachmentsDraftOnlyHint', { maxSize: maxFileLabel, maxFiles }) }}</small>
                 <small v-if="selectedFile" class="text-surface-500">Selected: {{ selectedFile.name }} ({{ formatSize(selectedFile.size) }})</small>
                 <Message v-if="uploadError" severity="error" :closable="false">{{ uploadError }}</Message>
 
@@ -1459,13 +1475,13 @@ onMounted(async () => {
         </div>
     </Dialog>
 
-    <Dialog v-model:visible="documentPreviewVisible" modal :draggable="false" :style="{ width: 'min(96vw, 72rem)' }" header="Letter PDF Preview" @hide="closeDocumentPreview">
+    <Dialog v-model:visible="documentPreviewVisible" modal :draggable="false" :style="{ width: 'min(96vw, 72rem)' }" :header="t('letters.outgoing.dialogs.pdfPreviewTitle')" @hide="closeDocumentPreview">
         <div v-if="documentPreviewLoading" class="flex justify-center py-12">
             <i class="pi pi-spin pi-spinner text-2xl" aria-hidden="true"></i>
         </div>
         <iframe v-else-if="documentPreviewUrl" :src="documentPreviewUrl" title="Letter PDF preview" class="w-full rounded border border-surface-200 dark:border-surface-700" style="height: 75vh"></iframe>
         <template #footer>
-            <Button label="Close" severity="secondary" variant="text" @click="closeDocumentPreview" />
+            <Button :label="t('letters.common.close')" severity="secondary" variant="text" @click="closeDocumentPreview" />
         </template>
     </Dialog>
 
@@ -1478,34 +1494,30 @@ onMounted(async () => {
             <Message severity="info" :closable="false">{{ actionMessage }}</Message>
 
             <div v-if="actionKind === 'approve'" class="flex flex-col gap-2">
-                <label for="approvalNotes" class="font-medium">Approval Note</label>
-                <Textarea id="approvalNotes" v-model="actionText" rows="3" :maxlength="approvalNoteMax" autoResize placeholder="Optional note for the approval ledger" />
-                <small class="text-surface-500">Optional. {{ actionText.trim().length }}/{{ approvalNoteMax }}</small>
+                <label for="approvalNotes" class="font-medium">{{ t('letters.outgoing.ledger.approvalNote') }}</label>
+                <Textarea id="approvalNotes" v-model="actionText" rows="3" :maxlength="approvalNoteMax" autoResize :placeholder="t('letters.outgoing.fields.approvalNotePlaceholder')" />
+                <small class="text-surface-500">{{ t('letters.outgoing.approvalNoteMaxChars', { current: actionText.trim().length, max: approvalNoteMax }) }}</small>
                 <small v-if="fieldError(actionErrors, 'notes')" class="text-red-500">{{ fieldError(actionErrors, 'notes') }}</small>
             </div>
 
             <div v-if="actionConfig.requiresText" class="flex flex-col gap-2">
                 <label for="actionReason" class="font-medium">{{ actionConfig.label }} <span class="text-red-500">*</span></label>
-                <Textarea id="actionReason" v-model="actionText" rows="3" :maxlength="cancelMax" autoResize :placeholder="actionKind === 'reject' ? 'Explain why the letter is rejected' : 'Explain why the letter is cancelled'" />
-                <small class="text-surface-500">At least {{ cancelMin }} characters. {{ actionText.trim().length }}/{{ cancelMax }}</small>
+                <Textarea id="actionReason" v-model="actionText" rows="3" :maxlength="cancelMax" autoResize :placeholder="actionKind === 'reject' ? t('letters.outgoing.actions.rejectPlaceholder') : t('letters.outgoing.actions.cancelPlaceholder')" />
+                <small class="text-surface-500">{{ t('letters.outgoing.cancelMinChars', { min: cancelMin, current: actionText.trim().length, max: cancelMax }) }}</small>
                 <small v-if="fieldError(actionErrors, 'reason')" class="text-red-500">{{ fieldError(actionErrors, 'reason') }}</small>
             </div>
 
             <small v-if="actionError" class="text-red-500">{{ actionError }}</small>
         </div>
         <template #footer>
-            <Button label="Close" severity="secondary" variant="text" :disabled="actionSaving" @click="actionVisible = false" />
+            <Button :label="t('letters.common.close')" severity="secondary" variant="text" :disabled="actionSaving" @click="actionVisible = false" />
             <Button :label="actionConfig.button" :icon="actionConfig.icon" :severity="actionConfig.severity" :loading="actionSaving" @click="submitAction" />
         </template>
     </Dialog>
 
     <Dialog v-model:visible="removeVisible" modal :draggable="false" :style="{ width: 'min(94vw, 34rem)' }" header="Remove Attachment">
         <div class="flex flex-col gap-3">
-            <p class="text-sm">
-                Remove
-                <span class="font-medium">{{ removeTarget?.attachment?.original_name }}</span>
-                from this draft? The file is retained in private storage for audit and will no longer be listed.
-            </p>
+            <p class="text-sm">{{ t('letters.outgoing.removeDraftConfirm', { name: removeTarget?.attachment?.original_name }) }}</p>
             <Message v-if="removeError" severity="error" :closable="false">{{ removeError }}</Message>
         </div>
         <template #footer>
