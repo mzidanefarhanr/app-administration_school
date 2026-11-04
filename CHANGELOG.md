@@ -16,7 +16,38 @@ Catat perubahan selesai; jangan menyalin riwayat template `vue-app/CHANGELOG.md`
 ```
 
 ## Entries
-## Entries
+
+## [2026-11-04] Integrasi Paralel: Internasionalisasi (i18n) dan Branding Sekolario (G0–G6 Selesai)
+- Type: Feature | Integration | Docs
+- Scope / fase: Integrasi paralel `feature/i18n` (Worktree A) + `feature/branding` (Worktree B) pada branch `integration/i18n-branding` (Fase 0 s.d. Fase 7).
+- Files touched:
+  - `vue-app/src/main.js`, `vue-app/index.html`, `vue-app/src/layout/AppTopbar.vue`, `vue-app/src/layout/AppMenu.vue`, `vue-app/src/layout/AppLogoDefault.vue`
+  - `vue-app/src/views/pages/auth/Login_2.vue`, `ForgotPassword.vue`, `ResetPassword.vue`
+  - `vue-app/src/components/dashboard/*`, `vue-app/src/components/reports/*`
+  - `vue-app/src/i18n/locales/id/*.json`, `vue-app/src/i18n/locales/en/*.json`
+  - `docs/DECISIONS.md`, `CHANGELOG.md`, `PROJECT_CONTEXT.md`, `roadmap/ROADMAP.md`, `reports/feature-update/INDEX.md`, `reports/feature-update/HANDOFF.md`
+  - `reports/parallel/integration/INTEGRATION-PLAN.md`, `reports/parallel/integration/REPORT.md`
+- What changed:
+  1. Penggabungan terintegrasi worktree A (`feature/i18n`: dukungan bilingual ID & EN pada seluruh modul, 2.728 kunci terjemahan simetris) dan worktree B (`feature/branding`: identitas jenama Sekolario, font lokal Plus Jakarta Sans woff2, palet warna emerald, logo reaktif tema).
+  2. Resolusi dan harmonisasi 5 item integrasi gabungan:
+     - Audit 99 kemunculan `severity="error"` (dipertahankan pada Message/Toast valid, 0 kesalahan pada Button/Tag).
+     - Penyelarasan warna grafik pada dashboard dan laporan ke palet Sekolario (`--sk-chart-*`, `--sk-gender-*`).
+     - Diferensiasi 5 ikon menu ganda pada `AppMenu.vue` (`pi-compass`, `pi-sort-amount-up`, `pi-flag`, `pi-id-card`, `pi-table`).
+     - Integrasi penuh teks i18n dan komponen `FloatingConfigurator` pada halaman autentikasi (Login, Forgot Password, Reset Password).
+     - Logo dan tagline dinamis reaktif terhadap bahasa (ID: "SISTEM ADMINISTRASI SEKOLAH"; EN: "SCHOOL MANAGEMENT SYSTEM").
+  3. Validasi otomatis 100% lulus: `npm run build` sukses (0 galat), 71 berkas lulus ESLint (0 errors/warnings), 67/67 unit test lulus, 0 sisa teks hardcode.
+  4. Validasi browser mandiri (CDP headless Chrome) melintasi 8 kombinasi viewport x tema x bahasa: seluruh 24 sel matriks Login, Students, Accounts lulus PASS, 0 kebocoran ke Google Fonts, cincin fokus keyboard tervalidasi.
+  5. Pengesahan keputusan arsitektur:
+     - **DEC-51**: Pemilik menetapkan Opsi A untuk kontras warna tombol primer (emerald-600 `#059669`, rasio 3,77:1) secara sadar sesuai `DESIGN.md`.
+     - **DEC-52**: Pemilih bahasa dan tema di halaman autentikasi (FloatingConfigurator) reaktif tanpa reload.
+     - **DEC-53**: `DESIGN.md` disahkan sebagai satu-satunya acuan desain resmi (Single Source of Truth) dan klausul usang pada `docs/DESIGN_SYSTEM.md` disuperseeded.
+- Why: Menggabungkan fitur internasionalisasi dan identitas jenama Sekolario secara harmonis, bebas regresi, dan terverifikasi penuh tanpa mengubah skema basis data backend atau dependensi npm baru.
+- Validation:
+  - `npm run build`: PASS (built in 33.48s, 715 modules transformed, 0 error).
+  - `node --test tests/*.test.mjs`: 67/67 tests passed (100%).
+  - Browser validation headless Chrome: 8 kombinasi PASS (100+ screenshots di `../evidence-integration/`).
+- Notes / risks: Tidak ada perubahan skema basis data (`zero schema change`), backend laravel-api tidak tersentuh, 0 file .env ter-commit, 0 berkas bukti masuk ke git.
+- Evidence: `reports/parallel/integration/REPORT.md`; `D:/xampp-htdocs/evidence-integration/summary_report.json`.
 
 ## [2026-11-03] Pengesahan Akhir Proyek: Penerimaan Rilis v1.0.0 oleh Pemilik (FASE 13 & SELURUH ROADMAP SELESAI LENGKAP — 100% PARIPURNA)
 - Type: Release | Milestone | Project Sign-Off

@@ -528,6 +528,33 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 - Implementasi: **IMPLEMENTED & DIVERIFIKASI AGEN 2026-11-03** di atas `main` @ baseline `2a4abc7`; tag rilis resmi `v1.0.0`; bukti di `reports/feature-update/PHASE-13C-REPORT.md`; checklist review manual akhir di `reports/feature-update/PHASE-13C-MANUAL-REVIEW.md` (#1–#18).
 - Status: **APPROVED & CLOSED (2026-11-03 WIB). Subfase 13c & FASE 13 SELESAI LENGKAP & DITUTUP. SELURUH ROADMAP PENGEMBANGAN APLIKASI (FASE 00 s.d. FASE 13) RESMI PARIPURNA & DITUTUP (100% COMPLETE).** Fase affected: 13c.
 
+### DEC-51 — Kontras warna tombol primer dan tautan teks: penetapan Opsi A (APPROVED & CLOSED, 2026-11-04 WIB)
+- Konteks: Hasil pengukuran aktual rasio kontras pada Fase 6 validasi browser (`getComputedStyle`) menunjukkan tombol primer default (`.p-button-primary`, `#059669` emerald-600 di atas `#ffffff`) dan tautan teks memiliki rasio kontras 3,77:1. Rasio ini memenuhi ambang batas elemen grafis & teks besar ($\ge 3:1$), namun berada di bawah ambang batas WCAG AA untuk teks normal 14px ($\ge 4,5:1$). Tombol primer aktif (`#047857` emerald-700) menghasilkan rasio 5,48:1 (lulus WCAG AA).
+- Usulan pilihan:
+  - Opsi A: Mempertahankan warna emerald-600 (`#059669`, rasio 3,77:1) persis sesuai `DESIGN.md` dan mencatat penyimpangan dari kriteria WCAG AA teks normal secara sadar demi konsistensi visual identitas jenama Sekolario.
+  - Opsi B: Memperbarui token teks/isi tombol primer dan tautan menjadi emerald-700 (`#047857`, rasio 5,48:1) agar memenuhi WCAG AA teks normal $\ge 4,5:1$ (logo tetap menggunakan emerald-600).
+- Pilihan pemilik dan bukti instruksi: Pemilik secara tegas memilih **"1. Opsi A"** pada 2026-11-04 WIB.
+- Implementasi: Token warna primer antarmuka tetap menggunakan `#059669` (emerald-600) sesuai `DESIGN.md`. Deviasi dari rasio 4,5:1 pada teks tombol normal dicatat sebagai keputusan desain sadar yang diterima pemilik.
+- Status: **APPROVED & CLOSED (2026-11-04 WIB).** Fase affected: Integrasi i18n & Branding.
+
+### DEC-52 — Pemilih bahasa dan mode tema pada halaman autentikasi (APPROVED & CLOSED, 2026-11-04 WIB)
+- Konteks: Pengguna membutuhkan kemampuan memilih bahasa antarmuka (Bahasa Indonesia / English) dan mode tema (terang / gelap) sebelum masuk ke dalam aplikasi (*pre-authentication*).
+- Keputusan: Komponen `FloatingConfigurator` disematkan pada sudut kanan atas halaman `Login_2.vue`, `ForgotPassword.vue`, dan `ResetPassword.vue`.
+  1. Pergantian bahasa dan tema berlangsung secara reaktif instan tanpa reload halaman.
+  2. Preferensi bahasa disimpan di `window.localStorage['app.locale']` dan tema di `window.localStorage['app.theme']`.
+  3. Pilihan preferensi bertahan setelah refresh halaman dan tetap aktif saat pengguna berhasil masuk (*login*) ke antarmuka dalam dashboard.
+- Pilihan pemilik dan bukti instruksi: Disetujui melalui pengesahan Gerbang G4, G5, dan G6 (2026-11-04 WIB).
+- Implementasi: Komponen `FloatingConfigurator.vue` terintegrasi pada ketiga halaman auth; kunci terjemahan `auth.json` (59 kunci) simetris pada ID dan EN.
+- Status: **APPROVED & CLOSED (2026-11-04 WIB).** Fase affected: Integrasi i18n & Branding.
+
+### DEC-53 — DESIGN.md sebagai satu-satunya acuan desain sistemik & konsolidasi dokumen desain (APPROVED & CLOSED, 2026-11-04 WIB)
+- Konteks: Konsolidasi referensi desain sistem pada repositori. Sebelumnya terdapat dokumen awal `docs/DESIGN_SYSTEM.md` (panduan umum alur operator) yang menyatakan bahwa token warna/font belum ditetapkan dan bilingual membutuhkan scope terpisah.
+- Keputusan:
+  1. `DESIGN.md` yang terletak di root repositori ditetapkan secara resmi sebagai **Satu-Satunya Acuan Desain (Single Source of Truth)** untuk identitas jenama *"Sekolario"*, tipografi lokal `Plus Jakarta Sans`, palet warna emerald/slate, preset PrimeVue Aura, skala heading, radius border, serta aturan logo dan tagline dwibahasa.
+  2. Dokumen `docs/DESIGN_SYSTEM.md` tetap dipertahankan sebagai panduan historis alur operator dan prinsip aksesibilitas form/tabel, namun klausul terkait token warna, font, dan scope bilingual dinyatakan telah **disuperseeded penuh oleh `DESIGN.md` dan integrasi i18n**. Dokumen desain lain tidak diperkenankan dijadikan acuan bertentangan tanpa persetujuan pemilik.
+- Pilihan pemilik dan bukti instruksi: Diinstruksikan dalam `INTEGRATION-PLAN.md` Bagian 13 dan disahkan oleh pemilik (2026-11-04 WIB).
+- Status: **APPROVED & CLOSED (2026-11-04 WIB).** Fase affected: Integrasi i18n & Branding.
+
 ## Register
 
 | ID | Keputusan | Usulan awal / pertanyaan | Status | Fase paling lambat |
@@ -565,6 +592,9 @@ Status awal: keputusan belum dikonfirmasi kecuali tujuan umum dan penggunaan Ope
 | DEC-48 | Rencana Subfase 13a: QA integrasi dan UAT | Inventarisasi 334 endpoint & 27 halaman aktif; validasi matriks peran (5 profil); 4 skenario alur E2E (siswa->surat->arsip, guru->jadwal->jurnal->rekap, izin->tugas->approval, backup); audit zero PII leak; multi-viewport (1440/768/390px) & tema light/dark; test suite `EndToEndIntegrationTest.php`; probe UAT `probe-integration` di `phase10-uat.php`; known issues & batasan rilis; checklist review manual #1–#18 & kepatuhan DEC-27 | **APPROVED & CLOSED (2026-11-03 WIB)** | 13a |
 | DEC-49 | Rencana Subfase 13b: Kesiapan rilis (Release readiness) | Backup komprehensif data SQL & storage privat, simulasi restore drill, audit hardening konfigurasi produksi, rencana migrasi & rollback darurat, queue worker & task scheduling, Runbook & SOP operasional sekolah, smoke test suite, probe UAT probe-release-readiness, checklist review manual #1–#18 & kepatuhan DEC-27 | **APPROVED & CLOSED (2026-11-03 WIB)**; **IMPLEMENTED + agent-verified 2026-11-03; checklist #1–#18 APPROVED 2026-11-03 WIB** ("Pengujian nomor 1-18 sudah berhasil dan saya approved."); paket review `dcc607b`; **Subfase 13b SELESAI LENGKAP & DITUTUP** | 13b |
 | DEC-50 | Rencana Subfase 13c: Rilis dan handoff operasional | Tag Git resmi v1.0.0, penetapan target deployment (LAN lokal vs VPS cloud), panduan deployment & bootstrap admin, pre-use smoke test checklist, paket handoff operasional, daftar known issues, checklist review manual akhir #1–#18, kepatuhan DEC-27 | **APPROVED & CLOSED (2026-11-03 WIB)**; tag v1.0.0 diterbitkan; checklist manual akhir #1–#18 APPROVED; **Subfase 13c & Fase 13 SELESAI LENGKAP & DITUTUP; SELURUH ROADMAP PARIPURNA (100% DONE)** | 13c |
+| DEC-51 | Kontras warna tombol primer dan tautan (Opsi A) | Emerald-600 #059669 dipertahankan (3,77:1); deviasi WCAG AA teks normal disahkan sadar | **APPROVED & CLOSED (2026-11-04 WIB)** | Integrasi |
+| DEC-52 | Pemilih bahasa & tema halaman auth | FloatingConfigurator di Login/Forgot/Reset Password; reaktif tanpa reload; simpan di localStorage | **APPROVED & CLOSED (2026-11-04 WIB)** | Integrasi |
+| DEC-53 | DESIGN.md sebagai satu-satunya acuan desain | DESIGN.md acuan tunggal Sekolario; docs/DESIGN_SYSTEM.md klausul usang disuperseeded | **APPROVED & CLOSED (2026-11-04 WIB)** | Integrasi |
 | DEC-08 | Impor data campuran | Preview wajib; default usulan validasi semua sebelum commit per batch kecil; update hanya eksplisit | APPROVED (2026-10-30, disahkan DEC-25) | 05a |
 | DEC-09 | Backup dan retensi | Lokasi, jadwal, RPO/RTO, enkripsi, lama simpan | APPROVED (2026-10-17) | 02b |
 | DEC-10 | Jadwal dan jurnal | Jam/sesi, exception libur/cancel/reschedule, batas waktu pengisian | **CLOSED (2026-11-03 WIB, disahkan melalui DEC-39 D3, D5, D8)**: slot jam ke-`1..12` + `HH:MM` + ruang opsional; exception `holiday` (sekolah/per rombel), `cancelled`, dan `rescheduled` (dengan validasi bentrok pada tanggal/jam pengganti); sesi efektif = jadwal reguler aktif dikurangi `holiday`/`cancelled` ditambah `rescheduled`; batas waktu pengisian jurnal oleh guru pengampu `journal_grace_days = 7` hari kalender WIB (`D <= today WIB` s.d. `D + 7`), lewat batas hanya oleh `teaching.manage` selama tahun ajaran belum `locked` | 10a |

@@ -1,6 +1,13 @@
 # Handoff Pengembangan Aplikasi Sekolah
 
-## Current checkpoint — 2026-11-03 (PENGESAHAN AKHIR PEMILIK: RILIS v1.0.0 RESMI DITERIMA; FASE 13 & SELURUH ROADMAP PROYEK SELESAI PARIPURNA — 100% COMPLETE & CLOSED)
+## Current checkpoint — 2026-11-04 (INTEGRASI PARALEL i18n + BRANDING SELESAI; G0–G6 PASSED; FASE 7 DOKUMENTASI; MENUNGGU FASE 8 MERGE KE MAIN)
+
+- **Status Integrasi:** Cabang `integration/i18n-branding` telah menyelesaikan seluruh pengujian otomatis, validasi 8 kombinasi di browser (G6 PASS), dan penyelarasan dokumentasi (G7).
+- **Keputusan Pemilik:** DEC-51 (Opsi A kontras warna emerald-600), DEC-52 (FloatingConfigurator di auth), dan DEC-53 (`DESIGN.md` sebagai acuan desain tunggal) disahkan dan ditutup.
+- **Kondisi Teknis:** 0 perubahan skema database, backend `laravel-api` utuh, `npm run build` lulus bersih, 67/67 unit test green.
+- **Next:** Pemilik meninjau hasil dokumentasi Fase 7 dan membuka PR / mengotorisasi penggabungan ke `main` (Fase 8).
+
+## Previous checkpoint — 2026-11-03 (PENGESAHAN AKHIR PEMILIK: RILIS v1.0.0 RESMI DITERIMA; FASE 13 & SELURUH ROADMAP PROYEK SELESAI PARIPURNA — 100% COMPLETE & CLOSED)
 
 - **Status Proyek:** Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Rilis v1.0.0 resmi diterima dan proyek selesai."** (2026-11-03 WIB); checklist manual akhir Subfase 13c **#1–#18 APPROVED**. Tag rilis resmi Git **`v1.0.0`** diterima penuh. **Subfase 13c — Rilis dan Handoff Operasional** resmi **SELESAI LENGKAP & DITUTUP** (`1b8ec6f`). **DEC-50 disahkan menjadi APPROVED & CLOSED**. Dengan disetujuinya tahap ini, **FASE 13 (QA Akhir, Rilis dan Handoff Operasional) SERTA SELURUH ROADMAP PENGEMBANGAN SISTEM ADMINISTRASI SEKOLAH (FASE 00 s.d. FASE 13) RESMI SELESAI LENGKAP, PARIPURNA, DAN DITUTUP (100% DONE)**.
 - **Ringkasan Serah Terima Operasional (Paripurna):**

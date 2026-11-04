@@ -242,9 +242,10 @@ Perintah+hasil :
 | Mobile 390 · Gelap · ID | PASS | PASS | PASS | Responsif 390px gelap, logo on-dark ID |
 | Mobile 390 · Gelap · EN | PASS | PASS | PASS | Responsif 390px gelap, logo on-dark EN |
 
-Hasil          : PASS (menunggu tinjauan & persetujuan pemilik serta putusan DEC-D1)
+Hasil          : PASS (disetujui pemilik 2026-11-04 WIB; DEC-D1 ditetapkan Opsi A)
 Commit baru    :
 - 2a6b4a9 ("i18n: lengkapi 10 kunci terjemahan yang hilang (common, master, archives, letters)")
+- a584d25 ("docs: catat laporan gerbang integrasi G6")
 File disentuh  :
 - `vue-app/src/i18n/locales/id/archives.json`
 - `vue-app/src/i18n/locales/id/common.json`
@@ -257,10 +258,45 @@ File disentuh  :
 - `reports/parallel/integration/REPORT.md`
 Blocker        : tidak ada
 Risiko baru    : tidak ada
-Permintaan ke pemilik :
-1. Meninjau bukti tangkapan layar di `../evidence-integration/` (100+ file .png dan summary_report.json).
-2. Memutuskan DEC-D1 untuk kontras warna tombol primer/tautan:
-   - Opsi A: Mempertahankan `#059669` (emerald-600) sesuai DESIGN.md (rasio 3,77:1) dengan mencatat penyimpangan secara sadar.
-   - Opsi B: Memperbarui token teks tombol primer dan tautan menjadi `#047857` (emerald-700, rasio 5,48:1) agar memenuhi WCAG AA 4,5:1 untuk teks normal.
-3. Memberikan persetujuan Gerbang G6 dan izin untuk melanjutkan ke Fase 7 (Dokumentasi) dan Fase 8 (Merge ke main).
+Permintaan ke pemilik : Izin lanjut ke Fase 7 (telah disetujui pemilik via instruksi: "1. Opsi A; 2. Saya setuju dan lanjutkan fase 7")
 Bukti          : D:/xampp-htdocs/evidence-integration/ (100+ file .png dan summary_report.json)
+
+---
+
+## Gerbang G7 — 2026-11-04
+SHA diuji      : a584d2572b9a7852c03c5188bf473c17c2f6d62d
+Perintah+hasil :
+- 13.1 Pembaruan dokumen proyek bersama (commit `docs:` terpisah dari kode):
+  - `CHANGELOG.md`: Entri integrasi i18n + branding ditambahkan, merangkum penggabungan dwibahasa, peremajaan jenama Sekolario, font lokal Plus Jakarta Sans, pengujian 8 kombinasi browser, dan resolusi 10 kunci terjemahan hilang.
+  - `docs/DECISIONS.md`:
+    - Pencatatan **DEC-51** (Pilihan pemilik: Opsi A, mempertahankan emerald-600 `#059669` pada tombol primer & tautan dengan deviasi sadar dari WCAG AA teks normal demi integritas identitas jenama).
+    - Pencatatan **DEC-52** (FloatingConfigurator pada halaman auth Login/Forgot/Reset Password reaktif tanpa reload dan persisten di localStorage).
+    - Pencatatan **DEC-53** (`DESIGN.md` disahkan sebagai satu-satunya acuan desain resmi / Single Source of Truth).
+  - `PROJECT_CONTEXT.md`: Addendum terkini mencatat keberhasilan integrasi paralel i18n & branding, hasil G0-G6, dan pengesahan DEC-51 s.d. DEC-53.
+  - `roadmap/ROADMAP.md`: Addendum terkini mencatat penyelesaian integrasi paralel dan kesiapan rilis.
+  - `reports/feature-update/INDEX.md` & `reports/feature-update/HANDOFF.md`: Checkpoint serah terima operasional diperbarui.
+- 13.2 Konsolidasi acuan desain:
+  - Berkas desain yang teridentifikasi di repositori: `DESIGN.md` (root) dan `docs/DESIGN_SYSTEM.md` (docs).
+  - `DESIGN.md` ditetapkan secara resmi sebagai **satu-satunya acuan desain (Single Source of Truth)** untuk merek Sekolario, font Plus Jakarta Sans, palet emerald, logo, dan preset PrimeVue Aura.
+  - Dokumen `docs/DESIGN_SYSTEM.md` tetap dipertahankan sebagai panduan historis pola operator, di mana klausul terkait token warna dan font yang belum ditetapkan pada era baseline dinyatakan telah tersuperseed penuh oleh `DESIGN.md`.
+- 13.3 Integritas teknis & verifikasi:
+  - Nol perubahan skema basis data (*zero schema change*).
+  - Nol perubahan kode pada backend `laravel-api`.
+  - `npm run build`: SUKSES (built in 33.48s, 715 modules transformed, 0 error).
+  - Unit tests: 67/67 tests lolos (100% pass).
+Hasil          : PASS (menunggu tinjauan pemilik untuk Fase 8)
+Commit baru    : (commit pembaruan dokumen Fase 7)
+File disentuh  :
+- `CHANGELOG.md`
+- `PROJECT_CONTEXT.md`
+- `docs/DECISIONS.md`
+- `roadmap/ROADMAP.md`
+- `reports/feature-update/INDEX.md`
+- `reports/feature-update/HANDOFF.md`
+- `reports/parallel/integration/REPORT.md`
+Blocker        : tidak ada
+Risiko baru    : tidak ada
+Permintaan ke pemilik :
+1. Meninjau konsistensi dokumen yang telah diselaraskan pada Fase 7.
+2. Memberikan persetujuan Gerbang G7 dan arahan untuk melaksanakan **Fase 8: Pembukaan PR, merge ke `main`, pemberian tag rilis versi, dan pembersihan worktree**.
+Bukti          : tidak ada (dokumen teks)

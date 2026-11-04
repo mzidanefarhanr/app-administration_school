@@ -1,6 +1,15 @@
 # Indeks laporan pengembangan
 
-## Current checkpoint — 2026-11-03 (PENGESAHAN AKHIR: SUBFASE 13C, FASE 13, & SELURUH ROADMAP RESMI SELESAI & DITUTUP — RILIS v1.0.0 DITERIMA)
+## Current checkpoint — 2026-11-04 (INTEGRASI PARALEL i18n + BRANDING SELESAI; G0–G6 PASSED; FASE 7 DOKUMENTASI; MENUNGGU FASE 8 MERGE KE MAIN)
+
+Integrasi cabang paralel `feature/i18n` dan `feature/branding` pada branch `integration/i18n-branding` menyelesaikan Fase 0 s.d. Fase 7:
+1. Penggabungan otomatis dan penyelarasan 5 item ditunda (chart colors, icons differentiation, auth page i18n + FloatingConfigurator, reactive logo tagline).
+2. Validasi otomatis 100% lulus (build 0 error, ESLint 0 warning, unit tests 67/67 pass, zero hardcoded Indonesian text in view).
+3. Validasi browser mandiri (CDP headless Chrome) melintasi 8 kombinasi matriks wajib Login, Students, Accounts lulus PASS (100+ screenshots di `../evidence-integration/`).
+4. Pengesahan keputusan pemilik DEC-51 (Opsi A: emerald-600 dipertahankan secara sadar), DEC-52 (auth language switcher), dan DEC-53 (`DESIGN.md` acuan desain tunggal).
+Laporan lengkap tersedia di `reports/parallel/integration/REPORT.md`.
+
+## Previous checkpoint — 2026-11-03 (PENGESAHAN AKHIR: SUBFASE 13C, FASE 13, & SELURUH ROADMAP RESMI SELESAI & DITUTUP — RILIS v1.0.0 DITERIMA)
 
 Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Rilis v1.0.0 resmi diterima dan proyek selesai."** (2026-11-03 WIB); checklist manual akhir Subfase 13c **#1–#18 APPROVED**. Rilis resmi **`v1.0.0`** resmi diterima. **Subfase 13c — Rilis dan Handoff Operasional** resmi **SELESAI LENGKAP & DITUTUP** (`1b8ec6f`). **DEC-50 disahkan menjadi APPROVED & CLOSED**. Dengan ini, **FASE 13 dan SELURUH ROADMAP PENGEMBANGAN SISTEM ADMINISTRASI SEKOLAH (FASE 00 s.d. FASE 13) TELAH SELESAI LENGKAP DAN DITUTUP SECARA PARIPURNA (100% COMPLETE)**. Port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
 
