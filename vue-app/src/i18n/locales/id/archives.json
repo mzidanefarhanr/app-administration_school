@@ -137,7 +137,9 @@
         "downloadVersion": "Unduh versi berkas",
         "previewCurrent": "Pratinjau berkas saat ini",
         "downloadCurrent": "Unduh berkas saat ini",
-        "loadingPreview": "Memuat pratinjau arsip..."
+        "loadingPreview": "Memuat pratinjau arsip...",
+        "refreshDocuments": "Muat ulang dokumen",
+        "resetFilters": "Reset filter"
     },
     "messages": {
         "created": "Dokumen arsip berhasil dibuat.",

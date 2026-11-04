@@ -202,7 +202,8 @@
         "accountLabel": "Akun: {name}",
         "loadingRoles": "Memuat peran...",
         "noRolesAvailable": "Tidak ada peran tersedia.",
-        "rolesSavedSuccess": "Peran berhasil diperbarui."
+        "rolesSavedSuccess": "Peran berhasil diperbarui.",
+        "password": "Kata Sandi"
     },
     "roles": {
         "title": "Peran & Hak Akses",

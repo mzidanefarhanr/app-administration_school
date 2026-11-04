@@ -12,7 +12,10 @@
         "refresh": "Refresh",
         "retry": "Retry",
         "save": "Save",
-        "search": "Search"
+        "search": "Search",
+        "clear": "Clear",
+        "export": "Export",
+        "import": "Import"
     },
     "state": {
         "empty": "No data yet",

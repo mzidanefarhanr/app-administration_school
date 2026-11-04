@@ -12,7 +12,10 @@
         "refresh": "Muat ulang",
         "retry": "Coba lagi",
         "save": "Simpan",
-        "search": "Cari"
+        "search": "Cari",
+        "clear": "Bersihkan",
+        "export": "Ekspor",
+        "import": "Impor"
     },
     "state": {
         "empty": "Belum ada data",

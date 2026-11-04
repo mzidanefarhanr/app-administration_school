@@ -202,7 +202,8 @@
         "accountLabel": "Account: {name}",
         "loadingRoles": "Loading roles...",
         "noRolesAvailable": "No roles available.",
-        "rolesSavedSuccess": "Roles updated successfully."
+        "rolesSavedSuccess": "Roles updated successfully.",
+        "password": "Password"
     },
     "roles": {
         "title": "Roles & Permissions",

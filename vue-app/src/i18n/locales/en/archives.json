@@ -137,7 +137,9 @@
         "downloadVersion": "Download archive version",
         "previewCurrent": "Preview current archive file",
         "downloadCurrent": "Download current archive file",
-        "loadingPreview": "Loading archive preview..."
+        "loadingPreview": "Loading archive preview...",
+        "refreshDocuments": "Refresh documents",
+        "resetFilters": "Reset filters"
     },
     "messages": {
         "created": "Archive document created.",

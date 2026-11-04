@@ -256,7 +256,8 @@
             "certificatePurpose": "Keperluan Keterangan",
             "certificatePlaceholder": "Keperluan yang dicantumkan dalam surat keterangan",
             "schoolName": "Nama Sekolah / Unit",
-            "schoolPlaceholder": "Nama sekolah atau unit"
+            "schoolPlaceholder": "Nama sekolah atau unit",
+            "recordedDate": "Tanggal Pencatatan"
         },
         "tooltips": {
             "download": "Unduh",
@@ -336,7 +337,10 @@
             "reject": "Tolak draf surat ini. Surat akan dikembalikan atau ditolak beserta alasan penolakan.",
             "issue": "Terbitkan dan tanda tangani surat dinas ini. Nomor resmi akan digenerate secara otomatis dan berkas PDF permanen akan diterbitkan.",
             "cancel": "Batalkan surat keluar ini secara permanen. Tindakan ini dicatat ke dalam audit dan nomor resmi tidak dapat digunakan kembali."
-        }
+        },
+        "dutyDescription": "Uraian Tugas",
+        "startDate": "Tanggal Mulai",
+        "endDate": "Tanggal Selesai"
     },
     "dispositions": {
         "title": "Disposisi Surat",

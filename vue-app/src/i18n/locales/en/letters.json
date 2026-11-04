@@ -256,7 +256,8 @@
             "certificatePurpose": "Certificate Purpose",
             "certificatePlaceholder": "Purpose stated in the certificate",
             "schoolName": "School / Unit Name",
-            "schoolPlaceholder": "School or unit name"
+            "schoolPlaceholder": "School or unit name",
+            "recordedDate": "Recorded Date"
         },
         "tooltips": {
             "download": "Download",
@@ -336,7 +337,10 @@
             "reject": "Reject this draft letter. The letter will be returned or rejected along with the given reason.",
             "issue": "Issue and officially sign this letter. The official number will be atomically assigned and the final PDF generated.",
             "cancel": "Permanently cancel this outgoing letter. This action will be audited and the official number cannot be reused."
-        }
+        },
+        "dutyDescription": "Duty Description",
+        "startDate": "Start Date",
+        "endDate": "End Date"
     },
     "dispositions": {
         "title": "Letter Dispositions",
