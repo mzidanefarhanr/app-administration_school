@@ -25,18 +25,18 @@ const model = computed(() => [
         label: t('menu.group.master'),
         requires: 'master.view',
         items: [
-            { label: t('menu.item.educationLevels'), icon: 'pi pi-fw pi-chart-bar', to: '/public/educationlevels' },
+            { label: t('menu.item.educationLevels'), icon: 'pi pi-fw pi-sort-amount-up', to: '/public/educationlevels' },
             { label: t('menu.item.schools'), icon: 'pi pi-fw pi-building-columns', to: '/public/educationschools' },
-            { label: t('menu.item.phaseStatuses'), icon: 'pi pi-fw pi-building', to: '/public/phasestatuses', class: 'rotated-icon' },
+            { label: t('menu.item.phaseStatuses'), icon: 'pi pi-fw pi-flag', to: '/public/phasestatuses', class: 'rotated-icon' },
             { label: t('menu.item.professions'), icon: 'pi pi-fw pi-briefcase', to: '/public/professions', class: 'rotated-icon' },
-            { label: t('menu.item.studentMajors'), icon: 'pi pi-fw pi-calendar', to: '/public/studentmajors', class: 'rotated-icon' }
+            { label: t('menu.item.studentMajors'), icon: 'pi pi-fw pi-compass', to: '/public/studentmajors', class: 'rotated-icon' }
         ]
     },
     {
         label: t('menu.group.academic'),
         requires: null,
         items: [
-            { label: t('menu.item.schoolRombels'), icon: 'pi pi-fw pi-book', to: '/public/schoolrombels', requires: 'students.view' },
+            { label: t('menu.item.schoolRombels'), icon: 'pi pi-fw pi-table', to: '/public/schoolrombels', requires: 'students.view' },
             { label: t('menu.item.progression'), icon: 'pi pi-fw pi-sitemap', to: '/public/progression', requires: 'students.view' },
             { label: t('menu.item.schoolYears'), icon: 'pi pi-fw pi-calendar', to: '/public/schoolyears', requires: 'master.view' }
         ]
@@ -46,7 +46,7 @@ const model = computed(() => [
         requires: null,
         items: [
             { label: t('menu.item.students'), icon: 'pi pi-fw pi-graduation-cap', to: '/public/students', requires: 'students.view' },
-            { label: t('menu.item.teachers'), icon: 'pi pi-fw pi-slack', to: '/public/teachers', requires: 'employees.view' },
+            { label: t('menu.item.teachers'), icon: 'pi pi-fw pi-id-card', to: '/public/teachers', requires: 'employees.view' },
             { label: t('menu.item.employees'), icon: 'pi pi-fw pi-address-book', to: '/public/employees', requires: 'employees.view' },
             { label: t('menu.item.dataQuality'), icon: 'pi pi-fw pi-check-circle', to: '/public/data-quality', requires: ['students.view', 'employees.view'] },
             { label: t('menu.item.schoolReports'), icon: 'pi pi-fw pi-chart-line', to: '/public/reports/school', requires: 'students.view' }
