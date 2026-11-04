@@ -8,9 +8,9 @@ import { registerAuthHandlers } from '@/apiLogin';
 import { authStore } from '@/stores/authStore';
 
 import Notifications from '@kyvg/vue3-notification';
-import Aura from '@primeuix/themes/aura';
 import piniaPluginPersistedState from 'pinia-plugin-persistedstate';
 import PrimeVue from 'primevue/config';
+import SekolarioPreset from '@/theme/sekolario-preset';
 import ConfirmationService from 'primevue/confirmationservice';
 import StyleClass from 'primevue/styleclass';
 import ToastService from 'primevue/toastservice';
@@ -29,7 +29,7 @@ app.use(i18n);
 app.use(router);
 app.use(PrimeVue, {
     theme: {
-        preset: Aura,
+        preset: SekolarioPreset,
         options: {
             darkModeSelector: '.app-dark'
         }

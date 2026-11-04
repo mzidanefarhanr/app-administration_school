@@ -1,239 +1,353 @@
-# design.md — Sekolario
+# Desain Sekolario
 
-Panduan desain antarmuka Sekolario (Sistem Administrasi Sekolah). Disusun dari **logo resmi v1.0.0** (`sekolario-logo/PANDUAN-LOGO.md`) dan **kondisi aktual repo** `app-administration_school` (Vue 3 + PrimeVue 4 Aura + Tailwind 3).
+Dokumen ini menjadi acuan visual untuk antarmuka Sekolario (Vue 3 + PrimeVue/Sakai). Semua nilai diturunkan dari logo: ikon hijau `#059669`, wordmark gelap `#0f172a`, versi gelap memakai `#34d399`, dan tipografi Plus Jakarta Sans.
 
-Dokumen ini menggantikan klausa "token warna/font final belum ditetapkan pemilik" di `docs/DESIGN_SYSTEM.md`. Aturan pola layar, state wajib, dan aksesibilitas di dokumen itu tetap berlaku dan tidak diulang di sini.
+Status: nilai preset di bagian 9 adalah referensi. Cocokkan dengan `SekolarioPreset` yang sudah ada di branch `feature/branding`, lalu perbarui dokumen ini bila ada selisih.
 
 ---
 
-## 1. Karakter merek
+## 1. Prinsip
 
-| Aspek | Keputusan |
-|---|---|
-| Kepribadian | Tenang, rapi, tepercaya. Alat kerja operator sekolah, bukan produk konsumen yang ramai. |
-| Prinsip visual | Minimal. Satu warna aksen (hijau), sisanya netral. Warna dipakai untuk makna, bukan hiasan. |
-| Bentuk | Sudut membulat, batang horizontal, tanpa bayangan berat. Mengikuti ikon: tiga batang bergeser yang membentuk huruf "S". |
-| Bahasa | Bahasa Indonesia baku pada seluruh alur operator. |
-
-Makna ikon: tiga batang = **data, dokumen, alur kerja**. Makna ini boleh dipakai ulang sebagai motif ilustrasi (misalnya empty state), tetapi jangan menambah elemen lain ke ikon.
+1. **Tenang dan padat data.** Aplikasi ini dipakai operator berjam-jam untuk tabel, formulir, dan rekap. Latar netral, satu warna merek, tanpa dekorasi.
+2. **Warna menyampaikan makna.** Hijau merek menandai aksi utama dan item aktif. Status (berhasil, peringatan, bahaya, info) memakai warna semantik, bukan hijau merek.
+3. **Satu aksen per layar.** Satu tombol utama per area. Aksi lain memakai gaya sekunder atau outline.
+4. **Teks selalu menyertai warna.** Jangan membedakan data hanya lewat warna (contoh: laki-laki/perempuan di grafik wajib punya label).
+5. **Konsisten antar halaman.** Pola yang sama (header halaman, toolbar, tabel, dialog) dipakai di semua menu, termasuk yang dibuat lewat `useResourceManager`.
 
 ---
 
 ## 2. Logo
 
-### 2.1 Pilihan file
-
 | Konteks | File |
 |---|---|
-| Header app, mode terang | `sekolario-horizontal.svg` |
-| Header app, mode gelap | `sekolario-horizontal-on-dark.svg` |
-| Sidebar tertutup / ikon saja | `sekolario-icon.svg` |
-| Favicon | `sekolario-favicon.svg` (+ PNG 32, 180, 512) |
-| Kop surat / dokumen cetak 1 warna | `sekolario-mono-dark.svg` |
-| Watermark / latar gelap monokrom | `sekolario-mono-white.svg` |
-| Varian tagline Inggris | `alternatif-tagline/*` (opsional) |
+| Topbar/sidebar, tema terang | `sekolario-horizontal.svg` |
+| Topbar/sidebar, tema gelap | `sekolario-horizontal-on-dark.svg` |
+| Sidebar menyempit, avatar aplikasi | `sekolario-icon.svg` |
+| Favicon | `sekolario-favicon.svg` (+ PNG 32/180/512) |
+| Cetak satu warna, kop dokumen | `sekolario-mono-dark.svg` |
+| Di atas latar gelap/foto dengan overlay | `sekolario-mono-white.svg` |
 
-Salin ke `vue-app/public/logo/` agar jalur di panduan logo (`/logo/...`) berlaku.
-
-### 2.2 Aturan pakai
-
-- Clear space minimal setara tinggi ikon di semua sisi.
-- Lebar minimum: horizontal 160 px, ikon 20 px. Untuk 16 px pakai favicon, bukan ikon polos.
-- Hanya di atas latar polos (putih, gelap, atau hijau primer). Di atas foto wajib overlay.
-- Dilarang: ganti warna di luar palet, regangkan, beri bayangan/bevel, rotasi, atau pakai versi terang di latar gelap (dan sebaliknya).
-- Wordmark di SVG masih `<text>` yang memuat Google Fonts. Untuk cetak, ekspor, atau penggunaan offline, **ubah ke path** dahulu (Figma: Text → Outline; Inkscape: Object to Path).
+- Tinggi logo di topbar: **32px**.
+- Ukuran minimum: horizontal lebar 160px, ikon 20px.
+- Ruang bebas: minimal setinggi ikon di keempat sisi.
+- Dilarang: mengubah warna di luar palet, meregangkan, memberi bayangan, memutar.
 
 ---
 
-## 3. Warna
+## 3. Palet warna
 
-### 3.1 Palet merek (dari logo)
+### 3.1 Merek (Emerald)
 
-| Peran | Nama | Hex |
+| Token | Hex | Penggunaan |
 |---|---|---|
-| Primer | Emerald 600 | `#059669` |
-| Primer terang | Emerald 500 | `#10b981` |
-| Primer muda (aksen di latar gelap) | Emerald 400 | `#34d399` |
-| Tint primer | Emerald 100 | `#d1fae5` |
-| Gelap utama | Slate 950 | `#0f172a` |
-| Gelap sekunder | Slate 800 | `#1e293b` |
-| Teks muted | Slate 500 | `#64748b` |
-| Teks sub | Slate 600 | `#475569` |
-| Terang | Slate 50 | `#f8fafc` |
-| Putih | — | `#ffffff` |
+| `primary-50` | `#ecfdf5` | Latar tipis (baris terpilih, banner info merek) |
+| `primary-100` | `#d1fae5` | Latar item menu aktif, badge lembut |
+| `primary-200` | `#a7f3d0` | Garis fokus lembut, grafik seri pendukung |
+| `primary-300` | `#6ee7b7` | Hover pada latar gelap |
+| `primary-400` | `#34d399` | **Warna primer tema gelap**, wordmark "S" di latar gelap |
+| `primary-500` | `#10b981` | Ikon dan grafik |
+| `primary-600` | `#059669` | **Warna logo**, ikon aktif, garis dan elemen grafis |
+| `primary-700` | `#047857` | Teks tautan, label tombol bertinta, fill tombol (lihat bagian 4) |
+| `primary-800` | `#065f46` | Status tekan (active), teks di atas `primary-100` |
+| `primary-900` | `#064e3b` | Teks di atas `primary-50` pada banner |
+| `primary-950` | `#022c22` | Teks di atas `primary-400` |
 
-### 3.2 Pemetaan ke token PrimeVue
+### 3.2 Netral (Slate)
 
-Repo sudah memakai `primary: 'emerald'` (`layout/composables/layout.js`) dan Aura, jadi hijau merek **sudah sejalan** dengan palet Aura emerald. Yang perlu diselaraskan hanya hal berikut.
-
-| Token | Mode terang | Mode gelap | Catatan |
-|---|---|---|---|
-| `--p-primary-color` | emerald 600 `#059669` | emerald 400 `#34d399` | Sama dengan logika wordmark: "S" hijau gelap di terang, hijau muda di gelap. |
-| `--p-primary-contrast-color` | putih | slate 950 | |
-| Hover/active primer | emerald 700 | emerald 300 | |
-| Surface (latar/kartu/border) | skala **slate** | skala **slate** | Logo memakai slate. Aura memakai palet surface bawaan sendiri (zinc menurut dokumentasi PrimeVue); karena `layoutConfig.surface` saat ini `null`, nilainya perlu **diperiksa di runtime** lalu diset ke slate bila berbeda. |
-| `--surface-ground` | slate 50 `#f8fafc` | slate 950 `#0f172a` | Repo kini memakai `surface-100` / `surface-950`. |
-| `--surface-card` | putih | slate 900 | |
-| `--text-color` | slate 950 | slate 50 | |
-| `--text-color-secondary` | slate 600 | slate 400 | |
-
-Cara menerapkan, selaras `AGENTS.md` dan `DESIGN_SYSTEM.md` (tetap Aura + semantic tokens, tanpa redesign total): gunakan `definePreset(Aura, { semantic: { primary: {...emerald}, colorScheme: { light: { primary: { color: '{emerald.600}', ... }, surface: {...slate} }, dark: { primary: { color: '{emerald.400}', ... }, surface: {...slate} } } } })` di `main.js`. Ini satu titik perubahan dan tidak menyentuh komponen.
-
-### 3.3 Warna semantik status
-
-Status **selalu berlabel teks**, tidak hanya warna. Pakai severity PrimeVue yang sudah dominan di repo (`secondary`, `danger`, `warn`, `success`, `info`).
-
-| Severity | Pakai untuk | Contoh di repo |
+| Token | Hex | Penggunaan |
 |---|---|---|
-| `success` | selesai, disetujui, aktif, terbit | Approved, Issued, aktif |
-| `warn` | menunggu tindakan, mendekati batas | Review, belum diisi (dalam tenggang) |
-| `danger` | gagal, ditolak, melewati batas | Ditolak, belum diisi (lewat tenggang) |
-| `info` | informasi netral, sedang berjalan | Draft terkirim, proses |
-| `secondary` | tidak aktif, arsip, default | Draft, nonaktif |
-| `primary` | hanya untuk penekanan merek, jarang | |
+| `surface-0` | `#ffffff` | Kartu, dialog, tabel (terang) |
+| `surface-50` | `#f8fafc` | Latar halaman (terang), zebra tabel |
+| `surface-100` | `#f1f5f9` | Hover baris, latar input nonaktif |
+| `surface-200` | `#e2e8f0` | Border kartu, pemisah, border input |
+| `surface-300` | `#cbd5e1` | Border input hover, garis tabel tegas |
+| `surface-400` | `#94a3b8` | Placeholder, ikon nonaktif |
+| `surface-500` | `#64748b` | Teks sekunder, tagline |
+| `surface-600` | `#475569` | Teks sekunder pekat, label |
+| `surface-700` | `#334155` | Border pada tema gelap |
+| `surface-800` | `#1e293b` | Kartu/dialog (gelap) |
+| `surface-900` | `#0f172a` | Latar halaman (gelap), **warna wordmark** |
+| `surface-950` | `#020617` | Latar terdalam (gelap), overlay |
 
-Catatan konsistensi: repo memuat `severity="error"` (±62 kali). Nilai itu valid untuk `Message`, tetapi tidak untuk `Tag` (yang memakai `danger`). Periksa tiap pemakaian dan rapikan yang berada pada `Tag` saat menyentuh file terkait. Hijau `success` dan hijau primer berdekatan; jangan menjadikan hijau satu-satunya pembeda antara "aksi utama" dan "status berhasil" (pakai ikon + teks).
+Teks utama tema terang: `surface-900`. Teks utama tema gelap: `surface-50`.
 
-### 3.4 Chart
+### 3.3 Semantik
 
-Chart membaca token (`--p-emerald-500`, `--text-color`, `--surface-border`), sudah benar. Aturan:
+Hijau merek dipakai untuk "berhasil" karena selaras dengan identitas. Tiga status lain dibedakan jelas dari hijau.
 
-1. Seri utama: emerald. Seri pembanding: slate 400 atau slate 500.
-2. Seri ketiga dan seterusnya dari palet semantik di atas, bukan warna acak.
-3. Gantikan `indigo-400` (seri kedua pada `TeachingComplianceChartWidget`) dengan slate agar tidak keluar palet.
-4. Perbarui chart saat tema berganti. Grafik kosong tidak boleh diisi data demo.
+| Status | Fill/ikon | Teks di atas latar putih | Latar lembut | Severity PrimeVue |
+|---|---|---|---|---|
+| Berhasil | `#059669` | `#047857` | `#d1fae5` | `success` |
+| Info | `#0284c7` | `#0369a1` | `#e0f2fe` | `info` |
+| Peringatan | `#d97706` | `#b45309` | `#fef3c7` | `warn` |
+| Bahaya | `#dc2626` | `#b91c1c` | `#fee2e2` | `danger` |
+| Netral | `#64748b` | `#475569` | `#f1f5f9` | `secondary` |
 
----
+Gunakan hanya kata `danger` (bukan `error`) pada prop `severity` PrimeVue.
 
-## 4. Tipografi
+### 3.4 Data dan grafik
 
-| Elemen | Aturan |
+Urutan seri grafik (ambil dari atas, jangan lompat):
+
+| Urutan | Nama | Hex |
+|---|---|---|
+| 1 | Emerald 600 | `#059669` |
+| 2 | Sky 500 | `#0ea5e9` |
+| 3 | Amber 500 | `#f59e0b` |
+| 4 | Violet 500 | `#8b5cf6` |
+| 5 | Rose 500 | `#f43f5e` |
+| 6 | Teal 500 | `#14b8a6` |
+| Pendukung | Slate 400 | `#94a3b8` |
+
+Pasangan gender yang dipakai konsisten di grafik dan tabel rekap:
+
+| Kategori | Hex | Catatan |
+|---|---|---|
+| Laki-laki (L) | `#0ea5e9` | Selalu tampilkan label "L" |
+| Perempuan (P) | `#ec4899` | Selalu tampilkan label "P" |
+
+Tag gender di tabel sebaiknya memakai `secondary`, bukan `success`/`info`, supaya hijau dan biru tidak terbaca sebagai status.
+
+Pemetaan status siswa yang disarankan:
+
+| Status | Severity |
 |---|---|
-| Font utama | **Plus Jakarta Sans** |
-| Fallback | Inter → system-ui → sans-serif |
-| Wordmark | 600, 26 px, letter-spacing −0.5 px |
-| Tagline | 400, 8 px, letter-spacing +1.8 px, huruf kapital |
-| Angka tabel | `font-variant-numeric: tabular-nums` |
+| Aktif, Siswa Baru | `success` |
+| Mutasi Masuk, Lulus | `info` |
+| Mutasi Keluar, Drop Out | `danger` |
+| Negeri | `success` |
+| Swasta | `secondary` |
 
-Kondisi repo: `index.html` memuat `assets/css/inter.css` (Inter lokal). Rekomendasi: tambah Plus Jakarta Sans sebagai font utama **dengan berkas lokal** (`@font-face` di `assets/css`), mengikuti pola Inter yang sudah ada. Alasannya, aplikasi ini dipakai di jaringan sekolah yang belum tentu stabil ke Google Fonts, dan Inter tetap tersedia sebagai fallback.
+---
 
-Skala (rem, basis 16 px). Heading bawaan template terlalu besar untuk antarmuka administrasi yang padat (`h1` 2.5 rem, margin 1.5 rem). Untuk layar aplikasi:
+## 4. Kontras dan aksesibilitas
 
-| Peran | Ukuran | Weight |
+Nilai berikut dihitung dengan rumus WCAG 2.x.
+
+| Pasangan | Rasio | Hasil |
 |---|---|---|
-| Judul halaman | 1.5 rem | 600 |
-| Judul seksi / kartu | 1.125 rem | 600 |
-| Isi, tabel, form | 0.875–1 rem | 400 |
-| Label form | 0.875 rem | 500 |
-| Keterangan, bantu | 0.8125 rem | 400, `--text-color-secondary` |
+| Putih di atas `#059669` (logo, fill primer) | 3,77 : 1 | Lolos untuk elemen grafis dan teks besar (≥3:1). **Tidak lolos** untuk teks normal (AA 4,5:1). |
+| Putih di atas `#047857` | 5,48 : 1 | Lolos AA |
+| `#34d399` di atas `#0f172a` | 9,28 : 1 | Lolos AAA |
 
-Heading halaman tidak lagi memakai `h1` 2.5 rem; sesuaikan di `_typography.scss` hanya jika disetujui, karena berdampak ke seluruh halaman.
+Konsekuensi:
 
----
+- Label tombol dan tautan berukuran normal tidak boleh memakai putih di atas `#059669`. Gunakan `#047857` sebagai warna isi tombol, atau terima penyimpangan ini secara sadar (lihat DEC-D1).
+- Ikon, garis, dan ikon logo boleh memakai `#059669`.
+- Pasangan lain (teks semantik, `surface-500`, dan seterusnya) perlu diperiksa dengan alat kontras sebelum dipakai untuk teks kecil. Aturan praktis: untuk teks di atas putih, pakai tingkat 700 atau lebih gelap.
+- Fokus keyboard wajib terlihat: ring 2px `primary-600` (terang) atau `primary-400` (gelap) dengan offset 2px.
+- Hormati `prefers-reduced-motion`; animasi hanya untuk respons terhadap aksi pengguna (buka dialog, simpan, hapus).
 
-## 5. Bentuk, jarak, elevasi
-
-- **Radius:** kontainer/kartu 12 px (sama dengan kotak ikon di horizontal logo), kontrol (input, tombol) 8 px, status/tag pil penuh. Ikon polos memakai ujung batang bulat penuh.
-- **Jarak:** kelipatan 4 px; antarseksi form 24 px; padding kartu 16–24 px.
-- **Elevasi:** datar. Pemisahan dengan border `--surface-border`, bukan bayangan. Bayangan hanya untuk overlay (dialog, menu, toast).
-- **Fokus:** cincin 2 px primer dengan offset 2 px (sudah ada di `styles.scss`, pertahankan).
-
----
-
-## 6. Komponen dan layout
-
-### 6.1 Shell aplikasi
-
-- **Topbar:** ikon sidebar + logo. Ganti `AppLogoDefault.vue` (SVG bawaan Sakai/PrimeLand) dan teks "Administration Apps" dengan `sekolario-horizontal*.svg` yang berganti menurut tema, sesuai contoh `AppLayout.vue` di panduan logo. Tinggi logo 32 px (`h-8 w-auto`).
-- **Sidebar tertutup:** `sekolario-icon.svg`, 32×32.
-- **Judul tab:** `Sekolario` (sekarang `Administration Apps`), `lang="id"` (sekarang `en`).
-- **Favicon:** ganti `favicon.ico` dengan set dari `sekolario-favicon.svg`.
-
-### 6.2 Menu
-
-Pertahankan grup dan label bahasa Indonesia yang sudah ada di `AppMenu.vue`. Aturan ikon: satu ikon PrimeIcons per item, ukuran seragam, tanpa kelas `rotated-icon` (hiasan tanpa makna). Beberapa ikon dipakai ganda untuk makna berbeda (`pi-calendar` untuk Tahun Ajaran dan Jurusan Siswa, `pi-book` untuk Rombel dan Jurnal); bedakan saat menyentuh menu. Item aktif: latar tint primer (emerald 100 di terang, emerald 400 dengan opasitas rendah di gelap), teks primer.
-
-### 6.3 Tombol
-
-| Jenis | Pakai |
-|---|---|
-| Primer (isi hijau) | Satu per layar/dialog, aksi utama (Simpan, Ajukan) |
-| Sekunder (outlined) | Aksi pendukung |
-| Teks | Aksi tersier, aksi baris tabel |
-| `danger` | Aksi merusak; selalu dengan konfirmasi yang menyebut objek dan efek |
-
-Label tindakan tepat: gunakan "Arsipkan" bila perilakunya soft delete, jangan "Hapus". Pada ponsel, target sentuh minimal 40 px (sudah ada).
-
-### 6.4 Tabel, form, dialog
-
-Ikuti pola di `docs/DESIGN_SYSTEM.md` (judul, tahun ajaran relevan, filter, aksi berizin, tabel, pagination server; form dengan grouping dan error per field; konfirmasi modal PrimeVue). Tambahan visual:
-
-- Header tabel: latar `--surface-ground`, teks 600, tanpa huruf kapital semua.
-- Baris hover: `--surface-hover`. Zebra tidak dipakai.
-- Tanggal dan angka lewat `utils/formatters.js` (DD/MM/YYYY, WIB), jangan format ad hoc.
-- Tabel lebar scroll di dalam kontainer; body tidak overflow horizontal.
-
-### 6.5 Empty, loading, error
-
-Gunakan motif tiga batang (§1) sebagai ilustrasi empty state: tiga batang abu-abu slate 200 yang bergeser, dengan satu kalimat penjelas dan satu aksi. Skeleton untuk loading tabel/kartu. Pesan error menyebut apa yang gagal dan langkah berikutnya.
-
-### 6.6 Halaman login
-
-Rute `/auth/login` perlu memakai logo horizontal Sekolario (atau ikon saja) di tengah kartu dan teks Indonesia ("Masuk ke Sekolario", "Email", "Kata sandi", "Lupa kata sandi?"). Draf `Login.vue` di repo masih berisi teks "Welcome to PrimeLand!" dan logo Sakai, serta `Login_2.vue` memakai `AppLogoDefault`. Pastikan komponen yang benar-benar dirutekan diperiksa dahulu, lalu bersihkan.
+**DEC-D1 (keputusan terbuka):**
+- Opsi A: fill tombol primer `#059669` (selaras logo, label putih 3,77:1).
+- Opsi B: fill tombol primer `#047857` (label putih 5,48:1). Logo tetap `#059669`.
+- Rekomendasi: B. Aplikasi ini dipakai lama oleh banyak operator; keterbacaan label lebih penting daripada kesamaan persis dengan logo.
 
 ---
 
-## 7. Mode gelap
+## 5. Tipografi
 
-- Selektor tetap `.app-dark` (`darkModeSelector`). Logo berganti ke `-on-dark`.
-- Aksen primer naik ke emerald 400; jangan memakai emerald 600 di atas slate 900 untuk teks kecil (kontras kurang).
-- Target kontras ≥ 4,5:1 untuk teks isi (DEC-47 D6). Verifikasi: teks muted slate 500 `#64748b` di atas putih sekitar 4,76:1 (lolos tipis); di atas slate 950 perlu naik ke slate 400.
-- Tidak ada putih/hitam hardcode; gunakan token surface/text.
+**Font:** Plus Jakarta Sans, berkas woff2 lokal (subset latin) agar tidak bergantung pada Google Fonts.
+**Fallback:** `'Plus Jakarta Sans', Inter, system-ui, -apple-system, 'Segoe UI', sans-serif`
 
----
-
-## 8. Dokumen dan cetak
-
-Template PDF surat (`resources/views/letters/pdf/partials/styles.blade.php`) memakai DejaVu Sans, teks `#111111`, dan **bukan** merek Sekolario. Itu benar untuk surat dinas karena kop memakai identitas **sekolah** (logo sekolah dari `letter_settings`), bukan logo produk.
-
-- Jangan menaruh logo Sekolario di kop surat atau di badan surat dinas.
-- Logo Sekolario hanya pantas muncul kecil di footer ekspor non-surat (rekap, laporan), memakai `sekolario-mono-dark.svg`, bila pemilik menghendaki.
-- Font tetap DejaVu Sans agar glyph aman di Dompdf. Jangan menyematkan Plus Jakarta Sans ke PDF tanpa menguji.
-
----
-
-## 9. Aksesibilitas
-
-Mewarisi `docs/DESIGN_SYSTEM.md`, ditambah:
-
-- Kontras ≥ 4,5:1 (teks) dan ≥ 3:1 (komponen UI, ikon bermakna) pada kedua tema.
-- Status tidak hanya warna (ikon atau teks).
-- Fokus terlihat, urutan tab logis, fokus kembali ke pemicu setelah dialog ditutup.
-- Logo di header: `alt="Sekolario"`; ikon dekoratif: `alt=""`.
-
----
-
-## 10. Daftar penyelarasan yang tersisa di repo
-
-Berdasarkan pembacaan source (bukan hasil jalan di browser; semuanya `NOT RUN`):
-
-| # | Temuan | Berkas | Prioritas |
+| Peran | Ukuran | Bobot | Line-height |
 |---|---|---|---|
-| 1 | Logo masih bawaan Sakai, teks "Administration Apps" | `layout/AppLogoDefault.vue`, `layout/AppTopbar.vue` | Tinggi |
-| 2 | Judul tab dan favicon belum Sekolario; `lang="en"` | `index.html`, `public/favicon.ico` | Tinggi |
-| 3 | Preset tema belum dikustom (primer dan surface bawaan Aura) | `src/main.js`, `layout/composables/layout.js` | Tinggi |
-| 4 | Font Plus Jakarta Sans belum ada | `assets/css/`, `index.html` | Sedang |
-| 5 | Halaman login masih teks Inggris/PrimeLand | `views/pages/auth/Login*.vue` | Sedang |
-| 6 | `severity="error"` perlu diperiksa pada komponen `Tag` | banyak view | Sedang |
-| 7 | Warna chart seri kedua `indigo-400` di luar palet | `components/dashboard/*` | Rendah |
-| 8 | Skala heading template terlalu besar | `assets/layout/_typography.scss` | Rendah |
-| 9 | Ikon ganda dan `rotated-icon` di menu | `layout/AppMenu.vue` | Rendah |
+| Judul halaman (h1) | 1.5rem (24px) | 600 | 1.3 |
+| Judul bagian (h2) | 1.25rem (20px) | 600 | 1.35 |
+| Judul kartu (h3) | 1.125rem (18px) | 600 | 1.4 |
+| Teks isi | 0.875rem (14px) | 400 | 1.5 |
+| Teks tabel | 0.875rem (14px) | 400 | 1.4 |
+| Label formulir | 0.875rem (14px) | 500 | 1.4 |
+| Teks bantu, keterangan | 0.8125rem (13px) | 400 | 1.4 |
+| Angka ringkasan (statistik) | 1.5rem (24px) | 600 | 1.2 |
 
-Sesuai `AGENTS.md`: kerjakan **satu subfase** per instruksi pemilik, perubahan skema/API tidak diperlukan, dan hasil perlu bukti visual desktop dan mobile (390 px), terang dan gelap, sebelum dinyatakan lulus.
+Aturan:
+
+- Kapitalisasi kalimat biasa (huruf besar hanya di awal kalimat). Hindari huruf kapital semua untuk label.
+- Panjang baris teks isi maksimal 80 karakter.
+- Angka di tabel memakai `font-variant-numeric: tabular-nums` agar rata.
 
 ---
 
-## 11. Sumber
+## 6. Bentuk dan ruang
 
-- Logo: `sekolario-logo/PANDUAN-LOGO.md` dan 8 berkas SVG (v1.0.0, Oktober 2026).
-- Repo: `vue-app/src/main.js`, `layout/composables/layout.js`, `layout/AppMenu.vue`, `layout/AppTopbar.vue`, `assets/styles.scss`, `assets/layout/variables/_common.scss`, `utils/formatters.js`, `docs/DESIGN_SYSTEM.md`, `docs/DECISIONS.md` (DEC-47), `AGENTS.md`.
+| Token | Nilai | Penggunaan |
+|---|---|---|
+| Radius kecil | 6px | Input, tag |
+| Radius sedang | 10px | Tombol, kartu, dialog |
+| Radius ikon logo | 25% dari sisi | Mengikuti `rx` pada ikon |
+| Satuan jarak | 4px | Kelipatan: 4, 8, 12, 16, 24, 32 |
+| Jarak antar kartu | 24px (`gap-6`) | |
+| Padding kartu | 24px | 16px di layar kecil |
+| Border | 1px `surface-200` / `surface-700` | |
+| Bayangan | Hanya untuk dialog, dropdown, toast | Kartu cukup border, tanpa bayangan |
+
+---
+
+## 7. Komponen
+
+**Tombol**
+- Primer: satu per area. Isi `primary`, label putih. Ikon + label untuk aksi utama (`Tambah`, `Simpan`).
+- Sekunder: `severity="secondary"` atau `outlined`.
+- Bahaya: `severity="danger"`, hanya untuk hapus. Aksi hapus selalu lewat dialog konfirmasi.
+- Teks aksi berupa kata kerja spesifik: "Simpan perubahan", bukan "Submit". Nama aksi sama di tombol, toast, dan log: tombol "Hapus" menghasilkan toast "Dihapus".
+
+**Input**
+- Tinggi seragam, border `surface-300`, fokus ring `primary`.
+- Pesan validasi di bawah input, berurutan: wajib diisi → terlalu pendek → sudah dipakai → tersedia. Merah untuk kesalahan, kuning untuk peringatan, biru untuk "sama dengan data saat ini", hijau untuk tersedia.
+
+**Tag dan status**
+- Pakai pemetaan di bagian 3.4. Teks tag memakai warna 700, latar lembut.
+
+**Tabel (DataTable)**
+- Header `surface-50`, teks 600. Zebra tidak dipakai; hover baris `surface-100`.
+- Kolom aksi di paling kanan, tombol ikon berbentuk bulat.
+- Keadaan kosong: kalimat yang memberi arah ("Belum ada siswa untuk tahun ajaran ini. Pilih tahun ajaran lain."), bukan sekadar "No data".
+- Skeleton saat memuat, bukan spinner pada tabel.
+
+**Dialog**
+- Lebar 450px untuk formulir singkat, 700px untuk profil. Judul 18px/600.
+- Tombol batal di kiri, aksi utama di kanan.
+- Dialog proses ("Mohon tunggu") tanpa tombol tutup.
+
+**Menu samping**
+- Item aktif: latar `primary-100` (terang) atau `primary-950` dengan 30% opasitas (gelap), teks dan ikon `primary-700` (terang) atau `primary-400` (gelap).
+- Judul grup menu memakai teks kecil `surface-500`, kapitalisasi kalimat.
+
+**Edit inline (SchoolProfile)**
+- Mode lihat: teks + tombol pensil outline bulat.
+- Mode ubah: input + tombol centang (`success`) + tombol silang (`secondary`, outline). Enter menyimpan, Escape membatalkan.
+
+**Toast**
+- Berhasil 3 detik, peringatan dan kesalahan 5 detik. Kesalahan menjelaskan apa yang salah dan cara memperbaikinya, tanpa permintaan maaf.
+
+---
+
+## 8. Tema gelap
+
+| Elemen | Terang | Gelap |
+|---|---|---|
+| Latar halaman | `surface-50` | `surface-950` |
+| Kartu, dialog | `surface-0` | `surface-900` |
+| Border | `surface-200` | `surface-700` |
+| Teks utama | `surface-900` | `surface-50` |
+| Teks sekunder | `surface-600` | `surface-400` |
+| Warna primer | `primary-600` (lihat DEC-D1) | `primary-400` |
+| Label di atas primer | putih | `primary-950` |
+| Logo | `sekolario-horizontal.svg` | `sekolario-horizontal-on-dark.svg` |
+
+---
+
+## 9. Implementasi
+
+### 9.1 Preset PrimeVue (referensi)
+
+```js
+// src/layout/... atau src/theme/SekolarioPreset.js
+import { definePreset } from '@primeuix/themes';
+import Aura from '@primeuix/themes/aura'; // sesuaikan path dengan yang dipakai Sakai-vue di repo
+
+export const SekolarioPreset = definePreset(Aura, {
+    semantic: {
+        primary: {
+            50: '{emerald.50}',  100: '{emerald.100}', 200: '{emerald.200}',
+            300: '{emerald.300}', 400: '{emerald.400}', 500: '{emerald.500}',
+            600: '{emerald.600}', 700: '{emerald.700}', 800: '{emerald.800}',
+            900: '{emerald.900}', 950: '{emerald.950}'
+        },
+        colorScheme: {
+            light: {
+                primary: {
+                    color: '{emerald.600}',        // ganti '{emerald.700}' jika DEC-D1 = B
+                    contrastColor: '#ffffff',
+                    hoverColor: '{emerald.700}',   // '{emerald.800}' jika DEC-D1 = B
+                    activeColor: '{emerald.800}'   // '{emerald.900}' jika DEC-D1 = B
+                },
+                surface: {
+                    0: '#ffffff', 50: '{slate.50}', 100: '{slate.100}', 200: '{slate.200}',
+                    300: '{slate.300}', 400: '{slate.400}', 500: '{slate.500}', 600: '{slate.600}',
+                    700: '{slate.700}', 800: '{slate.800}', 900: '{slate.900}', 950: '{slate.950}'
+                }
+            },
+            dark: {
+                primary: {
+                    color: '{emerald.400}',
+                    contrastColor: '{emerald.950}',
+                    hoverColor: '{emerald.300}',
+                    activeColor: '{emerald.200}'
+                },
+                surface: {
+                    0: '#ffffff', 50: '{slate.50}', 100: '{slate.100}', 200: '{slate.200}',
+                    300: '{slate.300}', 400: '{slate.400}', 500: '{slate.500}', 600: '{slate.600}',
+                    700: '{slate.700}', 800: '{slate.800}', 900: '{slate.900}', 950: '{slate.950}'
+                }
+            }
+        }
+    }
+});
+```
+
+### 9.2 Variabel CSS untuk elemen di luar PrimeVue
+
+```css
+:root {
+    --sk-brand: #059669;
+    --sk-brand-strong: #047857;
+    --sk-brand-tint: #d1fae5;
+    --sk-ink: #0f172a;
+    --sk-muted: #475569;
+    --sk-line: #e2e8f0;
+    --sk-canvas: #f8fafc;
+
+    --sk-success: #059669;
+    --sk-info: #0284c7;
+    --sk-warn: #d97706;
+    --sk-danger: #dc2626;
+
+    --sk-chart-1: #059669;
+    --sk-chart-2: #0ea5e9;
+    --sk-chart-3: #f59e0b;
+    --sk-chart-4: #8b5cf6;
+    --sk-chart-5: #f43f5e;
+    --sk-chart-6: #14b8a6;
+    --sk-gender-l: #0ea5e9;
+    --sk-gender-p: #ec4899;
+}
+
+.app-dark {
+    --sk-brand: #34d399;
+    --sk-brand-strong: #6ee7b7;
+    --sk-brand-tint: #022c22;
+    --sk-ink: #f8fafc;
+    --sk-muted: #94a3b8;
+    --sk-line: #334155;
+    --sk-canvas: #020617;
+}
+```
+
+### 9.3 Grafik (Chart.js)
+
+Ambil warna dari variabel di atas lewat `getComputedStyle(document.documentElement).getPropertyValue('--sk-chart-1')`, jangan menulis ulang `rgba(...)` di tiap halaman. Warna indigo bawaan template diganti dengan palet 3.4 dan netral slate.
+
+---
+
+## 10. Bahasa antarmuka
+
+Antarmuka saat ini bercampur Inggris dan Indonesia (contoh: judul dialog proses berbahasa Indonesia, sisanya Inggris).
+
+**DEC-D2 (keputusan terbuka):** tetapkan satu bahasa untuk teks antarmuka. Rekomendasi: bahasa Indonesia, karena penggunanya operator sekolah. Jika dipilih, ubah bertahap per halaman bersamaan dengan i18n, dan pakai istilah yang sama di tombol, toast, dan pesan kesalahan.
+
+---
+
+## 11. Daftar periksa sebelum menggabungkan perubahan UI
+
+- [ ] Hanya satu tombol primer di tiap area
+- [ ] Warna diambil dari token/variabel, tidak ditulis hex langsung di halaman
+- [ ] `severity` memakai `danger`, bukan `error`
+- [ ] Tag status mengikuti pemetaan 3.4
+- [ ] Grafik punya label teks, tidak hanya warna
+- [ ] Teks kecil memakai warna tingkat 700 atau lebih gelap
+- [ ] Fokus keyboard terlihat di tema terang dan gelap
+- [ ] Logo sesuai tema (terang/gelap)
+- [ ] Keadaan kosong, memuat, dan galat sudah ditangani
+- [ ] Teks antarmuka mengikuti keputusan DEC-D2

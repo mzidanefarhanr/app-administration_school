@@ -1,0 +1,22 @@
+/* ponytail: woff files not provided yet. Need PlusJakartaSans-Regular.woff, -Medium.woff, -SemiBold.woff in ./plus-jakarta-sans/ */
+
+@font-face {
+    font-family: 'Plus Jakarta Sans';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Plus Jakarta Sans'), url('./plus-jakarta-sans/PlusJakartaSans-Regular.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Plus Jakarta Sans';
+    font-style: normal;
+    font-weight: 500;
+    src: local('Plus Jakarta Sans'), url('./plus-jakarta-sans/PlusJakartaSans-Medium.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Plus Jakarta Sans';
+    font-style: normal;
+    font-weight: 600;
+    src: local('Plus Jakarta Sans'), url('./plus-jakarta-sans/PlusJakartaSans-SemiBold.woff2') format('woff2');
+}

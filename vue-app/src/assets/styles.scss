@@ -4,6 +4,43 @@
 @use '@/assets/layout/layout.scss';
 @use '@/assets/demo/demo.scss';
 
+/* ── Sekolario Brand ── */
+:root {
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+
+    --sk-brand: #059669;
+    --sk-brand-strong: #047857;
+    --sk-brand-tint: #d1fae5;
+    --sk-ink: #0f172a;
+    --sk-muted: #475569;
+    --sk-line: #e2e8f0;
+    --sk-canvas: #f8fafc;
+
+    --sk-success: #059669;
+    --sk-info: #0284c7;
+    --sk-warn: #d97706;
+    --sk-danger: #dc2626;
+
+    --sk-chart-1: #059669;
+    --sk-chart-2: #0ea5e9;
+    --sk-chart-3: #f59e0b;
+    --sk-chart-4: #8b5cf6;
+    --sk-chart-5: #f43f5e;
+    --sk-chart-6: #14b8a6;
+    --sk-gender-l: #0ea5e9;
+    --sk-gender-p: #ec4899;
+}
+
+.app-dark {
+    --sk-brand: #34d399;
+    --sk-brand-strong: #6ee7b7;
+    --sk-brand-tint: #022c22;
+    --sk-ink: #f8fafc;
+    --sk-muted: #94a3b8;
+    --sk-line: #334155;
+    --sk-canvas: #020617;
+}
+
 /* ── Standardisasi UI / UX Subfase 12c (DEC-47) ── */
 
 /* Indikator fokus aksesibilitas (A11y focus rings) */
