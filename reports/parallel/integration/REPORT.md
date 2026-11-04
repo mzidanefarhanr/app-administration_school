@@ -67,6 +67,33 @@ Commit baru    : b26ff4d ("integrate: merge feature/i18n")
 File disentuh  : 115 files (seluruh berkas i18n dan laporan dari worktree A)
 Blocker        : tidak ada
 Risiko baru    : tidak ada
-Permintaan ke pemilik : Izin lanjut ke Fase 3 (Merge feature/branding).
+Permintaan ke pemilik : Izin lanjut ke Fase 3 (Merge feature/branding). (Telah disetujui pemilik)
 Bukti          : tidak ada
+
+---
+
+## Gerbang G3 — 2026-11-04
+SHA diuji      : c8d67417eef9f270a6c6ecce0bdf51a7051dfeb7
+Perintah+hasil :
+- git rev-parse feature/branding: terverifikasi sama persis dengan $B_SHA (5e28ecf5991a172cb418c9585f4c1ef0fff2b213).
+- git merge --no-ff feature/branding -m "integrate: merge feature/branding": sukses otomatis (19 files changed, +604/-204).
+- Resolusi & verifikasi 8.1:
+  - vue-app/src/main.js: impor i18n tepat setelah router, app.use(i18n) tepat setelah Notifications, preset SekolarioPreset dan app.use(PrimeVue) dari B dipertahankan utuh.
+  - vue-app/index.html: atribut lang="id" dari A, judul "Sekolario", favicon, dan Plus Jakarta Sans woff2 dari B utuh.
+  - vue-app/src/layout/AppTopbar.vue: teks tombol (notifications, messages, profile) dari A, layout-topbar-logo dengan AppLogoDefault dari B (teks usang "Administration Apps" dibersihkan).
+- Pemeriksaan grep 8.1: seluruh 7 baris wajib menghasilkan output yang tepat.
+- Pemeriksaan konflik: 0 penanda konflik tersisa di seluruh vue-app.
+- Pemeriksaan berkas hilang/liar 8.2: 0 berkas hilang dari union A & B; berkas tambahan di integrasi hanya rencana dan laporan.
+- npm run build di vue-app: sukses (built in 26.07s, 0 errors, 0 warnings; font Plus Jakarta Sans woff2 ter-bundle).
+- Unit tests: 9 test suites di vue-app/tests/ seluruhnya lulus (100% pass).
+Hasil          : PASS
+Commit baru    :
+- 0064371 ("integrate: merge feature/branding")
+- c8d6741 ("integrate: bersihkan label lama di topbar logo")
+File disentuh  : 19 files dari feature/branding + AppTopbar.vue
+Blocker        : tidak ada
+Risiko baru    : tidak ada
+Permintaan ke pemilik : Izin lanjut ke Fase 4 (Lima item yang ditunda, dimulai dari item 9.1).
+Bukti          : tidak ada
+
 
