@@ -1,0 +1,297 @@
+{
+    "entity": {
+        "teacher": "Guru",
+        "employee": "Pegawai",
+        "teachers": "Guru",
+        "employees": "Pegawai"
+    },
+    "directory": {
+        "titleTeachers": "Direktori Guru",
+        "titleEmployees": "Direktori Pegawai",
+        "subtitleArchived": "Data arsip (khusus pengelola)",
+        "subtitleTeachers": "Khusus guru",
+        "subtitleStaff": "Khusus tenaga kependidikan",
+        "searchPlaceholder": "Cari nama atau NUPTK",
+        "loading": "Memuat data pegawai. Mohon tunggu.",
+        "pageReport": "Menampilkan {first} sampai {last} dari {totalRecords} data",
+        "confirmRestore": "Pulihkan {name}?",
+        "filters": {
+            "status": "Status Pegawai",
+            "employment": "Kepegawaian",
+            "subject": "Mata Pelajaran"
+        },
+        "actions": {
+            "exportCsv": "Ekspor CSV",
+            "importCsv": "Impor CSV",
+            "newTeacher": "Guru Baru",
+            "newEmployee": "Pegawai Baru",
+            "activeRecords": "Data Aktif",
+            "archived": "Arsip",
+            "clear": "Bersihkan"
+        },
+        "columns": {
+            "no": "No",
+            "name": "Nama",
+            "nuptk": "NUPTK",
+            "status": "Status",
+            "employment": "Kepegawaian",
+            "subject": "Mata Pelajaran",
+            "tmt": "Tanggal Mulai Tugas (TMT)",
+            "account": "Akun",
+            "action": "Aksi"
+        },
+        "account": {
+            "linked": "Terhubung",
+            "notLinked": "Belum terhubung"
+        },
+        "tooltips": {
+            "view": "Lihat Detail",
+            "linkAccount": "Hubungkan Akun",
+            "unlinkAccount": "Putuskan Akun",
+            "archive": "Arsipkan",
+            "restore": "Pulihkan"
+        },
+        "empty": {
+            "archived": "Tidak ada data arsip.",
+            "filtered": "Tidak ada pegawai yang sesuai dengan filter saat ini."
+        },
+        "toast": {
+            "success": "Berhasil",
+            "notice": "Pemberitahuan",
+            "conflictTitle": "Konflik",
+            "saved": "{entity} berhasil disimpan.",
+            "archived": "{entity} berhasil diarsipkan.",
+            "restored": "{entity} berhasil dipulihkan.",
+            "accountUpdated": "Tautan akun berhasil diperbarui.",
+            "conflictVersion": " (versi {version})",
+            "conflict": "Data telah diubah oleh pengguna lain{version}. Data terbaru telah dimuat ulang.",
+            "imported": "{count} {entity} berhasil diimpor.",
+            "exported": "Ekspor diunduh dengan {count} kolom."
+        },
+        "errors": {
+            "loadList": "Gagal memuat data pegawai. Silakan coba lagi.",
+            "loadDetail": "Gagal memuat detail pegawai.",
+            "restore": "Gagal memulihkan data pegawai.",
+            "noReference": "Data referensi {title} tidak tersedia. Minta administrator untuk mengisi data referensi."
+        }
+    },
+    "form": {
+        "titleEdit": "Ubah {entity}",
+        "titleNew": "{entity} Baru",
+        "saveChanges": "Simpan Perubahan",
+        "create": "Buat {entity}",
+        "reloadLatest": "Muat Data Terbaru",
+        "confirmDiscard": "Buang perubahan yang belum disimpan?",
+        "sections": {
+            "identity": "Identitas",
+            "employment": "Kepegawaian",
+            "contact": "Kontak & Alamat",
+            "family": "Keluarga",
+            "education": "Pendidikan"
+        },
+        "fields": {
+            "name": "Nama *",
+            "nik": "NIK (16 digit)",
+            "nuptk": "NUPTK",
+            "gender": "Jenis Kelamin *",
+            "religion": "Agama *",
+            "placeOfBirth": "Tempat Lahir",
+            "dateOfBirth": "Tanggal Lahir",
+            "maritalStatus": "Status Perkawinan *",
+            "employeeType": "Jenis Pegawai",
+            "employeeStatus": "Status Pegawai *",
+            "employment": "Kepegawaian *",
+            "subject": "Mata Pelajaran *",
+            "tmt": "Tanggal Mulai Tugas (TMT) *",
+            "exitDate": "Tanggal Keluar",
+            "appointmentCertificate": "SK Pengangkatan",
+            "teachingHoursCertificate": "Sertifikat Jam Mengajar",
+            "dapodikChecked": "Dapodik Terverifikasi",
+            "governmentCertificate": "Sertifikat dari Pemerintah",
+            "address": "Alamat",
+            "rt": "RT",
+            "rw": "RW",
+            "zip": "Kode Pos",
+            "district": "Kecamatan *",
+            "whatsapp": "WhatsApp",
+            "email": "Email",
+            "familyCard": "Nomor Kartu Keluarga",
+            "npwp": "Nomor Pokok Wajib Pajak (NPWP)",
+            "mothersName": "Nama Ibu Kandung",
+            "partnersName": "Nama Pasangan"
+        },
+        "education": {
+            "elementary": "Sekolah Dasar",
+            "juniorHigh": "Sekolah Menengah Pertama",
+            "seniorHigh": "Sekolah Menengah Atas",
+            "bachelor": "Sarjana (S1)",
+            "master": "Magister (S2)",
+            "schoolName": "Nama Sekolah",
+            "entryDate": "Tanggal Masuk",
+            "graduationDate": "Tanggal Lulus",
+            "nisn": "NISN",
+            "passingGrade": "Nilai Kelulusan",
+            "campus": "Perguruan Tinggi",
+            "major": "Jurusan",
+            "faculty": "Fakultas",
+            "nim": "NIM"
+        },
+        "errors": {
+            "conflict": "Data ini telah diubah oleh pengguna lain.",
+            "review": "Mohon periksa kolom yang ditandai.",
+            "save": "Gagal menyimpan data pegawai. Silakan coba lagi.",
+            "reload": "Gagal memuat ulang data terbaru."
+        }
+    },
+    "detail": {
+        "title": "Detail {entity}",
+        "status": {
+            "archived": "Diarsipkan",
+            "active": "Aktif"
+        },
+        "sections": {
+            "employment": "Kepegawaian",
+            "account": "Akun",
+            "personal": "Data Pribadi",
+            "education": "Pendidikan"
+        },
+        "fields": {
+            "type": "Jenis",
+            "status": "Status",
+            "employment": "Kepegawaian",
+            "subject": "Mata Pelajaran",
+            "gender": "Jenis Kelamin",
+            "nuptk": "NUPTK",
+            "tmt": "Tanggal Mulai Tugas (TMT)",
+            "exitDate": "Tanggal Keluar",
+            "version": "Versi Data",
+            "archivedAt": "Diarsipkan Pada",
+            "nik": "NIK",
+            "npwp": "Nomor Pokok Wajib Pajak (NPWP)",
+            "familyCard": "Kartu Keluarga",
+            "religion": "Agama",
+            "district": "Kecamatan",
+            "maritalStatus": "Status Perkawinan",
+            "placeOfBirth": "Tempat Lahir",
+            "dateOfBirth": "Tanggal Lahir",
+            "email": "Email",
+            "whatsapp": "WhatsApp",
+            "address": "Alamat",
+            "mothersName": "Nama Ibu",
+            "partnersName": "Nama Pasangan",
+            "bachelor": "Sarjana (S1)",
+            "bachelorMajor": "Jurusan S1",
+            "master": "Magister (S2)",
+            "masterMajor": "Jurusan S2"
+        },
+        "account": {
+            "notLinked": "Belum terhubung",
+            "numbered": "Akun #{id}"
+        },
+        "actions": {
+            "unlink": "Putuskan Akun",
+            "link": "Hubungkan Akun",
+            "archive": "Arsipkan",
+            "restore": "Pulihkan"
+        }
+    },
+    "archive": {
+        "title": "Arsipkan {entity}",
+        "notice": "Pengarsipan menyimpan data, riwayat, dan NIK. Data ini akan disembunyikan dari direktori aktif dan dapat dipulihkan kembali.",
+        "reason": "Alasan Pengarsipan *",
+        "submit": "Arsipkan",
+        "errors": {
+            "reasonRequired": "Alasan pengarsipan administratif wajib diisi.",
+            "archive": "Gagal mengarsipkan data pegawai. Silakan coba lagi."
+        }
+    },
+    "accountLink": {
+        "titleLink": "Hubungkan Akun",
+        "titleUnlink": "Putuskan Akun",
+        "unlinkNotice": "Memutuskan tautan tidak mengubah akun maupun perannya. Profil pegawai tidak lagi terkait dengan akun ini, dan fallback NIK lama tetap dinonaktifkan.",
+        "searchPlaceholder": "Cari nama, nama pengguna, atau email",
+        "noCandidates": "Tidak ada akun aktif yang belum terhubung dan sesuai.",
+        "submitLink": "Hubungkan",
+        "submitUnlink": "Putuskan",
+        "errors": {
+            "selectAccount": "Pilih akun yang akan dihubungkan.",
+            "loadCandidates": "Gagal memuat daftar akun.",
+            "update": "Gagal memperbarui tautan akun."
+        }
+    },
+    "export": {
+        "title": "Kolom Ekspor",
+        "loading": "Memuat kolom ekspor. Mohon tunggu.",
+        "summary": "Set bawaan: {defaults} kolom operasional. Terpilih: {selected}.",
+        "defaults": "Bawaan",
+        "selectAll": "Pilih Semua",
+        "clear": "Bersihkan",
+        "operational": "Kolom operasional",
+        "sensitive": "Data pribadi sensitif",
+        "sensitiveNotice": "Kolom ini berisi identitas pribadi dan hanya tersedia bagi pengguna yang dapat mengelola pegawai. Tangani berkas dengan semestinya.",
+        "sensitiveHidden": "Kolom data pribadi disembunyikan sesuai tingkat akses Anda.",
+        "selectAtLeastOne": "Pilih setidaknya satu kolom untuk diekspor.",
+        "download": "Unduh CSV",
+        "errors": {
+            "loadOptions": "Gagal memuat opsi ekspor.",
+            "export": "Gagal mengekspor data pegawai."
+        }
+    },
+    "import": {
+        "title": "Impor Pegawai",
+        "modeLabel": "Mode",
+        "modes": {
+            "insert": "Tambah pegawai baru",
+            "update": "Perbarui pegawai yang ada"
+        },
+        "modeNotice": "Mode perbarui mencocokkan pegawai hanya berdasarkan NIK. NIK tidak dapat diubah dan sel kosong membiarkan nilai tersimpan tidak berubah.",
+        "fileLabel": "Berkas CSV",
+        "fileNotice": "CSV UTF-8, maksimal 5 MB dan 2.000 baris. Kabupaten/Kota dan Kecamatan harus diisi bersamaan. Gunakan hanya header templat berbahasa Inggris.",
+        "downloadTemplate": "Unduh Templat",
+        "status": "Status:",
+        "statuses": {
+            "committed": "Sudah disimpan",
+            "ready": "Siap disimpan",
+            "invalid": "Perlu diperbaiki"
+        },
+        "total": "Total:",
+        "valid": "Valid:",
+        "invalid": "Tidak valid:",
+        "done": "{count} pegawai berhasil diimpor.",
+        "preview": "Pratinjau ({count} baris valid pertama)",
+        "previewColumns": {
+            "row": "Baris",
+            "action": "Aksi",
+            "name": "Nama",
+            "nik": "NIK",
+            "nuptk": "NUPTK",
+            "employeeType": "Jenis Pegawai"
+        },
+        "actions": {
+            "update": "Perbarui",
+            "insert": "Tambah"
+        },
+        "errorsTitle": "Kesalahan validasi ({count})",
+        "errorColumns": {
+            "row": "Baris",
+            "field": "Kolom",
+            "message": "Pesan"
+        },
+        "downloadErrorReport": "Unduh Laporan Kesalahan",
+        "nothingWritten": "Tidak ada data yang ditulis selama masih ada baris yang salah. Perbaiki berkas lalu unggah kembali.",
+        "importAnother": "Impor Berkas Lain",
+        "uploadPreview": "Unggah dan Pratinjau",
+        "commit": "Simpan Impor",
+        "errors": {
+            "chooseFile": "Pilih berkas CSV untuk diimpor.",
+            "fileFormat": "Berkas harus berformat CSV (UTF-8). Format lain belum didukung.",
+            "fileEmpty": "Berkas kosong.",
+            "fileTooLarge": "Ukuran berkas melebihi {size} MB.",
+            "noPreview": "Server tidak mengembalikan pratinjau impor.",
+            "upload": "Gagal mengunggah berkas. Silakan coba lagi.",
+            "commit": "Impor tidak dapat disimpan. Unggah berkas kembali.",
+            "template": "Gagal mengunduh templat.",
+            "errorReport": "Gagal mengunduh laporan kesalahan."
+        }
+    }
+}

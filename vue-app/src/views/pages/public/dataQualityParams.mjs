@@ -52,6 +52,11 @@ const ISSUE_STATUS_LABELS = Object.fromEntries(ISSUE_STATUS_OPTIONS.map((option)
 const REVIEW_REASON_LABELS = Object.fromEntries(REVIEW_REASON_OPTIONS.map((option) => [option.value, option.label]));
 const FIELD_LABELS = Object.fromEntries([...STUDENT_FIELD_OPTIONS, ...EMPLOYEE_FIELD_OPTIONS].map((option) => [option.value, option.label]));
 
+// Terjemahkan label bila fungsi `t` (vue-i18n) diberikan; tanpa `t` tetap memakai teks Inggris bawaan.
+const translate = (t, key, fallback) => (typeof t === 'function' ? t(key) : fallback);
+
+const translateOptions = (options, prefix, t) => (typeof t === 'function' ? options.map((option) => ({ ...option, label: t(`${prefix}.${option.value}`) })) : options);
+
 const trim = (value) => (typeof value === 'string' ? value.trim() : '');
 
 const positiveInteger = (value, fallback) => {
@@ -60,28 +65,40 @@ const positiveInteger = (value, fallback) => {
     return Number.isInteger(number) && number > 0 ? number : fallback;
 };
 
-export function issueFieldOptions(domain) {
-    return domain === 'employees' ? EMPLOYEE_FIELD_OPTIONS : STUDENT_FIELD_OPTIONS;
+export function issueFieldOptions(domain, t) {
+    return translateOptions(domain === 'employees' ? EMPLOYEE_FIELD_OPTIONS : STUDENT_FIELD_OPTIONS, 'dataQuality.field', t);
 }
 
-export function issueFieldLabel(field) {
-    return FIELD_LABELS[field] ?? field ?? '-';
+export function issueTypeOptions(t) {
+    return translateOptions(ISSUE_TYPE_OPTIONS, 'dataQuality.issueType', t);
 }
 
-export function issueTypeLabel(type) {
-    return ISSUE_TYPE_LABELS[type] ?? type ?? '-';
+export function issueStatusOptions(t) {
+    return translateOptions(ISSUE_STATUS_OPTIONS, 'dataQuality.issueStatus', t);
 }
 
-export function issueStatusLabel(status) {
-    return ISSUE_STATUS_LABELS[status] ?? status ?? '-';
+export function issueFieldLabel(field, t) {
+    return FIELD_LABELS[field] !== undefined ? translate(t, `dataQuality.field.${field}`, FIELD_LABELS[field]) : (field ?? '-');
 }
 
-export function reviewReasonLabel(reasonCode) {
-    return REVIEW_REASON_LABELS[reasonCode] ?? reasonCode ?? '-';
+export function issueTypeLabel(type, t) {
+    return ISSUE_TYPE_LABELS[type] !== undefined ? translate(t, `dataQuality.issueType.${type}`, ISSUE_TYPE_LABELS[type]) : (type ?? '-');
 }
 
-export function reviewReasonOptions(issueType) {
-    return REVIEW_REASON_OPTIONS.filter((option) => !option.duplicatesOnly || issueType === 'duplicate');
+export function issueStatusLabel(status, t) {
+    return ISSUE_STATUS_LABELS[status] !== undefined ? translate(t, `dataQuality.issueStatus.${status}`, ISSUE_STATUS_LABELS[status]) : (status ?? '-');
+}
+
+export function reviewReasonLabel(reasonCode, t) {
+    return REVIEW_REASON_LABELS[reasonCode] !== undefined ? translate(t, `dataQuality.reviewReason.${reasonCode}`, REVIEW_REASON_LABELS[reasonCode]) : (reasonCode ?? '-');
+}
+
+export function reviewReasonOptions(issueType, t) {
+    return translateOptions(
+        REVIEW_REASON_OPTIONS.filter((option) => !option.duplicatesOnly || issueType === 'duplicate'),
+        'dataQuality.reviewReason',
+        t
+    );
 }
 
 export function formatCompletenessPercent(value) {

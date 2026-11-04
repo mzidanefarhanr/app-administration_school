@@ -1,0 +1,163 @@
+{
+    "title": "Kualitas Data",
+    "subtitle": "Temuan kelengkapan data untuk siswa yang sudah ditempatkan dan pegawai aktif. Status tinjauan hanya mencatat alur kerja; tidak mengubah data rekaman maupun persentase kelengkapan.",
+    "tabs": {
+        "students": "Siswa",
+        "employees": "Pegawai"
+    },
+    "record": {
+        "students": "Siswa",
+        "employees": "Pegawai"
+    },
+    "schoolYear": {
+        "label": "Tahun Pelajaran",
+        "placeholder": "Pilih tahun pelajaran",
+        "empty": "Belum ada tahun pelajaran. Tambahkan tahun pelajaran sebelum memeriksa data siswa."
+    },
+    "asOf": "Per {time}",
+    "timezone": "WIB",
+    "loadingSummary": "Memuat ringkasan…",
+    "population": {
+        "label": "Populasi",
+        "employeesHint": "Pegawai aktif (Pendidik dan Tenaga Kependidikan)"
+    },
+    "summary": {
+        "placedStudents": "Siswa Ditempatkan (penyebut)",
+        "activeEmployees": "Pegawai Aktif (penyebut)",
+        "active": "Aktif: {count}",
+        "unplaced": "Belum ditempatkan: {count}",
+        "notEvaluated": "Belum dievaluasi: {count}",
+        "archivedExcluded": "Arsip dikecualikan: {count}",
+        "separated": "Berhenti: {count}",
+        "completeRecords": "Rekaman Lengkap",
+        "incomplete": "Belum lengkap: {count}",
+        "complete": "Lengkap: {percent}",
+        "fieldFindings": "Temuan Isian",
+        "missing": "Kosong: {count}",
+        "invalid": "Tidak valid: {count}",
+        "blockedNik": "NIK terblokir: {missing} kosong / {invalid} tidak valid",
+        "subjectRule": "Mata pelajaran wajib diisi untuk guru dan harus kosong untuk pegawai non-pengajar.",
+        "duplicateCandidates": "Kandidat Duplikat",
+        "affectedRecords": "Rekaman terdampak: {count}",
+        "manualReviewOnly": "Hanya tinjauan manual; tidak ada penggabungan otomatis.",
+        "reviewWorkflow": "Alur Tinjauan",
+        "open": "Terbuka: {count}",
+        "acknowledged": "Diakui: {count}",
+        "ignored": "Diabaikan: {count}"
+    },
+    "completeness": {
+        "title": "Kelengkapan Isian",
+        "studentsBlockedNote": "NIK terblokir di luar penyebut: {missing} kosong dan {invalid} tidak valid. Siswa ini belum ditempatkan pada tahun pelajaran terpilih.",
+        "employeesNote": "NUPTK diukur hanya terhadap guru aktif. Mata pelajaran diukur terhadap seluruh pegawai aktif."
+    },
+    "columns": {
+        "field": "Isian",
+        "denominator": "Penyebut",
+        "missing": "Kosong",
+        "invalid": "Tidak valid",
+        "complete": "Lengkap",
+        "completeness": "Kelengkapan",
+        "no": "No",
+        "record": "Rekaman",
+        "issue": "Isu",
+        "related": "Terkait",
+        "review": "Tinjauan",
+        "action": "Aksi"
+    },
+    "issues": {
+        "title": "Isu",
+        "matching": "{count} sesuai",
+        "searchStudents": "Nama, NIS, atau NISN",
+        "searchEmployees": "Nama atau NUPTK",
+        "allTypes": "Semua jenis",
+        "allFields": "Semua isian",
+        "reset": "Atur ulang",
+        "loading": "Memuat isu. Mohon tunggu.",
+        "empty": "Tidak ada isu yang sesuai dengan filter saat ini.",
+        "pageReport": "Menampilkan {first} sampai {last} dari {totalRecords} isu",
+        "reviewVersion": "Versi tinjauan {version}"
+    },
+    "placement": {
+        "placed": "Ditempatkan",
+        "unplaced": "Belum ditempatkan"
+    },
+    "tooltip": {
+        "openRelated": "Buka rekaman terkait",
+        "openRecord": "Buka rekaman",
+        "acknowledge": "Akui",
+        "ignore": "Abaikan",
+        "reopen": "Buka kembali"
+    },
+    "issueType": {
+        "missing": "Kosong",
+        "invalid": "Tidak valid",
+        "duplicate": "Kandidat Duplikat",
+        "blocked": "Terblokir"
+    },
+    "issueStatus": {
+        "open": "Terbuka",
+        "acknowledged": "Diakui",
+        "ignored": "Diabaikan",
+        "all": "Semua"
+    },
+    "reviewReason": {
+        "pending_document": "Dokumen masih menunggu",
+        "source_unavailable": "Sumber tidak tersedia",
+        "verified_distinct": "Terverifikasi berbeda",
+        "not_applicable": "Tidak berlaku"
+    },
+    "field": {
+        "nik": "NIK",
+        "nis": "NIS",
+        "nisn": "NISN",
+        "gender_id": "Jenis Kelamin",
+        "birthplace": "Tempat Lahir",
+        "birthdate": "Tanggal Lahir",
+        "religion_id": "Agama",
+        "name_birthdate": "Nama dan Tanggal Lahir",
+        "employee_type_id": "Jenis Pegawai",
+        "employee_status_id": "Status Pegawai",
+        "employment_id": "Status Kepegawaian",
+        "marital_status_id": "Status Perkawinan",
+        "district_id": "Kecamatan",
+        "tmt_employee": "Tanggal Mulai Tugas (TMT)",
+        "nuptk": "NUPTK",
+        "subject_id": "Mata Pelajaran"
+    },
+    "errors": {
+        "loadYears": "Gagal memuat tahun pelajaran. Silakan coba lagi.",
+        "loadStudentSummary": "Gagal memuat ringkasan siswa.",
+        "loadEmployeeSummary": "Gagal memuat ringkasan pegawai.",
+        "loadIssues": "Gagal memuat isu. Silakan coba lagi."
+    },
+    "toast": {
+        "reviewSavedSummary": "Tinjauan Disimpan",
+        "reviewSavedDetail": "Isu ditandai {status}.",
+        "reviewStaleSummary": "Tinjauan Kedaluwarsa"
+    },
+    "dialog": {
+        "title": "Tinjau Isu {record}",
+        "record": "Rekaman:",
+        "relatedRecord": "Rekaman terkait:",
+        "reviewStatus": "Status tinjauan:",
+        "version": "versi {version}",
+        "reviewAction": "Aksi tinjauan",
+        "reason": "Alasan *",
+        "reasonPlaceholder": "Pilih alasan",
+        "reasonHelp": "Alasan wajib diisi saat mengabaikan isu. Alasan disimpan dalam jejak audit tinjauan.",
+        "note": "Status tinjauan hanya mencatat alur kerja. Status ini tidak mengubah data {record}, persentase kelengkapan, maupun kandidat duplikat. Perbaiki rekaman melalui formulir yang tersedia.",
+        "save": "Simpan Tinjauan",
+        "action": {
+            "acknowledged": "Akui",
+            "ignored": "Abaikan",
+            "open": "Buka Kembali"
+        },
+        "errors": {
+            "reasonRequired": "Pilih alasan sebelum mengabaikan isu ini.",
+            "stale": "Isu ini sudah kedaluwarsa. Muat ulang daftar.",
+            "checkValues": "Periksa nilai tinjauan lalu coba lagi.",
+            "notFound": "Rekaman sudah tidak ada.",
+            "saveFailed": "Gagal menyimpan tinjauan. Silakan coba lagi."
+        }
+    }
+}
