@@ -1,11 +1,13 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useConfirm } from 'primevue/useconfirm';
 import { useToast } from 'primevue/usetoast';
 import apiLogin from '@/apiLogin';
 import { authStore } from '@/stores/authStore';
 
+const { t, locale } = useI18n();
 const router = useRouter();
 const toast = useToast();
 const confirm = useConfirm();
@@ -53,68 +55,83 @@ const reminderForm = reactive({
     due_date: ''
 });
 
-const domainOptions = [
-    { label: 'Semua Domain', value: '' },
-    { label: 'Persuratan (Letters)', value: 'letters' },
-    { label: 'Perizinan (Leaves)', value: 'leaves' },
-    { label: 'Pembelajaran (Teaching)', value: 'teaching' },
-    { label: 'Arsip Dokumen (Archives)', value: 'archives' },
-    { label: 'Kesiswaan (Students)', value: 'students' },
-    { label: 'Ketenagaan (Personnel)', value: 'personnel' },
-    { label: 'Umum & Operasional', value: 'general' }
-];
+const domainOptions = computed(() => [
+    { label: t('tasks.domain.all'), value: '' },
+    { label: t('tasks.domain.lettersOption'), value: 'letters' },
+    { label: t('tasks.domain.leavesOption'), value: 'leaves' },
+    { label: t('tasks.domain.teachingOption'), value: 'teaching' },
+    { label: t('tasks.domain.archivesOption'), value: 'archives' },
+    { label: t('tasks.domain.studentsOption'), value: 'students' },
+    { label: t('tasks.domain.personnelOption'), value: 'personnel' },
+    { label: t('tasks.domain.generalOption'), value: 'general' }
+]);
 
-const urgencyOptions = [
-    { label: 'Semua Urgensi', value: '' },
-    { label: 'Mendesak (High)', value: 'high' },
-    { label: 'Perhatian (Warn)', value: 'warn' },
-    { label: 'Informasi (Info)', value: 'info' }
-];
+const urgencyOptions = computed(() => [
+    { label: t('tasks.urgency.all'), value: '' },
+    { label: t('tasks.urgency.highOption'), value: 'high' },
+    { label: t('tasks.urgency.warnOption'), value: 'warn' },
+    { label: t('tasks.urgency.infoOption'), value: 'info' }
+]);
 
-const priorityOptions = [
-    { label: 'Tinggi / Mendesak (High)', value: 'high' },
-    { label: 'Sedang / Perhatian (Warn)', value: 'warn' },
-    { label: 'Rendah / Info (Info)', value: 'info' }
-];
+const priorityOptions = computed(() => [
+    { label: t('tasks.priority.highOption'), value: 'high' },
+    { label: t('tasks.priority.warnOption'), value: 'warn' },
+    { label: t('tasks.priority.infoOption'), value: 'info' }
+]);
 
-const categoryOptions = [
-    { label: 'Umum & Operasional', value: 'general' },
-    { label: 'Persuratan', value: 'letters' },
-    { label: 'Perizinan', value: 'leaves' },
-    { label: 'Pembelajaran', value: 'teaching' },
-    { label: 'Arsip Dokumen', value: 'archives' },
-    { label: 'Kesiswaan', value: 'students' },
-    { label: 'Ketenagaan', value: 'personnel' }
-];
+const categoryOptions = computed(() => [
+    { label: t('tasks.domain.general'), value: 'general' },
+    { label: t('tasks.domain.letters'), value: 'letters' },
+    { label: t('tasks.domain.leaves'), value: 'leaves' },
+    { label: t('tasks.domain.teaching'), value: 'teaching' },
+    { label: t('tasks.domain.archives'), value: 'archives' },
+    { label: t('tasks.domain.students'), value: 'students' },
+    { label: t('tasks.domain.personnel'), value: 'personnel' }
+]);
 
 // Helper methods
 const getDomainBadge = (domain) => {
     switch (domain) {
         case 'letters':
-            return { label: 'Persuratan', severity: 'info', icon: 'pi pi-envelope' };
+            return { label: t('tasks.domain.letters'), severity: 'info', icon: 'pi pi-envelope' };
         case 'leaves':
-            return { label: 'Perizinan', severity: 'warn', icon: 'pi pi-calendar-times' };
+            return { label: t('tasks.domain.leaves'), severity: 'warn', icon: 'pi pi-calendar-times' };
         case 'teaching':
-            return { label: 'Pembelajaran', severity: 'help', icon: 'pi pi-book' };
+            return { label: t('tasks.domain.teaching'), severity: 'help', icon: 'pi pi-book' };
         case 'archives':
-            return { label: 'Arsip', severity: 'secondary', icon: 'pi pi-folder' };
+            return { label: t('tasks.domain.archives'), severity: 'secondary', icon: 'pi pi-folder' };
         case 'students':
-            return { label: 'Kesiswaan', severity: 'success', icon: 'pi pi-users' };
+            return { label: t('tasks.domain.students'), severity: 'success', icon: 'pi pi-users' };
         case 'personnel':
-            return { label: 'Ketenagaan', severity: 'primary', icon: 'pi pi-id-card' };
+            return { label: t('tasks.domain.personnel'), severity: 'primary', icon: 'pi pi-id-card' };
         default:
-            return { label: 'Umum', severity: 'contrast', icon: 'pi pi-tag' };
+            return { label: t('tasks.domain.general'), severity: 'contrast', icon: 'pi pi-tag' };
     }
 };
 
 const getUrgencyBadge = (urgency) => {
     switch (urgency) {
         case 'high':
-            return { label: 'Mendesak', severity: 'danger' };
+            return { label: t('tasks.urgency.high'), severity: 'danger' };
         case 'warn':
-            return { label: 'Perhatian', severity: 'warn' };
+            return { label: t('tasks.urgency.warn'), severity: 'warn' };
         default:
-            return { label: 'Informasi', severity: 'info' };
+            return { label: t('tasks.urgency.info'), severity: 'info' };
+    }
+};
+
+const formatDate = (val) => {
+    if (!val) return '';
+    try {
+        const d = new Date(val);
+        if (isNaN(d.getTime())) return val;
+        return d.toLocaleDateString(locale.value === 'en' ? 'en-GB' : 'id-ID', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
+    } catch {
+        return val;
     }
 };
 
@@ -129,8 +146,8 @@ const loadSummary = async () => {
     } catch (err) {
         toast.add({
             severity: 'warn',
-            summary: 'Peringatan',
-            detail: 'Gagal memuat ringkasan tugas: ' + (err.response?.data?.message || err.message),
+            summary: t('tasks.toast.warningTitle'),
+            detail: t('tasks.toast.loadSummaryError', { msg: err.response?.data?.message || err.message }),
             life: 4000
         });
     } finally {
@@ -158,8 +175,8 @@ const loadTasks = async () => {
     } catch (err) {
         toast.add({
             severity: 'error',
-            summary: 'Gagal Memuat Tugas',
-            detail: err.response?.data?.message || 'Terjadi kesalahan pada server.',
+            summary: t('tasks.toast.loadTasksErrorTitle'),
+            detail: err.response?.data?.message || t('tasks.toast.serverError'),
             life: 3000
         });
     } finally {
@@ -226,8 +243,8 @@ const saveReminder = async () => {
     if (!reminderForm.title.trim()) {
         toast.add({
             severity: 'warn',
-            summary: 'Peringatan Validasi',
-            detail: 'Judul tugas pengingat wajib diisi.',
+            summary: t('tasks.toast.validationTitle'),
+            detail: t('tasks.toast.titleRequired'),
             life: 3000
         });
         return;
@@ -247,16 +264,16 @@ const saveReminder = async () => {
             await apiLogin.put(`/api/tasks/reminders/${reminderForm.id}`, payload);
             toast.add({
                 severity: 'success',
-                summary: 'Berhasil Diperbarui',
-                detail: 'Pengingat berhasil diperbarui.',
+                summary: t('tasks.toast.updateSuccessTitle'),
+                detail: t('tasks.toast.updateSuccessDetail'),
                 life: 3000
             });
         } else {
             await apiLogin.post('/api/tasks/reminders', payload);
             toast.add({
                 severity: 'success',
-                summary: 'Berhasil Dibuat',
-                detail: 'Pengingat baru berhasil ditambahkan.',
+                summary: t('tasks.toast.createSuccessTitle'),
+                detail: t('tasks.toast.createSuccessDetail'),
                 life: 3000
             });
         }
@@ -266,8 +283,8 @@ const saveReminder = async () => {
     } catch (err) {
         toast.add({
             severity: 'error',
-            summary: 'Gagal Menyimpan',
-            detail: err.response?.data?.message || 'Gagal menyimpan pengingat.',
+            summary: t('tasks.toast.saveErrorTitle'),
+            detail: err.response?.data?.message || t('tasks.toast.saveErrorDetail'),
             life: 3000
         });
     } finally {
@@ -280,16 +297,16 @@ const markComplete = async (task) => {
         await apiLogin.post(`/api/tasks/reminders/${task.id}/complete`);
         toast.add({
             severity: 'success',
-            summary: 'Tugas Selesai',
-            detail: `"${task.title}" telah ditandai selesai.`,
+            summary: t('tasks.toast.completeSuccessTitle'),
+            detail: t('tasks.toast.completeSuccessDetail', { title: task.title }),
             life: 3000
         });
         await Promise.all([loadTasks(), loadSummary()]);
     } catch (err) {
         toast.add({
             severity: 'error',
-            summary: 'Gagal Menyelesaikan Tugas',
-            detail: err.response?.data?.message || 'Terjadi kesalahan.',
+            summary: t('tasks.toast.completeErrorTitle'),
+            detail: err.response?.data?.message || t('tasks.toast.genericError'),
             life: 3000
         });
     }
@@ -297,8 +314,8 @@ const markComplete = async (task) => {
 
 const cancelReminder = (task) => {
     confirm.require({
-        message: `Batalkan tugas "${task.title}"?`,
-        header: 'Konfirmasi Pembatalan',
+        message: t('tasks.confirm.cancelMessage', { title: task.title }),
+        header: t('tasks.confirm.cancelTitle'),
         icon: 'pi pi-exclamation-triangle',
         acceptClass: 'p-button-warn',
         accept: async () => {
@@ -306,16 +323,16 @@ const cancelReminder = (task) => {
                 await apiLogin.post(`/api/tasks/reminders/${task.id}/cancel`);
                 toast.add({
                     severity: 'info',
-                    summary: 'Tugas Dibatalkan',
-                    detail: `"${task.title}" telah dibatalkan.`,
+                    summary: t('tasks.toast.cancelSuccessTitle'),
+                    detail: t('tasks.toast.cancelSuccessDetail', { title: task.title }),
                     life: 3000
                 });
                 await Promise.all([loadTasks(), loadSummary()]);
             } catch (err) {
                 toast.add({
                     severity: 'error',
-                    summary: 'Gagal Membatalkan',
-                    detail: err.response?.data?.message || 'Terjadi kesalahan.',
+                    summary: t('tasks.toast.cancelErrorTitle'),
+                    detail: err.response?.data?.message || t('tasks.toast.genericError'),
                     life: 3000
                 });
             }
@@ -325,8 +342,8 @@ const cancelReminder = (task) => {
 
 const deleteReminder = (task) => {
     confirm.require({
-        message: `Hapus permanen pengingat "${task.title}"?`,
-        header: 'Konfirmasi Penghapusan',
+        message: t('tasks.confirm.deleteMessage', { title: task.title }),
+        header: t('tasks.confirm.deleteTitle'),
         icon: 'pi pi-trash',
         acceptClass: 'p-button-danger',
         accept: async () => {
@@ -334,16 +351,16 @@ const deleteReminder = (task) => {
                 await apiLogin.delete(`/api/tasks/reminders/${task.id}`);
                 toast.add({
                     severity: 'success',
-                    summary: 'Pengingat Dihapus',
-                    detail: 'Catatan pengingat berhasil dihapus permanen.',
+                    summary: t('tasks.toast.deleteSuccessTitle'),
+                    detail: t('tasks.toast.deleteSuccessDetail'),
                     life: 3000
                 });
                 await Promise.all([loadTasks(), loadSummary()]);
             } catch (err) {
                 toast.add({
                     severity: 'error',
-                    summary: 'Gagal Menghapus',
-                    detail: err.response?.data?.message || 'Terjadi kesalahan.',
+                    summary: t('tasks.toast.deleteErrorTitle'),
+                    detail: err.response?.data?.message || t('tasks.toast.genericError'),
                     life: 3000
                 });
             }
@@ -353,8 +370,8 @@ const deleteReminder = (task) => {
 
 const dismissSystemTask = (task) => {
     confirm.require({
-        message: `Tandai tugas sistem "${task.title}" sebagai selesai/diabaikan dari daftar aktif?`,
-        header: 'Tandai Selesai Tugas Sistem',
+        message: t('tasks.confirm.dismissMessage', { title: task.title }),
+        header: t('tasks.confirm.dismissTitle'),
         icon: 'pi pi-check-circle',
         accept: async () => {
             try {
@@ -365,16 +382,16 @@ const dismissSystemTask = (task) => {
                 });
                 toast.add({
                     severity: 'success',
-                    summary: 'Tugas Diselesaikan',
-                    detail: `Tugas "${task.title}" telah dipindahkan ke riwayat selesai.`,
+                    summary: t('tasks.toast.dismissSuccessTitle'),
+                    detail: t('tasks.toast.dismissSuccessDetail', { title: task.title }),
                     life: 3000
                 });
                 await Promise.all([loadTasks(), loadSummary()]);
             } catch (err) {
                 toast.add({
                     severity: 'error',
-                    summary: 'Gagal Menyelesaikan Tugas Sistem',
-                    detail: err.response?.data?.message || 'Terjadi kesalahan.',
+                    summary: t('tasks.toast.dismissErrorTitle'),
+                    detail: err.response?.data?.message || t('tasks.toast.genericError'),
                     life: 3000
                 });
             }
@@ -395,14 +412,14 @@ onMounted(async () => {
                 <div>
                     <h2 class="text-2xl font-bold text-surface-900 dark:text-surface-0 tracking-tight flex items-center gap-2">
                         <i class="pi pi-check-square text-primary text-2xl"></i>
-                        Pusat Tugas Operasional & Pengingat Internal
+                        {{ t('tasks.title') }}
                     </h2>
-                    <p class="text-surface-500 text-sm mt-1">Pusat kendali tindak lanjut operasional terpadu: antrean persuratan, perizinan, pengarsipan, jurnal mengajar, serta catatan pengingat internal staf (DEC-44).</p>
+                    <p class="text-surface-500 text-sm mt-1">{{ t('tasks.subtitle') }}</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <Button
                         icon="pi pi-refresh"
-                        label="Segarkan"
+                        :label="t('tasks.refresh')"
                         severity="secondary"
                         variant="outlined"
                         size="small"
@@ -414,7 +431,7 @@ onMounted(async () => {
                             }
                         "
                     />
-                    <Button v-if="canManage" icon="pi pi-plus" label="Buat Pengingat Baru" severity="primary" size="small" @click="openCreateReminder" />
+                    <Button v-if="canManage" icon="pi pi-plus" :label="t('tasks.createReminder')" severity="primary" size="small" @click="openCreateReminder" />
                 </div>
             </div>
 
@@ -426,7 +443,7 @@ onMounted(async () => {
                         <i class="pi pi-list-check text-2xl"></i>
                     </div>
                     <div>
-                        <div class="text-xs font-semibold uppercase tracking-wider text-surface-500">Total Tugas Aktif</div>
+                        <div class="text-xs font-semibold uppercase tracking-wider text-surface-500">{{ t('tasks.kpi.totalActive') }}</div>
                         <div class="text-2xl font-bold text-surface-900 dark:text-surface-0 mt-0.5">
                             {{ summary.total_active }}
                         </div>
@@ -439,7 +456,7 @@ onMounted(async () => {
                         <i class="pi pi-exclamation-circle text-2xl"></i>
                     </div>
                     <div>
-                        <div class="text-xs font-semibold uppercase tracking-wider text-red-600 dark:text-red-400">Tindakan Segera</div>
+                        <div class="text-xs font-semibold uppercase tracking-wider text-red-600 dark:text-red-400">{{ t('tasks.kpi.actionRequired') }}</div>
                         <div class="text-2xl font-bold text-red-700 dark:text-red-300 mt-0.5">
                             {{ summary.total_high }}
                         </div>
@@ -452,7 +469,7 @@ onMounted(async () => {
                         <i class="pi pi-clock text-2xl"></i>
                     </div>
                     <div>
-                        <div class="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">Perhatian / Jatuh Tempo</div>
+                        <div class="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">{{ t('tasks.kpi.attentionDue') }}</div>
                         <div class="text-2xl font-bold text-amber-700 dark:text-amber-300 mt-0.5">
                             {{ summary.total_warn }}
                         </div>
@@ -465,7 +482,7 @@ onMounted(async () => {
                         <i class="pi pi-check-circle text-2xl"></i>
                     </div>
                     <div>
-                        <div class="text-xs font-semibold uppercase tracking-wider text-green-600 dark:text-green-400">Selesai Hari Ini</div>
+                        <div class="text-xs font-semibold uppercase tracking-wider text-green-600 dark:text-green-400">{{ t('tasks.kpi.completedToday') }}</div>
                         <div class="text-2xl font-bold text-green-700 dark:text-green-300 mt-0.5">
                             {{ summary.completed_today }}
                         </div>
@@ -479,19 +496,19 @@ onMounted(async () => {
             <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
                 <div class="flex flex-wrap items-center gap-2">
                     <!-- Domain Select -->
-                    <Select v-model="filters.domain" :options="domainOptions" option-label="label" option-value="value" placeholder="Pilih Domain" class="w-full md:w-56" size="small" @change="loadTasks" />
+                    <Select v-model="filters.domain" :options="domainOptions" option-label="label" option-value="value" :placeholder="t('tasks.filter.selectDomain')" class="w-full md:w-56" size="small" @change="loadTasks" />
 
                     <!-- Urgency Select -->
-                    <Select v-model="filters.urgency" :options="urgencyOptions" option-label="label" option-value="value" placeholder="Pilih Urgensi" class="w-full md:w-48" size="small" @change="loadTasks" />
+                    <Select v-model="filters.urgency" :options="urgencyOptions" option-label="label" option-value="value" :placeholder="t('tasks.filter.selectUrgency')" class="w-full md:w-48" size="small" @change="loadTasks" />
 
-                    <Button v-if="filters.domain || filters.urgency || filters.search" icon="pi pi-filter-slash" label="Reset" severity="secondary" variant="text" size="small" @click="resetFilters" />
+                    <Button v-if="filters.domain || filters.urgency || filters.search" icon="pi pi-filter-slash" :label="t('tasks.filter.reset')" severity="secondary" variant="text" size="small" @click="resetFilters" />
                 </div>
 
                 <!-- Search Input -->
                 <div class="w-full md:w-72">
                     <IconField icon-position="left">
                         <InputIcon class="pi pi-search" />
-                        <InputText v-model="filters.search" placeholder="Cari judul atau uraian..." class="w-full" size="small" @input="onSearchDebounce" @keyup.enter="onSearchInput" />
+                        <InputText v-model="filters.search" :placeholder="t('tasks.filter.searchPlaceholder')" class="w-full" size="small" @input="onSearchDebounce" @keyup.enter="onSearchInput" />
                     </IconField>
                 </div>
             </div>
@@ -504,20 +521,20 @@ onMounted(async () => {
                 <TabList>
                     <Tab value="all" class="flex items-center gap-2">
                         <i class="pi pi-th-large"></i>
-                        <span>Semua Tugas</span>
+                        <span>{{ t('tasks.tabs.all') }}</span>
                         <Tag v-if="summary.total_active > 0" :value="summary.total_active" severity="secondary" rounded class="!py-0 !px-1.5 !text-[11px]" />
                     </Tab>
                     <Tab value="system" class="flex items-center gap-2">
                         <i class="pi pi-cog"></i>
-                        <span>Tugas Sistem</span>
+                        <span>{{ t('tasks.tabs.system') }}</span>
                     </Tab>
                     <Tab value="manual" class="flex items-center gap-2">
                         <i class="pi pi-bookmark"></i>
-                        <span>Pengingat Manual</span>
+                        <span>{{ t('tasks.tabs.manual') }}</span>
                     </Tab>
                     <Tab value="completed" class="flex items-center gap-2">
                         <i class="pi pi-history"></i>
-                        <span>Riwayat Selesai</span>
+                        <span>{{ t('tasks.tabs.completed') }}</span>
                     </Tab>
                 </TabList>
             </Tabs>
@@ -525,7 +542,7 @@ onMounted(async () => {
             <!-- Loading State -->
             <div v-if="loading" class="flex items-center justify-center py-16 text-surface-500 gap-3">
                 <i class="pi pi-spin pi-spinner text-2xl text-primary"></i>
-                <span class="text-sm">Memuat daftar tugas operasional...</span>
+                <span class="text-sm">{{ t('tasks.loading') }}</span>
             </div>
 
             <!-- Empty State -->
@@ -533,9 +550,9 @@ onMounted(async () => {
                 <div class="w-16 h-16 rounded-full bg-green-100 dark:bg-green-400/10 text-green-600 flex items-center justify-center mb-3">
                     <i class="pi pi-check-circle text-3xl"></i>
                 </div>
-                <span class="text-lg font-semibold text-surface-800 dark:text-surface-100">Tidak Ada Tugas Tertunda</span>
-                <p class="text-sm text-surface-400 max-w-md mt-1">Semua antrean operasional telah selesai ditindaklanjuti atau sesuai kriteria filter yang Anda pilih.</p>
-                <Button v-if="canManage" icon="pi pi-plus" label="Tambah Pengingat Baru" size="small" class="mt-4" @click="openCreateReminder" />
+                <span class="text-lg font-semibold text-surface-800 dark:text-surface-100">{{ t('tasks.empty.title') }}</span>
+                <p class="text-sm text-surface-400 max-w-md mt-1">{{ t('tasks.empty.subtitle') }}</p>
+                <Button v-if="canManage" icon="pi pi-plus" :label="t('tasks.empty.action')" size="small" class="mt-4" @click="openCreateReminder" />
             </div>
 
             <!-- Task Items List -->
@@ -568,10 +585,10 @@ onMounted(async () => {
                                 <Tag :value="getDomainBadge(task.domain).label" :severity="getDomainBadge(task.domain).severity" size="small" class="!text-[11px] !py-0 !px-2" />
                                 <Tag :value="getUrgencyBadge(task.urgency).label" :severity="getUrgencyBadge(task.urgency).severity" size="small" class="!text-[11px] !py-0 !px-2" />
                                 <span class="text-xs px-2 py-0.5 rounded bg-surface-100 dark:bg-surface-800 text-surface-600 dark:text-surface-400">
-                                    {{ task.source_type === 'system' ? 'Sistem' : 'Pengingat Staf' }}
+                                    {{ task.source_type === 'system' ? t('tasks.source.system') : t('tasks.source.manual') }}
                                 </span>
-                                <span v-if="task.status === 'completed'" class="text-xs font-medium text-green-600 flex items-center gap-1"> <i class="pi pi-check"></i> Selesai </span>
-                                <span v-else-if="task.status === 'cancelled'" class="text-xs font-medium text-surface-400 flex items-center gap-1"> <i class="pi pi-times"></i> Dibatalkan </span>
+                                <span v-if="task.status === 'completed'" class="text-xs font-medium text-green-600 flex items-center gap-1"> <i class="pi pi-check"></i> {{ t('tasks.status.completed') }} </span>
+                                <span v-else-if="task.status === 'cancelled'" class="text-xs font-medium text-surface-400 flex items-center gap-1"> <i class="pi pi-times"></i> {{ t('tasks.status.cancelled') }} </span>
                             </div>
 
                             <!-- Title & Description -->
@@ -584,8 +601,8 @@ onMounted(async () => {
 
                             <!-- Meta Info (Due Date, Completed info) -->
                             <div class="flex items-center gap-4 text-xs text-surface-400 mt-2">
-                                <span v-if="task.due_date" class="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-medium"> <i class="pi pi-calendar"></i> Jatuh Tempo: {{ task.due_date }} </span>
-                                <span v-if="task.completed_at" class="flex items-center gap-1 text-green-600 dark:text-green-400"> <i class="pi pi-clock"></i> Diselesaikan pada {{ task.completed_at }} </span>
+                                <span v-if="task.due_date" class="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-medium"> <i class="pi pi-calendar"></i> {{ t('tasks.meta.dueDate', { date: formatDate(task.due_date) }) }} </span>
+                                <span v-if="task.completed_at" class="flex items-center gap-1 text-green-600 dark:text-green-400"> <i class="pi pi-clock"></i> {{ t('tasks.meta.completedAt', { date: formatDate(task.completed_at) }) }} </span>
                             </div>
                         </div>
                     </div>
@@ -593,24 +610,24 @@ onMounted(async () => {
                     <!-- Right: Action Buttons -->
                     <div class="flex items-center gap-2 self-end md:self-center shrink-0">
                         <!-- Direct Action Link (if present) -->
-                        <Button v-if="task.action_url" icon="pi pi-external-link" label="Buka Modul" size="small" severity="info" variant="outlined" @click="openActionUrl(task.action_url)" />
+                        <Button v-if="task.action_url" icon="pi pi-external-link" :label="t('tasks.action.openModule')" size="small" severity="info" variant="outlined" @click="openActionUrl(task.action_url)" />
 
                         <!-- System Task Actions -->
                         <template v-if="task.source_type === 'system' && task.status === 'pending'">
-                            <Button v-if="canManage" icon="pi pi-check" label="Tandai Selesai" size="small" severity="success" variant="outlined" @click="dismissSystemTask(task)" />
+                            <Button v-if="canManage" icon="pi pi-check" :label="t('tasks.action.markDismissed')" size="small" severity="success" variant="outlined" @click="dismissSystemTask(task)" />
                         </template>
 
                         <!-- Manual Reminder Actions -->
                         <template v-if="task.source_type === 'manual'">
                             <!-- If pending -->
                             <template v-if="task.status === 'pending'">
-                                <Button v-if="canManage" icon="pi pi-check" size="small" severity="success" label="Selesai" @click="markComplete(task)" />
-                                <Button v-if="canManage" icon="pi pi-pencil" size="small" severity="secondary" variant="text" v-tooltip="'Edit Catatan'" @click="openEditReminder(task)" />
-                                <Button v-if="canManage" icon="pi pi-ban" size="small" severity="warn" variant="text" v-tooltip="'Batalkan Tugas'" @click="cancelReminder(task)" />
+                                <Button v-if="canManage" icon="pi pi-check" size="small" severity="success" :label="t('tasks.action.markCompleted')" @click="markComplete(task)" />
+                                <Button v-if="canManage" icon="pi pi-pencil" size="small" severity="secondary" variant="text" v-tooltip="t('tasks.action.editTooltip')" @click="openEditReminder(task)" />
+                                <Button v-if="canManage" icon="pi pi-ban" size="small" severity="warn" variant="text" v-tooltip="t('tasks.action.cancelTooltip')" @click="cancelReminder(task)" />
                             </template>
 
                             <!-- Delete Option -->
-                            <Button v-if="canManage" icon="pi pi-trash" size="small" severity="danger" variant="text" v-tooltip="'Hapus Permanen'" @click="deleteReminder(task)" />
+                            <Button v-if="canManage" icon="pi pi-trash" size="small" severity="danger" variant="text" v-tooltip="t('tasks.action.deleteTooltip')" @click="deleteReminder(task)" />
                         </template>
                     </div>
                 </div>
@@ -619,7 +636,7 @@ onMounted(async () => {
             <!-- Pagination Bar -->
             <div v-if="pagination.total > pagination.per_page" class="flex items-center justify-between pt-6 border-t border-surface-200 dark:border-surface-700 mt-4">
                 <span class="text-xs text-surface-500">
-                    Menampilkan {{ (pagination.current_page - 1) * pagination.per_page + 1 }} - {{ Math.min(pagination.current_page * pagination.per_page, pagination.total) }} dari {{ pagination.total }} tugas
+                    {{ t('tasks.pagination.showing', { from: (pagination.current_page - 1) * pagination.per_page + 1, to: Math.min(pagination.current_page * pagination.per_page, pagination.total), total: pagination.total }) }}
                 </span>
                 <div class="flex items-center gap-1">
                     <Button
@@ -654,29 +671,29 @@ onMounted(async () => {
         </div>
 
         <!-- Dialog: Buat / Edit Pengingat Manual -->
-        <Dialog v-model:visible="reminderDialogVisible" :header="isEditing ? 'Edit Pengingat Operasional' : 'Tambah Pengingat Baru'" :modal="true" :style="{ width: '560px' }" class="p-fluid">
+        <Dialog v-model:visible="reminderDialogVisible" :header="isEditing ? t('tasks.dialog.editTitle') : t('tasks.dialog.createTitle')" :modal="true" :style="{ width: '560px' }" class="p-fluid">
             <div class="flex flex-col gap-4 pt-2">
                 <!-- Judul -->
                 <div>
-                    <label class="block text-sm font-medium text-surface-700 dark:text-surface-200 mb-1"> Judul Tugas / Pengingat <span class="text-red-500">*</span> </label>
-                    <InputText v-model="reminderForm.title" placeholder="Contoh: Koordinasi pengumpulan berkas Dapodik ke dinas" class="w-full" autofocus />
+                    <label class="block text-sm font-medium text-surface-700 dark:text-surface-200 mb-1"> {{ t('tasks.dialog.titleLabel') }} <span class="text-red-500">*</span> </label>
+                    <InputText v-model="reminderForm.title" :placeholder="t('tasks.dialog.titlePlaceholder')" class="w-full" autofocus />
                 </div>
 
                 <!-- Domain Category & Priority -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-surface-700 dark:text-surface-200 mb-1"> Kategori Bidang </label>
+                        <label class="block text-sm font-medium text-surface-700 dark:text-surface-200 mb-1"> {{ t('tasks.dialog.categoryLabel') }} </label>
                         <Select v-model="reminderForm.category" :options="categoryOptions" option-label="label" option-value="value" class="w-full" />
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-surface-700 dark:text-surface-200 mb-1"> Tingkat Prioritas </label>
+                        <label class="block text-sm font-medium text-surface-700 dark:text-surface-200 mb-1"> {{ t('tasks.dialog.priorityLabel') }} </label>
                         <Select v-model="reminderForm.priority" :options="priorityOptions" option-label="label" option-value="value" class="w-full" />
                     </div>
                 </div>
 
                 <!-- Jatuh Tempo -->
                 <div>
-                    <label class="block text-sm font-medium text-surface-700 dark:text-surface-200 mb-1"> Batas Waktu / Jatuh Tempo (Opsional) </label>
+                    <label class="block text-sm font-medium text-surface-700 dark:text-surface-200 mb-1"> {{ t('tasks.dialog.dueDateLabel') }} </label>
                     <input
                         v-model="reminderForm.due_date"
                         type="date"
@@ -686,15 +703,15 @@ onMounted(async () => {
 
                 <!-- Deskripsi -->
                 <div>
-                    <label class="block text-sm font-medium text-surface-700 dark:text-surface-200 mb-1"> Uraian Detail / Catatan Tindak Lanjut </label>
-                    <Textarea v-model="reminderForm.description" rows="3" placeholder="Tuliskan catatan detail atau hal-hal yang perlu disiapkan..." class="w-full" />
+                    <label class="block text-sm font-medium text-surface-700 dark:text-surface-200 mb-1"> {{ t('tasks.dialog.descriptionLabel') }} </label>
+                    <Textarea v-model="reminderForm.description" rows="3" :placeholder="t('tasks.dialog.descriptionPlaceholder')" class="w-full" />
                 </div>
             </div>
 
             <template #footer>
                 <div class="flex justify-end gap-2 pt-4">
-                    <Button label="Batal" severity="secondary" variant="outlined" @click="reminderDialogVisible = false" />
-                    <Button label="Simpan Pengingat" icon="pi pi-check" severity="primary" :loading="savingReminder" @click="saveReminder" />
+                    <Button :label="t('tasks.dialog.cancel')" severity="secondary" variant="outlined" @click="reminderDialogVisible = false" />
+                    <Button :label="t('tasks.dialog.saveReminder')" icon="pi pi-check" severity="primary" :loading="savingReminder" @click="saveReminder" />
                 </div>
             </template>
         </Dialog>

@@ -1,0 +1,133 @@
+{
+    "title": "Pusat Tugas Operasional & Pengingat Internal",
+    "subtitle": "Pusat kendali tindak lanjut operasional terpadu: antrean persuratan, perizinan, pengarsipan, jurnal mengajar, serta catatan pengingat internal staf (DEC-44).",
+    "refresh": "Segarkan",
+    "createReminder": "Buat Pengingat Baru",
+    "addReminder": "Tambah Pengingat Baru",
+    "kpi": {
+        "totalActive": "Total Tugas Aktif",
+        "actionRequired": "Tindakan Segera",
+        "attentionDue": "Perhatian / Jatuh Tempo",
+        "completedToday": "Selesai Hari Ini"
+    },
+    "filter": {
+        "selectDomain": "Pilih Domain",
+        "selectUrgency": "Pilih Urgensi",
+        "reset": "Reset",
+        "searchPlaceholder": "Cari judul atau uraian..."
+    },
+    "domain": {
+        "all": "Semua Domain",
+        "letters": "Persuratan",
+        "leaves": "Perizinan",
+        "teaching": "Pembelajaran",
+        "archives": "Arsip Dokumen",
+        "students": "Kesiswaan",
+        "personnel": "Ketenagaan",
+        "general": "Umum & Operasional",
+        "lettersOption": "Persuratan (Letters)",
+        "leavesOption": "Perizinan (Leaves)",
+        "teachingOption": "Pembelajaran (Teaching)",
+        "archivesOption": "Arsip Dokumen (Archives)",
+        "studentsOption": "Kesiswaan (Students)",
+        "personnelOption": "Ketenagaan (Personnel)",
+        "generalOption": "Umum & Operasional"
+    },
+    "urgency": {
+        "all": "Semua Urgensi",
+        "high": "Mendesak",
+        "warn": "Perhatian",
+        "info": "Informasi",
+        "highOption": "Mendesak (High)",
+        "warnOption": "Perhatian (Warn)",
+        "infoOption": "Informasi (Info)"
+    },
+    "priority": {
+        "highOption": "Tinggi / Mendesak (High)",
+        "warnOption": "Sedang / Perhatian (Warn)",
+        "infoOption": "Rendah / Info (Info)"
+    },
+    "tabs": {
+        "all": "Semua Tugas",
+        "system": "Tugas Sistem",
+        "manual": "Pengingat Manual",
+        "completed": "Riwayat Selesai"
+    },
+    "source": {
+        "system": "Sistem",
+        "manual": "Pengingat Staf"
+    },
+    "status": {
+        "completed": "Selesai",
+        "cancelled": "Dibatalkan"
+    },
+    "meta": {
+        "dueDate": "Jatuh Tempo: {date}",
+        "completedAt": "Diselesaikan pada {date}"
+    },
+    "action": {
+        "openModule": "Buka Modul",
+        "markDismissed": "Tandai Selesai",
+        "markCompleted": "Selesai",
+        "editTooltip": "Edit Catatan",
+        "cancelTooltip": "Batalkan Tugas",
+        "deleteTooltip": "Hapus Permanen"
+    },
+    "loading": "Memuat daftar tugas operasional...",
+    "empty": {
+        "title": "Tidak Ada Tugas Tertunda",
+        "subtitle": "Semua antrean operasional telah selesai ditindaklanjuti atau sesuai kriteria filter yang Anda pilih.",
+        "action": "Tambah Pengingat Baru"
+    },
+    "pagination": {
+        "showing": "Menampilkan {from} - {to} dari {total} tugas"
+    },
+    "dialog": {
+        "editTitle": "Edit Pengingat Operasional",
+        "createTitle": "Tambah Pengingat Baru",
+        "titleLabel": "Judul Tugas / Pengingat",
+        "titlePlaceholder": "Contoh: Koordinasi pengumpulan berkas Dapodik ke dinas",
+        "categoryLabel": "Kategori Bidang",
+        "priorityLabel": "Tingkat Prioritas",
+        "dueDateLabel": "Batas Waktu / Jatuh Tempo (Opsional)",
+        "descriptionLabel": "Uraian Detail / Catatan Tindak Lanjut",
+        "descriptionPlaceholder": "Tuliskan catatan detail atau hal-hal yang perlu disiapkan...",
+        "cancel": "Batal",
+        "saveReminder": "Simpan Pengingat"
+    },
+    "toast": {
+        "warningTitle": "Peringatan",
+        "loadSummaryError": "Gagal memuat ringkasan tugas: {msg}",
+        "loadTasksErrorTitle": "Gagal Memuat Tugas",
+        "serverError": "Terjadi kesalahan pada server.",
+        "genericError": "Terjadi kesalahan.",
+        "validationTitle": "Peringatan Validasi",
+        "titleRequired": "Judul tugas pengingat wajib diisi.",
+        "updateSuccessTitle": "Berhasil Diperbarui",
+        "updateSuccessDetail": "Pengingat berhasil diperbarui.",
+        "createSuccessTitle": "Berhasil Dibuat",
+        "createSuccessDetail": "Pengingat baru berhasil ditambahkan.",
+        "saveErrorTitle": "Gagal Menyimpan",
+        "saveErrorDetail": "Gagal menyimpan pengingat.",
+        "completeSuccessTitle": "Tugas Selesai",
+        "completeSuccessDetail": "\"{title}\" telah ditandai selesai.",
+        "completeErrorTitle": "Gagal Menyelesaikan Tugas",
+        "cancelSuccessTitle": "Tugas Dibatalkan",
+        "cancelSuccessDetail": "\"{title}\" telah dibatalkan.",
+        "cancelErrorTitle": "Gagal Membatalkan",
+        "deleteSuccessTitle": "Pengingat Dihapus",
+        "deleteSuccessDetail": "Catatan pengingat berhasil dihapus permanen.",
+        "deleteErrorTitle": "Gagal Menghapus",
+        "dismissSuccessTitle": "Tugas Diselesaikan",
+        "dismissSuccessDetail": "Tugas \"{title}\" telah dipindahkan ke riwayat selesai.",
+        "dismissErrorTitle": "Gagal Menyelesaikan Tugas Sistem"
+    },
+    "confirm": {
+        "cancelTitle": "Konfirmasi Pembatalan",
+        "cancelMessage": "Batalkan tugas \"{title}\"?",
+        "deleteTitle": "Konfirmasi Penghapusan",
+        "deleteMessage": "Hapus permanen pengingat \"{title}\"?",
+        "dismissTitle": "Tandai Selesai Tugas Sistem",
+        "dismissMessage": "Tandai tugas sistem \"{title}\" sebagai selesai/diabaikan dari daftar aktif?"
+    }
+}

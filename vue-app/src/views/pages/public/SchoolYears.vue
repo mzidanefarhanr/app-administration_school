@@ -1,11 +1,13 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import { useToast } from 'primevue/usetoast';
 import { authStore } from '@/stores/authStore';
 import apiLogin from '@/apiLogin';
 
 const toast = useToast();
+const { t } = useI18n();
 const store = authStore();
 const canManage = computed(() => store.can('master.manage'));
 
@@ -65,7 +67,7 @@ const deleteTarget = ref(null);
 const deleteSaving = ref(false);
 const deleteError = ref('');
 
-const notify = (severity, detail, summary = 'School Years') => {
+const notify = (severity, detail, summary = t('master.schoolYears.title')) => {
     toast.add({ severity, summary, detail, life: 5000 });
 };
 
@@ -198,11 +200,11 @@ const submitYear = async () => {
     const endDate = dateToIso(yearForm.value.end_date);
 
     if (!name) {
-        yearErrors.value = { name: ['Name is required.'] };
+        yearErrors.value = { name: [t('master.validation.nameRequired')] };
         return;
     }
     if (startDate && endDate && startDate >= endDate) {
-        yearErrors.value = { end_date: ['The start date must be earlier than the end date.'] };
+        yearErrors.value = { end_date: [t('master.validation.dateOrder')] };
         return;
     }
 
@@ -239,7 +241,7 @@ const submitLock = async () => {
 
     const reason = lockReason.value.trim();
     if (!reason) {
-        lockErrors.value = { reason: [`${lockMode.value === 'lock' ? 'Lock' : 'Unlock'} reason is required.`] };
+        lockErrors.value = { reason: [t('master.schoolYears.lockDialog.reasonRequired', { mode: lockMode.value === 'lock' ? t('master.schoolYears.lockDialog.modeLock') : t('master.schoolYears.lockDialog.modeUnlock') })] };
         return;
     }
 
@@ -260,10 +262,10 @@ const submitLock = async () => {
 };
 
 const deleteBlockReason = (year) => {
-    if (year.is_active) return 'The active school year cannot be deleted. Set another active period first.';
-    if (year.is_locked) return 'A locked school year cannot be deleted. Unlock it first.';
+    if (year.is_active) return t('master.schoolYears.blockReason.active');
+    if (year.is_locked) return t('master.schoolYears.blockReason.locked');
     if ((year.school_rombels_count ?? 0) > 0) {
-        return `This year is referenced by ${year.school_rombels_count} class(es) and cannot be deleted.`;
+        return t('master.schoolYears.blockReason.hasClasses', { count: year.school_rombels_count });
     }
     return '';
 };
@@ -304,20 +306,20 @@ onMounted(async () => {
         <div class="bg-surface-0 dark:bg-surface-950 px-6 py-8 md:px-12 lg:px-20">
             <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div>
-                    <div class="font-bold text-3xl text-surface-900 dark:text-surface-0 mb-2">School Years</div>
-                    <p class="text-surface-500 dark:text-surface-400">Academic periods, start and end dates, and per-year locks.</p>
+                    <div class="font-bold text-3xl text-surface-900 dark:text-surface-0 mb-2">{{ t('master.schoolYears.title') }}</div>
+                    <p class="text-surface-500 dark:text-surface-400">{{ t('master.schoolYears.subtitle') }}</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
-                    <Tag v-if="activeYear" severity="success" :value="`Active: ${activeYear.name}${activeSemester ? ' · ' + activeSemester.name : ''}`" />
-                    <Tag v-else value="No active period" severity="warn" />
-                    <Tag v-if="activeYear?.is_locked" value="Active year locked" severity="danger" />
+                    <Tag v-if="activeYear" severity="success" :value="t('master.schoolYears.activeTag', { year: activeYear.name, semester: activeSemester ? ' · ' + activeSemester.name : '' })" />
+                    <Tag v-else :value="t('master.schoolYears.noActivePeriod')" severity="warn" />
+                    <Tag v-if="activeYear?.is_locked" :value="t('master.schoolYears.activeYearLocked')" severity="danger" />
                 </div>
             </div>
 
             <div class="card mt-6 flex flex-col gap-4">
                 <div>
-                    <div class="font-semibold text-xl text-surface-900 dark:text-surface-0">Academic Period</div>
-                    <p class="text-sm text-surface-500 dark:text-surface-400">The active period is the default school year for students and classes. Locked years cannot be set as active.</p>
+                    <div class="font-semibold text-xl text-surface-900 dark:text-surface-0">{{ t('master.schoolYears.activePeriodTitle') }}</div>
+                    <p class="text-sm text-surface-500 dark:text-surface-400">{{ t('master.schoolYears.activePeriodSubtitle') }}</p>
                 </div>
 
                 <div v-if="periodUnavailable" class="text-orange-600 dark:text-orange-400 text-sm">
@@ -326,37 +328,37 @@ onMounted(async () => {
 
                 <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
                     <div class="flex flex-col gap-2">
-                        <label for="activeSchoolYear" class="font-medium">Active School Year</label>
-                        <Select id="activeSchoolYear" v-model="draftYearId" :options="years" optionLabel="name" optionValue="id" placeholder="Select school year" :disabled="!canManage" class="w-full" />
+                        <label for="activeSchoolYear" class="font-medium">{{ t('master.schoolYears.activeSchoolYear') }}</label>
+                        <Select id="activeSchoolYear" v-model="draftYearId" :options="years" optionLabel="name" optionValue="id" :placeholder="t('master.schoolYears.selectSchoolYear')" :disabled="!canManage" class="w-full" />
                         <small v-if="fieldError(periodErrors, 'active_school_year_id')" class="text-red-500">
                             {{ fieldError(periodErrors, 'active_school_year_id') }}
                         </small>
                     </div>
                     <div class="flex flex-col gap-2">
-                        <label for="activeSemester" class="font-medium">Active Semester</label>
-                        <Select id="activeSemester" v-model="draftSemesterId" :options="semesters" optionLabel="name" optionValue="id" placeholder="Select semester" :disabled="!canManage" class="w-full" />
+                        <label for="activeSemester" class="font-medium">{{ t('master.schoolYears.activeSemester') }}</label>
+                        <Select id="activeSemester" v-model="draftSemesterId" :options="semesters" optionLabel="name" optionValue="id" :placeholder="t('master.schoolYears.selectSemester')" :disabled="!canManage" class="w-full" />
                         <small v-if="fieldError(periodErrors, 'active_semester_id')" class="text-red-500">
                             {{ fieldError(periodErrors, 'active_semester_id') }}
                         </small>
                     </div>
                     <div v-if="canManage" class="flex flex-col gap-2 md:pt-7">
-                        <Button label="Save Active Period" icon="pi pi-check" :loading="periodSaving" :disabled="!canSavePeriod" @click="savePeriod" />
+                        <Button :label="t('master.schoolYears.saveActivePeriod')" icon="pi pi-check" :loading="periodSaving" :disabled="!canSavePeriod" @click="savePeriod" />
                     </div>
                 </div>
 
                 <small v-if="periodMessage" class="text-red-500">{{ periodMessage }}</small>
-                <small v-if="!canManage && activeYear" class="text-surface-500"> Only users with master data management permission can change the active period. </small>
+                <small v-if="!canManage && activeYear" class="text-surface-500"> {{ t('master.schoolYears.permissionNotice') }} </small>
             </div>
 
             <div class="card mt-6 flex flex-col gap-4">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div class="flex flex-wrap items-center gap-3">
-                        <Button v-if="canManage" label="New School Year" icon="pi pi-plus" @click="openCreateYear" />
-                        <span class="text-sm text-surface-500">Total school years: {{ years.length }}</span>
+                        <Button v-if="canManage" :label="t('master.schoolYears.newSchoolYear')" icon="pi pi-plus" @click="openCreateYear" />
+                        <span class="text-sm text-surface-500">{{ t('master.schoolYears.totalSchoolYears', { count: years.length }) }}</span>
                     </div>
                     <IconField class="w-full md:w-72">
                         <InputIcon><i class="pi pi-search" /></InputIcon>
-                        <InputText v-model="search" placeholder="Search school year" class="w-full" />
+                        <InputText v-model="search" :placeholder="t('master.schoolYears.searchPlaceholder')" class="w-full" />
                     </IconField>
                 </div>
 
@@ -370,49 +372,49 @@ onMounted(async () => {
                     :loading="loading"
                     @page="onPage"
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
+                    :currentPageReportTemplate="t('master.common.showing')"
                 >
                     <template #empty>
                         <div class="flex flex-col items-center gap-3 py-6">
                             <span v-if="loadError" class="text-red-500">{{ loadError }}</span>
                             <span v-else>No school years found.</span>
-                            <Button v-if="loadError" icon="pi pi-refresh" label="Retry" @click="loadAll" />
+                            <Button v-if="loadError" icon="pi pi-refresh" :label="t('common.action.retry')" @click="loadAll" />
                         </div>
                     </template>
-                    <template #loading>Loading school years. Please wait.</template>
-                    <Column header="No" style="width: 3rem">
+                    <template #loading>{{ t('master.dialog.loading', { entity: t('master.schoolYears.title') }) }}</template>
+                    <Column :header="t('master.common.no')" style="width: 3rem">
                         <template #body="{ index }">{{ index + 1 }}</template>
                     </Column>
-                    <Column field="name" header="Name" sortable style="min-width: 12rem" />
-                    <Column field="start_date" header="Start Date" sortable style="min-width: 9rem">
+                    <Column field="name" :header="t('master.common.name')" sortable style="min-width: 12rem" />
+                    <Column field="start_date" :header="t('master.schoolYears.startDate')" sortable style="min-width: 9rem">
                         <template #body="{ data }">{{ data.start_date || '-' }}</template>
                     </Column>
-                    <Column field="end_date" header="End Date" sortable style="min-width: 9rem">
+                    <Column field="end_date" :header="t('master.schoolYears.endDate')" sortable style="min-width: 9rem">
                         <template #body="{ data }">{{ data.end_date || '-' }}</template>
                     </Column>
-                    <Column header="Active" style="min-width: 7rem">
+                    <Column :header="t('master.schoolYears.active')" style="min-width: 7rem">
                         <template #body="{ data }">
-                            <Tag v-if="data.is_active" value="Active" severity="success" />
+                            <Tag v-if="data.is_active" :value="t('master.schoolYears.active')" severity="success" />
                             <span v-else class="text-surface-400">-</span>
                         </template>
                     </Column>
-                    <Column header="Locked" style="min-width: 12rem">
+                    <Column :header="t('master.schoolYears.locked')" style="min-width: 12rem">
                         <template #body="{ data }">
                             <div class="flex flex-col gap-1">
-                                <Tag v-if="data.is_locked" value="Locked" severity="danger" />
-                                <span v-else class="text-surface-400">Unlocked</span>
+                                <Tag v-if="data.is_locked" :value="t('master.schoolYears.locked')" severity="danger" />
+                                <span v-else class="text-surface-400">{{ t('master.schoolYears.unlocked') }}</span>
                                 <small v-if="data.is_locked && data.lock_reason" class="text-surface-500">
                                     {{ data.lock_reason }}
                                 </small>
                             </div>
                         </template>
                     </Column>
-                    <Column header="Classes" style="min-width: 6rem">
+                    <Column :header="t('master.schoolYears.classes')" style="min-width: 6rem">
                         <template #body="{ data }">{{ data.school_rombels_count ?? 0 }}</template>
                     </Column>
-                    <Column v-if="canManage" header="Action" :exportable="false" style="min-width: 10rem">
+                    <Column v-if="canManage" :header="t('master.common.action')" :exportable="false" style="min-width: 10rem">
                         <template #body="{ data }">
-                            <Button icon="pi pi-pencil" variant="outlined" rounded class="mr-2" v-tooltip.top="'Edit'" @click="openEditYear(data)" />
+                            <Button icon="pi pi-pencil" variant="outlined" rounded class="mr-2" v-tooltip.top="t('master.common.edit')" @click="openEditYear(data)" />
                             <Button
                                 :icon="data.is_locked ? 'pi pi-lock-open' : 'pi pi-lock'"
                                 variant="outlined"
@@ -420,10 +422,10 @@ onMounted(async () => {
                                 class="mr-2"
                                 :severity="data.is_locked ? 'success' : 'warn'"
                                 :disabled="!data.is_locked && data.is_active"
-                                v-tooltip.top="data.is_locked ? 'Unlock' : data.is_active ? 'The active year cannot be locked' : 'Lock'"
+                                v-tooltip.top="data.is_locked ? t('master.schoolYears.unlockYear') : data.is_active ? t('master.schoolYears.activeYearCannotLock') : t('master.schoolYears.lockYear')"
                                 @click="openLockDialog(data)"
                             />
-                            <Button icon="pi pi-trash" variant="outlined" rounded severity="danger" :disabled="!!deleteBlockReason(data)" v-tooltip.top="deleteBlockReason(data) || 'Delete'" @click="openDeleteDialog(data)" />
+                            <Button icon="pi pi-trash" variant="outlined" rounded severity="danger" :disabled="!!deleteBlockReason(data)" v-tooltip.top="deleteBlockReason(data) || t('master.common.delete')" @click="openDeleteDialog(data)" />
                         </template>
                     </Column>
                 </DataTable>
@@ -431,10 +433,10 @@ onMounted(async () => {
         </div>
     </Fluid>
 
-    <Dialog v-model:visible="yearDialog" modal :style="{ width: '480px', maxWidth: '95vw' }" :header="yearEditing ? 'Edit School Year' : 'New School Year'" :draggable="false">
+    <Dialog v-model:visible="yearDialog" modal :style="{ width: '480px', maxWidth: '95vw' }" :header="yearEditing ? t('master.schoolYears.editSchoolYear') : t('master.schoolYears.newSchoolYear')" :draggable="false">
         <div class="flex flex-col gap-4">
             <div class="flex flex-col gap-2">
-                <label for="yearName" class="font-medium">Name <span class="text-red-500">*</span></label>
+                <label for="yearName" class="font-medium">{{ t('master.common.name') }} <span class="text-red-500">*</span></label>
                 <InputText id="yearName" v-model="yearForm.name" maxlength="100" autofocus fluid :invalid="yearSubmitted && !yearForm.name?.trim()" />
                 <small v-if="yearSubmitted && !yearForm.name?.trim()" class="text-red-500">Name is required.</small>
                 <small v-else-if="fieldError(yearErrors, 'name')" class="text-red-500">
@@ -443,50 +445,52 @@ onMounted(async () => {
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-2">
-                    <label for="yearStart" class="font-medium">Start Date</label>
+                    <label for="yearStart" class="font-medium">{{ t('master.schoolYears.startDate') }}</label>
                     <DatePicker id="yearStart" v-model="yearForm.start_date" dateFormat="yy-mm-dd" showIcon fluid />
                     <small v-if="fieldError(yearErrors, 'start_date')" class="text-red-500">
                         {{ fieldError(yearErrors, 'start_date') }}
                     </small>
                 </div>
                 <div class="flex flex-col gap-2">
-                    <label for="yearEnd" class="font-medium">End Date</label>
+                    <label for="yearEnd" class="font-medium">{{ t('master.schoolYears.endDate') }}</label>
                     <DatePicker id="yearEnd" v-model="yearForm.end_date" dateFormat="yy-mm-dd" showIcon fluid />
                     <small v-if="fieldError(yearErrors, 'end_date')" class="text-red-500">
                         {{ fieldError(yearErrors, 'end_date') }}
                     </small>
                 </div>
             </div>
-            <small class="text-surface-500">Dates use the YYYY-MM-DD format. The start date must be earlier than the end date.</small>
+            <small class="text-surface-500">{{ t('master.schoolYears.dateFormatHelp') }}</small>
         </div>
         <template #footer>
-            <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="yearSaving" @click="yearDialog = false" />
-            <Button :label="yearEditing ? 'Save Changes' : 'Create'" icon="pi pi-check" :loading="yearSaving" :disabled="yearSaving" @click="submitYear" />
+            <Button :label="t('common.action.cancel')" icon="pi pi-times" text severity="secondary" :disabled="yearSaving" @click="yearDialog = false" />
+            <Button :label="yearEditing ? t('master.schoolYears.saveChanges') : t('master.schoolYears.create')" icon="pi pi-check" :loading="yearSaving" :disabled="yearSaving" @click="submitYear" />
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="lockDialog" modal :style="{ width: '480px', maxWidth: '95vw' }" :header="lockMode === 'lock' ? 'Lock School Year' : 'Unlock School Year'" :draggable="false">
+    <Dialog v-model:visible="lockDialog" modal :style="{ width: '480px', maxWidth: '95vw' }" :header="lockMode === 'lock' ? t('master.schoolYears.lockDialog.lockTitle') : t('master.schoolYears.lockDialog.unlockTitle')" :draggable="false">
         <div class="flex flex-col gap-4">
             <p class="text-sm">
                 <template v-if="lockMode === 'lock'">
-                    Locking <strong>{{ lockTarget?.name }}</strong> prevents class changes and student placement for this year.
+                    {{ t('master.schoolYears.lockDialog.lockPrompt', { name: lockTarget?.name }) }}
                 </template>
                 <template v-else>
-                    Unlocking <strong>{{ lockTarget?.name }}</strong> allows class changes and student placement again.
+                    {{ t('master.schoolYears.lockDialog.unlockPrompt', { name: lockTarget?.name }) }}
                 </template>
             </p>
             <div class="flex flex-col gap-2">
-                <label for="lockReason" class="font-medium"> {{ lockMode === 'lock' ? 'Lock' : 'Unlock' }} Reason <span class="text-red-500">*</span> </label>
-                <Textarea id="lockReason" v-model="lockReason" rows="3" autoResize maxlength="255" placeholder="Explain why this academic year is being locked or unlocked" />
+                <label for="lockReason" class="font-medium">
+                    {{ t('master.schoolYears.lockDialog.reasonLabel', { mode: lockMode === 'lock' ? t('master.schoolYears.lockDialog.modeLock') : t('master.schoolYears.lockDialog.modeUnlock') }) }} <span class="text-red-500">*</span>
+                </label>
+                <Textarea id="lockReason" v-model="lockReason" rows="3" autoResize maxlength="255" :placeholder="t('master.schoolYears.lockDialog.reasonPlaceholder')" />
                 <small v-if="fieldError(lockErrors, 'reason')" class="text-red-500">
                     {{ fieldError(lockErrors, 'reason') }}
                 </small>
             </div>
         </div>
         <template #footer>
-            <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="lockSaving" @click="lockDialog = false" />
+            <Button :label="t('common.action.cancel')" icon="pi pi-times" text severity="secondary" :disabled="lockSaving" @click="lockDialog = false" />
             <Button
-                :label="lockMode === 'lock' ? 'Lock Year' : 'Unlock Year'"
+                :label="lockMode === 'lock' ? t('master.schoolYears.lockDialog.btnLock') : t('master.schoolYears.lockDialog.btnUnlock')"
                 :icon="lockMode === 'lock' ? 'pi pi-lock' : 'pi pi-lock-open'"
                 :severity="lockMode === 'lock' ? 'warn' : 'success'"
                 :loading="lockSaving"
@@ -496,7 +500,7 @@ onMounted(async () => {
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="deleteDialog" modal :style="{ width: '460px', maxWidth: '95vw' }" header="Delete School Year" :draggable="false">
+    <Dialog v-model:visible="deleteDialog" modal :style="{ width: '460px', maxWidth: '95vw' }" :header="t('master.schoolYears.deleteDialog.title')" :draggable="false">
         <div class="flex items-start gap-4">
             <i class="pi pi-exclamation-triangle !text-3xl text-red-500" />
             <div>
@@ -504,13 +508,13 @@ onMounted(async () => {
                     Are you sure you want to delete <strong>{{ deleteTarget?.name }}</strong
                     >?
                 </p>
-                <p class="text-sm text-surface-500 mt-2">A school year can only be deleted when it is not active, not locked, and has no classes.</p>
+                <p class="text-sm text-surface-500 mt-2">{{ t('master.schoolYears.deleteDialog.ruleNotice') }}</p>
                 <p v-if="deleteError" class="text-red-500 text-sm mt-2">{{ deleteError }}</p>
             </div>
         </div>
         <template #footer>
-            <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="deleteSaving" @click="deleteDialog = false" />
-            <Button label="Delete" icon="pi pi-trash" severity="danger" :loading="deleteSaving" :disabled="deleteSaving" @click="confirmDelete" />
+            <Button :label="t('common.action.cancel')" icon="pi pi-times" text severity="secondary" :disabled="deleteSaving" @click="deleteDialog = false" />
+            <Button :label="t('master.schoolYears.deleteDialog.btnDelete')" icon="pi pi-trash" severity="danger" :loading="deleteSaving" :disabled="deleteSaving" @click="confirmDelete" />
         </template>
     </Dialog>
 </template>

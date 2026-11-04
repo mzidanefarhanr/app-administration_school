@@ -1,11 +1,13 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import { useToast } from 'primevue/usetoast';
 import { authStore } from '@/stores/authStore';
 import apiLogin from '@/apiLogin';
 
 const toast = useToast();
+const { t } = useI18n();
 const store = authStore();
 const canManage = computed(() => store.can('students.manage'));
 
@@ -125,7 +127,7 @@ const selectedYear = computed(() => yearOptions.value.find((year) => year.id ===
 const selectedYearLocked = computed(() => selectedYear.value?.is_locked === true);
 const canSubmitClass = computed(() => !classSaving.value && !selectedYearLocked.value);
 
-const notify = (severity, detail, summary = 'Classes') => {
+const notify = (severity, detail, summary = t('master.schoolRombels.title')) => {
     toast.add({ severity, summary, detail, life: 5000 });
 };
 
@@ -317,9 +319,9 @@ const submitClass = async () => {
     classMessage.value = '';
 
     const name = (classForm.value.name ?? '').trim();
-    if (!name) classErrors.value.name = ['Name is required.'];
-    if (!classForm.value.school_year_id) classErrors.value.school_year_id = ['School year is required.'];
-    if (!classForm.value.school_level_id) classErrors.value.school_level_id = ['School level is required.'];
+    if (!name) classErrors.value.name = [t('master.validation.nameRequired')];
+    if (!classForm.value.school_year_id) classErrors.value.school_year_id = [t('master.validation.schoolYearRequired')];
+    if (!classForm.value.school_level_id) classErrors.value.school_level_id = [t('master.validation.schoolLevelRequired')];
     if (Object.keys(classErrors.value).length > 0) return;
 
     classSaving.value = true;
@@ -445,34 +447,34 @@ onMounted(async () => {
         <div class="bg-surface-0 dark:bg-surface-950 px-6 py-8 md:px-12 lg:px-20">
             <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div>
-                    <div class="font-bold text-3xl text-surface-900 dark:text-surface-0 mb-2">Classes</div>
-                    <p class="text-surface-500 dark:text-surface-400">Class groups per academic year with homeroom teachers from active teacher records.</p>
+                    <div class="font-bold text-3xl text-surface-900 dark:text-surface-0 mb-2">{{ t('master.schoolRombels.title') }}</div>
+                    <p class="text-surface-500 dark:text-surface-400">{{ t('master.schoolRombels.subtitle') }}</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
-                    <Tag v-if="activePeriodLabel" severity="success" :value="`Active period: ${activePeriodLabel}`" />
-                    <Tag v-else value="No active period" severity="warn" />
+                    <Tag v-if="activePeriodLabel" severity="success" :value="t('master.schoolYears.activeTag', { year: activePeriodLabel, semester: '' })" />
+                    <Tag v-else :value="t('master.schoolYears.noActivePeriod')" severity="warn" />
                 </div>
             </div>
 
             <div class="card mt-6 flex flex-col gap-4">
                 <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
                     <div class="flex flex-wrap gap-2">
-                        <Button v-if="canManage" label="New Class" icon="pi pi-plus" :disabled="unlockedYears.length === 0" @click="openCreate" />
-                        <Button icon="pi pi-filter-slash" label="Clear" severity="secondary" variant="outlined" @click="resetFilters" />
+                        <Button v-if="canManage" :label="t('master.schoolRombels.newClass')" icon="pi pi-plus" :disabled="unlockedYears.length === 0" @click="openCreate" />
+                        <Button icon="pi pi-filter-slash" :label="t('master.common.clear')" severity="secondary" variant="outlined" @click="resetFilters" />
                     </div>
                     <div class="flex flex-wrap items-center gap-3">
-                        <span class="text-sm text-surface-500">Total classes: {{ filteredRows.length }}</span>
+                        <span class="text-sm text-surface-500">{{ t('master.schoolRombels.totalClasses', { count: filteredRows.length }) }}</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
-                    <Select v-model="yearFilter" :options="yearOptions" optionLabel="name" optionValue="id" placeholder="All school years" showClear class="w-full" @change="onYearFilterChange" />
-                    <Select v-model="levelFilter" :options="levelOptions" optionLabel="name" optionValue="id" placeholder="All levels" showClear class="w-full" />
-                    <Select v-model="majorFilter" :options="majorOptions" optionLabel="name" optionValue="id" placeholder="All majors" showClear class="w-full" />
-                    <InputText v-model="teacherSearch" placeholder="Homeroom teacher" class="w-full" />
+                    <Select v-model="yearFilter" :options="yearOptions" optionLabel="name" optionValue="id" :placeholder="t('master.schoolRombels.allYears')" showClear class="w-full" @change="onYearFilterChange" />
+                    <Select v-model="levelFilter" :options="levelOptions" optionLabel="name" optionValue="id" :placeholder="t('master.schoolRombels.allLevels')" showClear class="w-full" />
+                    <Select v-model="majorFilter" :options="majorOptions" optionLabel="name" optionValue="id" :placeholder="t('master.schoolRombels.allMajors')" showClear class="w-full" />
+                    <InputText v-model="teacherSearch" :placeholder="t('master.schoolRombels.searchTeacher')" class="w-full" />
                     <IconField class="w-full">
                         <InputIcon><i class="pi pi-search" /></InputIcon>
-                        <InputText v-model="search" placeholder="Search class, year, level" class="w-full" />
+                        <InputText v-model="search" :placeholder="t('master.schoolRombels.searchClass')" class="w-full" />
                     </IconField>
                 </div>
 
@@ -488,38 +490,38 @@ onMounted(async () => {
                     :loading="loading"
                     @page="onPage"
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
+                    :currentPageReportTemplate="t('master.common.showing')"
                 >
                     <template #empty>
                         <div class="flex flex-col items-center gap-3 py-6">
                             <span v-if="listError" class="text-red-500">{{ listError }}</span>
                             <span v-else>No classes match the current filters.</span>
-                            <Button v-if="listError" icon="pi pi-refresh" label="Retry" @click="fetchClasses" />
+                            <Button v-if="listError" icon="pi pi-refresh" :label="t('common.action.retry')" @click="fetchClasses" />
                         </div>
                     </template>
-                    <template #loading>Loading classes. Please wait.</template>
-                    <Column header="No" style="width: 3rem">
+                    <template #loading>{{ t('master.dialog.loading', { entity: t('master.schoolRombels.title') }) }}</template>
+                    <Column :header="t('master.common.no')" style="width: 3rem">
                         <template #body="{ index }">{{ index + 1 }}</template>
                     </Column>
-                    <Column field="name" header="Name" sortable style="min-width: 10rem" />
-                    <Column field="school_year.name" header="School Year" sortable style="min-width: 13rem">
+                    <Column field="name" :header="t('master.common.name')" sortable style="min-width: 10rem" />
+                    <Column field="school_year.name" :header="t('master.schoolRombels.filterYear')" sortable style="min-width: 13rem">
                         <template #body="{ data }">
                             <div class="flex items-center gap-2">
                                 <span>{{ data.school_year?.name ?? '-' }}</span>
-                                <Tag v-if="data.school_year?.is_locked" value="Locked" severity="danger" />
+                                <Tag v-if="data.school_year?.is_locked" :value="t('master.schoolYears.locked')" severity="danger" />
                             </div>
                         </template>
                     </Column>
-                    <Column field="school_level.name" header="School Level" sortable style="min-width: 9rem">
+                    <Column field="school_level.name" :header="t('master.schoolRombels.filterLevel')" sortable style="min-width: 9rem">
                         <template #body="{ data }">
                             <Tag v-if="data.school_level" :value="data.school_level.name" severity="info" />
                             <span v-else>-</span>
                         </template>
                     </Column>
-                    <Column field="student_major.name" header="Student Major" sortable style="min-width: 10rem">
+                    <Column field="student_major.name" :header="t('master.schoolRombels.filterMajor')" sortable style="min-width: 10rem">
                         <template #body="{ data }">{{ data.student_major?.name ?? '-' }}</template>
                     </Column>
-                    <Column field="class_teach_employee.name" header="Homeroom Teacher" sortable style="min-width: 14rem">
+                    <Column field="class_teach_employee.name" :header="t('master.schoolRombels.homeroomTeacher')" sortable style="min-width: 14rem">
                         <template #body="{ data }">
                             <span v-if="data.class_teach_employee">{{ data.class_teach_employee.name }}</span>
                             <span v-else-if="data.class_teach">
@@ -529,10 +531,10 @@ onMounted(async () => {
                             <span v-else>-</span>
                         </template>
                     </Column>
-                    <Column header="Students" style="min-width: 9rem">
+                    <Column :header="t('master.schoolRombels.studentsCount')" style="min-width: 9rem">
                         <template #body="{ data }">
                             <div class="flex flex-col">
-                                <span class="font-medium">{{ data.active_members_count ?? 0 }} active</span>
+                                <span class="font-medium">{{ data.active_members_count ?? 0 }} {{ t('master.schoolYears.active').toLowerCase() }}</span>
                                 <small class="text-surface-500">{{ data.memberships_count ?? 0 }} total</small>
                             </div>
                         </template>
@@ -540,10 +542,10 @@ onMounted(async () => {
                     <Column header="Version" style="min-width: 6rem">
                         <template #body="{ data }">v{{ data.version }}</template>
                     </Column>
-                    <Column v-if="canManage" header="Action" :exportable="false" style="min-width: 9rem">
+                    <Column v-if="canManage" :header="t('master.common.action')" :exportable="false" style="min-width: 9rem">
                         <template #body="{ data }">
-                            <Button icon="pi pi-pencil" variant="outlined" rounded class="mr-2" :disabled="!!rowActionBlockReason(data)" v-tooltip.top="rowActionBlockReason(data) || 'Edit'" @click="openEdit(data)" />
-                            <Button icon="pi pi-trash" variant="outlined" rounded severity="danger" :disabled="!!deleteBlockReason(data)" v-tooltip.top="deleteBlockReason(data) || 'Delete'" @click="openDelete(data)" />
+                            <Button icon="pi pi-pencil" variant="outlined" rounded class="mr-2" :disabled="!!rowActionBlockReason(data)" v-tooltip.top="rowActionBlockReason(data) || t('master.common.edit')" @click="openEdit(data)" />
+                            <Button icon="pi pi-trash" variant="outlined" rounded severity="danger" :disabled="!!deleteBlockReason(data)" v-tooltip.top="deleteBlockReason(data) || t('master.common.delete')" @click="openDelete(data)" />
                         </template>
                     </Column>
                 </DataTable>
@@ -551,10 +553,10 @@ onMounted(async () => {
         </div>
     </Fluid>
 
-    <Dialog v-model:visible="classDialog" modal :style="{ width: '560px', maxWidth: '95vw' }" :header="classEditing ? 'Edit Class' : 'New Class'" :draggable="false">
+    <Dialog v-model:visible="classDialog" modal :style="{ width: '560px', maxWidth: '95vw' }" :header="classEditing ? t('master.schoolRombels.editClass') : t('master.schoolRombels.newClass')" :draggable="false">
         <div class="flex flex-col gap-4">
             <div class="flex flex-col gap-2">
-                <label for="className" class="font-medium">Name <span class="text-red-500">*</span></label>
+                <label for="className" class="font-medium">{{ t('master.common.name') }} <span class="text-red-500">*</span></label>
                 <InputText id="className" v-model="classForm.name" maxlength="100" autofocus fluid :invalid="classSubmitted && !classForm.name?.trim()" />
                 <small v-if="classSubmitted && !classForm.name?.trim()" class="text-red-500">Name is required.</small>
                 <small v-else-if="fieldError(classErrors, 'name')" class="text-red-500">
@@ -564,14 +566,14 @@ onMounted(async () => {
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-2">
-                    <label for="classYear" class="font-medium">School Year <span class="text-red-500">*</span></label>
+                    <label for="classYear" class="font-medium">{{ t('master.schoolRombels.filterYear') }} <span class="text-red-500">*</span></label>
                     <Select id="classYear" v-model="classForm.school_year_id" :options="yearOptions" optionLabel="name" optionValue="id" placeholder="Select school year" :disabled="editorHasHistory" fluid />
                     <small v-if="fieldError(classErrors, 'school_year_id')" class="text-red-500">
                         {{ fieldError(classErrors, 'school_year_id') }}
                     </small>
                 </div>
                 <div class="flex flex-col gap-2">
-                    <label for="classLevel" class="font-medium">School Level <span class="text-red-500">*</span></label>
+                    <label for="classLevel" class="font-medium">{{ t('master.schoolRombels.filterLevel') }} <span class="text-red-500">*</span></label>
                     <Select id="classLevel" v-model="classForm.school_level_id" :options="levelOptions" optionLabel="name" optionValue="id" placeholder="Select school level" :disabled="editorHasHistory" fluid />
                     <small v-if="fieldError(classErrors, 'school_level_id')" class="text-red-500">
                         {{ fieldError(classErrors, 'school_level_id') }}
@@ -580,7 +582,7 @@ onMounted(async () => {
             </div>
 
             <div class="flex flex-col gap-2">
-                <label for="classMajor" class="font-medium">Student Major</label>
+                <label for="classMajor" class="font-medium">{{ t('master.schoolRombels.filterMajor') }}</label>
                 <Select id="classMajor" v-model="classForm.student_major_id" :options="majorOptions" optionLabel="name" optionValue="id" placeholder="No student major" showClear :disabled="editorHasHistory" fluid />
                 <small v-if="fieldError(classErrors, 'student_major_id')" class="text-red-500">
                     {{ fieldError(classErrors, 'student_major_id') }}
@@ -588,7 +590,7 @@ onMounted(async () => {
             </div>
 
             <div class="flex flex-col gap-2">
-                <label for="classTeacher" class="font-medium">Homeroom Teacher</label>
+                <label for="classTeacher" class="font-medium">{{ t('master.schoolRombels.homeroomTeacher') }}</label>
                 <div class="flex items-center gap-2">
                     <AutoComplete
                         id="classTeacher"
@@ -599,11 +601,11 @@ onMounted(async () => {
                         dropdown
                         display="chip"
                         fluid
-                        placeholder="Search an active teacher"
+                        :placeholder="t('master.schoolRombels.teacherPlaceholder')"
                         :loading="teacherLoading"
                         @complete="searchTeachers"
                     />
-                    <Button v-if="selectedTeacher" icon="pi pi-times" text rounded severity="secondary" v-tooltip.top="'Clear homeroom teacher'" @click="clearTeacher" />
+                    <Button v-if="selectedTeacher" icon="pi pi-times" text rounded severity="secondary" v-tooltip.top="t('master.schoolRombels.clearTeacher')" @click="clearTeacher" />
                 </div>
                 <small v-if="fieldError(classErrors, 'class_teach_employee_id')" class="text-red-500">
                     {{ fieldError(classErrors, 'class_teach_employee_id') }}
@@ -611,23 +613,23 @@ onMounted(async () => {
                 <small v-if="teacherOptionsError" class="text-orange-600 dark:text-orange-400">
                     {{ teacherOptionsError }}
                 </small>
-                <small v-if="legacyTeacherName" class="text-surface-500"> Legacy homeroom teacher: {{ legacyTeacherName }}. Select an active teacher to replace it. </small>
-                <small class="text-surface-500">Only active teachers (Pendidik) are eligible.</small>
+                <small v-if="legacyTeacherName" class="text-surface-500"> {{ t('master.schoolRombels.legacyTeacherDetail', { name: legacyTeacherName }) }} </small>
+                <small class="text-surface-500">{{ t('master.schoolRombels.onlyActiveTeachersNotice') }}</small>
             </div>
 
-            <div v-if="selectedYearLocked" class="text-orange-600 dark:text-orange-400 text-sm">The selected school year is locked. Unlock it before saving class changes.</div>
+            <div v-if="selectedYearLocked" class="text-orange-600 dark:text-orange-400 text-sm">{{ t('master.schoolRombels.lockedYearNotice') }}</div>
 
             <div v-if="editorHasHistory" class="text-surface-500 text-sm">Academic year, school level, and student major cannot be changed because this class already has membership history.</div>
 
             <div v-if="classMessage" class="text-red-500 text-sm">{{ classMessage }}</div>
         </div>
         <template #footer>
-            <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="classSaving" @click="classDialog = false" />
-            <Button :label="classEditing ? 'Save Changes' : 'Create'" icon="pi pi-check" :loading="classSaving" :disabled="!canSubmitClass" @click="submitClass" />
+            <Button :label="t('common.action.cancel')" icon="pi pi-times" text severity="secondary" :disabled="classSaving" @click="classDialog = false" />
+            <Button :label="classEditing ? t('master.schoolYears.saveChanges') : t('master.schoolYears.create')" icon="pi pi-check" :loading="classSaving" :disabled="!canSubmitClass" @click="submitClass" />
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="conflictDialog" modal :style="{ width: '520px', maxWidth: '95vw' }" header="Data Conflict Detected" :draggable="false">
+    <Dialog v-model:visible="conflictDialog" modal :style="{ width: '520px', maxWidth: '95vw' }" :header="t('master.schoolRombels.conflict.title')" :draggable="false">
         <div class="flex items-start gap-4">
             <i class="pi pi-exclamation-triangle !text-3xl text-orange-500" />
             <div>
@@ -636,12 +638,12 @@ onMounted(async () => {
             </div>
         </div>
         <template #footer>
-            <Button label="Close" icon="pi pi-times" text severity="secondary" :disabled="reloadingConflict" @click="conflictDialog = false" />
-            <Button label="Reload Latest" icon="pi pi-refresh" :loading="reloadingConflict" :disabled="reloadingConflict" @click="reloadAfterConflict" />
+            <Button :label="t('common.action.close')" icon="pi pi-times" text severity="secondary" :disabled="reloadingConflict" @click="conflictDialog = false" />
+            <Button :label="t('master.schoolRombels.conflict.btnReload')" icon="pi pi-refresh" :loading="reloadingConflict" :disabled="reloadingConflict" @click="reloadAfterConflict" />
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="deleteDialog" modal :style="{ width: '460px', maxWidth: '95vw' }" header="Delete Class" :draggable="false">
+    <Dialog v-model:visible="deleteDialog" modal :style="{ width: '460px', maxWidth: '95vw' }" :header="t('master.schoolRombels.deleteDialog.title')" :draggable="false">
         <div class="flex items-start gap-4">
             <i class="pi pi-exclamation-triangle !text-3xl text-red-500" />
             <div>
@@ -649,13 +651,13 @@ onMounted(async () => {
                     Are you sure you want to delete <strong>{{ deleteTarget?.name }}</strong
                     >?
                 </p>
-                <p class="text-sm text-surface-500 mt-2">This action is only allowed when the class has no membership history. The deletion is recorded in the audit log.</p>
+                <p class="text-sm text-surface-500 mt-2">{{ t('master.schoolRombels.deleteDialog.ruleNotice') }}</p>
                 <p v-if="deleteError" class="text-red-500 text-sm mt-2">{{ deleteError }}</p>
             </div>
         </div>
         <template #footer>
-            <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="deleteSaving" @click="deleteDialog = false" />
-            <Button label="Delete" icon="pi pi-trash" severity="danger" :loading="deleteSaving" :disabled="deleteSaving" @click="confirmDelete" />
+            <Button :label="t('common.action.cancel')" icon="pi pi-times" text severity="secondary" :disabled="deleteSaving" @click="deleteDialog = false" />
+            <Button :label="t('master.common.delete')" icon="pi pi-trash" severity="danger" :loading="deleteSaving" :disabled="deleteSaving" @click="confirmDelete" />
         </template>
     </Dialog>
 </template>

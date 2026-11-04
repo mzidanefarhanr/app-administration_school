@@ -1,9 +1,11 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import apiLogin from '@/apiLogin';
 import { authStore } from '@/stores/authStore';
 
+const { t, locale } = useI18n();
 const router = useRouter();
 const store = authStore();
 
@@ -18,6 +20,20 @@ const employeeQuality = computed(() => dataQuality.value?.employees ?? null);
 
 const hasAnyData = computed(() => studentQuality.value !== null || employeeQuality.value !== null);
 
+const formatIncomplete = (count) => {
+    if (locale.value === 'en') {
+        return `${count} incomplete profile${count === 1 ? '' : 's'}`;
+    }
+    return `${count} profil belum lengkap`;
+};
+
+const formatIssues = (count) => {
+    if (locale.value === 'en') {
+        return `Review ${count} issue${count === 1 ? '' : 's'}`;
+    }
+    return `Tinjau ${count} kendala`;
+};
+
 const load = async () => {
     if (!canViewDataQuality.value) return;
 
@@ -27,7 +43,7 @@ const load = async () => {
         const response = await apiLogin.get('/api/dashboard/overview');
         dataQuality.value = response.data?.data?.data_quality ?? null;
     } catch {
-        error.value = 'Data kualitas kelengkapan master tidak dapat dimuat.';
+        error.value = t('dashboard.dataQuality.error');
     } finally {
         loading.value = false;
     }
@@ -48,22 +64,22 @@ defineExpose({ load });
     <div v-if="canViewDataQuality" class="card mb-6">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <div class="font-semibold text-xl">Kualitas Data Master</div>
-                <div class="text-xs text-muted-color">Kelengkapan data siswa dan PTK untuk pelaporan sekolah</div>
+                <div class="font-semibold text-xl">{{ t('dashboard.dataQuality.title') }}</div>
+                <div class="text-xs text-muted-color">{{ t('dashboard.dataQuality.subtitle') }}</div>
             </div>
-            <Button label="Buka Audit" icon="pi pi-external-link" size="small" variant="text" severity="secondary" @click="openDataQuality()" />
+            <Button :label="t('dashboard.dataQuality.openAudit')" icon="pi pi-external-link" size="small" variant="text" severity="secondary" @click="openDataQuality()" />
         </div>
 
         <div v-if="loading" class="flex items-center gap-3 py-6 text-surface-500 justify-center">
             <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
-            <span class="text-sm">Menganalisis kelengkapan data...</span>
+            <span class="text-sm">{{ t('dashboard.dataQuality.analyzing') }}</span>
         </div>
 
         <div v-else-if="error" class="py-4 text-center">
             <span class="text-xs text-red-500">{{ error }}</span>
         </div>
 
-        <div v-else-if="!hasAnyData" class="py-6 text-center text-surface-400 text-sm">Data kualitas belum tersedia untuk tahun ajaran aktif.</div>
+        <div v-else-if="!hasAnyData" class="py-6 text-center text-surface-400 text-sm">{{ t('dashboard.dataQuality.empty') }}</div>
 
         <div v-else class="space-y-4">
             <!-- Student Completeness -->
@@ -71,7 +87,7 @@ defineExpose({ load });
                 <div class="flex justify-between items-center mb-1">
                     <span class="font-medium text-sm text-surface-900 dark:text-surface-0 flex items-center gap-2">
                         <i class="pi pi-users text-blue-500 text-xs" aria-hidden="true"></i>
-                        Data Kelengkapan Siswa
+                        {{ t('dashboard.dataQuality.studentCompleteness') }}
                     </span>
                     <span class="font-bold text-sm text-primary">{{ studentQuality.complete_percent }}%</span>
                 </div>
@@ -83,8 +99,8 @@ defineExpose({ load });
                     ></div>
                 </div>
                 <div class="flex justify-between items-center text-xs text-surface-500">
-                    <span>{{ studentQuality.incomplete_records }} profil belum lengkap</span>
-                    <button type="button" class="text-primary hover:underline font-medium cursor-pointer" @click="openDataQuality('students')">Tinjau {{ studentQuality.unresolved_issues }} kendala</button>
+                    <span>{{ formatIncomplete(studentQuality.incomplete_records) }}</span>
+                    <button type="button" class="text-primary hover:underline font-medium cursor-pointer" @click="openDataQuality('students')">{{ formatIssues(studentQuality.unresolved_issues) }}</button>
                 </div>
             </div>
 
@@ -93,7 +109,7 @@ defineExpose({ load });
                 <div class="flex justify-between items-center mb-1">
                     <span class="font-medium text-sm text-surface-900 dark:text-surface-0 flex items-center gap-2">
                         <i class="pi pi-id-card text-orange-500 text-xs" aria-hidden="true"></i>
-                        Data Kelengkapan PTK
+                        {{ t('dashboard.dataQuality.employeeCompleteness') }}
                     </span>
                     <span class="font-bold text-sm text-primary">{{ employeeQuality.complete_percent }}%</span>
                 </div>
@@ -105,8 +121,8 @@ defineExpose({ load });
                     ></div>
                 </div>
                 <div class="flex justify-between items-center text-xs text-surface-500">
-                    <span>{{ employeeQuality.incomplete_records }} profil belum lengkap</span>
-                    <button type="button" class="text-primary hover:underline font-medium cursor-pointer" @click="openDataQuality('employees')">Tinjau {{ employeeQuality.unresolved_issues }} kendala</button>
+                    <span>{{ formatIncomplete(employeeQuality.incomplete_records) }}</span>
+                    <button type="button" class="text-primary hover:underline font-medium cursor-pointer" @click="openDataQuality('employees')">{{ formatIssues(employeeQuality.unresolved_issues) }}</button>
                 </div>
             </div>
         </div>

@@ -1,0 +1,133 @@
+{
+    "title": "Operational Task & Internal Reminder Center",
+    "subtitle": "Unified operational follow-up center: letter queues, leave requests, document archives, teaching journals, and staff internal reminders (DEC-44).",
+    "refresh": "Refresh",
+    "createReminder": "Create New Reminder",
+    "addReminder": "Add New Reminder",
+    "kpi": {
+        "totalActive": "Total Active Tasks",
+        "actionRequired": "Immediate Action",
+        "attentionDue": "Attention / Due Soon",
+        "completedToday": "Completed Today"
+    },
+    "filter": {
+        "selectDomain": "Select Domain",
+        "selectUrgency": "Select Urgency",
+        "reset": "Reset",
+        "searchPlaceholder": "Search title or description..."
+    },
+    "domain": {
+        "all": "All Domains",
+        "letters": "Letters",
+        "leaves": "Leaves & Permissions",
+        "teaching": "Teaching",
+        "archives": "Document Archives",
+        "students": "Students",
+        "personnel": "Personnel",
+        "general": "General & Operations",
+        "lettersOption": "Letters",
+        "leavesOption": "Leaves & Permissions",
+        "teachingOption": "Teaching",
+        "archivesOption": "Document Archives",
+        "studentsOption": "Students",
+        "personnelOption": "Personnel",
+        "generalOption": "General & Operations"
+    },
+    "urgency": {
+        "all": "All Urgencies",
+        "high": "Urgent",
+        "warn": "Attention",
+        "info": "Information",
+        "highOption": "Urgent (High)",
+        "warnOption": "Attention (Warn)",
+        "infoOption": "Information (Info)"
+    },
+    "priority": {
+        "highOption": "High / Urgent (High)",
+        "warnOption": "Medium / Attention (Warn)",
+        "infoOption": "Low / Info (Info)"
+    },
+    "tabs": {
+        "all": "All Tasks",
+        "system": "System Tasks",
+        "manual": "Manual Reminders",
+        "completed": "Completed History"
+    },
+    "source": {
+        "system": "System",
+        "manual": "Staff Reminder"
+    },
+    "status": {
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+    },
+    "meta": {
+        "dueDate": "Due Date: {date}",
+        "completedAt": "Completed on {date}"
+    },
+    "action": {
+        "openModule": "Open Module",
+        "markDismissed": "Mark as Done",
+        "markCompleted": "Done",
+        "editTooltip": "Edit Note",
+        "cancelTooltip": "Cancel Task",
+        "deleteTooltip": "Delete Permanently"
+    },
+    "loading": "Loading operational tasks list...",
+    "empty": {
+        "title": "No Pending Tasks",
+        "subtitle": "All operational queues have been resolved or match your selected filter criteria.",
+        "action": "Add New Reminder"
+    },
+    "pagination": {
+        "showing": "Showing {from} - {to} of {total} tasks"
+    },
+    "dialog": {
+        "editTitle": "Edit Operational Reminder",
+        "createTitle": "Add New Reminder",
+        "titleLabel": "Task / Reminder Title",
+        "titlePlaceholder": "e.g., Coordinate submission of Dapodik files to the education department",
+        "categoryLabel": "Field Category",
+        "priorityLabel": "Priority Level",
+        "dueDateLabel": "Deadline / Due Date (Optional)",
+        "descriptionLabel": "Detailed Description / Follow-up Notes",
+        "descriptionPlaceholder": "Write detailed notes or preparations needed...",
+        "cancel": "Cancel",
+        "saveReminder": "Save Reminder"
+    },
+    "toast": {
+        "warningTitle": "Warning",
+        "loadSummaryError": "Failed to load task summary: {msg}",
+        "loadTasksErrorTitle": "Failed to Load Tasks",
+        "serverError": "A server error occurred.",
+        "genericError": "An error occurred.",
+        "validationTitle": "Validation Warning",
+        "titleRequired": "Reminder title is required.",
+        "updateSuccessTitle": "Updated Successfully",
+        "updateSuccessDetail": "Reminder updated successfully.",
+        "createSuccessTitle": "Created Successfully",
+        "createSuccessDetail": "New reminder added successfully.",
+        "saveErrorTitle": "Failed to Save",
+        "saveErrorDetail": "Failed to save reminder.",
+        "completeSuccessTitle": "Task Completed",
+        "completeSuccessDetail": "\"{title}\" has been marked as completed.",
+        "completeErrorTitle": "Failed to Complete Task",
+        "cancelSuccessTitle": "Task Cancelled",
+        "cancelSuccessDetail": "\"{title}\" has been cancelled.",
+        "cancelErrorTitle": "Failed to Cancel",
+        "deleteSuccessTitle": "Reminder Deleted",
+        "deleteSuccessDetail": "Reminder record permanently deleted.",
+        "deleteErrorTitle": "Failed to Delete",
+        "dismissSuccessTitle": "Task Resolved",
+        "dismissSuccessDetail": "Task \"{title}\" has been moved to completed history.",
+        "dismissErrorTitle": "Failed to Resolve System Task"
+    },
+    "confirm": {
+        "cancelTitle": "Cancel Confirmation",
+        "cancelMessage": "Cancel task \"{title}\"?",
+        "deleteTitle": "Delete Confirmation",
+        "deleteMessage": "Permanently delete reminder \"{title}\"?",
+        "dismissTitle": "Mark System Task as Done",
+        "dismissMessage": "Mark system task \"{title}\" as done/dismissed from the active list?"
+    }
+}

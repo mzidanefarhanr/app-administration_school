@@ -1,0 +1,163 @@
+{
+    "title": "Data Quality",
+    "subtitle": "Completeness findings for placed students and active employees. Review status records workflow only; it does not change record data or completeness percentages.",
+    "tabs": {
+        "students": "Students",
+        "employees": "Employees"
+    },
+    "record": {
+        "students": "Student",
+        "employees": "Employee"
+    },
+    "schoolYear": {
+        "label": "School Year",
+        "placeholder": "Select a school year",
+        "empty": "No school year is available. Add a school year before inspecting students."
+    },
+    "asOf": "As of {time}",
+    "timezone": "Asia/Jakarta",
+    "loadingSummary": "Loading summary...",
+    "population": {
+        "label": "Population",
+        "employeesHint": "Active employees (Pendidik and Tenaga Kependidikan)"
+    },
+    "summary": {
+        "placedStudents": "Placed Students (denominator)",
+        "activeEmployees": "Active Employees (denominator)",
+        "active": "Active: {count}",
+        "unplaced": "Unplaced: {count}",
+        "notEvaluated": "Not evaluated: {count}",
+        "archivedExcluded": "Archived excluded: {count}",
+        "separated": "Separated: {count}",
+        "completeRecords": "Complete Records",
+        "incomplete": "Incomplete: {count}",
+        "complete": "Complete: {percent}",
+        "fieldFindings": "Field Findings",
+        "missing": "Missing: {count}",
+        "invalid": "Invalid: {count}",
+        "blockedNik": "Blocked NIK: {missing} missing / {invalid} invalid",
+        "subjectRule": "Subject is required for teachers and must be empty for non-teaching employees.",
+        "duplicateCandidates": "Duplicate Candidates",
+        "affectedRecords": "Affected records: {count}",
+        "manualReviewOnly": "Manual review only; no automatic merge.",
+        "reviewWorkflow": "Review Workflow",
+        "open": "Open: {count}",
+        "acknowledged": "Acknowledged: {count}",
+        "ignored": "Ignored: {count}"
+    },
+    "completeness": {
+        "title": "Field Completeness",
+        "studentsBlockedNote": "NIK blocked outside the denominator: {missing} missing and {invalid} invalid. These students are not placed in the selected school year.",
+        "employeesNote": "NUPTK is measured against active teachers only. Subject is measured against all active employees."
+    },
+    "columns": {
+        "field": "Field",
+        "denominator": "Denominator",
+        "missing": "Missing",
+        "invalid": "Invalid",
+        "complete": "Complete",
+        "completeness": "Completeness",
+        "no": "No",
+        "record": "Record",
+        "issue": "Issue",
+        "related": "Related",
+        "review": "Review",
+        "action": "Action"
+    },
+    "issues": {
+        "title": "Issues",
+        "matching": "{count} matching",
+        "searchStudents": "Name, NIS, or NISN",
+        "searchEmployees": "Name or NUPTK",
+        "allTypes": "All types",
+        "allFields": "All fields",
+        "reset": "Reset",
+        "loading": "Loading issues. Please wait.",
+        "empty": "No issues match the current filters.",
+        "pageReport": "Showing {first} to {last} of {totalRecords} issues",
+        "reviewVersion": "Review version {version}"
+    },
+    "placement": {
+        "placed": "Placed",
+        "unplaced": "Unplaced"
+    },
+    "tooltip": {
+        "openRelated": "Open related record",
+        "openRecord": "Open record",
+        "acknowledge": "Acknowledge",
+        "ignore": "Ignore",
+        "reopen": "Reopen"
+    },
+    "issueType": {
+        "missing": "Missing",
+        "invalid": "Invalid",
+        "duplicate": "Duplicate Candidate",
+        "blocked": "Blocked"
+    },
+    "issueStatus": {
+        "open": "Open",
+        "acknowledged": "Acknowledged",
+        "ignored": "Ignored",
+        "all": "All"
+    },
+    "reviewReason": {
+        "pending_document": "Pending document",
+        "source_unavailable": "Source unavailable",
+        "verified_distinct": "Verified as distinct",
+        "not_applicable": "Not applicable"
+    },
+    "field": {
+        "nik": "NIK",
+        "nis": "NIS",
+        "nisn": "NISN",
+        "gender_id": "Gender",
+        "birthplace": "Birthplace",
+        "birthdate": "Birthdate",
+        "religion_id": "Religion",
+        "name_birthdate": "Name and Birthdate",
+        "employee_type_id": "Employee Type",
+        "employee_status_id": "Employee Status",
+        "employment_id": "Employment",
+        "marital_status_id": "Marital Status",
+        "district_id": "District",
+        "tmt_employee": "Employment Start Date (TMT)",
+        "nuptk": "NUPTK",
+        "subject_id": "Subject"
+    },
+    "errors": {
+        "loadYears": "Failed to load school years. Please try again.",
+        "loadStudentSummary": "Failed to load the student summary.",
+        "loadEmployeeSummary": "Failed to load the employee summary.",
+        "loadIssues": "Failed to load issues. Please try again."
+    },
+    "toast": {
+        "reviewSavedSummary": "Review Saved",
+        "reviewSavedDetail": "Issue marked {status}.",
+        "reviewStaleSummary": "Review Out Of Date"
+    },
+    "dialog": {
+        "title": "Review {record} Issue",
+        "record": "Record:",
+        "relatedRecord": "Related record:",
+        "reviewStatus": "Review status:",
+        "version": "version {version}",
+        "reviewAction": "Review action",
+        "reason": "Reason *",
+        "reasonPlaceholder": "Select a reason",
+        "reasonHelp": "A reason is required when ignoring an issue. It is stored with the review audit trail.",
+        "note": "Review status records workflow only. It does not change {record} data, completeness percentages, or duplicate candidates. Correct the record through the existing form.",
+        "save": "Save Review",
+        "action": {
+            "acknowledged": "Acknowledge",
+            "ignored": "Ignore",
+            "open": "Reopen"
+        },
+        "errors": {
+            "reasonRequired": "Select a reason before ignoring this issue.",
+            "stale": "This issue is out of date. Refresh the list.",
+            "checkValues": "Check the review values and try again.",
+            "notFound": "The record no longer exists.",
+            "saveFailed": "Failed to save the review. Please try again."
+        }
+    }
+}

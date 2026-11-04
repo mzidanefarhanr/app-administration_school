@@ -1,0 +1,80 @@
+{
+    "language": {
+        "label": "Language"
+    },
+    "action": {
+        "add": "Add",
+        "back": "Back",
+        "cancel": "Cancel",
+        "close": "Close",
+        "delete": "Delete",
+        "edit": "Edit",
+        "refresh": "Refresh",
+        "retry": "Retry",
+        "save": "Save",
+        "search": "Search"
+    },
+    "state": {
+        "empty": "No data yet",
+        "error": "Something went wrong",
+        "loading": "Loading…",
+        "processing": "Processing Request"
+    },
+    "errorPage": {
+        "notFoundTitle": "UH OH! You're lost.",
+        "notFoundDesc": "The page you are looking for does not exist or has been moved.",
+        "notFoundHint": "Page Not Found!",
+        "backToDashboard": "Go to Dashboard",
+        "accessDeniedTitle": "Access Denied",
+        "accessDeniedDesc": "You do not have the necessary permissions. Please contact admins.",
+        "errorOccurredTitle": "An Error Occurred",
+        "errorOccurredDesc": "Requested resource is not available or a system error occurred.",
+        "signingOut": "Signing out..."
+    },
+    "crud": {
+        "createdTitle": "Data Created Successfully",
+        "createdDetail": "{name} has been created",
+        "updatedTitle": "Data {name} Updated",
+        "updatedDetail": "Data changes saved successfully",
+        "deletedTitle": "Data Deleted",
+        "deletedDetail": "Data {name} has been deleted successfully",
+        "bulkDeletedTitle": "{count} {entity} Deleted",
+        "bulkDeletedDetail": "{names} have been deleted successfully",
+        "validationFailed": "Validation Failed",
+        "saveError": "Error Saving Data",
+        "createError": "Creation Failed",
+        "deleteError": "Deletion Failed",
+        "bulkDeleteError": "Bulk Deletion Failed",
+        "failedProcess": "Failed to process data!",
+        "unexpectedError": "An unexpected error occurred.",
+        "unableToDelete": "Unable to delete the data.",
+        "failedDeleteSome": "Failed to delete some records."
+    },
+    "api": {
+        "badRequest": "Invalid request (400).",
+        "unauthorized": "Session expired or unauthenticated (401).",
+        "forbidden": "You do not have permission for this action (403).",
+        "notFound": "Requested resource not found (404).",
+        "conflict": "Record modified by another user. Please reload (409).",
+        "unprocessable": "Validation failed for submitted data (422).",
+        "serverError": "Internal server error (500).",
+        "networkError": "Failed to connect to server. Check your network connection.",
+        "timeoutTitle": "Request timeout",
+        "timeoutText": "The request took too long to respond. Please check your connection and try again.",
+        "connectionErrorTitle": "Connection error",
+        "connectionErrorText": "Could not reach the API server. Check that it is running and reachable.",
+        "csrfMismatchTitle": "Security token mismatch",
+        "csrfMismatchText": "Security validation failed. Please refresh the page and try again.",
+        "csrfExpiredTitle": "Security validation expired",
+        "csrfExpiredText": "Failed to refresh security token. Please refresh the page and try again.",
+        "sessionExpiredTitle": "Session expired",
+        "sessionExpiredText": "Your session has expired. Please sign in again.",
+        "accountInactiveTitle": "Account inactive",
+        "accountInactiveText": "Your account is inactive. Please contact the administrator.",
+        "tooManyRequestsTitle": "Too many requests",
+        "tooManyRequestsText": "Too many requests. Please wait a moment and try again.",
+        "serverErrorTitle": "Server error",
+        "serverErrorText": "An unexpected server error occurred. Please try again later.",
+        "referenceId": " (Reference ID: {id})"
+    }
+}

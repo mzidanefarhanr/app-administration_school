@@ -1,8 +1,11 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import apiLogin from '@/apiLogin';
 import { firstValidationMessage } from './employeeDirectoryParams.mjs';
+
+const { t } = useI18n();
 
 const props = defineProps({
     visible: { type: Boolean, default: false },
@@ -15,7 +18,7 @@ const reason = ref('');
 const saving = ref(false);
 const generalMessage = ref('');
 const fieldError = ref('');
-const recordLabel = computed(() => (props.employee?.employee_type?.name === 'Pendidik' ? 'Teacher' : 'Employee'));
+const recordLabel = computed(() => (props.employee?.employee_type?.name === 'Pendidik' ? t('employees.entity.teacher') : t('employees.entity.employee')));
 
 watch(
     () => props.visible,
@@ -33,7 +36,7 @@ const submit = async () => {
     if (saving.value || !props.employee) return;
 
     if (!reason.value.trim()) {
-        fieldError.value = 'An administrative archiving reason is required.';
+        fieldError.value = t('employees.archive.errors.reasonRequired');
         return;
     }
 
@@ -58,7 +61,7 @@ const submit = async () => {
             fieldError.value = error.response?.data?.errors?.archive_reason?.[0] ?? '';
             generalMessage.value = fieldError.value ? '' : (firstValidationMessage(error.response) ?? '');
         } else {
-            generalMessage.value = firstValidationMessage(error.response) ?? 'Failed to archive the employee. Please try again.';
+            generalMessage.value = firstValidationMessage(error.response) ?? t('employees.archive.errors.archive');
         }
     } finally {
         saving.value = false;
@@ -67,21 +70,21 @@ const submit = async () => {
 </script>
 
 <template>
-    <Dialog :visible="visible" :header="`Archive ${recordLabel}`" modal :style="{ width: '32rem' }" :breakpoints="{ '768px': '92vw' }" :closable="!saving" @update:visible="emit('update:visible', $event)">
+    <Dialog :visible="visible" :header="t('employees.archive.title', { entity: recordLabel })" modal :style="{ width: '32rem' }" :breakpoints="{ '768px': '92vw' }" :closable="!saving" @update:visible="emit('update:visible', $event)">
         <div class="flex flex-col gap-3">
-            <p class="text-sm">Archiving keeps the record, its history, and its NIK. This record will be hidden from the active directory and can be restored later.</p>
+            <p class="text-sm">{{ t('employees.archive.notice') }}</p>
             <p class="text-sm font-medium">{{ employee?.name }}</p>
             <Message v-if="generalMessage" severity="error" :closable="false">{{ generalMessage }}</Message>
             <div>
-                <label class="block mb-2">Archive Reason *</label>
+                <label class="block mb-2">{{ t('employees.archive.reason') }}</label>
                 <Textarea v-model="reason" rows="3" class="w-full" maxlength="255" autoResize />
                 <small v-if="fieldError" class="text-red-500">{{ fieldError }}</small>
             </div>
         </div>
 
         <template #footer>
-            <Button label="Cancel" severity="secondary" variant="outlined" :disabled="saving" @click="emit('update:visible', false)" />
-            <Button label="Archive" icon="pi pi-inbox" severity="danger" :loading="saving" @click="submit" />
+            <Button :label="t('common.action.cancel')" severity="secondary" variant="outlined" :disabled="saving" @click="emit('update:visible', false)" />
+            <Button :label="t('employees.archive.submit')" icon="pi pi-inbox" severity="danger" :loading="saving" @click="submit" />
         </template>
     </Dialog>
 </template>

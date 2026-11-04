@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import { authStore } from '@/stores/authStore';
 import { useToast } from 'primevue/usetoast';
@@ -14,6 +15,7 @@ import { referenceLabel, displayReferenceOptions } from '@/utils/referenceLabels
 
 const toast = useToast();
 const route = useRoute();
+const { t, locale } = useI18n();
 const doughnutData = ref(null);
 const ChartStudentsData = ref(null);
 const barData = ref(null);
@@ -58,11 +60,11 @@ const listPage = ref(1);
 const listRequestId = ref(0);
 const listDebounceTimer = ref(null);
 const rombelOptions = ref([]);
-const placementOptions = [
-    { label: 'All', value: 'all' },
-    { label: 'Placed', value: 'placed' },
-    { label: 'Unplaced', value: 'unplaced' }
-];
+const placementOptions = computed(() => [
+    { label: t('students.list.placementOptions.all'), value: 'all' },
+    { label: t('students.list.placementOptions.placed'), value: 'placed' },
+    { label: t('students.list.placementOptions.unplaced'), value: 'unplaced' }
+]);
 
 const saveUser = ref([]);
 
@@ -387,7 +389,7 @@ const clearFilter = () => {
 };
 
 // Tab item murni (tanpa efek samping) — DEC-22 lint terarah.
-const tabItems = computed(() => Object.keys(recapClassCounts.value).map((level) => ({ label: `Class ${level}`, value: level })));
+const tabItems = computed(() => Object.keys(recapClassCounts.value).map((level) => ({ label: t('students.charts.classLevel', { level }), value: level })));
 
 const updateChartData = () => {
     const documentStyle = getComputedStyle(document.documentElement);
@@ -408,7 +410,7 @@ const updateChartData = () => {
     const femaleCount = totalStudents - maleCount;
 
     ChartStudentsData.value = {
-        labels: ['Male', 'Female'],
+        labels: [t('students.charts.male'), t('students.charts.female')],
         datasets: [
             {
                 data: [maleCount, femaleCount],
@@ -625,47 +627,47 @@ const updateChartData = () => {
 const activeGroup = ref('demographics');
 const activeSub = ref('section-students');
 
-const groupItems = [
+const groupItems = computed(() => [
     {
         key: 'demographics',
-        label: 'Demographics',
+        label: t('students.groups.demographics'),
         icon: 'pi pi-users',
         subItems: [
-            { label: 'Students', icon: 'pi pi-star', id: 'section-students' },
-            { label: 'Genders', icon: 'pi pi-heart', id: 'section-gender' },
-            { label: 'Religions', icon: 'pi pi-heart', id: 'section-religion' },
-            { label: 'Class Breakdown', icon: 'pi pi-chart-bar', id: 'section-class-breakdown' },
-            { label: 'Student Profile', icon: 'pi pi-id-card', id: 'section-profile-student' }
+            { label: t('students.subItems.students'), icon: 'pi pi-star', id: 'section-students' },
+            { label: t('students.subItems.genders'), icon: 'pi pi-heart', id: 'section-gender' },
+            { label: t('students.subItems.religions'), icon: 'pi pi-heart', id: 'section-religion' },
+            { label: t('students.subItems.classBreakdown'), icon: 'pi pi-chart-bar', id: 'section-class-breakdown' },
+            { label: t('students.subItems.studentProfile'), icon: 'pi pi-id-card', id: 'section-profile-student' }
         ]
     },
     {
         key: 'administration',
-        label: 'Administration',
+        label: t('students.groups.administration'),
         icon: 'pi pi-briefcase',
         subItems: [
-            { label: 'F8355', icon: 'pi pi-file-edit', id: 'section-f8355' },
-            { label: 'KJP', icon: 'pi pi-wallet', id: 'section-kjp' },
-            { label: 'PPDB', icon: 'pi pi-file-plus', id: 'section-ppdb' },
-            { label: 'Dapodik Status', icon: 'pi pi-check-circle', id: 'section-dapodik' },
-            { label: 'Mutations', icon: 'pi pi-arrow-right-arrow-left', id: 'section-mutation' }
+            { label: t('students.subItems.f8355'), icon: 'pi pi-file-edit', id: 'section-f8355' },
+            { label: t('students.subItems.kjp'), icon: 'pi pi-wallet', id: 'section-kjp' },
+            { label: t('students.subItems.ppdb'), icon: 'pi pi-file-plus', id: 'section-ppdb' },
+            { label: t('students.subItems.dapodik'), icon: 'pi pi-check-circle', id: 'section-dapodik' },
+            { label: t('students.subItems.mutations'), icon: 'pi pi-arrow-right-arrow-left', id: 'section-mutation' }
         ]
     },
     {
         key: 'relationships',
-        label: 'Relationships',
+        label: t('students.groups.relationships'),
         icon: 'pi pi-sitemap',
         subItems: [
-            { label: 'Parents', icon: 'pi pi-home', id: 'section-parents' },
-            { label: 'Homeroom Teacher', icon: 'pi pi-graduation-cap', id: 'section-guardian' }
+            { label: t('students.subItems.parents'), icon: 'pi pi-home', id: 'section-parents' },
+            { label: t('students.subItems.homeroomTeacher'), icon: 'pi pi-graduation-cap', id: 'section-guardian' }
         ]
     }
-];
+]);
 
-const activeGroupData = computed(() => groupItems.find((g) => g.key === activeGroup.value));
+const activeGroupData = computed(() => groupItems.value.find((g) => g.key === activeGroup.value) ?? groupItems.value[0]);
 
 const setActiveGroup = (key) => {
     activeGroup.value = key;
-    const group = groupItems.find((g) => g.key === key);
+    const group = groupItems.value.find((g) => g.key === key);
     activeSub.value = group?.subItems[0]?.id ?? null;
 };
 
@@ -1155,7 +1157,7 @@ const restoreStudent = async (student) => {
 
 const placementBlockedMessage = () => {
     if (!school_years_now.value?.id) return 'Select a school year first.';
-    if (selectedYearLocked.value) return 'This school year is locked. Unlock it before placing students.';
+    if (selectedYearLocked.value) return t('students.placement.lockedNotice');
     return '';
 };
 
@@ -1282,9 +1284,13 @@ const confirmPlacement = async () => {
     }
 };
 
+watch(locale, () => {
+    updateChartData();
+});
+
 onMounted(async () => {
     fetchDataUserRole();
-    activeSub.value = groupItems[0].subItems[0].id;
+    activeSub.value = groupItems.value[0]?.subItems[0]?.id ?? 'section-students';
     await openStudentFromQuery();
 });
 </script>
@@ -1293,11 +1299,11 @@ onMounted(async () => {
         <div class="bg-surface-0 dark:bg-surface-900 px-6 py-8 md:px-12 lg:px-20">
             <div class="flex items-start flex-col md:justify-between md:flex-row">
                 <div>
-                    <div class="font-bold text-3xl text-surface-900 dark:text-surface-0 mb-2">Students - {{ school_years_now ? school_years_now.name : 'No Year Selected' }}</div>
+                    <div class="font-bold text-3xl text-surface-900 dark:text-surface-0 mb-2">{{ t('students.title') }} - {{ school_years_now ? school_years_now.name : t('students.noActivePeriod') }}</div>
                     <div class="flex flex-wrap items-center gap-2 mb-3">
                         <Tag v-if="activeSchoolYear" severity="success" :value="`Active period: ${activeSchoolYear.name}${activeSemester ? ' · ' + activeSemester.name : ''}`" />
-                        <Tag v-else value="No active academic period" severity="warn" />
-                        <Tag v-if="selectedYearLocked" value="Locked" severity="danger" />
+                        <Tag v-else :value="t('students.noActivePeriod')" severity="warn" />
+                        <Tag v-if="selectedYearLocked" :value="t('students.placement.locked')" severity="danger" />
                     </div>
                     <div class="flex items-center text-surface-700 dark:text-surface-300 flex-wrap gap-8">
                         <!-- <div class="flex items-center gap-2">
@@ -1310,25 +1316,25 @@ onMounted(async () => {
                                 <i class="pi pi-plus-circle" />
                                 {{ loading == false ? active_students : '' }}
                                 <Skeleton v-if="loading == true" width="3rem" height="2rem" />
-                                Active Students
+                                {{ t('students.statusCounts.active') }}
                             </span>
                             <span class="flex items-center gap-1 text-orange-500">
                                 <i class="pi pi-minus-circle" />
                                 {{ loading == false ? mutation_students : '' }}
                                 <Skeleton v-if="loading == true" width="3rem" height="2rem" />
-                                Transfer Students
+                                {{ t('students.statusCounts.transfer') }}
                             </span>
                             <span class="flex items-center gap-1 text-red-500">
                                 <i class="pi pi-minus-circle" />
                                 {{ loading == false ? dropout_students : '' }}
                                 <Skeleton v-if="loading == true" width="3rem" height="2rem" />
-                                Drop Out Students
+                                {{ t('students.statusCounts.dropout') }}
                             </span>
                             <span class="flex items-center gap-1 text-blue-500">
                                 <i class="pi pi-star" />
                                 {{ loading == false ? graduation_students : '' }}
                                 <Skeleton v-if="loading == true" width="3rem" height="2rem" />
-                                Graduation Students
+                                {{ t('students.statusCounts.graduation') }}
                             </span>
                         </div>
                     </div>
@@ -1336,7 +1342,7 @@ onMounted(async () => {
                 <div class="mt-6 md:mt-0 flex items-center">
                     <!-- <Button label="Add" class="mr-3" outlined icon="pi pi-user-plus" />
                     <Button label="Save Changes" icon="pi pi-check" class="whitespace-nowrap" /> -->
-                    <span class="me-2">School Years</span>
+                    <span class="me-2">{{ t('students.schoolYears') }}</span>
                     <Select v-model="school_years_now" showClear :options="school_years" optionLabel="name" placeholder="Select Year" class="w-full" @change="handleSchoolYearsChange"> </Select>
                 </div>
             </div>
@@ -1392,34 +1398,34 @@ onMounted(async () => {
         <div class="grid grid-cols-12 mt-8 gap-8" v-show="activeGroup === 'demographics' && activeSub === 'section-students'">
             <div id="section-students" class="col-span-12 xl:col-span-6">
                 <div v-if="loading == true" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Chart Students</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.students') }}</div>
                     <Skeleton shape="circle" size="20rem" class="mr-2"></Skeleton>
                 </div>
                 <div v-else-if="school_years_pick.length == 0" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Chart Students</div>
-                    <span>No Students found.</span>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.students') }}</div>
+                    <span>{{ t('students.charts.noData') }}</span>
                 </div>
                 <div v-else class="card h-full flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Chart Students</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.students') }}</div>
                     <Chart type="doughnut" :data="doughnutData" :options="doughnutOptions"></Chart>
                 </div>
             </div>
             <div class="col-span-12 xl:col-span-6">
                 <div v-if="loading == true" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Total Students</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.totalStudents') }}</div>
                     <Skeleton width="100%" height="200px"></Skeleton>
                 </div>
                 <div v-else-if="school_years_pick.length == 0" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Total Students</div>
-                    <span>No Students found.</span>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.totalStudents') }}</div>
+                    <span>{{ t('students.charts.noData') }}</span>
                 </div>
                 <div v-else class="card h-full flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Total Students</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.totalStudents') }}</div>
                     <table class="w-full text-sm border-collapse text-surface-900 dark:text-surface-0 border border-surface-300 dark:border-surface-600">
                         <thead>
                             <tr>
-                                <th class="border-b px-3 py-2 text-center font-bold">Level</th>
-                                <th class="border-b px-3 py-2 text-center font-bold">Total</th>
+                                <th class="border-b px-3 py-2 text-center font-bold">{{ t('students.charts.level') }}</th>
+                                <th class="border-b px-3 py-2 text-center font-bold">{{ t('students.charts.total') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1478,54 +1484,64 @@ onMounted(async () => {
                         <div class="flex flex-col xl:flex-row gap-4 xl:items-center">
                             <IconField class="w-full xl:w-64">
                                 <InputIcon><i class="pi pi-search" /></InputIcon>
-                                <InputText v-model="listSearch" placeholder="Search name, NIS, or NISN" class="w-full" @input="onListSearchInput" />
+                                <InputText v-model="listSearch" :placeholder="t('students.list.searchPlaceholder')" class="w-full" @input="onListSearchInput" />
                             </IconField>
-                            <Select v-model="listPlacement" :options="placementOptions" optionLabel="label" optionValue="value" placeholder="Placement" class="w-full xl:w-40" @change="onListFilterChange" />
-                            <Select v-model="listRombelId" :options="rombelOptions" optionLabel="name" optionValue="id" placeholder="Class" showClear class="w-full xl:w-48" :disabled="listPlacement === 'unplaced'" @change="onListFilterChange" />
+                            <Select v-model="listPlacement" :options="placementOptions" optionLabel="label" optionValue="value" :placeholder="t('students.list.filterPlacement')" class="w-full xl:w-40" @change="onListFilterChange" />
+                            <Select
+                                v-model="listRombelId"
+                                :options="rombelOptions"
+                                optionLabel="name"
+                                optionValue="id"
+                                :placeholder="t('students.list.filterClass')"
+                                showClear
+                                class="w-full xl:w-48"
+                                :disabled="listPlacement === 'unplaced'"
+                                @change="onListFilterChange"
+                            />
                             <div class="flex flex-wrap gap-2">
-                                <Button v-if="useAuthStore.can('students.export')" icon="pi pi-external-link" label="Export" @click="exportCSV($event)" />
-                                <Button v-if="useAuthStore.can('students.import')" icon="pi pi-upload" label="Import" severity="secondary" variant="outlined" @click="importDialog = true" />
-                                <Button v-if="canManage" icon="pi pi-user-plus" label="New Student" @click="openCreateStudent" />
-                                <Button v-if="canManage" icon="pi pi-inbox" label="Archived" severity="secondary" variant="outlined" @click="openArchivedList" />
-                                <Button type="button" icon="pi pi-filter-slash" label="Clear" variant="outlined" @click="clearFilter()" />
+                                <Button v-if="useAuthStore.can('students.export')" icon="pi pi-external-link" :label="t('common.action.export')" @click="exportCSV($event)" />
+                                <Button v-if="useAuthStore.can('students.import')" icon="pi pi-upload" :label="t('common.action.import')" severity="secondary" variant="outlined" @click="importDialog = true" />
+                                <Button v-if="canManage" icon="pi pi-user-plus" :label="t('students.list.newStudent')" @click="openCreateStudent" />
+                                <Button v-if="canManage" icon="pi pi-inbox" :label="t('students.list.archived')" severity="secondary" variant="outlined" @click="openArchivedList" />
+                                <Button type="button" icon="pi pi-filter-slash" :label="t('common.action.clear')" variant="outlined" @click="clearFilter()" />
                             </div>
                         </div>
                     </template>
-                    <template #loading> Loading students. Please wait. </template>
+                    <template #loading> {{ t('students.list.loading') }} </template>
                     <template #empty>
                         <div class="flex flex-col items-center gap-3 py-6">
                             <span v-if="listError" class="text-red-500">{{ listError }}</span>
                             <span v-else>No students match the current filters.</span>
-                            <Button v-if="listError" icon="pi pi-refresh" label="Retry" @click="fetchStudentList()" />
+                            <Button v-if="listError" icon="pi pi-refresh" :label="t('common.action.retry')" @click="fetchStudentList()" />
                         </div>
                     </template>
-                    <Column header="No" style="width: 3rem">
+                    <Column :header="t('students.list.columns.no')" style="width: 3rem">
                         <template #body="{ index }">{{ rowDisplayNumber(index) }}</template>
                     </Column>
-                    <Column field="name" header="Name" sortable style="min-width: 12rem" />
-                    <Column field="gender" header="Gender" style="min-width: 8rem">
+                    <Column field="name" :header="t('students.list.columns.name')" sortable style="min-width: 12rem" />
+                    <Column field="gender" :header="t('students.list.columns.gender')" style="min-width: 8rem">
                         <template #body="{ data }">
                             <Tag v-if="data.gender" :value="referenceLabel('genders', data.gender)" :severity="getSeverity(data.gender)" />
                         </template>
                     </Column>
-                    <Column field="nis" header="NIS" sortable style="min-width: 8rem" />
-                    <Column field="nisn" header="NISN" sortable style="min-width: 10rem" />
-                    <Column header="Class" style="min-width: 10rem">
+                    <Column field="nis" :header="t('students.list.columns.nis')" sortable style="min-width: 8rem" />
+                    <Column field="nisn" :header="t('students.list.columns.nisn')" sortable style="min-width: 10rem" />
+                    <Column :header="t('students.list.columns.class')" style="min-width: 10rem">
                         <template #body="{ data }">
                             <Tag v-if="data.rombel" :value="data.rombel.name" :severity="getSeverity(data.rombel.name)" />
                             <span v-else>-</span>
                         </template>
                     </Column>
-                    <Column header="Placement" style="min-width: 8rem">
+                    <Column :header="t('students.list.columns.placement')" style="min-width: 8rem">
                         <template #body="{ data }">
-                            <Tag :value="data.placement === 'placed' ? 'Placed' : 'Unplaced'" :severity="data.placement === 'placed' ? 'success' : 'warn'" />
+                            <Tag :value="data.placement === 'placed' ? t('students.placement.placed') : t('students.placement.unplaced')" :severity="data.placement === 'placed' ? 'success' : 'warn'" />
                         </template>
                     </Column>
-                    <Column header="Action" :exportable="false" style="min-width: 14rem">
+                    <Column :header="t('students.list.columns.action')" :exportable="false" style="min-width: 14rem">
                         <template #body="{ data }">
-                            <Button icon="pi pi-history" variant="outlined" rounded class="mr-2" v-tooltip.top="'Mutation Timeline'" @click="openMutationTimeline(data)" />
-                            <Button icon="pi pi-eye" variant="outlined" rounded class="mr-2" v-tooltip.top="'View Detail'" @click="viewStudentDetail(data)" />
-                            <Button v-if="canManage" icon="pi pi-pencil" variant="outlined" rounded class="mr-2" v-tooltip.top="'Edit Student'" @click="openEditStudent(data)" />
+                            <Button icon="pi pi-history" variant="outlined" rounded class="mr-2" v-tooltip.top="t('students.actions.mutationTimeline')" @click="openMutationTimeline(data)" />
+                            <Button icon="pi pi-eye" variant="outlined" rounded class="mr-2" v-tooltip.top="t('students.actions.viewDetail')" @click="viewStudentDetail(data)" />
+                            <Button v-if="canManage" icon="pi pi-pencil" variant="outlined" rounded class="mr-2" v-tooltip.top="t('students.actions.editStudent')" @click="openEditStudent(data)" />
                             <Button
                                 v-if="canManage && data.placement === 'unplaced'"
                                 icon="pi pi-user-plus"
@@ -1534,7 +1550,7 @@ onMounted(async () => {
                                 severity="info"
                                 class="mr-2"
                                 :disabled="selectedYearLocked"
-                                v-tooltip.top="selectedYearLocked ? 'This school year is locked.' : 'Assign Class'"
+                                v-tooltip.top="selectedYearLocked ? t('students.actions.yearLockedNotice') : t('students.actions.assignClass')"
                                 @click="openAssignRombel(data)"
                             />
                             <Button
@@ -1545,10 +1561,10 @@ onMounted(async () => {
                                 severity="warn"
                                 class="mr-2"
                                 :disabled="selectedYearLocked"
-                                v-tooltip.top="selectedYearLocked ? 'This school year is locked.' : 'Transfer Class'"
+                                v-tooltip.top="selectedYearLocked ? t('students.actions.yearLockedNotice') : t('students.actions.transferClass')"
                                 @click="openTransferRombel(data)"
                             />
-                            <Button v-if="canManage" icon="pi pi-inbox" variant="outlined" rounded severity="danger" v-tooltip.top="'Archive Student'" @click="openArchiveStudent(data)" />
+                            <Button v-if="canManage" icon="pi pi-inbox" variant="outlined" rounded severity="danger" v-tooltip.top="t('students.actions.archiveStudent')" @click="openArchiveStudent(data)" />
                         </template>
                     </Column>
                 </DataTable>
@@ -1558,35 +1574,35 @@ onMounted(async () => {
         <div class="grid grid-cols-12 mt-8 gap-8" v-show="activeGroup === 'demographics' && activeSub === 'section-gender'">
             <div id="section-gender" class="col-span-12 xl:col-span-6">
                 <div v-if="loading == true" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Chart Genders</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.genders') }}</div>
                     <Skeleton shape="circle" size="20rem" class="mr-2"></Skeleton>
                 </div>
                 <div v-else-if="school_years_pick.length == 0" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Chart Genders</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.genders') }}</div>
                     <span>No Chart Genders found.</span>
                 </div>
                 <div v-else class="card h-full flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Chart Genders</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.genders') }}</div>
                     <Chart type="pie" :data="ChartStudentsData" :options="ChartStudentsOptions"></Chart>
                 </div>
             </div>
             <div id="section-gender" class="col-span-12 xl:col-span-6">
                 <div v-if="loading == true" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Total Genders</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.totalGenders') }}</div>
                     <Skeleton width="100%" height="200px"></Skeleton>
                 </div>
                 <div v-else-if="school_years_pick.length == 0" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Total Genders</div>
-                    <span>No Students found.</span>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.totalGenders') }}</div>
+                    <span>{{ t('students.charts.noData') }}</span>
                 </div>
                 <div v-else class="card h-full flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Total Genders</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.totalGenders') }}</div>
 
                     <table class="w-full text-sm border-collapse text-surface-900 dark:text-surface-0 border border-surface-300 dark:border-surface-600 max-w-sm mx-auto">
                         <thead>
                             <tr>
                                 <th class="border-b px-3 py-2 text-center font-bold">Gender</th>
-                                <th class="border-b px-3 py-2 text-center font-bold">Total</th>
+                                <th class="border-b px-3 py-2 text-center font-bold">{{ t('students.charts.total') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1614,35 +1630,35 @@ onMounted(async () => {
         <div class="grid grid-cols-12 mt-8 gap-8" v-show="activeGroup === 'demographics' && activeSub === 'section-religion'">
             <div id="section-religion" class="col-span-12 xl:col-span-6">
                 <div v-if="loading == true" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Chart Religions</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.religions') }}</div>
                     <Skeleton shape="circle" size="20rem" class="mr-2"></Skeleton>
                 </div>
                 <div v-else-if="school_years_pick.length == 0" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Chart Religions</div>
-                    <span>No Religions found.</span>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.religions') }}</div>
+                    <span>{{ t('students.charts.noData') }}</span>
                 </div>
                 <div v-else class="card h-full flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Chart Religions</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.religions') }}</div>
                     <Chart type="doughnut" :data="ChartReligionsData" :options="ChartReligionsOptions"></Chart>
                 </div>
             </div>
             <div id="section-religion" class="col-span-12 xl:col-span-6">
                 <div v-if="loading == true" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Total Religions</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.totalReligions') }}</div>
                     <Skeleton shape="circle" size="20rem" class="mr-2"></Skeleton>
                 </div>
                 <div v-else-if="school_years_pick.length == 0" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Total Religions</div>
-                    <span>No Religions found.</span>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.totalReligions') }}</div>
+                    <span>{{ t('students.charts.noData') }}</span>
                 </div>
                 <div v-else class="card h-full flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Total Religions</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.totalReligions') }}</div>
 
                     <table class="w-full text-sm border-collapse text-surface-900 dark:text-surface-0 border border-surface-300 dark:border-surface-600 max-w-sm mx-auto">
                         <thead>
                             <tr>
                                 <th class="border-b px-3 py-2 text-center font-bold">Religion</th>
-                                <th class="border-b px-3 py-2 text-center font-bold">Total</th>
+                                <th class="border-b px-3 py-2 text-center font-bold">{{ t('students.charts.total') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1665,15 +1681,15 @@ onMounted(async () => {
         <div class="grid grid-cols-12 mt-8 gap-8" v-show="activeGroup === 'demographics' && activeSub === 'section-class-breakdown'">
             <div id="section-class-breakdown" class="col-span-12">
                 <div v-if="loading == true" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Chart Class Breakdown</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.classBreakdown') }}</div>
                     <Skeleton width="100%" height="150px"></Skeleton>
                 </div>
                 <div v-else-if="school_years_pick.length == 0" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Chart Class Breakdown</div>
-                    <span>No Class Breakdown found.</span>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.classBreakdown') }}</div>
+                    <span>{{ t('students.charts.noData') }}</span>
                 </div>
                 <div v-else class="card flex flex-col items-center h-full justify-center">
-                    <div class="font-semibold text-xl mb-4">Chart Class Breakdown</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.classBreakdown') }}</div>
 
                     <Tabs v-model:value="activeTab" class="mb-4">
                         <TabList>
@@ -1893,7 +1909,7 @@ onMounted(async () => {
                         </div>
 
                         <div class="card bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 p-6 shadow-none h-full">
-                            <div class="font-semibold text-lg mb-4 border-b border-surface-200 dark:border-surface-700 pb-2">Address & Contact</div>
+                            <div class="font-semibold text-lg mb-4 border-b border-surface-200 dark:border-surface-700 pb-2">{{ t('students.form.addressContact') }}</div>
                             <div class="flex flex-col gap-4 text-sm">
                                 <div class="flex justify-between items-center">
                                     <span class="text-surface-500">Full Address</span>
@@ -2051,15 +2067,15 @@ onMounted(async () => {
         <div class="grid grid-cols-12 mt-8 gap-8" v-show="activeGroup === 'administration' && activeSub === 'section-f8355'">
             <div id="section-f8355" class="col-span-12">
                 <div v-if="loading == true" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">F8355</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.f8355') }}</div>
                     <Skeleton width="100%" height="150px"></Skeleton>
                 </div>
                 <div v-else-if="school_years_pick.length == 0" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">F8355</div>
-                    <span>No F8355 found.</span>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.f8355') }}</div>
+                    <span>{{ t('students.charts.noData') }}</span>
                 </div>
                 <div v-else class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">F8355</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.f8355') }}</div>
                 </div>
             </div>
         </div>
@@ -2067,28 +2083,28 @@ onMounted(async () => {
         <div class="grid grid-cols-12 mt-8 gap-8" v-show="activeGroup === 'administration' && activeSub === 'section-kjp'">
             <div id="section-kjp" class="col-span-12 xl:col-span-6">
                 <div v-if="loading == true" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Chart KJP</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.kjp') }}</div>
                     <Skeleton width="100%" height="150px"></Skeleton>
                 </div>
                 <div v-else-if="school_years_pick.length == 0" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Chart KJP</div>
-                    <span>No KJP found.</span>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.kjp') }}</div>
+                    <span>{{ t('students.charts.noData') }}</span>
                 </div>
                 <div v-else class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Chart KJP</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.kjp') }}</div>
                 </div>
             </div>
             <div id="section-kjp" class="col-span-12 xl:col-span-6">
                 <div v-if="loading == true" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Total KJP</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.totalKjp') }}</div>
                     <Skeleton width="100%" height="150px"></Skeleton>
                 </div>
                 <div v-else-if="school_years_pick.length == 0" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Total KJP</div>
-                    <span>No KJP found.</span>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.totalKjp') }}</div>
+                    <span>{{ t('students.charts.noData') }}</span>
                 </div>
                 <div v-else class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Total KJP</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.totalKjp') }}</div>
                 </div>
             </div>
         </div>
@@ -2096,28 +2112,28 @@ onMounted(async () => {
         <div class="grid grid-cols-12 mt-8 gap-8" v-show="activeGroup === 'administration' && activeSub === 'section-ppdb'">
             <div id="section-ppdb" class="col-span-12 xl:col-span-6">
                 <div v-if="loading == true" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Chart PPDB</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.ppdb') }}</div>
                     <Skeleton width="100%" height="150px"></Skeleton>
                 </div>
                 <div v-else-if="school_years_pick.length == 0" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Chart PPDB</div>
-                    <span>No PPDB found.</span>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.ppdb') }}</div>
+                    <span>{{ t('students.charts.noData') }}</span>
                 </div>
                 <div v-else class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Chart PPDB</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.ppdb') }}</div>
                 </div>
             </div>
             <div id="section-ppdb" class="col-span-12 xl:col-span-6">
                 <div v-if="loading == true" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Total PPDB</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.totalPpdb') }}</div>
                     <Skeleton width="100%" height="150px"></Skeleton>
                 </div>
                 <div v-else-if="school_years_pick.length == 0" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Total PPDB</div>
-                    <span>No PPDB found.</span>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.totalPpdb') }}</div>
+                    <span>{{ t('students.charts.noData') }}</span>
                 </div>
                 <div v-else class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Total PPDB</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.totalPpdb') }}</div>
                 </div>
             </div>
         </div>
@@ -2125,28 +2141,28 @@ onMounted(async () => {
         <div class="grid grid-cols-12 mt-8 gap-8" v-show="activeGroup === 'administration' && activeSub === 'section-dapodik'">
             <div id="section-dapodik" class="col-span-12 xl:col-span-6">
                 <div v-if="loading == true" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Chart Dapodik Active</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.dapodikActive') }}</div>
                     <Skeleton width="100%" height="150px"></Skeleton>
                 </div>
                 <div v-else-if="school_years_pick.length == 0" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Chart Dapodik Active</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.dapodikActive') }}</div>
                     <span>No Dapodik Active found.</span>
                 </div>
                 <div v-else class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Chart Dapodik Active</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.dapodikActive') }}</div>
                 </div>
             </div>
             <div id="section-dapodik" class="col-span-12 xl:col-span-6">
                 <div v-if="loading == true" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Total Dapodik Status</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.totalDapodik') }}</div>
                     <Skeleton width="100%" height="150px"></Skeleton>
                 </div>
                 <div v-else-if="school_years_pick.length == 0" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Total Dapodik Status</div>
-                    <span>No Dapodik Status found.</span>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.totalDapodik') }}</div>
+                    <span>{{ t('students.charts.noData') }}</span>
                 </div>
                 <div v-else class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Total Dapodik Status</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.totalDapodik') }}</div>
                 </div>
             </div>
         </div>
@@ -2154,15 +2170,15 @@ onMounted(async () => {
         <div class="grid grid-cols-12 mt-8 gap-8" v-show="activeGroup === 'administration' && activeSub === 'section-dapodik'">
             <div id="section-dapodik" class="col-span-12">
                 <div v-if="loading == true" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Dapodik Non-Active</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.dapodikNonActive') }}</div>
                     <Skeleton width="100%" height="150px"></Skeleton>
                 </div>
                 <div v-else-if="school_years_pick.length == 0" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Dapodik Non-Active</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.dapodikNonActive') }}</div>
                     <span>No Dapodik Non-Active found.</span>
                 </div>
                 <div v-else class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Dapodik Non-Active</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.dapodikNonActive') }}</div>
                 </div>
             </div>
         </div>
@@ -2177,30 +2193,30 @@ onMounted(async () => {
         <div class="grid grid-cols-12 mt-8 gap-8" v-show="activeGroup === 'relationships' && activeSub === 'section-parents'">
             <div id="section-parents" class="col-span-12">
                 <div v-if="loading == true" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Parents</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.parents') }}</div>
                     <Skeleton width="100%" height="150px"></Skeleton>
                 </div>
                 <div v-else-if="school_years_pick.length == 0" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Parents</div>
-                    <span>No Parents found.</span>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.parents') }}</div>
+                    <span>{{ t('students.charts.noData') }}</span>
                 </div>
                 <div v-else class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Parents</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.parents') }}</div>
                 </div>
             </div>
         </div>
         <div class="grid grid-cols-12 mt-8 gap-8" v-show="activeGroup === 'relationships' && activeSub === 'section-guardian'">
             <div id="section-guardian" class="col-span-12">
                 <div v-if="loading == true" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Homeroom Teacher</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.homeroomTeacher') }}</div>
                     <Skeleton width="100%" height="150px"></Skeleton>
                 </div>
                 <div v-else-if="school_years_pick.length == 0" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Homeroom Teacher</div>
-                    <span>No Homeroom Teacher found.</span>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.homeroomTeacher') }}</div>
+                    <span>{{ t('students.charts.noData') }}</span>
                 </div>
                 <div v-else class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">Homeroom Teacher</div>
+                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.homeroomTeacher') }}</div>
                 </div>
             </div>
         </div>
@@ -2249,23 +2265,23 @@ onMounted(async () => {
     </Dialog>
 
     <!-- ── Profile Student Dialog ─────────────────────────────────────────────── -->
-    <Dialog v-model:visible="profileDialog" modal :style="{ width: '700px', maxWidth: '95vw' }" header="Student Profile" :draggable="false">
+    <Dialog v-model:visible="profileDialog" modal :style="{ width: '700px', maxWidth: '95vw' }" :header="t('students.profile.dialogTitle')" :draggable="false">
         <template #header>
             <div class="flex items-center justify-between w-full">
-                <span class="font-bold text-lg">Student Profile</span>
-                <Button icon="pi pi-print" label="Print" severity="secondary" size="small" outlined @click="printProfile" />
+                <span class="font-bold text-lg">{{ t('students.profile.dialogTitle') }}</span>
+                <Button icon="pi pi-print" :label="t('students.profile.print')" severity="secondary" size="small" outlined @click="printProfile" />
             </div>
         </template>
 
         <div v-if="selectedStudent" id="student-profile-print" class="text-sm text-surface-900 dark:text-surface-0">
             <!-- Document Title -->
-            <h2 class="text-center font-bold text-base uppercase mb-4">Student Profile SMA YAPPENDA</h2>
+            <h2 class="text-center font-bold text-base uppercase mb-4">{{ t('students.profile.documentTitle') }}</h2>
 
             <!-- ── A. Profil Siswa ────────────────────────────────────────────── -->
-            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">A. Student Profile</div>
+            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">{{ t('students.profile.sections.profile') }}</div>
             <div class="flex flex-col gap-1 pl-4 mb-4">
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Student Name</span>
+                    <span class="w-40 shrink-0">{{ t('students.profile.fields.name') }}</span>
                     <span class="w-3 shrink-0">:</span>
                     <span class="font-bold">{{ selectedStudent.student_nik?.name ?? '-' }}</span>
                 </div>
@@ -2282,17 +2298,17 @@ onMounted(async () => {
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Class</span>
+                    <span class="w-40 shrink-0">{{ t('students.profile.fields.class') }}</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.school_rombel?.name ?? '-' }}</span>
                 </div>
             </div>
 
             <!-- ── B. Identitas Siswa ─────────────────────────────────────────── -->
-            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">B. Student Identity</div>
+            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">{{ t('students.profile.sections.identity') }}</div>
             <div class="flex flex-col gap-1 pl-4 mb-4">
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Gender</span>
+                    <span class="w-40 shrink-0">{{ t('students.profile.fields.gender') }}</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.gender?.display_name ?? selectedStudent.student_nik?.gender?.name ?? '-' }}</span>
                 </div>
@@ -2302,51 +2318,51 @@ onMounted(async () => {
                     <span>{{ selectedStudent.student_nik?.nik ?? '-' }}</span>
                 </div>
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Family Card Number</span>
+                    <span class="w-40 shrink-0">{{ t('students.profile.fields.kk') }}</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.no_kk ?? '-' }}</span>
                 </div>
                 <div class="flex gap-4">
                     <div class="flex gap-2 flex-1">
-                        <span class="w-40 shrink-0">Birthplace</span>
+                        <span class="w-40 shrink-0">{{ t('students.profile.fields.birthplace') }}</span>
                         <span class="w-3 shrink-0">:</span>
                         <span>{{ selectedStudent.student_nik?.birthplace ?? '-' }}</span>
                     </div>
                     <div class="flex gap-2 flex-1">
-                        <span class="w-28 shrink-0">Birthdate</span>
+                        <span class="w-28 shrink-0">{{ t('students.profile.fields.birthdate') }}</span>
                         <span class="w-3 shrink-0">:</span>
                         <span>{{ selectedStudent.student_nik?.birthdate ?? '-' }}</span>
                     </div>
                 </div>
                 <div class="flex gap-4">
                     <div class="flex gap-2 flex-1">
-                        <span class="w-40 shrink-0">Religion</span>
+                        <span class="w-40 shrink-0">{{ t('students.profile.fields.religion') }}</span>
                         <span class="w-3 shrink-0">:</span>
                         <span>{{ selectedStudent.student_nik?.religion?.display_name ?? selectedStudent.student_nik?.religion?.name ?? '-' }}</span>
                     </div>
                     <div class="flex gap-2 flex-1">
-                        <span class="w-28 shrink-0">Family Status</span>
+                        <span class="w-28 shrink-0">{{ t('students.profile.fields.familyStatus') }}</span>
                         <span class="w-3 shrink-0">:</span>
                         <span>{{ selectedStudent.student_nik?.family_status?.display_name ?? selectedStudent.student_nik?.family_status?.name ?? '-' }}</span>
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Child Order</span>
+                    <span class="w-40 shrink-0">{{ t('students.profile.fields.childOrder') }}</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.child_order ?? '-' }}</span>
-                    <span class="mx-2">Of</span>
+                    <span class="mx-2">{{ t('students.profile.fields.childOf') }}</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.child_of ?? '-' }}</span>
                 </div>
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Birth Certificate Number</span>
+                    <span class="w-40 shrink-0">{{ t('students.profile.fields.akta') }}</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.birth_certificate_number ?? '-' }}</span>
                 </div>
             </div>
 
             <!-- ── C. Kontak Siswa ────────────────────────────────────────────── -->
-            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">C. Student Contact Details</div>
+            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">{{ t('students.profile.sections.contact') }}</div>
             <div class="flex flex-col gap-1 pl-4 mb-4">
                 <div class="flex gap-2">
                     <span class="w-40 shrink-0">Address</span>
@@ -2384,7 +2400,7 @@ onMounted(async () => {
                 </div>
                 <div class="flex gap-4">
                     <div class="flex gap-2 flex-1">
-                        <span class="w-40 shrink-0">ZIP Code</span>
+                        <span class="w-40 shrink-0">{{ t('students.profile.fields.zipCode') }}</span>
                         <span class="w-3 shrink-0">:</span>
                         <span>{{ selectedStudent.student_nik?.zip_code ?? '-' }}</span>
                     </div>
@@ -2402,15 +2418,15 @@ onMounted(async () => {
             </div>
 
             <!-- ── D. Data Ijazah ─────────────────────────────────────────────── -->
-            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">D. Diploma Details</div>
+            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">{{ t('students.profile.sections.diploma') }}</div>
             <div class="flex flex-col gap-1 pl-4 mb-4">
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Previous School</span>
+                    <span class="w-40 shrink-0">{{ t('students.profile.fields.previousSchool') }}</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.origin_school ?? '-' }}</span>
                 </div>
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Diploma Number</span>
+                    <span class="w-40 shrink-0">{{ t('students.profile.fields.diplomaNumber') }}</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.certificate_number ?? '-' }}</span>
                 </div>
@@ -2422,7 +2438,7 @@ onMounted(async () => {
             </div>
 
             <!-- ── E. Identitas Ayah ──────────────────────────────────────────── -->
-            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">E. Father Identity</div>
+            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">{{ t('students.profile.sections.father') }}</div>
             <div class="flex flex-col gap-1 pl-4 mb-4">
                 <div class="flex gap-2">
                     <span class="w-40 shrink-0">Name</span>
@@ -2436,12 +2452,12 @@ onMounted(async () => {
                 </div>
                 <div class="flex gap-4">
                     <div class="flex gap-2 flex-1">
-                        <span class="w-40 shrink-0">Birthplace</span>
+                        <span class="w-40 shrink-0">{{ t('students.profile.fields.birthplace') }}</span>
                         <span class="w-3 shrink-0">:</span>
                         <span>{{ selectedStudent.student_nik?.father_birthplace ?? '-' }}</span>
                     </div>
                     <div class="flex gap-2 flex-1">
-                        <span class="w-28 shrink-0">Birthdate</span>
+                        <span class="w-28 shrink-0">{{ t('students.profile.fields.birthdate') }}</span>
                         <span class="w-3 shrink-0">:</span>
                         <span>{{ selectedStudent.student_nik?.father_birthdate ?? '-' }}</span>
                     </div>
@@ -2462,14 +2478,14 @@ onMounted(async () => {
                     <span>{{ selectedStudent.student_nik?.father_income ? 'Rp' + Number(selectedStudent.student_nik.father_income).toLocaleString('id-ID') : 'Rp0' }}</span>
                 </div>
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Phone Number</span>
+                    <span class="w-40 shrink-0">{{ t('students.profile.fields.phone') }}</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.father_phone ?? '-' }}</span>
                 </div>
             </div>
 
             <!-- ── F. Identitas Ibu ───────────────────────────────────────────── -->
-            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">F. Mother Identity</div>
+            <div class="font-bold border-b border-surface-300 dark:border-surface-600 pb-1 mb-3">{{ t('students.profile.sections.mother') }}</div>
             <div class="flex flex-col gap-1 pl-4 mb-4">
                 <div class="flex gap-2">
                     <span class="w-40 shrink-0">Name</span>
@@ -2483,12 +2499,12 @@ onMounted(async () => {
                 </div>
                 <div class="flex gap-4">
                     <div class="flex gap-2 flex-1">
-                        <span class="w-40 shrink-0">Birthplace</span>
+                        <span class="w-40 shrink-0">{{ t('students.profile.fields.birthplace') }}</span>
                         <span class="w-3 shrink-0">:</span>
                         <span>{{ selectedStudent.student_nik?.mother_birthplace ?? '-' }}</span>
                     </div>
                     <div class="flex gap-2 flex-1">
-                        <span class="w-28 shrink-0">Birthdate</span>
+                        <span class="w-28 shrink-0">{{ t('students.profile.fields.birthdate') }}</span>
                         <span class="w-3 shrink-0">:</span>
                         <span>{{ selectedStudent.student_nik?.mother_birthdate ?? '-' }}</span>
                     </div>
@@ -2509,7 +2525,7 @@ onMounted(async () => {
                     <span>{{ selectedStudent.student_nik?.mother_income ? 'Rp' + Number(selectedStudent.student_nik.mother_income).toLocaleString('id-ID') : 'Rp0' }}</span>
                 </div>
                 <div class="flex gap-2">
-                    <span class="w-40 shrink-0">Phone Number</span>
+                    <span class="w-40 shrink-0">{{ t('students.profile.fields.phone') }}</span>
                     <span class="w-3 shrink-0">:</span>
                     <span>{{ selectedStudent.student_nik?.mother_phone ?? '-' }}</span>
                 </div>
@@ -2529,85 +2545,105 @@ onMounted(async () => {
     </Dialog>
 
     <!-- ── 03b: Add / Edit Student Dialog ─────────────────────────────────────── -->
-    <Dialog v-model:visible="studentFormDialog" modal :style="{ width: '880px', maxWidth: '95vw' }" :draggable="false" :header="editTargetId ? 'Edit Student Details' : 'Add New Student'">
+    <Dialog v-model:visible="studentFormDialog" modal :style="{ width: '880px', maxWidth: '95vw' }" :draggable="false" :header="editTargetId ? t('students.form.editTitle') : t('students.form.newTitle')">
         <div class="flex flex-col gap-6 max-h-[70vh] overflow-y-auto pr-1">
             <div>
-                <div class="font-bold border-b border-surface-200 dark:border-surface-700 pb-1 mb-3">Personal Details</div>
+                <div class="font-bold border-b border-surface-200 dark:border-surface-700 pb-1 mb-3">{{ t('students.form.personalDetails') }}</div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label for="sf-name" class="block font-bold mb-2">Full Name <span class="text-red-500">*</span></label>
+                        <label for="sf-name" class="block font-bold mb-2">{{ t('students.form.fullName') }} <span class="text-red-500">*</span></label>
                         <InputText id="sf-name" v-model="studentForm.name" :invalid="submitted && !studentForm.name" fluid />
-                        <small v-if="submitted && !studentForm.name" class="text-red-500">Student name is required.</small>
+                        <small v-if="submitted && !studentForm.name" class="text-red-500">{{ t('students.form.nameRequired') }}</small>
                         <small v-else-if="fieldError('name')" class="text-red-500">{{ fieldError('name') }}</small>
                     </div>
                     <div>
-                        <label for="sf-birthplace" class="block font-bold mb-2">Birthplace</label>
+                        <label for="sf-birthplace" class="block font-bold mb-2">{{ t('students.form.birthplace') }}</label>
                         <InputText id="sf-birthplace" v-model="studentForm.birthplace" fluid />
                         <small v-if="fieldError('birthplace')" class="text-red-500">{{ fieldError('birthplace') }}</small>
                     </div>
                     <div>
-                        <label for="sf-birthdate" class="block font-bold mb-2">Birthdate (YYYY-MM-DD)</label>
+                        <label for="sf-birthdate" class="block font-bold mb-2">{{ t('students.form.birthdate') }}</label>
                         <InputText id="sf-birthdate" v-model="studentForm.birthdate" placeholder="2010-05-15" fluid />
                         <small v-if="fieldError('birthdate')" class="text-red-500">{{ fieldError('birthdate') }}</small>
                     </div>
                     <div>
-                        <label for="sf-gender" class="block font-bold mb-2">Gender</label>
-                        <Select id="sf-gender" v-model="studentForm.gender_id" :options="formOptions.genders" optionLabel="display_name" optionValue="id" placeholder="Select Gender" showClear filter fluid />
+                        <label for="sf-gender" class="block font-bold mb-2">{{ t('students.form.gender') }}</label>
+                        <Select id="sf-gender" v-model="studentForm.gender_id" :options="formOptions.genders" optionLabel="display_name" optionValue="id" :placeholder="t('students.form.selectGender')" showClear filter fluid />
                         <small v-if="fieldError('gender_id')" class="text-red-500">{{ fieldError('gender_id') }}</small>
                     </div>
                     <div>
-                        <label for="sf-religion" class="block font-bold mb-2">Religion</label>
-                        <Select id="sf-religion" v-model="studentForm.religion_id" :options="formOptions.religions" optionLabel="display_name" optionValue="id" placeholder="Select Religion" showClear filter fluid />
+                        <label for="sf-religion" class="block font-bold mb-2">{{ t('students.form.religion') }}</label>
+                        <Select id="sf-religion" v-model="studentForm.religion_id" :options="formOptions.religions" optionLabel="display_name" optionValue="id" :placeholder="t('students.form.selectReligion')" showClear filter fluid />
                         <small v-if="fieldError('religion_id')" class="text-red-500">{{ fieldError('religion_id') }}</small>
                     </div>
                     <div>
-                        <label for="sf-family-status" class="block font-bold mb-2">Family Status</label>
-                        <Select id="sf-family-status" v-model="studentForm.family_status_id" :options="formOptions.family_statuses" optionLabel="display_name" optionValue="id" placeholder="Select Family Status" showClear filter fluid />
+                        <label for="sf-family-status" class="block font-bold mb-2">{{ t('students.form.familyStatus') }}</label>
+                        <Select
+                            id="sf-family-status"
+                            v-model="studentForm.family_status_id"
+                            :options="formOptions.family_statuses"
+                            optionLabel="display_name"
+                            optionValue="id"
+                            :placeholder="t('students.form.selectFamilyStatus')"
+                            showClear
+                            filter
+                            fluid
+                        />
                         <small v-if="fieldError('family_status_id')" class="text-red-500">{{ fieldError('family_status_id') }}</small>
                     </div>
                     <div>
-                        <label for="sf-blood-type" class="block font-bold mb-2">Blood Type</label>
-                        <Select id="sf-blood-type" v-model="studentForm.blood_type_id" :options="formOptions.blood_types" optionLabel="name" optionValue="id" placeholder="Select Blood Type" showClear filter fluid />
+                        <label for="sf-blood-type" class="block font-bold mb-2">{{ t('students.form.bloodType') }}</label>
+                        <Select id="sf-blood-type" v-model="studentForm.blood_type_id" :options="formOptions.blood_types" optionLabel="name" optionValue="id" :placeholder="t('students.form.selectBloodType')" showClear filter fluid />
                         <small v-if="fieldError('blood_type_id')" class="text-red-500">{{ fieldError('blood_type_id') }}</small>
                     </div>
                     <div>
-                        <label for="sf-profession" class="block font-bold mb-2">Profession</label>
-                        <Select id="sf-profession" v-model="studentForm.profession_id" :options="formOptions.professions" optionLabel="display_name" optionValue="id" placeholder="Select Profession" showClear filter fluid />
+                        <label for="sf-profession" class="block font-bold mb-2">{{ t('students.form.profession') }}</label>
+                        <Select id="sf-profession" v-model="studentForm.profession_id" :options="formOptions.professions" optionLabel="display_name" optionValue="id" :placeholder="t('students.form.selectProfession')" showClear filter fluid />
                         <small v-if="fieldError('profession_id')" class="text-red-500">{{ fieldError('profession_id') }}</small>
                     </div>
                     <div>
-                        <label for="sf-education-level" class="block font-bold mb-2">Education Level</label>
-                        <Select id="sf-education-level" v-model="studentForm.education_level_id" :options="formOptions.education_levels" optionLabel="display_name" optionValue="id" placeholder="Select Education Level" showClear filter fluid />
+                        <label for="sf-education-level" class="block font-bold mb-2">{{ t('students.form.educationLevel') }}</label>
+                        <Select
+                            id="sf-education-level"
+                            v-model="studentForm.education_level_id"
+                            :options="formOptions.education_levels"
+                            optionLabel="display_name"
+                            optionValue="id"
+                            :placeholder="t('students.form.selectEducationLevel')"
+                            showClear
+                            filter
+                            fluid
+                        />
                         <small v-if="fieldError('education_level_id')" class="text-red-500">{{ fieldError('education_level_id') }}</small>
                     </div>
                 </div>
             </div>
 
             <div>
-                <div class="font-bold border-b border-surface-200 dark:border-surface-700 pb-1 mb-3">Identification & Documents</div>
+                <div class="font-bold border-b border-surface-200 dark:border-surface-700 pb-1 mb-3">{{ t('students.form.identificationDocuments') }}</div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label for="sf-nik" class="block font-bold mb-2">NIK (16 digits)</label>
+                        <label for="sf-nik" class="block font-bold mb-2">{{ t('students.form.nik') }}</label>
                         <InputText id="sf-nik" v-model="studentForm.nik" fluid />
                         <small v-if="fieldError('nik')" class="text-red-500">{{ fieldError('nik') }}</small>
                     </div>
                     <div>
-                        <label for="sf-kk" class="block font-bold mb-2">Family Card Number (16 digits)</label>
+                        <label for="sf-kk" class="block font-bold mb-2">{{ t('students.form.kk') }}</label>
                         <InputText id="sf-kk" v-model="studentForm.kk" fluid />
                         <small v-if="fieldError('kk')" class="text-red-500">{{ fieldError('kk') }}</small>
                     </div>
                     <div>
-                        <label for="sf-nis" class="block font-bold mb-2">NIS</label>
+                        <label for="sf-nis" class="block font-bold mb-2">{{ t('students.form.nis') }}</label>
                         <InputText id="sf-nis" v-model="studentForm.nis" fluid />
                         <small v-if="fieldError('nis')" class="text-red-500">{{ fieldError('nis') }}</small>
                     </div>
                     <div>
-                        <label for="sf-nisn" class="block font-bold mb-2">NISN (10 digits)</label>
+                        <label for="sf-nisn" class="block font-bold mb-2">{{ t('students.form.nisn') }}</label>
                         <InputText id="sf-nisn" v-model="studentForm.nisn" fluid />
                         <small v-if="fieldError('nisn')" class="text-red-500">{{ fieldError('nisn') }}</small>
                     </div>
                     <div>
-                        <label for="sf-akta" class="block font-bold mb-2">Birth Certificate Number</label>
+                        <label for="sf-akta" class="block font-bold mb-2">{{ t('students.form.akta') }}</label>
                         <InputText id="sf-akta" v-model="studentForm.akta" fluid />
                         <small v-if="fieldError('akta')" class="text-red-500">{{ fieldError('akta') }}</small>
                     </div>
@@ -2615,28 +2651,28 @@ onMounted(async () => {
             </div>
 
             <div>
-                <div class="font-bold border-b border-surface-200 dark:border-surface-700 pb-1 mb-3">Address & Contact</div>
+                <div class="font-bold border-b border-surface-200 dark:border-surface-700 pb-1 mb-3">{{ t('students.form.addressContact') }}</div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="md:col-span-2">
-                        <label for="sf-address" class="block font-bold mb-2">Full Address</label>
+                        <label for="sf-address" class="block font-bold mb-2">{{ t('students.form.address') }}</label>
                         <Textarea id="sf-address" v-model="studentForm.address" rows="2" autoResize fluid />
                         <small v-if="fieldError('address')" class="text-red-500">{{ fieldError('address') }}</small>
                     </div>
                     <div>
-                        <label for="sf-rt" class="block font-bold mb-2">RT Number</label>
+                        <label for="sf-rt" class="block font-bold mb-2">{{ t('students.form.rtNum') }}</label>
                         <InputText id="sf-rt" v-model="studentForm.rt_num" fluid />
                     </div>
                     <div>
-                        <label for="sf-rw" class="block font-bold mb-2">RW Number</label>
+                        <label for="sf-rw" class="block font-bold mb-2">{{ t('students.form.rwNum') }}</label>
                         <InputText id="sf-rw" v-model="studentForm.rw_num" fluid />
                     </div>
                     <div>
-                        <label for="sf-zip" class="block font-bold mb-2">ZIP Code</label>
+                        <label for="sf-zip" class="block font-bold mb-2">{{ t('students.form.zipCode') }}</label>
                         <InputText id="sf-zip" v-model="studentForm.zip_code" fluid />
                         <small v-if="fieldError('zip_code')" class="text-red-500">{{ fieldError('zip_code') }}</small>
                     </div>
                     <div>
-                        <label for="sf-hp" class="block font-bold mb-2">Phone Number</label>
+                        <label for="sf-hp" class="block font-bold mb-2">{{ t('students.form.phoneNum') }}</label>
                         <InputText id="sf-hp" v-model="studentForm.hp_num" fluid />
                         <small v-if="fieldError('hp_num')" class="text-red-500">{{ fieldError('hp_num') }}</small>
                     </div>
@@ -2644,56 +2680,56 @@ onMounted(async () => {
             </div>
 
             <div>
-                <div class="font-bold border-b border-surface-200 dark:border-surface-700 pb-1 mb-3">Parents & Guardian</div>
+                <div class="font-bold border-b border-surface-200 dark:border-surface-700 pb-1 mb-3">{{ t('students.form.parentsGuardian') }}</div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label for="sf-father-name" class="block font-bold mb-2">Father Name</label>
+                        <label for="sf-father-name" class="block font-bold mb-2">{{ t('students.form.fatherName') }}</label>
                         <InputText id="sf-father-name" v-model="studentForm.father_name" fluid />
                     </div>
                     <div>
-                        <label for="sf-father-nik" class="block font-bold mb-2">Father NIK</label>
+                        <label for="sf-father-nik" class="block font-bold mb-2">{{ t('students.form.fatherNik') }}</label>
                         <InputText id="sf-father-nik" v-model="studentForm.father_nik" fluid />
                         <small v-if="fieldError('father_nik')" class="text-red-500">{{ fieldError('father_nik') }}</small>
                     </div>
                     <div>
-                        <label for="sf-father-hp" class="block font-bold mb-2">Father Phone</label>
+                        <label for="sf-father-hp" class="block font-bold mb-2">{{ t('students.form.fatherPhone') }}</label>
                         <InputText id="sf-father-hp" v-model="studentForm.father_hp_num" fluid />
                     </div>
                     <div>
-                        <label for="sf-mother-name" class="block font-bold mb-2">Mother Name</label>
+                        <label for="sf-mother-name" class="block font-bold mb-2">{{ t('students.form.motherName') }}</label>
                         <InputText id="sf-mother-name" v-model="studentForm.mother_name" fluid />
                     </div>
                     <div>
-                        <label for="sf-mother-nik" class="block font-bold mb-2">Mother NIK</label>
+                        <label for="sf-mother-nik" class="block font-bold mb-2">{{ t('students.form.motherNik') }}</label>
                         <InputText id="sf-mother-nik" v-model="studentForm.mother_nik" fluid />
                         <small v-if="fieldError('mother_nik')" class="text-red-500">{{ fieldError('mother_nik') }}</small>
                     </div>
                     <div>
-                        <label for="sf-mother-hp" class="block font-bold mb-2">Mother Phone</label>
+                        <label for="sf-mother-hp" class="block font-bold mb-2">{{ t('students.form.motherPhone') }}</label>
                         <InputText id="sf-mother-hp" v-model="studentForm.mother_hp_num" fluid />
                     </div>
                     <div>
-                        <label for="sf-guardian-name" class="block font-bold mb-2">Guardian Name</label>
+                        <label for="sf-guardian-name" class="block font-bold mb-2">{{ t('students.form.guardianName') }}</label>
                         <InputText id="sf-guardian-name" v-model="studentForm.guardian_name" fluid />
                     </div>
                     <div>
-                        <label for="sf-guardian-nik" class="block font-bold mb-2">Guardian NIK</label>
+                        <label for="sf-guardian-nik" class="block font-bold mb-2">{{ t('students.form.guardianNik') }}</label>
                         <InputText id="sf-guardian-nik" v-model="studentForm.guardian_nik" fluid />
                         <small v-if="fieldError('guardian_nik')" class="text-red-500">{{ fieldError('guardian_nik') }}</small>
                     </div>
                     <div>
-                        <label for="sf-guardian-hp" class="block font-bold mb-2">Guardian Phone</label>
+                        <label for="sf-guardian-hp" class="block font-bold mb-2">{{ t('students.form.guardianPhone') }}</label>
                         <InputText id="sf-guardian-hp" v-model="studentForm.guardian_hp_num" fluid />
                     </div>
                 </div>
             </div>
 
             <div>
-                <div class="font-bold border-b border-surface-200 dark:border-surface-700 pb-1 mb-3">Assistance & Welfare</div>
+                <div class="font-bold border-b border-surface-200 dark:border-surface-700 pb-1 mb-3">{{ t('students.form.assistanceWelfare') }}</div>
                 <div class="flex flex-wrap gap-6">
                     <div class="flex items-center gap-2">
                         <Checkbox v-model="studentForm.check_ppdbbersama" inputId="sf-ppdb" :binary="true" />
-                        <label for="sf-ppdb">Joint Student Admissions (PPDB)</label>
+                        <label for="sf-ppdb">{{ t('students.form.ppdb') }}</label>
                     </div>
                     <div class="flex items-center gap-2">
                         <Checkbox v-model="studentForm.check_kjp" inputId="sf-kjp" :binary="true" />
@@ -2713,12 +2749,12 @@ onMounted(async () => {
 
         <template #footer>
             <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="isSubmitting" @click="studentFormDialog = false" />
-            <Button :label="editTargetId ? 'Save Changes' : 'Save Student'" icon="pi pi-check" :loading="isSubmitting" :disabled="isSubmitting" @click="submitStudentForm" />
+            <Button :label="editTargetId ? t('students.form.saveEdit') : t('students.form.saveNew')" icon="pi pi-check" :loading="isSubmitting" :disabled="isSubmitting" @click="submitStudentForm" />
         </template>
     </Dialog>
 
     <!-- ── 03b: Student Detail Dialog ─────────────────────────────────────────── -->
-    <Dialog v-model:visible="studentDetailDialog" modal :style="{ width: '720px', maxWidth: '95vw' }" :draggable="false" header="Student Detail">
+    <Dialog v-model:visible="studentDetailDialog" modal :style="{ width: '720px', maxWidth: '95vw' }" :draggable="false" :header="t('students.actions.viewDetail')">
         <div v-if="detailStudent" class="flex flex-col gap-4 text-sm">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
                 <div class="flex justify-between border-b border-surface-200 dark:border-surface-700 pb-1">
@@ -2770,7 +2806,7 @@ onMounted(async () => {
                     <span class="text-surface-500">Record Version</span><span class="font-medium">{{ detailStudent.version ?? '-' }}</span>
                 </div>
             </div>
-            <div v-if="detailStudent.deleted_at" class="text-red-500">This student is archived. Reason: {{ detailStudent.archive_reason ?? '-' }}</div>
+            <div v-if="detailStudent.deleted_at" class="text-red-500">{{ t('students.profile.fields.archivedNotice', { reason: detailStudent.archive_reason ?? '-' }) }}</div>
         </div>
         <template #footer>
             <Button label="Close" icon="pi pi-times" text severity="secondary" @click="studentDetailDialog = false" />
@@ -2778,7 +2814,7 @@ onMounted(async () => {
     </Dialog>
 
     <!-- ── 03b: Archive Confirmation Dialog ───────────────────────────────────── -->
-    <Dialog v-model:visible="archiveDialog" modal :style="{ width: '520px', maxWidth: '95vw' }" :draggable="false" header="Archive Student">
+    <Dialog v-model:visible="archiveDialog" modal :style="{ width: '520px', maxWidth: '95vw' }" :draggable="false" :header="t('students.archive.confirmTitle')">
         <div class="flex flex-col gap-4">
             <div class="flex items-center gap-4">
                 <i class="pi pi-exclamation-triangle !text-3xl text-red-500" />
@@ -2788,19 +2824,19 @@ onMounted(async () => {
                 >
             </div>
             <div>
-                <label for="archive-reason" class="block font-bold mb-2">Administrative Reason <span class="text-red-500">*</span></label>
+                <label for="archive-reason" class="block font-bold mb-2">{{ t('students.archive.reason') }} <span class="text-red-500">*</span></label>
                 <Textarea id="archive-reason" v-model="archiveReason" rows="3" autoResize fluid />
                 <small v-if="archiveErrors.archive_reason" class="text-red-500">{{ archiveErrors.archive_reason[0] }}</small>
             </div>
         </div>
         <template #footer>
             <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="isSubmitting" @click="archiveDialog = false" />
-            <Button label="Archive Student" icon="pi pi-check" severity="danger" :loading="isSubmitting" :disabled="isSubmitting" @click="confirmArchiveStudent" />
+            <Button :label="t('students.archive.btnArchive')" icon="pi pi-check" severity="danger" :loading="isSubmitting" :disabled="isSubmitting" @click="confirmArchiveStudent" />
         </template>
     </Dialog>
 
     <!-- ── 03b: Archived Students Dialog ──────────────────────────────────────── -->
-    <Dialog v-model:visible="archivedListDialog" modal :style="{ width: '820px', maxWidth: '95vw' }" :draggable="false" header="Archived Students">
+    <Dialog v-model:visible="archivedListDialog" modal :style="{ width: '820px', maxWidth: '95vw' }" :draggable="false" :header="t('students.archive.listTitle')">
         <DataTable
             :value="archivedStudents"
             :loading="archivedLoading"
@@ -2811,18 +2847,18 @@ onMounted(async () => {
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} archived students"
         >
-            <template #empty> No archived students found. </template>
-            <template #loading> Loading archived students. Please wait. </template>
-            <Column header="No" style="width: 3rem">
+            <template #empty> {{ t('students.archive.empty') }} </template>
+            <template #loading> {{ t('students.archive.loading') }} </template>
+            <Column :header="t('students.list.columns.no')" style="width: 3rem">
                 <template #body="slotProps">{{ slotProps.index + 1 }}</template>
             </Column>
-            <Column field="name" header="Name" sortable style="min-width: 12rem" />
+            <Column field="name" :header="t('students.list.columns.name')" sortable style="min-width: 12rem" />
             <Column field="nik" header="NIK" style="min-width: 10rem" />
             <Column field="nis" header="NIS" style="min-width: 8rem" />
             <Column field="archive_reason" header="Archive Reason" style="min-width: 12rem" />
             <Column header="Action" :exportable="false" style="min-width: 8rem">
                 <template #body="{ data }">
-                    <Button label="Restore" icon="pi pi-refresh" size="small" severity="success" variant="outlined" :loading="isSubmitting" :disabled="isSubmitting" @click="restoreStudent(data)" />
+                    <Button :label="t('students.actions.restore')" icon="pi pi-refresh" size="small" severity="success" variant="outlined" :loading="isSubmitting" :disabled="isSubmitting" @click="restoreStudent(data)" />
                 </template>
             </Column>
         </DataTable>
@@ -2832,43 +2868,43 @@ onMounted(async () => {
     </Dialog>
 
     <!-- ── 03d: Assign & Transfer Rombel Dialog ────────────────────────── -->
-    <Dialog v-model:visible="placementDialog" modal :style="{ width: '500px', maxWidth: '95vw' }" :draggable="false" :header="placementMode === 'assign' ? 'Assign to Class' : 'Transfer Class'">
+    <Dialog v-model:visible="placementDialog" modal :style="{ width: '500px', maxWidth: '95vw' }" :draggable="false" :header="placementMode === 'assign' ? t('students.placement.assignTitle') : t('students.placement.transferTitle')">
         <div class="flex flex-col gap-4">
             <div class="bg-surface-50 dark:bg-surface-800 p-3 rounded-border flex flex-col gap-1 text-sm border border-surface-200 dark:border-surface-700">
                 <div class="flex justify-between">
-                    <span class="text-surface-500 font-medium">Student Name:</span>
+                    <span class="text-surface-500 font-medium">{{ t('students.placement.studentName') }}</span>
                     <span class="font-semibold">{{ placementTarget.name }}</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-surface-500 font-medium">NIS:</span>
+                    <span class="text-surface-500 font-medium">{{ t('students.placement.nis') }}</span>
                     <span>{{ placementTarget.nis }}</span>
                 </div>
                 <div class="flex justify-between items-center gap-2">
-                    <span class="text-surface-500 font-medium">Academic Year:</span>
+                    <span class="text-surface-500 font-medium">{{ t('students.placement.academicYear') }}</span>
                     <span class="font-medium text-primary flex items-center gap-2">
                         {{ school_years_now?.name ?? '-' }}
-                        <Tag v-if="selectedYearLocked" value="Locked" severity="danger" />
+                        <Tag v-if="selectedYearLocked" :value="t('students.placement.locked')" severity="danger" />
                     </span>
                 </div>
                 <div v-if="placementMode === 'transfer'" class="flex justify-between">
-                    <span class="text-surface-500 font-medium">Current Class:</span>
+                    <span class="text-surface-500 font-medium">{{ t('students.placement.currentClass') }}</span>
                     <span class="font-semibold text-orange-600 dark:text-orange-400">{{ placementTarget.rombelName }}</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-surface-500 font-medium">Effective Date:</span>
-                    <span class="text-surface-600 dark:text-surface-400 font-mono text-xs">Today (Asia/Jakarta server time)</span>
+                    <span class="text-surface-500 font-medium">{{ t('students.placement.effectiveDate') }}</span>
+                    <span class="text-surface-600 dark:text-surface-400 font-mono text-xs">{{ t('students.placement.effectiveToday') }}</span>
                 </div>
             </div>
 
             <div class="flex flex-col gap-1">
-                <label for="targetRombelSelect" class="font-medium text-sm"> Target Class <span class="text-red-500">*</span> </label>
+                <label for="targetRombelSelect" class="font-medium text-sm"> {{ t('students.placement.targetClass') }} <span class="text-red-500">*</span> </label>
                 <Select
                     id="targetRombelSelect"
                     v-model="placementForm.target_rombel_id"
                     :options="availablePlacementRombels"
                     optionLabel="name"
                     optionValue="id"
-                    placeholder="Select target class"
+                    :placeholder="t('students.placement.selectTargetClass')"
                     :class="{ 'p-invalid': placementErrors.target_rombel_id || placementErrors.school_rombel_id }"
                 />
                 <small v-if="placementErrors.target_rombel_id" class="text-red-500 text-xs">{{ placementErrors.target_rombel_id[0] }}</small>
@@ -2876,17 +2912,17 @@ onMounted(async () => {
             </div>
 
             <div v-if="placementMode === 'transfer'" class="flex flex-col gap-1">
-                <label for="transferReason" class="font-medium text-sm">Transfer Reason (Optional)</label>
-                <Textarea id="transferReason" v-model="placementForm.reason" rows="3" autoResize placeholder="Enter reason for class transfer..." :class="{ 'p-invalid': placementErrors.reason }" />
+                <label for="transferReason" class="font-medium text-sm">{{ t('students.placement.transferReason') }}</label>
+                <Textarea id="transferReason" v-model="placementForm.reason" rows="3" autoResize :placeholder="t('students.placement.transferReasonPlaceholder')" :class="{ 'p-invalid': placementErrors.reason }" />
                 <small v-if="placementErrors.reason" class="text-red-500 text-xs">{{ placementErrors.reason[0] }}</small>
             </div>
 
-            <small v-if="selectedYearLocked" class="text-orange-600 dark:text-orange-400"> This school year is locked. Unlock it before placing students. </small>
+            <small v-if="selectedYearLocked" class="text-orange-600 dark:text-orange-400"> {{ t('students.placement.lockedNotice') }} </small>
         </div>
         <template #footer>
             <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="isSubmittingPlacement" @click="placementDialog = false" />
             <Button
-                :label="placementMode === 'assign' ? 'Assign Class' : 'Transfer Student'"
+                :label="placementMode === 'assign' ? t('students.placement.btnAssign') : t('students.placement.btnTransfer')"
                 :icon="placementMode === 'assign' ? 'pi pi-user-plus' : 'pi pi-arrow-right-arrow-left'"
                 :severity="placementMode === 'assign' ? 'info' : 'warn'"
                 :loading="isSubmittingPlacement"
@@ -2897,17 +2933,17 @@ onMounted(async () => {
     </Dialog>
 
     <!-- ── 03b: Optimistic Locking Conflict Dialog (HTTP 409) ─────────────────── -->
-    <Dialog v-model:visible="conflictDialog" modal :style="{ width: '520px', maxWidth: '95vw' }" :draggable="false" header="Data Conflict Detected">
+    <Dialog v-model:visible="conflictDialog" modal :style="{ width: '520px', maxWidth: '95vw' }" :draggable="false" :header="t('students.conflict.title')">
         <div class="flex items-start gap-4">
             <i class="pi pi-exclamation-triangle !text-3xl text-orange-500" />
             <div>
                 <p class="mb-2">{{ conflictMessage }}</p>
-                <p class="text-surface-500 text-sm">Your input is preserved. Click "Reload Latest" to fetch the newest data from the server, or "Keep Editing" to continue with your current input.</p>
+                <p class="text-surface-500 text-sm">{{ t('students.conflict.description') }}</p>
             </div>
         </div>
         <template #footer>
-            <Button label="Keep Editing" icon="pi pi-pencil" text severity="secondary" :disabled="reloadingConflict" @click="conflictDialog = false" />
-            <Button label="Reload Latest" icon="pi pi-refresh" :loading="reloadingConflict" :disabled="reloadingConflict" @click="reloadAfterConflict" />
+            <Button :label="t('students.conflict.btnKeep')" icon="pi pi-pencil" text severity="secondary" :disabled="reloadingConflict" @click="conflictDialog = false" />
+            <Button :label="t('students.conflict.btnReload')" icon="pi pi-refresh" :loading="reloadingConflict" :disabled="reloadingConflict" @click="reloadAfterConflict" />
         </template>
     </Dialog>
 

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import { useToast } from 'primevue/usetoast';
 import { authStore } from '@/stores/authStore';
@@ -17,6 +18,7 @@ const props = defineProps({
     employeeTypeName: { type: String, required: true }
 });
 
+const { t } = useI18n();
 const toast = useToast();
 const route = useRoute();
 const store = authStore();
@@ -63,8 +65,11 @@ const exportVisible = ref(false);
 const selectedEmployee = ref(null);
 const selectedDetail = ref(null);
 
-const pageTitle = computed(() => (props.employeeTypeName === 'Pendidik' ? 'Teachers' : 'Employees'));
 const isTeacherPage = computed(() => props.employeeTypeName === 'Pendidik');
+const pageTitle = computed(() => (isTeacherPage.value ? t('employees.directory.titleTeachers') : t('employees.directory.titleEmployees')));
+const entityName = computed(() => (isTeacherPage.value ? t('employees.entity.teacher') : t('employees.entity.employee')));
+const pageReportTemplate = computed(() => t('employees.directory.pageReport', { first: '{first}', last: '{last}', totalRecords: '{totalRecords}' }));
+const noReferenceMessage = () => t('employees.directory.errors.noReference', { title: pageTitle.value });
 
 const loadReference = async () => {
     const endpoints = {
@@ -124,7 +129,7 @@ const fetchList = async () => {
     } catch (error) {
         if (currentRequest !== requestId.value) return;
         rows.value = [];
-        listError.value = firstValidationMessage(error.response) ?? 'Failed to load employees. Please try again.';
+        listError.value = firstValidationMessage(error.response) ?? t('employees.directory.errors.loadList');
     } finally {
         if (currentRequest === requestId.value) loading.value = false;
     }
@@ -176,7 +181,7 @@ const rowNumber = (index) => (meta.value.current_page - 1) * meta.value.per_page
 const notify = (severity, detail, summary = null) => {
     toast.add({
         severity,
-        summary: summary ?? (severity === 'success' ? 'Success' : 'Notice'),
+        summary: summary ?? (severity === 'success' ? t('employees.directory.toast.success') : t('employees.directory.toast.notice')),
         detail,
         life: 4000
     });
@@ -189,7 +194,7 @@ const fetchDetail = async (row) => {
         const response = await apiLogin.get(`/api/employees/${toId(row)}`);
         return response.data?.data ?? null;
     } catch (error) {
-        notify('error', firstValidationMessage(error.response) ?? 'Failed to load employee detail.');
+        notify('error', firstValidationMessage(error.response) ?? t('employees.directory.errors.loadDetail'));
         return null;
     }
 };
@@ -245,39 +250,39 @@ const openAccount = async (row) => {
 };
 
 const onSaved = () => {
-    notify('success', `${isTeacherPage.value ? 'Teacher' : 'Employee'} saved.`);
+    notify('success', t('employees.directory.toast.saved', { entity: entityName.value }));
     detailVisible.value = false;
     fetchList();
 };
 
 const onArchived = () => {
-    notify('success', `${isTeacherPage.value ? 'Teacher' : 'Employee'} archived.`);
+    notify('success', t('employees.directory.toast.archived', { entity: entityName.value }));
     fetchList();
 };
 
 const onAccountSaved = () => {
-    notify('success', 'Account link updated.');
+    notify('success', t('employees.directory.toast.accountUpdated'));
     detailVisible.value = false;
     fetchList();
 };
 
 const onConflict = (currentVersion) => {
-    notify('warn', `The record was changed by another user${currentVersion ? ` (version ${currentVersion})` : ''}. The latest data has been reloaded.`, 'Conflict');
+    notify('warn', t('employees.directory.toast.conflict', { version: currentVersion ? t('employees.directory.toast.conflictVersion', { version: currentVersion }) : '' }), t('employees.directory.toast.conflictTitle'));
     fetchList();
 };
 
 const restore = async (row) => {
-    if (!window.confirm(`Restore ${row.name}?`)) return;
+    if (!window.confirm(t('employees.directory.confirmRestore', { name: row.name }))) return;
 
     try {
         await apiLogin.post(`/api/employees/${toId(row)}/restore`, { version: row.version });
-        notify('success', `${isTeacherPage.value ? 'Teacher' : 'Employee'} restored.`);
+        notify('success', t('employees.directory.toast.restored', { entity: entityName.value }));
         fetchList();
     } catch (error) {
         if (error.response?.status === 409) {
             onConflict(error.response?.data?.current_version ?? null);
         } else {
-            notify('error', firstValidationMessage(error.response) ?? 'Failed to restore the employee.');
+            notify('error', firstValidationMessage(error.response) ?? t('employees.directory.errors.restore'));
         }
     }
 };
@@ -297,20 +302,20 @@ const openExport = () => {
 };
 
 const onImported = (batch) => {
-    notify('success', `${batch?.committed_rows ?? 0} ${isTeacherPage.value ? 'teacher' : 'employee'}(s) imported.`);
+    notify('success', t('employees.directory.toast.imported', { count: batch?.committed_rows ?? 0, entity: entityName.value.toLowerCase() }));
     onlyArchived.value = false;
     page.value = 1;
     fetchList();
 };
 
 const onExported = ({ columns }) => {
-    notify('success', `Export downloaded with ${columns} column(s).`);
+    notify('success', t('employees.directory.toast.exported', { count: columns }));
 };
 
 onMounted(async () => {
     await loadReference();
     if (fixedTypeId.value === null) {
-        listError.value = `${pageTitle.value} reference data is not available. Ask an administrator to seed the reference data.`;
+        listError.value = noReferenceMessage();
         return;
     }
     await fetchList();
@@ -329,7 +334,7 @@ watch(
         subjectFilter.value = null;
         page.value = 1;
         fixedTypeId.value = resolveEmployeeTypeId(options.value.employeeTypes, name);
-        listError.value = fixedTypeId.value === null ? `${pageTitle.value} reference data is not available. Ask an administrator to seed the reference data.` : '';
+        listError.value = fixedTypeId.value === null ? noReferenceMessage() : '';
 
         if (fixedTypeId.value !== null) fetchList();
     }
@@ -342,26 +347,44 @@ watch(
             <div>
                 <h2 class="text-2xl font-semibold">{{ pageTitle }}</h2>
                 <p class="text-sm text-surface-500">
-                    {{ onlyArchived ? 'Archived records (managers only)' : isTeacherPage ? 'Teachers only' : 'Non-teaching staff only' }}
+                    {{ onlyArchived ? t('employees.directory.subtitleArchived') : isTeacherPage ? t('employees.directory.subtitleTeachers') : t('employees.directory.subtitleStaff') }}
                 </p>
             </div>
             <div class="flex flex-wrap gap-2">
-                <Button v-if="canExport" icon="pi pi-external-link" label="Export CSV" :disabled="fixedTypeId === null" @click="openExport" />
-                <Button v-if="canImport && !onlyArchived" icon="pi pi-upload" label="Import CSV" severity="secondary" variant="outlined" :disabled="fixedTypeId === null" @click="importVisible = true" />
-                <Button v-if="canManage && !onlyArchived" icon="pi pi-plus" :label="isTeacherPage ? 'New Teacher' : 'New Employee'" @click="openCreate" />
-                <Button v-if="canManage" :icon="onlyArchived ? 'pi pi-users' : 'pi pi-inbox'" :label="onlyArchived ? 'Active Records' : 'Archived'" severity="secondary" variant="outlined" @click="toggleArchived" />
-                <Button icon="pi pi-filter-slash" label="Clear" severity="secondary" variant="outlined" @click="resetFilters" />
+                <Button v-if="canExport" icon="pi pi-external-link" :label="t('employees.directory.actions.exportCsv')" :disabled="fixedTypeId === null" @click="openExport" />
+                <Button v-if="canImport && !onlyArchived" icon="pi pi-upload" :label="t('employees.directory.actions.importCsv')" severity="secondary" variant="outlined" :disabled="fixedTypeId === null" @click="importVisible = true" />
+                <Button v-if="canManage && !onlyArchived" icon="pi pi-plus" :label="isTeacherPage ? t('employees.directory.actions.newTeacher') : t('employees.directory.actions.newEmployee')" @click="openCreate" />
+                <Button
+                    v-if="canManage"
+                    :icon="onlyArchived ? 'pi pi-users' : 'pi pi-inbox'"
+                    :label="onlyArchived ? t('employees.directory.actions.activeRecords') : t('employees.directory.actions.archived')"
+                    severity="secondary"
+                    variant="outlined"
+                    @click="toggleArchived"
+                />
+                <Button icon="pi pi-filter-slash" :label="t('employees.directory.actions.clear')" severity="secondary" variant="outlined" @click="resetFilters" />
             </div>
         </div>
 
         <div class="flex flex-col xl:flex-row gap-3 xl:items-center">
             <IconField class="w-full xl:w-72">
                 <InputIcon><i class="pi pi-search" /></InputIcon>
-                <InputText v-model="search" placeholder="Search name or NUPTK" class="w-full" @input="onSearchInput" />
+                <InputText v-model="search" :placeholder="t('employees.directory.searchPlaceholder')" class="w-full" @input="onSearchInput" />
             </IconField>
-            <Select v-model="statusFilter" :options="options.employeeStatuses" optionLabel="display_name" optionValue="id" placeholder="Employee Status" showClear class="w-full xl:w-52" @change="onFilterChange" />
-            <Select v-model="employmentFilter" :options="options.employments" optionLabel="display_name" optionValue="id" placeholder="Employment" showClear class="w-full xl:w-52" @change="onFilterChange" />
-            <Select v-if="isTeacherPage" v-model="subjectFilter" :options="options.subjects" optionLabel="display_name" optionValue="id" placeholder="Subject" showClear filter class="w-full xl:w-52" @change="onFilterChange" />
+            <Select v-model="statusFilter" :options="options.employeeStatuses" optionLabel="display_name" optionValue="id" :placeholder="t('employees.directory.filters.status')" showClear class="w-full xl:w-52" @change="onFilterChange" />
+            <Select v-model="employmentFilter" :options="options.employments" optionLabel="display_name" optionValue="id" :placeholder="t('employees.directory.filters.employment')" showClear class="w-full xl:w-52" @change="onFilterChange" />
+            <Select
+                v-if="isTeacherPage"
+                v-model="subjectFilter"
+                :options="options.subjects"
+                optionLabel="display_name"
+                optionValue="id"
+                :placeholder="t('employees.directory.filters.subject')"
+                showClear
+                filter
+                class="w-full xl:w-52"
+                @change="onFilterChange"
+            />
         </div>
 
         <DataTable
@@ -379,61 +402,61 @@ watch(
             :sortField="sortField"
             :sortOrder="sortOrder"
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} records"
+            :currentPageReportTemplate="pageReportTemplate"
             @page="onPage"
             @sort="onSort"
         >
-            <template #loading>Loading employees. Please wait.</template>
+            <template #loading>{{ t('employees.directory.loading') }}</template>
             <template #empty>
                 <div class="flex flex-col items-center gap-3 py-6">
                     <span v-if="listError" class="text-red-500">{{ listError }}</span>
-                    <span v-else>{{ onlyArchived ? 'No archived records.' : 'No employees match the current filters.' }}</span>
-                    <Button v-if="listError" icon="pi pi-refresh" label="Retry" @click="fetchList()" />
+                    <span v-else>{{ onlyArchived ? t('employees.directory.empty.archived') : t('employees.directory.empty.filtered') }}</span>
+                    <Button v-if="listError" icon="pi pi-refresh" :label="t('common.action.retry')" @click="fetchList()" />
                 </div>
             </template>
-            <Column header="No" style="width: 3rem">
+            <Column :header="t('employees.directory.columns.no')" style="width: 3rem">
                 <template #body="{ index }">{{ rowNumber(index) }}</template>
             </Column>
-            <Column field="name" header="Name" sortable style="min-width: 14rem" />
-            <Column field="nuptk" header="NUPTK" style="min-width: 10rem">
+            <Column field="name" :header="t('employees.directory.columns.name')" sortable style="min-width: 14rem" />
+            <Column field="nuptk" :header="t('employees.directory.columns.nuptk')" style="min-width: 10rem">
                 <template #body="{ data }">{{ data.nuptk || '-' }}</template>
             </Column>
-            <Column header="Status" style="min-width: 10rem">
+            <Column :header="t('employees.directory.columns.status')" style="min-width: 10rem">
                 <template #body="{ data }">
                     <Tag v-if="data.employee_status" :value="data.employee_status.display_name ?? data.employee_status.name" severity="info" />
                     <span v-else>-</span>
                 </template>
             </Column>
-            <Column header="Employment" style="min-width: 10rem">
+            <Column :header="t('employees.directory.columns.employment')" style="min-width: 10rem">
                 <template #body="{ data }">{{ data.employment?.display_name ?? data.employment?.name ?? '-' }}</template>
             </Column>
-            <Column v-if="isTeacherPage" header="Subject" style="min-width: 10rem">
+            <Column v-if="isTeacherPage" :header="t('employees.directory.columns.subject')" style="min-width: 10rem">
                 <template #body="{ data }">{{ data.subject?.display_name ?? data.subject?.name ?? '-' }}</template>
             </Column>
-            <Column field="tmt_employee" header="Employment Start Date (TMT)" sortable style="min-width: 8rem" />
-            <Column header="Account" style="min-width: 8rem">
+            <Column field="tmt_employee" :header="t('employees.directory.columns.tmt')" sortable style="min-width: 8rem" />
+            <Column :header="t('employees.directory.columns.account')" style="min-width: 8rem">
                 <template #body="{ data }">
-                    <Tag :value="data.account?.linked ? 'Linked' : 'Not linked'" :severity="data.account?.linked ? 'success' : 'secondary'" />
+                    <Tag :value="data.account?.linked ? t('employees.directory.account.linked') : t('employees.directory.account.notLinked')" :severity="data.account?.linked ? 'success' : 'secondary'" />
                 </template>
             </Column>
-            <Column header="Action" :exportable="false" style="min-width: 12rem">
+            <Column :header="t('employees.directory.columns.action')" :exportable="false" style="min-width: 12rem">
                 <template #body="{ data }">
-                    <Button icon="pi pi-eye" variant="outlined" rounded class="mr-2" v-tooltip.top="'View Detail'" @click="openDetail(data)" />
+                    <Button icon="pi pi-eye" variant="outlined" rounded class="mr-2" v-tooltip.top="t('employees.directory.tooltips.view')" @click="openDetail(data)" />
                     <template v-if="canManage">
                         <template v-if="!onlyArchived">
-                            <Button icon="pi pi-pencil" variant="outlined" rounded class="mr-2" v-tooltip.top="'Edit'" @click="openEdit(data)" />
+                            <Button icon="pi pi-pencil" variant="outlined" rounded class="mr-2" v-tooltip.top="t('common.action.edit')" @click="openEdit(data)" />
                             <Button
                                 :icon="data.account?.linked ? 'pi pi-user-minus' : 'pi pi-user-plus'"
                                 variant="outlined"
                                 rounded
                                 severity="info"
                                 class="mr-2"
-                                v-tooltip.top="data.account?.linked ? 'Unlink Account' : 'Link Account'"
+                                v-tooltip.top="data.account?.linked ? t('employees.directory.tooltips.unlinkAccount') : t('employees.directory.tooltips.linkAccount')"
                                 @click="openAccount(data)"
                             />
-                            <Button icon="pi pi-inbox" variant="outlined" rounded severity="danger" v-tooltip.top="'Archive'" @click="openArchive(data)" />
+                            <Button icon="pi pi-inbox" variant="outlined" rounded severity="danger" v-tooltip.top="t('employees.directory.tooltips.archive')" @click="openArchive(data)" />
                         </template>
-                        <Button v-else icon="pi pi-replay" variant="outlined" rounded severity="success" v-tooltip.top="'Restore'" @click="restore(data)" />
+                        <Button v-else icon="pi pi-replay" variant="outlined" rounded severity="success" v-tooltip.top="t('employees.directory.tooltips.restore')" @click="restore(data)" />
                     </template>
                 </template>
             </Column>

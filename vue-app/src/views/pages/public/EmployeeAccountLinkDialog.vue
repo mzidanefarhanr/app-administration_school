@@ -1,8 +1,11 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import apiLogin from '@/apiLogin';
 import { firstValidationMessage } from './employeeDirectoryParams.mjs';
+
+const { t } = useI18n();
 
 const props = defineProps({
     visible: { type: Boolean, default: false },
@@ -32,7 +35,7 @@ const loadCandidates = async () => {
         const response = await apiLogin.get('/api/employees/account-candidates', { params });
         candidates.value = response.data?.data ?? [];
     } catch (error) {
-        generalMessage.value = firstValidationMessage(error.response) ?? 'Failed to load account candidates.';
+        generalMessage.value = firstValidationMessage(error.response) ?? t('employees.accountLink.errors.loadCandidates');
         candidates.value = [];
     } finally {
         loading.value = false;
@@ -74,7 +77,7 @@ const submit = async () => {
             });
         } else {
             if (!selectedAccount.value) {
-                fieldError.value = 'Select an account to link.';
+                fieldError.value = t('employees.accountLink.errors.selectAccount');
                 return;
             }
 
@@ -94,7 +97,7 @@ const submit = async () => {
             fieldError.value = error.response?.data?.errors?.user_id?.[0] ?? '';
             generalMessage.value = fieldError.value ? '' : (firstValidationMessage(error.response) ?? '');
         } else {
-            generalMessage.value = firstValidationMessage(error.response) ?? 'Failed to update the account link.';
+            generalMessage.value = firstValidationMessage(error.response) ?? t('employees.accountLink.errors.update');
         }
     } finally {
         saving.value = false;
@@ -103,28 +106,42 @@ const submit = async () => {
 </script>
 
 <template>
-    <Dialog :visible="visible" :header="isLinked ? 'Unlink Account' : 'Link Account'" modal :style="{ width: '34rem' }" :breakpoints="{ '768px': '92vw' }" :closable="!saving" @update:visible="emit('update:visible', $event)">
+    <Dialog
+        :visible="visible"
+        :header="isLinked ? t('employees.accountLink.titleUnlink') : t('employees.accountLink.titleLink')"
+        modal
+        :style="{ width: '34rem' }"
+        :breakpoints="{ '768px': '92vw' }"
+        :closable="!saving"
+        @update:visible="emit('update:visible', $event)"
+    >
         <div class="flex flex-col gap-3">
             <p class="text-sm font-medium">{{ employee?.name }}</p>
 
-            <p v-if="isLinked" class="text-sm">Unlinking keeps the account and its roles unchanged. The staff profile will no longer resolve to this account, and the legacy NIK fallback stays disabled.</p>
+            <p v-if="isLinked" class="text-sm">{{ t('employees.accountLink.unlinkNotice') }}</p>
 
             <Message v-if="generalMessage" severity="error" :closable="false">{{ generalMessage }}</Message>
 
             <template v-if="!isLinked">
                 <div class="flex gap-2">
-                    <InputText v-model="search" placeholder="Search name, username, or email" class="w-full" @input="onSearchInput" />
+                    <InputText v-model="search" :placeholder="t('employees.accountLink.searchPlaceholder')" class="w-full" @input="onSearchInput" />
                     <Button icon="pi pi-search" :loading="loading" @click="loadCandidates" />
                 </div>
                 <Listbox v-model="selectedAccount" :options="candidates" optionLabel="name" listStyle="max-height: 16rem" />
                 <small v-if="fieldError" class="text-red-500">{{ fieldError }}</small>
-                <small v-else-if="!loading && candidates.length === 0" class="text-surface-500">No active, unlinked accounts match.</small>
+                <small v-else-if="!loading && candidates.length === 0" class="text-surface-500">{{ t('employees.accountLink.noCandidates') }}</small>
             </template>
         </div>
 
         <template #footer>
-            <Button label="Cancel" severity="secondary" variant="outlined" :disabled="saving" @click="emit('update:visible', false)" />
-            <Button :label="isLinked ? 'Unlink' : 'Link'" :icon="isLinked ? 'pi pi-user-minus' : 'pi pi-user-plus'" :severity="isLinked ? 'warn' : 'info'" :loading="saving" @click="submit" />
+            <Button :label="t('common.action.cancel')" severity="secondary" variant="outlined" :disabled="saving" @click="emit('update:visible', false)" />
+            <Button
+                :label="isLinked ? t('employees.accountLink.submitUnlink') : t('employees.accountLink.submitLink')"
+                :icon="isLinked ? 'pi pi-user-minus' : 'pi pi-user-plus'"
+                :severity="isLinked ? 'warn' : 'info'"
+                :loading="saving"
+                @click="submit"
+            />
         </template>
     </Dialog>
 </template>

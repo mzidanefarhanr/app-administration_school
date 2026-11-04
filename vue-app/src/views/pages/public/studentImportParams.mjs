@@ -17,17 +17,17 @@ const MB = 1024 * 1024;
  * @param {{ name?: string, size?: number } | null} file
  * @returns {string | null} pesan kesalahan atau null bila file lolos pemeriksaan awal.
  */
-export function validateStudentImportFile(file) {
-    if (!file) return 'Choose a CSV file to import.';
+export function validateStudentImportFile(file, t = null) {
+    if (!file) return t ? t('students.import.errors.chooseCsv') : 'Choose a CSV file to import.';
 
     if (!/\.csv$/i.test(file.name ?? '')) {
-        return 'The file must be a CSV (UTF-8). Other formats are not supported yet.';
+        return t ? t('students.import.errors.csvFormat') : 'The file must be a CSV (UTF-8). Other formats are not supported yet.';
     }
 
-    if (!file.size) return 'The file is empty.';
+    if (!file.size) return t ? t('students.import.errors.fileEmpty') : 'The file is empty.';
 
     if (file.size > STUDENT_IMPORT_MAX_BYTES) {
-        return `The file is larger than ${STUDENT_IMPORT_MAX_BYTES / MB} MB.`;
+        return t ? t('students.import.errors.fileTooLarge', { size: STUDENT_IMPORT_MAX_BYTES / MB }) : `The file is larger than ${STUDENT_IMPORT_MAX_BYTES / MB} MB.`;
     }
 
     return null;

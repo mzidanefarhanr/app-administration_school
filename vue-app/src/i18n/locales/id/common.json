@@ -1,0 +1,80 @@
+{
+    "language": {
+        "label": "Bahasa"
+    },
+    "action": {
+        "add": "Tambah",
+        "back": "Kembali",
+        "cancel": "Batal",
+        "close": "Tutup",
+        "delete": "Hapus",
+        "edit": "Ubah",
+        "refresh": "Muat ulang",
+        "retry": "Coba lagi",
+        "save": "Simpan",
+        "search": "Cari"
+    },
+    "state": {
+        "empty": "Belum ada data",
+        "error": "Terjadi kesalahan",
+        "loading": "Memuat…",
+        "processing": "Memproses Permintaan"
+    },
+    "errorPage": {
+        "notFoundTitle": "Halaman Tidak Ditemukan",
+        "notFoundDesc": "Halaman yang Anda tuju tidak ditemukan atau telah dipindahkan.",
+        "notFoundHint": "Halaman Tidak Ditemukan!",
+        "backToDashboard": "Kembali ke Dasbor",
+        "accessDeniedTitle": "Akses Ditolak",
+        "accessDeniedDesc": "Anda tidak memiliki wewenang untuk mengakses halaman ini. Silakan hubungi administrator.",
+        "errorOccurredTitle": "Terjadi Kesalahan",
+        "errorOccurredDesc": "Sumber daya yang diminta sedang tidak tersedia atau terjadi kendala sistem.",
+        "signingOut": "Sedang keluar..."
+    },
+    "crud": {
+        "createdTitle": "Data Berhasil Dibuat",
+        "createdDetail": "{name} berhasil ditambahkan",
+        "updatedTitle": "Data {name} Diperbarui",
+        "updatedDetail": "Perubahan data berhasil disimpan",
+        "deletedTitle": "Data Dihapus",
+        "deletedDetail": "Data {name} berhasil dihapus",
+        "bulkDeletedTitle": "{count} {entity} Dihapus",
+        "bulkDeletedDetail": "{names} berhasil dihapus",
+        "validationFailed": "Validasi Gagal",
+        "saveError": "Gagal Menyimpan Data",
+        "createError": "Gagal Menambahkan Data",
+        "deleteError": "Gagal Menghapus Data",
+        "bulkDeleteError": "Gagal Menghapus Massal",
+        "failedProcess": "Gagal memproses data!",
+        "unexpectedError": "Terjadi kesalahan tak terduga.",
+        "unableToDelete": "Tidak dapat menghapus data.",
+        "failedDeleteSome": "Gagal menghapus beberapa data."
+    },
+    "api": {
+        "badRequest": "Permintaan tidak valid (400).",
+        "unauthorized": "Sesi telah berakhir atau belum terotentikasi (401).",
+        "forbidden": "Anda tidak memiliki hak akses untuk tindakan ini (403).",
+        "notFound": "Data yang diminta tidak ditemukan (404).",
+        "conflict": "Data telah diubah oleh pengguna lain. Silakan muat ulang (409).",
+        "unprocessable": "Data yang dikirimkan tidak memenuhi syarat validasi (422).",
+        "serverError": "Terjadi kesalahan internal pada server (500).",
+        "networkError": "Gagal terhubung ke server. Periksa koneksi internet Anda.",
+        "timeoutTitle": "Batas Waktu Terlampaui",
+        "timeoutText": "Permintaan membutuhkan waktu terlalu lama. Periksa koneksi Anda dan coba lagi.",
+        "connectionErrorTitle": "Kesalahan Koneksi",
+        "connectionErrorText": "Tidak dapat terhubung ke server API. Pastikan server aktif dan dapat dijangkau.",
+        "csrfMismatchTitle": "Validasi Keamanan Gagal",
+        "csrfMismatchText": "Validasi keamanan gagal. Silakan muat ulang halaman dan coba lagi.",
+        "csrfExpiredTitle": "Validasi Keamanan Kedaluwarsa",
+        "csrfExpiredText": "Gagal memperbarui token keamanan. Silakan muat ulang halaman dan coba lagi.",
+        "sessionExpiredTitle": "Sesi Berakhir",
+        "sessionExpiredText": "Sesi Anda telah berakhir. Silakan masuk kembali.",
+        "accountInactiveTitle": "Akun Tidak Aktif",
+        "accountInactiveText": "Akun Anda berstatus tidak aktif. Silakan hubungi administrator.",
+        "tooManyRequestsTitle": "Terlalu Banyak Permintaan",
+        "tooManyRequestsText": "Terlalu banyak permintaan. Mohon tunggu beberapa saat sebelum mencoba lagi.",
+        "serverErrorTitle": "Kesalahan Server",
+        "serverErrorText": "Terjadi kesalahan tak terduga pada server. Silakan coba beberapa saat lagi.",
+        "referenceId": " (ID Referensi: {id})"
+    }
+}

@@ -1,8 +1,11 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import apiLogin from '@/apiLogin';
 import { normalizeEmployeePayload, firstValidationMessage } from './employeeDirectoryParams.mjs';
+
+const { t } = useI18n();
 
 const props = defineProps({
     visible: { type: Boolean, default: false },
@@ -90,62 +93,62 @@ const selectedTypeName = computed(() => {
 });
 
 const isTeacher = computed(() => selectedTypeName.value === 'Pendidik');
-const recordLabel = computed(() => (isTeacher.value ? 'Teacher' : 'Employee'));
+const recordLabel = computed(() => (isTeacher.value ? t('employees.entity.teacher') : t('employees.entity.employee')));
 
-const educationSections = [
+const educationSections = computed(() => [
     {
-        title: 'Elementary School',
+        title: t('employees.form.education.elementary'),
         fields: [
-            { key: 'elementary_school_name', label: 'School Name' },
-            { key: 'elementary_school_entry', label: 'Entry Date', type: 'date' },
-            { key: 'elementary_school_graduation', label: 'Graduation Date', type: 'date' },
-            { key: 'nisn', label: 'NISN' },
-            { key: 'elementary_school_passing_grade', label: 'Passing Grade' }
+            { key: 'elementary_school_name', label: t('employees.form.education.schoolName') },
+            { key: 'elementary_school_entry', label: t('employees.form.education.entryDate'), type: 'date' },
+            { key: 'elementary_school_graduation', label: t('employees.form.education.graduationDate'), type: 'date' },
+            { key: 'nisn', label: t('employees.form.education.nisn') },
+            { key: 'elementary_school_passing_grade', label: t('employees.form.education.passingGrade') }
         ]
     },
     {
-        title: 'Junior High School',
+        title: t('employees.form.education.juniorHigh'),
         fields: [
-            { key: 'junior_high_school_name', label: 'School Name' },
-            { key: 'junior_high_school_entry', label: 'Entry Date', type: 'date' },
-            { key: 'junior_high_school_graduation', label: 'Graduation Date', type: 'date' },
-            { key: 'junior_high_school_passing_grade', label: 'Passing Grade' }
+            { key: 'junior_high_school_name', label: t('employees.form.education.schoolName') },
+            { key: 'junior_high_school_entry', label: t('employees.form.education.entryDate'), type: 'date' },
+            { key: 'junior_high_school_graduation', label: t('employees.form.education.graduationDate'), type: 'date' },
+            { key: 'junior_high_school_passing_grade', label: t('employees.form.education.passingGrade') }
         ]
     },
     {
-        title: 'Senior High School',
+        title: t('employees.form.education.seniorHigh'),
         fields: [
-            { key: 'senior_high_school_name', label: 'School Name' },
-            { key: 'senior_high_school_entry', label: 'Entry Date', type: 'date' },
-            { key: 'senior_high_school_graduation', label: 'Graduation Date', type: 'date' },
-            { key: 'senior_high_school_passing_grade', label: 'Passing Grade' }
+            { key: 'senior_high_school_name', label: t('employees.form.education.schoolName') },
+            { key: 'senior_high_school_entry', label: t('employees.form.education.entryDate'), type: 'date' },
+            { key: 'senior_high_school_graduation', label: t('employees.form.education.graduationDate'), type: 'date' },
+            { key: 'senior_high_school_passing_grade', label: t('employees.form.education.passingGrade') }
         ]
     },
     {
-        title: 'Bachelor Degree',
+        title: t('employees.form.education.bachelor'),
         fields: [
-            { key: 'bachelor_campus_name', label: 'Campus' },
-            { key: 'bachelor_major', label: 'Major' },
-            { key: 'bachelor_faculty', label: 'Faculty' },
-            { key: 'bachelor_entry', label: 'Entry Date', type: 'date' },
-            { key: 'bachelor_graduation', label: 'Graduation Date', type: 'date' },
-            { key: 'bachelor_nim', label: 'NIM' },
-            { key: 'bachelor_passing_grade', label: 'Passing Grade' }
+            { key: 'bachelor_campus_name', label: t('employees.form.education.campus') },
+            { key: 'bachelor_major', label: t('employees.form.education.major') },
+            { key: 'bachelor_faculty', label: t('employees.form.education.faculty') },
+            { key: 'bachelor_entry', label: t('employees.form.education.entryDate'), type: 'date' },
+            { key: 'bachelor_graduation', label: t('employees.form.education.graduationDate'), type: 'date' },
+            { key: 'bachelor_nim', label: t('employees.form.education.nim') },
+            { key: 'bachelor_passing_grade', label: t('employees.form.education.passingGrade') }
         ]
     },
     {
-        title: 'Master Degree',
+        title: t('employees.form.education.master'),
         fields: [
-            { key: 'master_campus_name', label: 'Campus' },
-            { key: 'master_major', label: 'Major' },
-            { key: 'master_faculty', label: 'Faculty' },
-            { key: 'master_entry', label: 'Entry Date', type: 'date' },
-            { key: 'master_graduation', label: 'Graduation Date', type: 'date' },
-            { key: 'master_nim', label: 'NIM' },
-            { key: 'master_passing_grade', label: 'Passing Grade' }
+            { key: 'master_campus_name', label: t('employees.form.education.campus') },
+            { key: 'master_major', label: t('employees.form.education.major') },
+            { key: 'master_faculty', label: t('employees.form.education.faculty') },
+            { key: 'master_entry', label: t('employees.form.education.entryDate'), type: 'date' },
+            { key: 'master_graduation', label: t('employees.form.education.graduationDate'), type: 'date' },
+            { key: 'master_nim', label: t('employees.form.education.nim') },
+            { key: 'master_passing_grade', label: t('employees.form.education.passingGrade') }
         ]
     }
-];
+]);
 
 const buildForm = (employee) => {
     const base = emptyForm();
@@ -202,7 +205,7 @@ const errorFor = (field) => (Array.isArray(errors.value[field]) ? errors.value[f
 
 const requestClose = () => {
     if (saving.value) return;
-    if (isDirty.value && !window.confirm('Discard unsaved changes?')) return;
+    if (isDirty.value && !window.confirm(t('employees.form.confirmDiscard'))) return;
     emit('update:visible', false);
 };
 
@@ -230,12 +233,12 @@ const submit = async () => {
         if (status === 409) {
             conflict.value = true;
             conflictVersion.value = error.response?.data?.current_version ?? null;
-            generalMessage.value = error.response?.data?.message ?? 'This record was updated by another user.';
+            generalMessage.value = error.response?.data?.message ?? t('employees.form.errors.conflict');
         } else if (status === 422) {
             errors.value = error.response?.data?.errors ?? {};
-            generalMessage.value = firstValidationMessage(error.response) ?? 'Please review the highlighted fields.';
+            generalMessage.value = firstValidationMessage(error.response) ?? t('employees.form.errors.review');
         } else {
-            generalMessage.value = firstValidationMessage(error.response) ?? 'Failed to save the employee. Please try again.';
+            generalMessage.value = firstValidationMessage(error.response) ?? t('employees.form.errors.save');
         }
     } finally {
         saving.value = false;
@@ -257,58 +260,66 @@ const reloadLatest = async () => {
         generalMessage.value = '';
         errors.value = {};
     } catch (error) {
-        generalMessage.value = firstValidationMessage(error.response) ?? 'Failed to reload the latest record.';
+        generalMessage.value = firstValidationMessage(error.response) ?? t('employees.form.errors.reload');
     }
 };
 </script>
 
 <template>
-    <Dialog :visible="visible" :header="`${isEdit ? 'Edit' : 'New'} ${recordLabel}`" modal :style="{ width: '64rem' }" :breakpoints="{ '1200px': '92vw', '768px': '96vw' }" :closable="!saving" @update:visible="requestClose">
+    <Dialog
+        :visible="visible"
+        :header="isEdit ? t('employees.form.titleEdit', { entity: recordLabel }) : t('employees.form.titleNew', { entity: recordLabel })"
+        modal
+        :style="{ width: '64rem' }"
+        :breakpoints="{ '1200px': '92vw', '768px': '96vw' }"
+        :closable="!saving"
+        @update:visible="requestClose"
+    >
         <div class="flex flex-col gap-5">
             <Message v-if="generalMessage" :severity="conflict ? 'warn' : 'error'" :closable="false">
                 {{ generalMessage }}
-                <Button v-if="conflict" label="Reload Latest" size="small" class="ml-3" @click="reloadLatest" />
+                <Button v-if="conflict" :label="t('employees.form.reloadLatest')" size="small" class="ml-3" @click="reloadLatest" />
             </Message>
 
             <div>
-                <h3 class="font-semibold mb-3">Identity</h3>
+                <h3 class="font-semibold mb-3">{{ t('employees.form.sections.identity') }}</h3>
                 <div class="grid grid-cols-12 gap-4">
                     <div class="col-span-12 md:col-span-6">
-                        <label class="block mb-2">Name *</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.name') }}</label>
                         <InputText v-model="form.name" class="w-full" maxlength="100" />
                         <small v-if="errorFor('name')" class="text-red-500">{{ errorFor('name') }}</small>
                     </div>
                     <div class="col-span-12 md:col-span-6">
-                        <label class="block mb-2">NIK (16 digits)</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.nik') }}</label>
                         <InputText v-model="form.nik" class="w-full" maxlength="16" />
                         <small v-if="errorFor('nik')" class="text-red-500">{{ errorFor('nik') }}</small>
                     </div>
                     <div class="col-span-12 md:col-span-4">
-                        <label class="block mb-2">NUPTK</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.nuptk') }}</label>
                         <InputText v-model="form.nuptk" class="w-full" maxlength="50" />
                         <small v-if="errorFor('nuptk')" class="text-red-500">{{ errorFor('nuptk') }}</small>
                     </div>
                     <div class="col-span-12 md:col-span-4">
-                        <label class="block mb-2">Gender *</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.gender') }}</label>
                         <Select v-model="form.gender_id" :options="options.genders ?? []" optionLabel="display_name" optionValue="id" class="w-full" />
                         <small v-if="errorFor('gender_id')" class="text-red-500">{{ errorFor('gender_id') }}</small>
                     </div>
                     <div class="col-span-12 md:col-span-4">
-                        <label class="block mb-2">Religion *</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.religion') }}</label>
                         <Select v-model="form.religion_id" :options="options.religions ?? []" optionLabel="display_name" optionValue="id" class="w-full" />
                         <small v-if="errorFor('religion_id')" class="text-red-500">{{ errorFor('religion_id') }}</small>
                     </div>
                     <div class="col-span-12 md:col-span-4">
-                        <label class="block mb-2">Place of Birth</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.placeOfBirth') }}</label>
                         <InputText v-model="form.place_of_birth" class="w-full" maxlength="100" />
                     </div>
                     <div class="col-span-12 md:col-span-4">
-                        <label class="block mb-2">Date of Birth</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.dateOfBirth') }}</label>
                         <InputText v-model="form.date_of_birth" type="date" class="w-full" />
                         <small v-if="errorFor('date_of_birth')" class="text-red-500">{{ errorFor('date_of_birth') }}</small>
                     </div>
                     <div class="col-span-12 md:col-span-4">
-                        <label class="block mb-2">Marital Status *</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.maritalStatus') }}</label>
                         <Select v-model="form.marital_status_id" :options="options.maritalStatuses ?? []" optionLabel="display_name" optionValue="id" class="w-full" />
                         <small v-if="errorFor('marital_status_id')" class="text-red-500">{{ errorFor('marital_status_id') }}</small>
                     </div>
@@ -316,119 +327,119 @@ const reloadLatest = async () => {
             </div>
 
             <div>
-                <h3 class="font-semibold mb-3">Employment</h3>
+                <h3 class="font-semibold mb-3">{{ t('employees.form.sections.employment') }}</h3>
                 <div class="grid grid-cols-12 gap-4">
                     <div class="col-span-12 md:col-span-4">
-                        <label class="block mb-2">Employee Type</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.employeeType') }}</label>
                         <Select :modelValue="form.employee_type_id" :options="options.employeeTypes ?? []" optionLabel="display_name" optionValue="id" class="w-full" disabled />
                     </div>
                     <div class="col-span-12 md:col-span-4">
-                        <label class="block mb-2">Employee Status *</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.employeeStatus') }}</label>
                         <Select v-model="form.employee_status_id" :options="options.employeeStatuses ?? []" optionLabel="display_name" optionValue="id" class="w-full" />
                         <small v-if="errorFor('employee_status_id')" class="text-red-500">{{ errorFor('employee_status_id') }}</small>
                     </div>
                     <div class="col-span-12 md:col-span-4">
-                        <label class="block mb-2">Employment *</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.employment') }}</label>
                         <Select v-model="form.employment_id" :options="options.employments ?? []" optionLabel="display_name" optionValue="id" class="w-full" />
                         <small v-if="errorFor('employment_id')" class="text-red-500">{{ errorFor('employment_id') }}</small>
                     </div>
                     <div v-if="isTeacher" class="col-span-12 md:col-span-4">
-                        <label class="block mb-2">Subject *</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.subject') }}</label>
                         <Select v-model="form.subject_id" :options="options.subjects ?? []" optionLabel="display_name" optionValue="id" class="w-full" />
                         <small v-if="errorFor('subject_id')" class="text-red-500">{{ errorFor('subject_id') }}</small>
                     </div>
                     <div class="col-span-12 md:col-span-4">
-                        <label class="block mb-2">Employment Start Date (TMT) *</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.tmt') }}</label>
                         <InputText v-model="form.tmt_employee" type="date" class="w-full" />
                         <small v-if="errorFor('tmt_employee')" class="text-red-500">{{ errorFor('tmt_employee') }}</small>
                     </div>
                     <div class="col-span-12 md:col-span-4">
-                        <label class="block mb-2">Exit Date</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.exitDate') }}</label>
                         <InputText v-model="form.exit_date" type="date" class="w-full" />
                         <small v-if="errorFor('exit_date')" class="text-red-500">{{ errorFor('exit_date') }}</small>
                     </div>
                     <div class="col-span-12 md:col-span-4">
-                        <label class="block mb-2">Appointment Certificate</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.appointmentCertificate') }}</label>
                         <InputText v-model="form.appointment_certificate" class="w-full" maxlength="255" />
                     </div>
                     <div class="col-span-12 md:col-span-4">
-                        <label class="block mb-2">Teaching Hours Certificate</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.teachingHoursCertificate') }}</label>
                         <InputText v-model="form.certificate_of_teaching_hours" class="w-full" maxlength="255" />
                     </div>
                     <div class="col-span-12 md:col-span-4 flex items-center gap-4 pt-6">
                         <div class="flex items-center gap-2">
                             <Checkbox v-model="form.check_dapodik" :binary="true" inputId="checkDapodik" />
-                            <label for="checkDapodik">Dapodik Checked</label>
+                            <label for="checkDapodik">{{ t('employees.form.fields.dapodikChecked') }}</label>
                         </div>
                         <div class="flex items-center gap-2">
                             <Checkbox v-model="form.government_certificate" :binary="true" inputId="governmentCertificate" />
-                            <label for="governmentCertificate">Government Certificate</label>
+                            <label for="governmentCertificate">{{ t('employees.form.fields.governmentCertificate') }}</label>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div>
-                <h3 class="font-semibold mb-3">Contact &amp; Address</h3>
+                <h3 class="font-semibold mb-3">{{ t('employees.form.sections.contact') }}</h3>
                 <div class="grid grid-cols-12 gap-4">
                     <div class="col-span-12 md:col-span-6">
-                        <label class="block mb-2">Address</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.address') }}</label>
                         <InputText v-model="form.address" class="w-full" maxlength="1000" />
                     </div>
                     <div class="col-span-12 md:col-span-2">
-                        <label class="block mb-2">RT</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.rt') }}</label>
                         <InputText v-model="form.rt" class="w-full" maxlength="5" />
                     </div>
                     <div class="col-span-12 md:col-span-2">
-                        <label class="block mb-2">RW</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.rw') }}</label>
                         <InputText v-model="form.rw" class="w-full" maxlength="5" />
                     </div>
                     <div class="col-span-12 md:col-span-2">
-                        <label class="block mb-2">ZIP</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.zip') }}</label>
                         <InputText v-model="form.zip_code" class="w-full" maxlength="10" />
                     </div>
                     <div class="col-span-12 md:col-span-6">
-                        <label class="block mb-2">District *</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.district') }}</label>
                         <Select v-model="form.district_id" :options="options.districts ?? []" optionLabel="name" optionValue="id" class="w-full" filter />
                         <small v-if="errorFor('district_id')" class="text-red-500">{{ errorFor('district_id') }}</small>
                     </div>
                     <div class="col-span-12 md:col-span-6">
-                        <label class="block mb-2">WhatsApp</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.whatsapp') }}</label>
                         <InputText v-model="form.wa_number" class="w-full" maxlength="30" />
                     </div>
                     <div class="col-span-12 md:col-span-6">
-                        <label class="block mb-2">Email</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.email') }}</label>
                         <InputText v-model="form.email" type="email" class="w-full" maxlength="255" />
                         <small v-if="errorFor('email')" class="text-red-500">{{ errorFor('email') }}</small>
                     </div>
                     <div class="col-span-12 md:col-span-6">
-                        <label class="block mb-2">Family Card Number</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.familyCard') }}</label>
                         <InputText v-model="form.no_kk" class="w-full" maxlength="16" />
                         <small v-if="errorFor('no_kk')" class="text-red-500">{{ errorFor('no_kk') }}</small>
                     </div>
                     <div class="col-span-12 md:col-span-6">
-                        <label class="block mb-2">Tax Identification Number (NPWP)</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.npwp') }}</label>
                         <InputText v-model="form.npwp" class="w-full" maxlength="30" />
                     </div>
                 </div>
             </div>
 
             <div>
-                <h3 class="font-semibold mb-3">Family</h3>
+                <h3 class="font-semibold mb-3">{{ t('employees.form.sections.family') }}</h3>
                 <div class="grid grid-cols-12 gap-4">
                     <div class="col-span-12 md:col-span-6">
-                        <label class="block mb-2">Biological Mother's Name</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.mothersName') }}</label>
                         <InputText v-model="form.biological_mothers_name" class="w-full" maxlength="255" />
                     </div>
                     <div class="col-span-12 md:col-span-6">
-                        <label class="block mb-2">Partner's Name</label>
+                        <label class="block mb-2">{{ t('employees.form.fields.partnersName') }}</label>
                         <InputText v-model="form.partners_name" class="w-full" maxlength="255" />
                     </div>
                 </div>
             </div>
 
             <div>
-                <h3 class="font-semibold mb-3">Education</h3>
+                <h3 class="font-semibold mb-3">{{ t('employees.form.sections.education') }}</h3>
                 <div v-for="section in educationSections" :key="section.title" class="mb-4">
                     <h4 class="font-medium mb-2">{{ section.title }}</h4>
                     <div class="grid grid-cols-12 gap-4">
@@ -443,8 +454,8 @@ const reloadLatest = async () => {
         </div>
 
         <template #footer>
-            <Button label="Cancel" severity="secondary" variant="outlined" :disabled="saving" @click="requestClose" />
-            <Button :label="isEdit ? 'Save Changes' : `Create ${recordLabel}`" icon="pi pi-check" :loading="saving" @click="submit" />
+            <Button :label="t('common.action.cancel')" severity="secondary" variant="outlined" :disabled="saving" @click="requestClose" />
+            <Button :label="isEdit ? t('employees.form.saveChanges') : t('employees.form.create', { entity: recordLabel })" icon="pi pi-check" :loading="saving" @click="submit" />
         </template>
     </Dialog>
 </template>

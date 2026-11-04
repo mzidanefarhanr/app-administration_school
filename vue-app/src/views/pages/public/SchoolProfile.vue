@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import { RouterLink } from 'vue-router';
 import { authStore } from '@/stores/authStore';
@@ -8,6 +9,7 @@ import apiLogin from '@/apiLogin';
 import { referenceLabel } from '@/utils/referenceLabels.mjs';
 
 const toast = useToast();
+const { t } = useI18n();
 const dt = ref();
 const useAuthStore = authStore();
 const school_years = ref([]);
@@ -104,7 +106,7 @@ const fieldConfig = computed(() => ({
         options: allEducationSchools.value,
         optionLabel: 'name',
         addNewLink: '/public/educationschools', // ← route to Education Schools page
-        addNewLabel: 'Add new Education School',
+        addNewLabel: t('master.schoolProfile.addNewSchool'),
         endpoint: `/api/school-profile/${school_profile.value.id}`,
         payloadKey: 'education_school_npsn',
         localUpdate: (selected) => {
@@ -116,7 +118,7 @@ const fieldConfig = computed(() => ({
         options: allUsers.value,
         optionLabel: 'name',
         addNewLink: '/master/accounts', // ← route to Accounts page
-        addNewLabel: 'Add new User',
+        addNewLabel: t('master.schoolProfile.addNewUser'),
         endpoint: `/api/school-profile/${school_profile.value.id}`,
         payloadKey: 'principal_id',
         localUpdate: (selected) => {
@@ -271,7 +273,7 @@ onMounted(() => {
         <div class="bg-surface-0 dark:bg-surface-900 px-6 py-8 md:px-12 lg:px-20 mt-4 mb-4">
             <div class="flex flex-col gap-4">
                 <div class="flex flex-col gap-2 pb-4">
-                    <div class="font-semibold text-xl text-surface-900 dark:text-surface-0 leading-tight">A. School Identity</div>
+                    <div class="font-semibold text-xl text-surface-900 dark:text-surface-0 leading-tight">{{ t('master.schoolProfile.schoolIdentity') }}</div>
                     <!-- <div class="text-surface-500 dark:text-surface-300 text-base leading-tight">Morbi tristique blandit turpis. In viverra ligula id nulla hendrerit rutrum.</div> -->
                 </div>
 
@@ -280,7 +282,7 @@ onMounted(() => {
                 <div class="flex flex-col gap-4">
                     <div class="flex flex-col md:flex-row gap-4">
                         <div class="flex items-center gap-4 flex-1">
-                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">Name</div>
+                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">{{ t('master.common.name') }}</div>
                             <div class="flex-1">
                                 <span v-if="editingField !== 'education_school.name'" class="text-surface-900 dark:text-surface-0 text-base">
                                     {{ school_profile?.education_school?.name ?? '' }}
@@ -303,7 +305,7 @@ onMounted(() => {
 
                                     <!-- "Not found" hint with link -->
                                     <small class="text-surface-500 flex items-center gap-1">
-                                        Can't find what you're looking for?
+                                        {{ t('master.schoolProfile.notFoundHint') }}
                                         <RouterLink :to="fieldConfig['education_school.name'].addNewLink" class="text-primary-500 hover:underline font-medium flex items-center gap-1" target="_blank">
                                             <i class="pi pi-external-link text-xs" />
                                             {{ fieldConfig['education_school.name'].addNewLabel }}
@@ -321,7 +323,7 @@ onMounted(() => {
 
                     <div class="flex flex-col md:flex-row gap-4">
                         <div class="flex items-center gap-4 flex-1">
-                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">NPSN</div>
+                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">{{ t('master.schoolProfile.npsn') }}</div>
                             <div class="flex-1 text-surface-900 dark:text-surface-0 text-base leading-tight">
                                 {{ school_profile?.education_school?.npsn ?? '' }}
                                 <Skeleton v-if="loading == true" width="3rem" height="2rem" />
@@ -333,7 +335,7 @@ onMounted(() => {
 
                     <div class="flex flex-col md:flex-row gap-4">
                         <div class="flex items-center gap-4 flex-1">
-                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">Status</div>
+                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">{{ t('master.schoolProfile.status') }}</div>
                             <div class="flex-1 text-surface-900 dark:text-surface-0 text-base leading-tight">
                                 {{ referenceLabel('school-status', school_profile?.education_school?.status_education) ?? '' }}
                                 <Skeleton v-if="loading == true" width="3rem" height="2rem" />
@@ -345,7 +347,7 @@ onMounted(() => {
 
                     <div class="flex flex-col md:flex-row gap-4">
                         <div class="flex items-center gap-4 flex-1">
-                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">NDS</div>
+                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">{{ t('master.schoolProfile.nds') }}</div>
                             <div class="flex-1">
                                 <span v-if="editingField !== 'nds'" class="text-surface-900 dark:text-surface-0 text-base">
                                     {{ school_profile?.nds ?? '' }}
@@ -367,7 +369,7 @@ onMounted(() => {
 
                     <div class="flex flex-col md:flex-row gap-4">
                         <div class="flex items-start gap-4 flex-1">
-                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">NSS</div>
+                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">{{ t('master.schoolProfile.nss') }}</div>
                             <div class="flex-1">
                                 <span v-if="editingField !== 'nss'" class="text-surface-900 dark:text-surface-0 text-base">
                                     {{ school_profile?.nss ?? '' }}
@@ -389,7 +391,7 @@ onMounted(() => {
 
                     <div class="flex flex-col md:flex-row gap-4">
                         <div class="flex items-center gap-4 flex-1">
-                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">School Address</div>
+                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">{{ t('master.schoolProfile.address') }}</div>
                             <div class="flex-1 text-surface-900 dark:text-surface-0 text-base leading-tight">
                                 {{ school_profile?.education_school?.address ?? '' }}
                                 <Skeleton v-if="loading == true" width="3rem" height="2rem" />
@@ -401,7 +403,7 @@ onMounted(() => {
 
                     <div class="flex flex-col md:flex-row gap-4">
                         <div class="flex items-center gap-4 flex-1">
-                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">ZIP Code</div>
+                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">{{ t('master.schoolProfile.zipCode') }}</div>
                             <div class="flex-1 text-surface-900 dark:text-surface-0 text-base leading-tight">-</div>
                         </div>
                         <div class="flex justify-end">
@@ -413,7 +415,7 @@ onMounted(() => {
 
                     <div class="flex flex-col md:flex-row gap-4">
                         <div class="flex items-center gap-4 flex-1">
-                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">Official Number</div>
+                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">{{ t('master.schoolProfile.officialNumber') }}</div>
                             <div class="flex-1">
                                 <span v-if="editingField !== 'official_number'" class="text-surface-900 dark:text-surface-0 text-base">
                                     {{ school_profile?.official_number ?? '' }}
@@ -435,7 +437,7 @@ onMounted(() => {
 
                     <div class="flex flex-col md:flex-row gap-4">
                         <div class="flex items-center gap-4 flex-1">
-                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">Email</div>
+                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">{{ t('master.accounts.email') }}</div>
                             <div class="flex-1">
                                 <span v-if="editingField !== 'email'" class="text-surface-900 dark:text-surface-0 text-base">
                                     {{ school_profile?.email ?? '' }}
@@ -457,7 +459,7 @@ onMounted(() => {
 
                     <div class="flex flex-col md:flex-row gap-4">
                         <div class="flex items-center gap-4 flex-1">
-                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">Website</div>
+                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">{{ t('master.schoolProfile.website') }}</div>
                             <div class="flex-1">
                                 <span v-if="editingField !== 'website'" class="text-surface-900 dark:text-surface-0 text-base">
                                     {{ school_profile?.website ?? '' }}
@@ -482,7 +484,7 @@ onMounted(() => {
         <div class="bg-surface-0 dark:bg-surface-900 px-6 py-8 md:px-12 lg:px-20 mb-4">
             <div class="flex flex-col gap-4">
                 <div class="flex flex-col gap-2 pb-4">
-                    <div class="font-semibold text-xl text-surface-900 dark:text-surface-0 leading-tight">B. Principal Identity</div>
+                    <div class="font-semibold text-xl text-surface-900 dark:text-surface-0 leading-tight">{{ t('master.schoolProfile.principalIdentity') }}</div>
                     <!-- <div class="text-surface-500 dark:text-surface-300 text-base leading-tight">Morbi tristique blandit turpis. In viverra ligula id nulla hendrerit rutrum.</div> -->
                 </div>
 
@@ -491,7 +493,7 @@ onMounted(() => {
                 <div class="flex flex-col gap-4">
                     <div class="flex flex-col md:flex-row gap-4">
                         <div class="flex items-center gap-4 flex-1">
-                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">Name</div>
+                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">{{ t('master.common.name') }}</div>
                             <div class="flex-1">
                                 <span v-if="editingField !== 'principal.name'" class="text-surface-900 dark:text-surface-0 text-base">
                                     {{ school_profile?.principal?.name ?? '-' }}
@@ -499,14 +501,22 @@ onMounted(() => {
                                 </span>
                                 <div v-else class="flex flex-col gap-2">
                                     <div class="flex items-center gap-2">
-                                        <AutoComplete v-model="editingSelected" :suggestions="filteredOptions" optionLabel="name" placeholder="Search user..." class="flex-1" forceSelection @complete="searchOptions($event, 'principal.name')" />
+                                        <AutoComplete
+                                            v-model="editingSelected"
+                                            :suggestions="filteredOptions"
+                                            optionLabel="name"
+                                            :placeholder="t('master.schoolProfile.searchUserPlaceholder')"
+                                            class="flex-1"
+                                            forceSelection
+                                            @complete="searchOptions($event, 'principal.name')"
+                                        />
                                         <Button icon="pi pi-check" severity="success" rounded :loading="savingField === 'principal.name'" :disabled="!editingSelected?.id" @click="saveField('principal.name')" />
                                         <Button icon="pi pi-times" severity="secondary" rounded variant="outlined" @click="cancelEdit" />
                                     </div>
 
                                     <!-- "Not found" hint with link -->
                                     <small class="text-surface-500 flex items-center gap-1">
-                                        Can't find what you're looking for?
+                                        {{ t('master.schoolProfile.notFoundHint') }}
                                         <RouterLink :to="fieldConfig['principal.name'].addNewLink" class="text-primary-500 hover:underline font-medium flex items-center gap-1" target="_blank">
                                             <i class="pi pi-external-link text-xs" />
                                             {{ fieldConfig['principal.name'].addNewLabel }}
@@ -524,7 +534,7 @@ onMounted(() => {
 
                     <div class="flex flex-col md:flex-row gap-4">
                         <div class="flex items-center gap-4 flex-1">
-                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">NRKS</div>
+                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">{{ t('master.schoolProfile.nrks') }}</div>
                             <div class="flex-1">
                                 <span v-if="editingField !== 'nrks'" class="text-surface-900 dark:text-surface-0 text-base">
                                     {{ school_profile?.nrks ?? '' }}
@@ -546,7 +556,7 @@ onMounted(() => {
 
                     <div class="flex flex-col md:flex-row gap-4">
                         <div class="flex items-center gap-4 flex-1">
-                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">NUPTK</div>
+                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">{{ t('master.schoolProfile.nuptk') }}</div>
                             <div class="flex-1 text-surface-900 dark:text-surface-0 text-base leading-tight">(Not Yet)*</div>
                         </div>
                         <div class="flex justify-end">
@@ -558,7 +568,7 @@ onMounted(() => {
 
                     <div class="flex flex-col md:flex-row gap-4">
                         <div class="flex items-center gap-4 flex-1">
-                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">Principal Appointment Date (TMT)</div>
+                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">{{ t('master.schoolProfile.tmtPrincipal') }}</div>
                             <div class="flex-1">
                                 <span v-if="editingField !== 'tmt_principal'" class="text-surface-900 dark:text-surface-0 text-base">
                                     {{ school_profile?.tmt_principal ?? '' }}
@@ -585,7 +595,7 @@ onMounted(() => {
         <div class="bg-surface-0 dark:bg-surface-900 px-6 py-8 md:px-12 lg:px-20">
             <div class="flex flex-col gap-4">
                 <div class="flex flex-col gap-2 pb-4">
-                    <div class="font-semibold text-xl text-surface-900 dark:text-surface-0 leading-tight">C. Committee Identity</div>
+                    <div class="font-semibold text-xl text-surface-900 dark:text-surface-0 leading-tight">{{ t('master.schoolProfile.committeeIdentity') }}</div>
                     <!-- <div class="text-surface-500 dark:text-surface-300 text-base leading-tight">Morbi tristique blandit turpis. In viverra ligula id nulla hendrerit rutrum.</div> -->
                 </div>
 
@@ -594,7 +604,7 @@ onMounted(() => {
                 <div class="flex flex-col gap-4">
                     <div class="flex flex-col md:flex-row gap-4">
                         <div class="flex items-center gap-4 flex-1">
-                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">Name</div>
+                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">{{ t('master.common.name') }}</div>
                             <div class="flex-1">
                                 <span v-if="editingField !== 'school_committee_name'" class="text-surface-900 dark:text-surface-0 text-base">
                                     {{ school_profile?.school_committee_name ?? '' }}
@@ -616,7 +626,7 @@ onMounted(() => {
 
                     <div class="flex flex-col md:flex-row gap-4">
                         <div class="flex items-center gap-4 flex-1">
-                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">Call Number</div>
+                            <div class="w-[140px] text-surface-900 dark:text-surface-0 font-medium text-base leading-tight">{{ t('master.schoolProfile.committeeNumber') }}</div>
                             <div class="flex-1">
                                 <span v-if="editingField !== 'school_committee_number'" class="text-surface-900 dark:text-surface-0 text-base">
                                     {{ school_profile?.school_committee_number ?? '' }}
@@ -641,29 +651,29 @@ onMounted(() => {
     </Fluid>
 
     <!-- Confirm Edit Dialog -->
-    <Dialog v-model:visible="EditOrNewDialog" :style="{ width: '450px' }" :header="entityLabel + ' Details'" :modal="true">
+    <Dialog v-model:visible="EditOrNewDialog" :style="{ width: '450px' }" :header="t('master.dialog.entityDetails', { entity: entityLabel })" :modal="true">
         <div class="flex flex-col gap-6">
             <div>
-                <label for="name" class="block font-bold mb-3">Name</label>
+                <label for="name" class="block font-bold mb-3">{{ t('master.common.name') }}</label>
                 <InputText id="name" v-model="singleData.name" required="true" autofocus :invalid="submitted && !singleData.name" fluid />
-                <small v-if="submitted && !singleData.name" class="text-red-500">Name is required.</small>
-                <small v-else-if="singleData.name && singleData.name.trim().length > 0 && singleData.name.trim().length <= 3" class="text-yellow-500">Name must be at least 4 characters.</small>
-                <small v-else-if="singleData.name && singleData.name === previousData.name" class="text-blue-500">Current Name (no changes).</small>
-                <small v-else-if="isCat1Used" class="text-red-500">This name is already taken.</small>
-                <small v-else-if="singleData.name && singleData.name.trim().length > 3" class="text-green-500">Name is available!</small>
+                <small v-if="submitted && !singleData.name" class="text-red-500">{{ t('master.validation.nameRequired') }}</small>
+                <small v-else-if="singleData.name && singleData.name.trim().length > 0 && singleData.name.trim().length <= 3" class="text-yellow-500">{{ t('master.validation.nameMinLength', { min: 4 }) }}</small>
+                <small v-else-if="singleData.name && singleData.name === previousData.name" class="text-blue-500">{{ t('master.validation.nameNoChanges') }}</small>
+                <small v-else-if="isCat1Used" class="text-red-500">{{ t('master.validation.nameTaken') }}</small>
+                <small v-else-if="singleData.name && singleData.name.trim().length > 3" class="text-green-500">{{ t('master.validation.nameAvailable') }}</small>
             </div>
         </div>
 
         <template #footer>
-            <Button label="Cancel" icon="pi pi-times" text @click="hideDialog" />
-            <Button v-if="!isCat1Used && validFieldCount > 0" label="Save" icon="pi pi-check" @click="saveSingleData" />
+            <Button :label="t('common.action.cancel')" icon="pi pi-times" text @click="hideDialog" />
+            <Button v-if="!isCat1Used && validFieldCount > 0" :label="t('common.action.save')" icon="pi pi-check" @click="saveSingleData" />
         </template>
     </Dialog>
     <!-- Loading Dialog -->
-    <Dialog v-model:visible="WaitingDialog" modal header="Processing Request">
+    <Dialog v-model:visible="WaitingDialog" modal :header="t('master.dialog.processing')">
         <div class="text-center justify-content-center align-items-center">
             <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: green"></i>
-            <p class="text-success mt-3" style="font-size: 1.1rem; font-weight: 500">Please wait, your data is being processed...</p>
+            <p class="text-success mt-3" style="font-size: 1.1rem; font-weight: 500">{{ t('master.dialog.pleaseWait') }}</p>
         </div>
     </Dialog>
     <!-- Error Dialog -->
