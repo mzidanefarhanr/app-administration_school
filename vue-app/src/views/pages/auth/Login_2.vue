@@ -54,15 +54,8 @@ const submitLogin = async () => {
     const trimmedUsername = form.value.username ? form.value.username.trim() : '';
 
     if (!trimmedUsername) {
-        fieldErrors.value.username = 'Email atau nama pengguna wajib diisi.';
+        fieldErrors.value.username = 'Nama pengguna wajib diisi.';
         hasValidationError = true;
-    } else if (trimmedUsername.includes('@')) {
-        // Validasi format email jika menggunakan alamat email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(trimmedUsername)) {
-            fieldErrors.value.username = 'Format email belum benar. Contoh: nama@sekolah.sch.id';
-            hasValidationError = true;
-        }
     }
 
     if (!form.value.password) {
@@ -167,14 +160,14 @@ const submitLogin = async () => {
             } else {
                 alert.value = {
                     type: 'danger',
-                    title: 'Email atau kata sandi salah',
+                    title: 'Nama pengguna atau kata sandi salah',
                     message: serverMsg || 'Periksa kembali data Anda, lalu coba lagi.'
                 };
             }
         } else if (error.response.status === 401) {
             alert.value = {
                 type: 'danger',
-                title: 'Email atau kata sandi salah',
+                title: 'Nama pengguna atau kata sandi salah',
                 message: error.response.data?.message || 'Periksa kembali data Anda, lalu coba lagi.'
             };
         } else if (error.response.status === 419) {
@@ -302,9 +295,9 @@ onMounted(async () => {
 
                 <!-- Form Login -->
                 <form @submit.prevent="submitLogin" novalidate>
-                    <!-- Input Email / Username -->
+                    <!-- Input Nama Pengguna -->
                     <div class="form-group">
-                        <label for="username" class="form-label">Email</label>
+                        <label for="username" class="form-label">Nama pengguna</label>
                         <div class="input-wrap">
                             <input
                                 id="username"
@@ -312,7 +305,7 @@ onMounted(async () => {
                                 v-model="form.username"
                                 @input="clearUsernameError"
                                 :disabled="isSubmitting"
-                                placeholder="nama@sekolah.sch.id"
+                                placeholder="Masukkan nama pengguna"
                                 autocomplete="username"
                                 class="form-input"
                                 :class="{ 'is-invalid': fieldErrors.username }"
@@ -398,7 +391,7 @@ onMounted(async () => {
 
                 <!-- Footer Hubungi Operator -->
                 <p class="card-footer-text">
-                    Belum punya akun atau lupa email? Hubungi operator sekolah.
+                    Belum punya akun atau kendala login? Hubungi operator sekolah.
                 </p>
             </div>
         </div>
