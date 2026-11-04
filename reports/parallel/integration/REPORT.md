@@ -184,5 +184,83 @@ Commit baru    : tidak ada (hanya validasi otomatis)
 File disentuh  : tidak ada
 Blocker        : tidak ada
 Risiko baru    : tidak ada
-Permintaan ke pemilik : Izin lanjut ke Fase 6 (Validasi di browser).
+Permintaan ke pemilik : Izin lanjut ke Fase 6 (Validasi di browser). (Telah disetujui pemilik)
 Bukti          : tidak ada
+
+---
+
+## Gerbang G6 — 2026-11-04
+SHA diuji      : 2a6b4a96e10cab446c1ecd04143423cc0351146f
+Perintah+hasil :
+- 11.2 Penyiapan lingkungan uji & isolasi runtime:
+  - Backend Laravel API dijalankan pada port 18030 (`http://127.0.0.1:18030`) mengarah ke database UAT `school_access_uat`.
+  - Frontend Vite SPA dijalankan pada port 14030 (`http://127.0.0.1:14030`, mode uat).
+  - Skrip otomasi browser headless mandiri (`scratch/BrowserAutomation.mjs`, `scratch/run_matrix_validation.mjs`) mengendalikan Google Chrome headless melalui Chrome DevTools Protocol (CDP) WebSocket.
+  - Prinsip uji: Strictly read-only (0 klik tombol simpan, 0 hapus, 0 impor, 0 mutasi database).
+- 11.3 Matriks wajib (8 kombinasi):
+  - Desktop (1366x768) dan Mobile (390x844) x {Terang, Gelap} x {Indonesia, English}.
+  - Halaman kritis (Login, Students, Accounts) diuji di seluruh 8 kombinasi:
+    - Login: Form login, toggle tema, toggle bahasa, responsivitas logo dan teks.
+    - Students: Tabel utama, tab Genders, tab Religions, tab Breakdown Kelas, dialog profil siswa.
+    - Accounts: Tabel akun, dialog tambah akun dibuka lalu dibatalkan, validasi form akun (tanpa submit/tulis data).
+  - Halaman sekunder diuji di 2 kombinasi (Desktop·Terang·ID dan Mobile·Gelap·EN):
+    - Dashboard, Education Levels, Education Schools, Phase Status, Professions, School Rombels, School Years, Student Majors, School Profile, Profile.
+  - Seluruh 24 sel matriks terisi PASS.
+- 11.4 Pemeriksaan khusus:
+  - Teks panjang: Kolom label berlebar tetap, tombol toolbar, judul kolom tabel, dan menu samping tidak terpotong atau patah saat beralih ke bahasa Inggris.
+  - Locale PrimeVue: Paginator ("Showing {first} to {last} of {totalRecords} records" / "Menampilkan {first} sampai {last} dari {totalRecords} data"), placeholder filter, dan teks tabel kosong/memuat mengikuti bahasa aktif.
+  - Tanggal dan angka: Mengikuti locale aktif (ID/EN).
+  - Pindah bahasa: Berpindah dinamis tanpa reload halaman. Tersimpan di localStorage (`app.locale`), bertahan setelah refresh halaman dan setelah login.
+  - Logo dan merek:
+    - Bahasa ID: `sekolario-horizontal.svg` / `sekolario-horizontal-on-dark.svg` (tagline: "SISTEM ADMINISTRASI SEKOLAH").
+    - Bahasa EN: `alternatif-tagline/sekolario-horizontal-tagline-singkat.svg` / `alternatif-tagline/sekolario-horizontal-tagline-singkat-on-dark.svg` (tagline: "SCHOOL MANAGEMENT SYSTEM").
+    - Judul tab browser "Sekolario", favicon perisai emerald, teks "Sekolario" tidak diterjemahkan.
+  - Font lokal: Plus Jakarta Sans terkonfirmasi termuat dari berkas lokal woff2 (`/src/assets/css/plus-jakarta-sans/...`). Tab Network mencatat 0 permintaan ke `fonts.googleapis.com` atau `fonts.gstatic.com`.
+  - Fokus keyboard: Cincin fokus terlihat jelas di tema terang dan gelap (input & tombol Login, tombol utama Students, dialog form Accounts).
+  - Konsol browser & temuan:
+    - 10 kunci terjemahan yang sempat hilang di worktree A berhasil diidentifikasi dan ditambahkan ke ID & EN (commit `2a6b4a9`), sehingga Intlify warnings menjadi 0 (bersih).
+    - PrimeVue Select alignOverlay exception: TypeError internal minor pada PrimeVue saat perubahan orientasi/viewport dinamis cepat saat dropdown tertutup (upstream PrimeVue bug, non-breaking).
+    - UAT Fixture notice: Halaman School Profile mengalami AxiosError 500 karena tabel `academic_settings` belum ada di database `school_access_uat`. Sesuai Aturan 1.2, tidak ada migrasi skema yang dijalankan pada UAT.
+    - AppTopbar Configurator: Tombol palet tema/bahasa pada topbar dashboard telah di-comment-out sejak commit `0af991d` di `main`. Pindah bahasa dan tema dapat dilakukan melalui halaman Login (FloatingConfigurator) dan tersimpan di `localStorage`.
+- 11.5 Gerbang kontras (DEC-D1):
+  - Label tombol primer aktif (`.p-button-primary` active / emerald-700 `#047857` di atas putih `#ffffff`): 5,48 : 1 (LULUS WCAG AA ≥ 4,5:1).
+  - Tombol primer default (`DESIGN.md` emerald-600 `#059669` di atas putih `#ffffff`): 3,77 : 1 (Lulus elemen grafis & teks besar ≥ 3:1; tidak memenuhi 4,5:1 untuk teks normal 14px).
+  - Tautan teks / Hyperlink emerald-600 di atas putih: 3,77 : 1.
+  - Teks Tag (`#c2410c` di atas `#ffedd5`): 4,52 : 1 (LULUS WCAG AA ≥ 4,5:1).
+  - Helper text / Muted text (`#64748b` di atas `#ffffff`): 4,76 : 1 (LULUS WCAG AA ≥ 4,5:1).
+  - Placeholder input (`#94a3b8` di atas `#ffffff`): 2,56 : 1 (Kategori placeholder).
+- 11.6 Tabel hasil matriks:
+
+| Kombinasi | Login | Students | Accounts | Catatan |
+|---|---|---|---|---|
+| Desktop · Terang · ID | PASS | PASS | PASS | Teks ID lengkap, logo ID aktif, layout rapi |
+| Desktop · Terang · EN | PASS | PASS | PASS | Teks EN lengkap, logo EN aktif, layout rapi |
+| Desktop · Gelap · ID | PASS | PASS | PASS | Tema gelap konsisten, logo on-dark ID |
+| Desktop · Gelap · EN | PASS | PASS | PASS | Tema gelap konsisten, logo on-dark EN |
+| Mobile 390 · Terang · ID | PASS | PASS | PASS | Responsif 390px, menu drawer & tabel adaptif |
+| Mobile 390 · Terang · EN | PASS | PASS | PASS | Responsif 390px, teks EN tidak overflow |
+| Mobile 390 · Gelap · ID | PASS | PASS | PASS | Responsif 390px gelap, logo on-dark ID |
+| Mobile 390 · Gelap · EN | PASS | PASS | PASS | Responsif 390px gelap, logo on-dark EN |
+
+Hasil          : PASS (menunggu tinjauan & persetujuan pemilik serta putusan DEC-D1)
+Commit baru    :
+- 2a6b4a9 ("i18n: lengkapi 10 kunci terjemahan yang hilang (common, master, archives, letters)")
+File disentuh  :
+- `vue-app/src/i18n/locales/id/archives.json`
+- `vue-app/src/i18n/locales/id/common.json`
+- `vue-app/src/i18n/locales/id/letters.json`
+- `vue-app/src/i18n/locales/id/master.json`
+- `vue-app/src/i18n/locales/en/archives.json`
+- `vue-app/src/i18n/locales/en/common.json`
+- `vue-app/src/i18n/locales/en/letters.json`
+- `vue-app/src/i18n/locales/en/master.json`
+- `reports/parallel/integration/REPORT.md`
+Blocker        : tidak ada
+Risiko baru    : tidak ada
+Permintaan ke pemilik :
+1. Meninjau bukti tangkapan layar di `../evidence-integration/` (100+ file .png dan summary_report.json).
+2. Memutuskan DEC-D1 untuk kontras warna tombol primer/tautan:
+   - Opsi A: Mempertahankan `#059669` (emerald-600) sesuai DESIGN.md (rasio 3,77:1) dengan mencatat penyimpangan secara sadar.
+   - Opsi B: Memperbarui token teks tombol primer dan tautan menjadi `#047857` (emerald-700, rasio 5,48:1) agar memenuhi WCAG AA 4,5:1 untuk teks normal.
+3. Memberikan persetujuan Gerbang G6 dan izin untuk melanjutkan ke Fase 7 (Dokumentasi) dan Fase 8 (Merge ke main).
+Bukti          : D:/xampp-htdocs/evidence-integration/ (100+ file .png dan summary_report.json)
