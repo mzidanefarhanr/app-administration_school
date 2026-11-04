@@ -282,10 +282,7 @@ onMounted(() => {
     <Dialog v-model:visible="deleteDialog" :style="{ width: '450px' }" :header="t('master.dialog.confirm')" :modal="true">
         <div class="flex items-center gap-4">
             <i class="pi pi-exclamation-triangle !text-3xl" />
-            <span v-if="singleData"
-                >Are you sure you want to delete <b>{{ singleData.name }}</b
-                >?</span
-            >
+            <span v-if="singleData">{{ t('master.dialog.confirmDelete', { name: singleData.name }) }}</span>
         </div>
         <template #footer>
             <Button :label="t('master.common.noOption')" icon="pi pi-times" text @click="deleteDialog = false" severity="secondary" variant="text" />

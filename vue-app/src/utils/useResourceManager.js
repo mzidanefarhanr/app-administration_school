@@ -65,6 +65,7 @@ export function useResourceManager(config) {
     const manyDatas = ref([]);
     const manyDatas_cat1 = ref([]);
     const status_educations = computed(() => [
+        // Reference labels contract: { name: 'Negeri', display_name: 'Public' }, { name: 'Swasta', display_name: 'Private' }
         { name: 'Negeri', display_name: i18n.locale.value === 'en' ? 'Public' : 'Negeri' },
         { name: 'Swasta', display_name: i18n.locale.value === 'en' ? 'Private' : 'Swasta' }
     ]);
@@ -280,7 +281,7 @@ export function useResourceManager(config) {
 
                     toast.add({
                         severity: 'success',
-                        summary: 'Data ' + old_data.name + ' Updated',
+                        summary: i18n.t('common.crud.updatedTitle', { name: old_data.name }),
                         detail: detailMessages,
                         life: 5000
                     });
@@ -291,7 +292,7 @@ export function useResourceManager(config) {
 
                     if (error.response?.status === 409) {
                         // Another admin saved first — show conflict warning
-                        titleError.value = 'Data Conflict Detected';
+                        titleError.value = i18n.t('common.api.conflict');
                         fieldError.value = error.response.data.message;
                         errorDialogRender();
 
@@ -302,18 +303,18 @@ export function useResourceManager(config) {
                             previousData.value = { ...latest };
                         }
                     } else if (error.response?.status === 422) {
-                        titleError.value = 'Validation Failed';
+                        titleError.value = i18n.t('common.crud.validationFailed');
                         fieldError.value = Object.values(error.response.data).flat().join('\n');
                         errorDialogRender();
                     } else {
-                        titleError.value = 'Error Saving Data';
+                        titleError.value = i18n.t('common.crud.saveError');
                         fieldError.value = error.response?.data?.message ?? 'Unprocessable Content.';
                         errorDialogRender();
                     }
                 }
             } else {
                 waitingDialogRender();
-                titleError.value = 'Failed to process data!';
+                titleError.value = i18n.t('common.crud.failedProcess');
                 fieldError.value = detailMessage.hasChanges + '\n' + detailMessages;
                 errorDialogRender();
             }
@@ -330,16 +331,16 @@ export function useResourceManager(config) {
                 waitingDialogRender();
                 toast.add({
                     severity: 'success',
-                    summary: 'Data Created Successfully',
-                    detail: (singleData.value.name || 'New record') + ' has been created',
+                    summary: i18n.t('common.crud.createdTitle'),
+                    detail: i18n.t('common.crud.createdDetail', { name: singleData.value.name || 'New record' }),
                     life: 3000
                 });
                 singleData.value = {};
             } catch (error) {
                 // console.error('saveSingleData (create) error:', error);
                 waitingDialogRender();
-                titleError.value = 'Creation Failed';
-                fieldError.value = error.response?.data?.message || 'An unexpected error occurred.';
+                titleError.value = i18n.t('common.crud.createError');
+                fieldError.value = error.response?.data?.message || i18n.t('common.crud.unexpectedError');
                 errorDialogRender();
             }
         }
@@ -365,15 +366,15 @@ export function useResourceManager(config) {
             waitingDialogRender();
             toast.add({
                 severity: 'success',
-                summary: 'Data Deleted',
-                detail: `Data ${singleData.value.name} has been deleted successfully`,
+                summary: i18n.t('common.crud.deletedTitle'),
+                detail: i18n.t('common.crud.deletedDetail', { name: singleData.value.name }),
                 life: 5000
             });
         } catch (error) {
             // console.error('deleteSingleData error:', error);
             waitingDialogRender();
-            titleError.value = 'Deletion Failed';
-            fieldError.value = error.response?.data?.message || 'Unable to delete the data.';
+            titleError.value = i18n.t('common.crud.deleteError');
+            fieldError.value = error.response?.data?.message || i18n.t('common.crud.unableToDelete');
             errorDialogRender();
         }
 
@@ -408,8 +409,8 @@ export function useResourceManager(config) {
                 } catch (error) {
                     // console.error('deleteSelectedManyDatas error:', error);
                     waitingDialogRender();
-                    titleError.value = 'Bulk Deletion Failed';
-                    fieldError.value = error.response?.data?.message || 'Failed to delete some records.';
+                    titleError.value = i18n.t('common.crud.bulkDeleteError');
+                    fieldError.value = error.response?.data?.message || i18n.t('common.crud.failedDeleteSome');
                     errorDialogRender();
                     break;
                 }
@@ -420,8 +421,8 @@ export function useResourceManager(config) {
             waitingDialogRender();
             toast.add({
                 severity: 'success',
-                summary: `${totalSelected} ${entityLabelPlural.value} Deleted`,
-                detail: `${formattedNames} have been deleted successfully`,
+                summary: i18n.t('common.crud.bulkDeletedTitle', { count: totalSelected, entity: entityLabelPlural.value }),
+                detail: i18n.t('common.crud.bulkDeletedDetail', { names: formattedNames }),
                 life: 5000
             });
         }

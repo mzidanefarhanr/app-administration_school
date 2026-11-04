@@ -470,8 +470,8 @@ onMounted(() => {
                 <!-- Page Header & Academic Year / Semester Context -->
                 <div class="flex flex-column lg:flex-row lg:align-items-center lg:justify-content-between gap-3 mb-4">
                     <div>
-                        <h2 class="text-2xl font-semibold m-0">Teaching Journal Compliance Reports</h2>
-                        <p class="text-color-secondary m-0 mt-1">Audit missing teaching journals, monitor teacher compliance rates, and drill down into session worklists.</p>
+                        <h2 class="text-2xl font-semibold m-0">{{ t('teaching.reports.title') }}</h2>
+                        <p class="text-color-secondary m-0 mt-1">{{ t('teaching.reports.subtitle') }}</p>
                     </div>
 
                     <div class="flex flex-wrap align-items-center gap-2">
@@ -600,7 +600,7 @@ onMounted(() => {
                     <div v-if="filters.employee_id" class="mt-3 pt-3 border-top-1 surface-border flex align-items-center justify-content-between">
                         <span class="text-sm">
                             <i class="pi pi-user mr-2 text-primary"></i>
-                            Filtering by Teacher ID: <strong>{{ filters.employee_id }}</strong>
+                            {{ t('teaching.reports.filteringBy', { id: filters.employee_id }) }}
                         </span>
                         <Button :label="t('teaching.reports.summary.clearTeacherFilter')" icon="pi pi-times" size="small" severity="secondary" text @click="clearTeacherFilter" />
                     </div>
@@ -611,33 +611,33 @@ onMounted(() => {
                     <div class="col-12 sm:col-6 lg:col-3">
                         <div class="p-3 border-round surface-card border-1 surface-border h-full flex flex-column justify-content-between">
                             <div>
-                                <div class="text-sm text-color-secondary">Expected Sessions</div>
+                                <div class="text-sm text-color-secondary">{{ t('teaching.reports.kpi.totalScheduled') }}</div>
                                 <div class="text-2xl font-bold mt-1">{{ summaryData.total_expected_sessions }}</div>
                             </div>
-                            <div class="text-xs text-color-secondary mt-2">Active teaching sessions in range</div>
+                            <div class="text-xs text-color-secondary mt-2">{{ t('teaching.reports.summary.table.scheduledCol') }}</div>
                         </div>
                     </div>
 
                     <div class="col-12 sm:col-6 lg:col-3">
                         <div class="p-3 border-round bg-green-50 border-1 border-green-200 h-full flex flex-column justify-content-between">
                             <div>
-                                <div class="text-sm text-green-700">Recorded Journals</div>
+                                <div class="text-sm text-green-700">{{ t('teaching.reports.kpi.recordedCount') }}</div>
                                 <div class="text-2xl font-bold text-green-800 mt-1">{{ summaryData.total_recorded_journals }}</div>
                             </div>
-                            <div class="text-xs text-green-700 mt-2">Completed classroom journals</div>
+                            <div class="text-xs text-green-700 mt-2">{{ t('teaching.reports.recordedStatus') }}</div>
                         </div>
                     </div>
 
                     <div class="col-12 sm:col-6 lg:col-3">
                         <div class="p-3 border-round bg-red-50 border-1 border-red-200 h-full flex flex-column justify-content-between">
                             <div>
-                                <div class="text-sm text-red-700">Missing Journals</div>
+                                <div class="text-sm text-red-700">{{ t('teaching.reports.kpi.missingCount') }}</div>
                                 <div class="text-2xl font-bold text-red-800 mt-1">{{ summaryData.total_missing_journals }}</div>
                             </div>
                             <div class="flex gap-2 text-xs mt-2">
-                                <span class="text-amber-800 font-medium">Within Grace: {{ summaryData.total_missing_within_grace }}</span>
+                                <span class="text-amber-800 font-medium">{{ t('teaching.reports.withinGrace', { count: summaryData.total_missing_within_grace }) }}</span>
                                 <span class="text-color-secondary">•</span>
-                                <span class="text-red-700 font-medium">Overdue: {{ summaryData.total_missing_overdue }}</span>
+                                <span class="text-red-700 font-medium">{{ t('teaching.reports.overdue', { count: summaryData.total_missing_overdue }) }}</span>
                             </div>
                         </div>
                     </div>
@@ -645,19 +645,19 @@ onMounted(() => {
                     <div class="col-12 sm:col-6 lg:col-3">
                         <div class="p-3 border-round surface-card border-1 surface-border h-full flex flex-column justify-content-between">
                             <div>
-                                <div class="text-sm text-color-secondary">Overall Compliance</div>
+                                <div class="text-sm text-color-secondary">{{ t('teaching.reports.overallCompliance') }}</div>
                                 <div class="flex align-items-center gap-2 mt-1">
                                     <div class="text-2xl font-bold" :class="summaryData.overall_compliance_percentage >= 90 ? 'text-green-600' : summaryData.overall_compliance_percentage >= 75 ? 'text-primary' : 'text-red-600'">
                                         {{ summaryData.overall_compliance_percentage }}%
                                     </div>
                                     <Tag
                                         :severity="summaryData.overall_compliance_percentage >= 90 ? 'success' : summaryData.overall_compliance_percentage >= 75 ? 'info' : 'danger'"
-                                        :value="summaryData.overall_compliance_percentage >= 90 ? 'High' : summaryData.overall_compliance_percentage >= 75 ? 'Moderate' : 'Low'"
+                                        :value="summaryData.overall_compliance_percentage >= 90 ? t('teaching.reports.high') : summaryData.overall_compliance_percentage >= 75 ? t('teaching.reports.moderate') : t('teaching.reports.low')"
                                     />
                                 </div>
                             </div>
                             <div class="text-xs text-color-secondary mt-2">
-                                Excluded slots: <strong>{{ summaryData.total_excluded_slots }}</strong> (holidays/cancelled)
+                                {{ t('teaching.reports.excludedSlots', { count: summaryData.total_excluded_slots }) }}
                             </div>
                         </div>
                     </div>
@@ -673,26 +673,26 @@ onMounted(() => {
                 <div v-if="activeTab === 'summary'">
                     <div v-if="loadingReport" class="p-4 text-center text-color-secondary">
                         <i class="pi pi-spin pi-spinner text-2xl mb-2"></i>
-                        <div>Loading teacher compliance summaries...</div>
+                        <div>{{ t('teaching.reports.loadingReport') }}</div>
                     </div>
 
                     <div v-else-if="teachersReportList.length === 0" class="p-5 text-center text-color-secondary border-round surface-50 border-1 surface-border">
                         <i class="pi pi-info-circle text-3xl mb-2"></i>
-                        <div class="font-medium">No teaching sessions found in this date range.</div>
-                        <div class="text-sm mt-1">Adjust filters or select an academic period with scheduled sessions.</div>
+                        <div class="font-medium">{{ t('teaching.reports.noSessionsFound') }}</div>
+                        <div class="text-sm mt-1">{{ t('teaching.reports.noSessionsFoundHint') }}</div>
                     </div>
 
                     <div v-else class="overflow-x-auto border-round surface-border border-1">
                         <table class="w-full text-left border-collapse text-sm">
                             <thead>
                                 <tr class="surface-100 border-bottom-1 surface-border text-color-secondary">
-                                    <th class="p-3">Teacher</th>
-                                    <th class="p-3 text-center">Expected Sessions</th>
-                                    <th class="p-3 text-center">Recorded</th>
-                                    <th class="p-3 text-center">Missing (Within Grace)</th>
-                                    <th class="p-3 text-center">Missing (Overdue)</th>
-                                    <th class="p-3 text-center">Compliance</th>
-                                    <th class="p-3 text-right">Actions</th>
+                                    <th class="p-3">{{ t('teaching.reports.summary.table.teacherCol') }}</th>
+                                    <th class="p-3 text-center">{{ t('teaching.reports.summary.table.scheduledCol') }}</th>
+                                    <th class="p-3 text-center">{{ t('teaching.reports.summary.table.recordedCol') }}</th>
+                                    <th class="p-3 text-center">{{ t('teaching.reports.missingWithinGraceCol') }}</th>
+                                    <th class="p-3 text-center">{{ t('teaching.reports.missingOverdueCol') }}</th>
+                                    <th class="p-3 text-center">{{ t('teaching.reports.summary.table.rateCol') }}</th>
+                                    <th class="p-3 text-right">{{ t('teaching.reports.summary.table.actionsCol') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -738,13 +738,13 @@ onMounted(() => {
                 <div v-else>
                     <div v-if="loadingReport" class="p-4 text-center text-color-secondary">
                         <i class="pi pi-spin pi-spinner text-2xl mb-2"></i>
-                        <div>Loading sessions drilldown...</div>
+                        <div>{{ t('teaching.reports.loadingDrilldown') }}</div>
                     </div>
 
                     <div v-else-if="drilldownList.length === 0" class="p-5 text-center text-color-secondary border-round surface-50 border-1 surface-border">
                         <i class="pi pi-check-circle text-3xl mb-2 text-green-600"></i>
-                        <div class="font-medium">No sessions matching the selected filter.</div>
-                        <div class="text-sm mt-1">All sessions in this range have compliant journal entries or are excluded.</div>
+                        <div class="font-medium">{{ t('teaching.reports.noSessionsDrilldown') }}</div>
+                        <div class="text-sm mt-1">{{ t('teaching.reports.noSessionsDrilldownHint') }}</div>
                     </div>
 
                     <div v-else>
@@ -752,11 +752,11 @@ onMounted(() => {
                             <table class="w-full text-left border-collapse text-sm">
                                 <thead>
                                     <tr class="surface-100 border-bottom-1 surface-border text-color-secondary">
-                                        <th class="p-3">Session Date &amp; Time</th>
-                                        <th class="p-3">Class &amp; Subject</th>
+                                        <th class="p-3">{{ t('teaching.reports.dateTimeCol') }}</th>
+                                        <th class="p-3">{{ t('teaching.reports.classSubjectCol') }}</th>
                                         <th class="p-3">Teacher</th>
-                                        <th class="p-3">Source &amp; Status</th>
-                                        <th class="p-3">Journal Status</th>
+                                        <th class="p-3">{{ t('teaching.reports.sourceStatusCol') }}</th>
+                                        <th class="p-3">{{ t('teaching.reports.statusCol') }}</th>
                                         <th class="p-3 text-right">Actions</th>
                                     </tr>
                                 </thead>
@@ -772,25 +772,28 @@ onMounted(() => {
                                         </td>
                                         <td class="p-3">
                                             <div class="font-medium">{{ session.teacher_name }}</div>
-                                            <div v-if="session.assigned_teacher_id !== session.teacher_employee_id" class="text-xs text-amber-700">Substitute (Assigned: {{ session.assigned_teacher_name }})</div>
+                                            <div v-if="session.assigned_teacher_id !== session.teacher_employee_id" class="text-xs text-amber-700">{{ t('teaching.reports.substitute', { name: session.assigned_teacher_name }) }}</div>
                                         </td>
                                         <td class="p-3">
-                                            <Tag :value="session.source_type === 'rescheduled' ? 'Rescheduled Slot' : 'Regular Timetable'" :severity="session.source_type === 'rescheduled' ? 'info' : 'secondary'" />
+                                            <Tag
+                                                :value="session.source_type === 'rescheduled' ? t('teaching.reports.rescheduledSlot') : t('teaching.reports.regularTimetable')"
+                                                :severity="session.source_type === 'rescheduled' ? 'info' : 'secondary'"
+                                            />
                                         </td>
                                         <td class="p-3">
                                             <div v-if="session.has_journal">
-                                                <Tag severity="success" value="Recorded" icon="pi pi-check" />
+                                                <Tag severity="success" :value="t('teaching.reports.recordedStatus')" icon="pi pi-check" />
                                                 <div class="text-xs text-color-secondary mt-1 truncate max-w-10rem" :title="session.journal_topic">
                                                     {{ session.journal_topic || '-' }}
                                                 </div>
                                             </div>
                                             <div v-else-if="session.is_within_grace_window">
-                                                <Tag severity="warn" value="Missing (Within Grace)" icon="pi pi-clock" />
-                                                <div class="text-xs text-amber-700 mt-1">Can be recorded by teacher</div>
+                                                <Tag severity="warn" :value="t('teaching.reports.missingGraceStatus')" icon="pi pi-clock" />
+                                                <div class="text-xs text-amber-700 mt-1">{{ t('teaching.reports.canRecordHint') }}</div>
                                             </div>
                                             <div v-else>
-                                                <Tag severity="danger" value="Missing (Overdue)" icon="pi pi-exclamation-triangle" />
-                                                <div class="text-xs text-red-700 mt-1">Requires admin/operator correction</div>
+                                                <Tag severity="danger" :value="t('teaching.reports.missingOverdueStatus')" icon="pi pi-exclamation-triangle" />
+                                                <div class="text-xs text-red-700 mt-1">{{ t('teaching.reports.requireOverrideHint') }}</div>
                                             </div>
                                         </td>
                                         <td class="p-3 text-right">

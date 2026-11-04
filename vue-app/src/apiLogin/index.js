@@ -1,6 +1,7 @@
 import { notify } from '@kyvg/vue3-notification';
 import axios from 'axios';
 import { enrichReferenceResponse } from '@/utils/referenceLabels.mjs';
+import { i18n } from '@/i18n';
 
 // Base URL API WAJIB berasal dari konfigurasi (VITE_API_BASE_URL).
 // Tidak ada fallback diam-diam ke alamat lama: bila tidak tersedia/valid,
@@ -75,8 +76,8 @@ apiLogin.interceptors.response.use(
         if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
             notify({
                 type: 'error',
-                title: 'Request timeout',
-                text: 'The request took too long to respond. Please check your connection and try again.'
+                title: i18n.t('common.api.timeoutTitle'),
+                text: i18n.t('common.api.timeoutText')
             });
             return Promise.reject(error);
         }
@@ -84,8 +85,8 @@ apiLogin.interceptors.response.use(
         if (!error.response) {
             notify({
                 type: 'error',
-                title: 'Connection error',
-                text: 'Could not reach the API server. Check that it is running and reachable.'
+                title: i18n.t('common.api.connectionErrorTitle'),
+                text: i18n.t('common.api.connectionErrorText')
             });
             return Promise.reject(error);
         }
@@ -97,8 +98,8 @@ apiLogin.interceptors.response.use(
             if (config._retry) {
                 notify({
                     type: 'error',
-                    title: 'Security token mismatch',
-                    text: 'Security validation failed. Please refresh the page and try again.'
+                    title: i18n.t('common.api.csrfMismatchTitle'),
+                    text: i18n.t('common.api.csrfMismatchText')
                 });
                 return Promise.reject(error);
             }
@@ -127,8 +128,8 @@ apiLogin.interceptors.response.use(
             } catch (refreshErr) {
                 notify({
                     type: 'error',
-                    title: 'Security validation expired',
-                    text: 'Failed to refresh security token. Please refresh the page and try again.'
+                    title: i18n.t('common.api.csrfExpiredTitle'),
+                    text: i18n.t('common.api.csrfExpiredText')
                 });
                 return Promise.reject(error);
             }
@@ -142,15 +143,15 @@ apiLogin.interceptors.response.use(
                 if (!isSessionExpiredHandled) {
                     isSessionExpiredHandled = true;
                     try {
-                        sessionStorage.setItem('auth_flash_message', 'Your session has expired. Please sign in again.');
+                        sessionStorage.setItem('auth_flash_message', i18n.t('common.api.sessionExpiredText'));
                     } catch (_) {
                         // ignore storage errors
                     }
 
                     notify({
                         type: 'error',
-                        title: 'Session expired',
-                        text: 'Your session has expired. Please sign in again.',
+                        title: i18n.t('common.api.sessionExpiredTitle'),
+                        text: i18n.t('common.api.sessionExpiredText'),
                         duration: 6000
                     });
 
@@ -176,8 +177,8 @@ apiLogin.interceptors.response.use(
             if (isInactive) {
                 notify({
                     type: 'error',
-                    title: 'Account inactive',
-                    text: error.response.data?.message || 'Your account is inactive. Please contact the administrator.',
+                    title: i18n.t('common.api.accountInactiveTitle'),
+                    text: error.response.data?.message || i18n.t('common.api.accountInactiveText'),
                     duration: 6000
                 });
                 if (onAccountInactiveHandler) {
@@ -194,19 +195,19 @@ apiLogin.interceptors.response.use(
         if (status === 429) {
             notify({
                 type: 'warn',
-                title: 'Too many requests',
-                text: 'Too many requests. Please wait a moment and try again.'
+                title: i18n.t('common.api.tooManyRequestsTitle'),
+                text: i18n.t('common.api.tooManyRequestsText')
             });
             return Promise.reject(error);
         }
 
         // 6. 5xx Server Error
         if (status >= 500) {
-            const refText = correlationId ? ` (ID Referensi: ${correlationId})` : '';
-            const errorMsg = error.response?.data?.message || 'An unexpected server error occurred. Please try again later.';
+            const refText = correlationId ? i18n.t('common.api.referenceId', { id: correlationId }) : '';
+            const errorMsg = error.response?.data?.message || i18n.t('common.api.serverErrorText');
             notify({
                 type: 'error',
-                title: 'Server error',
+                title: i18n.t('common.api.serverErrorTitle'),
                 text: `${errorMsg}${refText}`,
                 duration: 8000
             });
