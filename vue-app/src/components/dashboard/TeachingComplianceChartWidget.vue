@@ -28,8 +28,8 @@ const buildChartConfig = () => {
     const textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary') || '#6c757d';
     const surfaceBorder = documentStyle.getPropertyValue('--surface-border') || '#dfe7ef';
 
-    const complianceColor = documentStyle.getPropertyValue('--p-emerald-500') || '#10B981';
-    const recordedColor = documentStyle.getPropertyValue('--p-indigo-400') || '#818CF8';
+    const complianceColor = documentStyle.getPropertyValue('--sk-chart-1') || '#059669';
+    const recordedColor = documentStyle.getPropertyValue('--sk-chart-2') || '#0ea5e9';
 
     chartData.value = {
         labels: rawData.value.labels,

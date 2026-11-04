@@ -69,8 +69,8 @@ const buildCharts = () => {
         datasets: [
             {
                 data: [g.male, g.female],
-                backgroundColor: ['#3B82F6', '#EC4899'],
-                hoverBackgroundColor: ['#2563EB', '#DB2777']
+                backgroundColor: [docStyle.getPropertyValue('--sk-gender-l') || '#0ea5e9', docStyle.getPropertyValue('--sk-gender-p') || '#ec4899'],
+                hoverBackgroundColor: [docStyle.getPropertyValue('--sk-gender-l') || '#0ea5e9', docStyle.getPropertyValue('--sk-gender-p') || '#ec4899']
             }
         ]
     };
@@ -86,7 +86,7 @@ const buildCharts = () => {
 
     // Chart Religion Doughnut
     const rels = demographics.value.religion || [];
-    const relPalette = ['#10B981', '#06B6D4', '#6366F1', '#F59E0B', '#EF4444', '#8B5CF6', '#64748B'];
+    const relPalette = ['#059669', '#0ea5e9', '#f59e0b', '#8b5cf6', '#f43f5e', '#14b8a6', '#94a3b8'];
     religionChartData.value = {
         labels: rels.map((r) => r.name),
         datasets: [

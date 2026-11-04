@@ -28,8 +28,8 @@ const buildChartConfig = () => {
     const textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary') || '#6c757d';
     const surfaceBorder = documentStyle.getPropertyValue('--surface-border') || '#dfe7ef';
 
-    const maleColor = documentStyle.getPropertyValue('--p-primary-500') || '#3B82F6';
-    const femaleColor = documentStyle.getPropertyValue('--p-pink-400') || '#EC4899';
+    const maleColor = documentStyle.getPropertyValue('--sk-gender-l') || '#0ea5e9';
+    const femaleColor = documentStyle.getPropertyValue('--sk-gender-p') || '#ec4899';
 
     const datasets = (rawData.value.datasets || [])
         .filter((ds) => ds.label !== 'Total')

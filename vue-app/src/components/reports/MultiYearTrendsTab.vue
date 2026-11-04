@@ -73,23 +73,23 @@ const buildCharts = () => {
         datasets: [
             {
                 label: t('reports.demographics.male'),
-                backgroundColor: '#3B82F6',
-                borderColor: '#3B82F6',
+                backgroundColor: docStyle.getPropertyValue('--sk-gender-l') || '#0ea5e9',
+                borderColor: docStyle.getPropertyValue('--sk-gender-l') || '#0ea5e9',
                 borderRadius: 4,
                 data: trends.value.charts.students.male
             },
             {
                 label: t('reports.demographics.female'),
-                backgroundColor: '#EC4899',
-                borderColor: '#EC4899',
+                backgroundColor: docStyle.getPropertyValue('--sk-gender-p') || '#ec4899',
+                borderColor: docStyle.getPropertyValue('--sk-gender-p') || '#ec4899',
                 borderRadius: 4,
                 data: trends.value.charts.students.female
             },
             {
                 type: 'line',
                 label: t('reports.multiYear.charts.totalStudents'),
-                borderColor: '#10B981',
-                backgroundColor: '#10B981',
+                borderColor: docStyle.getPropertyValue('--sk-chart-1') || '#059669',
+                backgroundColor: docStyle.getPropertyValue('--sk-chart-1') || '#059669',
                 borderWidth: 2,
                 fill: false,
                 tension: 0.3,
@@ -128,15 +128,15 @@ const buildCharts = () => {
         datasets: [
             {
                 label: t('reports.multiYear.charts.mutationIn'),
-                backgroundColor: '#06B6D4',
-                borderColor: '#06B6D4',
+                backgroundColor: docStyle.getPropertyValue('--sk-chart-2') || '#0ea5e9',
+                borderColor: docStyle.getPropertyValue('--sk-chart-2') || '#0ea5e9',
                 borderRadius: 4,
                 data: trends.value.charts.mutations.incoming
             },
             {
                 label: t('reports.multiYear.charts.mutationOut'),
-                backgroundColor: '#F59E0B',
-                borderColor: '#F59E0B',
+                backgroundColor: docStyle.getPropertyValue('--sk-chart-3') || '#f59e0b',
+                borderColor: docStyle.getPropertyValue('--sk-chart-3') || '#f59e0b',
                 borderRadius: 4,
                 data: trends.value.charts.mutations.outgoing
             }
