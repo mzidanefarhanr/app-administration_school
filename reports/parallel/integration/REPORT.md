@@ -49,5 +49,24 @@ Blocker        : tidak ada
 Risiko baru    : tidak ada
 Permintaan ke pemilik :
 1. Menyiapkan salinan .env untuk laravel-api dan vue-app di ../school-integration bila diperlukan untuk uji runtime.
-2. Izin lanjut ke Fase 2 (Merge feature/i18n).
+2. Izin lanjut ke Fase 2 (Merge feature/i18n). (Telah disetujui pemilik)
 Bukti          : tidak ada
+
+---
+
+## Gerbang G2 — 2026-11-04
+SHA diuji      : b26ff4dbb0ea97669d0d34aa9f8602b9347d4fa1
+Perintah+hasil :
+- git rev-parse feature/i18n: terverifikasi sama persis dengan $A_SHA (c8a88507e484e0c8f336a08eb0d9953cddad3683).
+- git merge --no-ff feature/i18n -m "integrate: merge feature/i18n": sukses bersih tanpa konflik (115 files changed, +11946/-2981).
+- package-lock.json regenerasi (7.2): checkout dari origin/main, npm install; verifikasi diff terhadap origin/main membuktikan hanya menambah vue-i18n (^11.4.18) dan dependensinya (@intlify/*). Tidak ada paket lain yang bergeser.
+- npm run build di vue-app: sukses (built in 38.15s, 0 errors, 0 warnings).
+- Unit tests: 9 test suites di vue-app/tests/ (labels, params, auth, ability) seluruhnya lulus (100% pass).
+Hasil          : PASS
+Commit baru    : b26ff4d ("integrate: merge feature/i18n")
+File disentuh  : 115 files (seluruh berkas i18n dan laporan dari worktree A)
+Blocker        : tidak ada
+Risiko baru    : tidak ada
+Permintaan ke pemilik : Izin lanjut ke Fase 3 (Merge feature/branding).
+Bukti          : tidak ada
+
