@@ -85,7 +85,10 @@ onMounted(async () => {
         <template v-else>
             <p class="text-sm text-surface-500 mb-4">{{ t('dashboard.archiveExpiry.description', { days: thresholdDays }) }}</p>
 
-            <div v-if="totalLabel === 0" class="py-6 text-center text-surface-500 text-sm">{{ t('dashboard.archiveExpiry.empty') }}</div>
+            <div v-if="totalLabel === 0" class="py-3 text-center text-surface-500 text-sm flex items-center justify-center gap-2">
+                <i class="pi pi-check-circle text-green-500" aria-hidden="true"></i>
+                <span>{{ t('dashboard.archiveExpiry.empty') }}</span>
+            </div>
 
             <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <section v-if="expired.total > 0">

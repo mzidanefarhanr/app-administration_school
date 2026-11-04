@@ -46,7 +46,7 @@ defineExpose({ load });
 </script>
 
 <template>
-    <div class="card mb-6">
+    <div class="card mb-0 h-full flex flex-col justify-between">
         <div class="flex items-center justify-between mb-4">
             <span class="font-semibold text-xl">{{ t('dashboard.system.title') }}</span>
             <Button icon="pi pi-refresh" size="small" variant="text" severity="secondary" :loading="loading" :aria-label="t('dashboard.system.refreshAria')" @click="load" />

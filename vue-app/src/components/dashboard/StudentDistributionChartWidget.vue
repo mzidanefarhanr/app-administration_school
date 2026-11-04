@@ -129,7 +129,7 @@ defineExpose({ load });
 </script>
 
 <template>
-    <div class="card mb-6">
+    <div class="card mb-0 h-full flex flex-col justify-between">
         <div class="flex items-center justify-between mb-4">
             <div>
                 <div class="font-semibold text-xl">{{ t('dashboard.studentDistribution.title') }}</div>
@@ -154,7 +154,10 @@ defineExpose({ load });
             <Button :label="t('common.action.retry')" icon="pi pi-refresh" size="small" severity="secondary" variant="outlined" class="mt-3" @click="load" />
         </div>
 
-        <div v-else-if="!chartData || !chartData.labels || !chartData.labels.length" class="py-12 text-center text-surface-400 text-sm">{{ t('dashboard.studentDistribution.empty') }}</div>
+        <div v-else-if="!chartData || !chartData.labels || !chartData.labels.length" class="flex flex-col items-center justify-center py-20 text-center text-surface-400 text-sm">
+            <i class="pi pi-chart-bar text-3xl mb-2 text-surface-300 dark:text-surface-600" aria-hidden="true"></i>
+            <span>{{ t('dashboard.studentDistribution.empty') }}</span>
+        </div>
 
         <div v-else class="h-80">
             <Chart type="bar" :data="chartData" :options="chartOptions" class="h-full w-full" />

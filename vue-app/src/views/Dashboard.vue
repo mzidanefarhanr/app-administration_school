@@ -10,25 +10,35 @@ import TeachingComplianceChartWidget from '@/components/dashboard/TeachingCompli
 </script>
 
 <template>
-    <div class="grid grid-cols-12 gap-8">
-        <ArchiveExpiryWidget />
-
+    <div class="grid grid-cols-12 gap-6">
+        <!-- 1. Statistik Operasional Utama (4 Kartu Metrik Inti) -->
         <OperationalStatsWidget />
 
-        <div class="col-span-12 xl:col-span-6">
+        <!-- 2. Pengingat Masa Berlaku Arsip -->
+        <ArchiveExpiryWidget />
+
+        <!-- 3. Grafik Analisis (Distribusi Siswa & Kepatuhan Mengajar) -->
+        <div class="col-span-12 xl:col-span-6 flex flex-col">
             <StudentDistributionChartWidget />
         </div>
-        <div class="col-span-12 xl:col-span-6">
+        <div class="col-span-12 xl:col-span-6 flex flex-col">
             <TeachingComplianceChartWidget />
         </div>
 
-        <div class="col-span-12 xl:col-span-6">
+        <!-- 4. Tugas Operasional & Kualitas Data Master -->
+        <div class="col-span-12 xl:col-span-6 flex flex-col">
             <PendingTasksWidget />
+        </div>
+        <div class="col-span-12 xl:col-span-6 flex flex-col">
             <DataQualityOverviewWidget />
         </div>
-        <div class="col-span-12 xl:col-span-6">
-            <ListUsersOnlineWidget />
+
+        <!-- 5. Sistem & Pintasan + Daftar Pengguna Online -->
+        <div class="col-span-12 xl:col-span-6 flex flex-col">
             <SystemOverviewWidget />
+        </div>
+        <div class="col-span-12 xl:col-span-6 flex flex-col">
+            <ListUsersOnlineWidget />
         </div>
     </div>
 </template>
