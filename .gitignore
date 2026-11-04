@@ -20,6 +20,9 @@ vue-app/.env.production
 Thumbs.db
 .playwright-mcp/
 
+# Local references and templates (never push)
+.referensi/
+
 # Local UAT credentials and runtime (never push)
 UAT-ACCOUNTS.local.md
 *.local.md
