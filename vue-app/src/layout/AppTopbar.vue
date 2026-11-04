@@ -82,8 +82,6 @@ onMounted(() => {
             </router-link> -->
             <router-link to="/" class="layout-topbar-logo">
                 <AppLogoDefault />
-
-                <span>Administration Apps</span>
             </router-link>
         </div>
 
