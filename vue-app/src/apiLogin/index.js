@@ -28,8 +28,34 @@ if (!isValidBaseUrl(configuredBaseUrl)) {
     throw new Error('Configuration error: VITE_API_BASE_URL is missing or invalid.');
 }
 
+function getXsrfCookie() {
+    if (typeof document === 'undefined') return null;
+    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]*)/);
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
+function resolveBaseUrl(raw) {
+    if (typeof window === 'undefined' || !window.location) return raw;
+    try {
+        const parsed = new URL(raw);
+        const clientHost = window.location.hostname;
+        const apiHost = parsed.hostname;
+        const isClientLoopback = clientHost === 'localhost' || clientHost === '127.0.0.1';
+        const isApiLoopback = apiHost === 'localhost' || apiHost === '127.0.0.1';
+        if (isClientLoopback && isApiLoopback && clientHost !== apiHost) {
+            parsed.hostname = clientHost;
+            return parsed.origin;
+        }
+        return raw;
+    } catch {
+        return raw;
+    }
+}
+
+const resolvedBaseUrl = resolveBaseUrl(configuredBaseUrl);
+
 const apiLogin = axios.create({
-    baseURL: configuredBaseUrl,
+    baseURL: resolvedBaseUrl,
     withCredentials: true,
     withXSRFToken: true,
     timeout: 15000 // 15s timeout
@@ -37,6 +63,15 @@ const apiLogin = axios.create({
 
 apiLogin.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 apiLogin.defaults.headers.common['Accept'] = 'application/json';
+
+apiLogin.interceptors.request.use((config) => {
+    const xsrf = getXsrfCookie();
+    if (xsrf) {
+        config.headers = config.headers || {};
+        config.headers['X-XSRF-TOKEN'] = xsrf;
+    }
+    return config;
+});
 
 // Single shared promise to coordinate concurrent CSRF 419 refreshes
 let csrfRefreshPromise = null;

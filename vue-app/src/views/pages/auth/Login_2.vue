@@ -62,6 +62,9 @@ const submitLogin = async () => {
     visibleStaticBackdropWaiting.value = true;
 
     try {
+        // Pastikan cookie CSRF Sanctum aktif sebelum otentikasi
+        await apiLogin.get('/sanctum/csrf-cookie');
+
         const response = await apiLogin.post('/login', form.value);
 
         if (response.status === 204 || response.status === 200) {
@@ -134,8 +137,13 @@ const submitLogin = async () => {
 };
 
 //run hook "onMounted"
-onMounted(() => {
+onMounted(async () => {
     fetchValidate();
+    try {
+        await apiLogin.get('/sanctum/csrf-cookie');
+    } catch (_) {
+        // ignore initial network error
+    }
     titleWaiting.value = t('auth.login.processing');
     fieldWaiting.value = t('auth.login.processingDetail');
     try {

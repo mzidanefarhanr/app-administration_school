@@ -30,7 +30,7 @@ if not exist "vue-app\.env" (
     if exist "vue-app\.env.example" (
         copy "vue-app\.env.example" "vue-app\.env" >nul
     ) else (
-        echo VITE_API_BASE_URL=http://127.0.0.1:8000 > "vue-app\.env"
+        echo VITE_API_BASE_URL=http://localhost:8000 > "vue-app\.env"
     )
     echo [OK] Berkas vue-app\.env berhasil disiapkan.
     echo.
