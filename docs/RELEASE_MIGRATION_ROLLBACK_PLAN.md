@@ -38,9 +38,9 @@ Cegah transaksi data masuk dari pengguna saat proses pembaruan berjalan:
 cd /var/www/app-administration_school/laravel-api
 
 # Aktifkan mode maintenance dengan secret bypass untuk pengujian staf IT
-php artisan down --secret="sekolah-migration-bypass-2026" --render="errors::503"
+php artisan down --secret="<rahasia-bypass-anda>" --render="errors::503"
 ```
-*Catatan:* Pengguna umum akan menerima halaman 503 Service Unavailable ramah pengguna, sementara administrator dapat mengakses sistem via URL `https://administrasi.sekolah.sch.id/sekolah-migration-bypass-2026`.
+*Catatan:* Pengguna umum akan menerima halaman 503 Service Unavailable ramah pengguna, sementara administrator dapat mengakses sistem via URL `https://administrasi.sekolah.sch.id/<rahasia-bypass-anda>`.
 
 ### Langkah 2: Buat Snapshot Cadangan Lengkap Pra-Migrasi
 Eksekusi pencadangan komprehensif basis data dan berkas lampiran privat:

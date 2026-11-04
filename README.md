@@ -111,18 +111,18 @@ Untuk kemudahan operasional di lingkungan Windows (XAMPP):
 Jika Anda ingin menjalankan atau menyesuaikan konfigurasi secara manual melalui terminal:
 
 #### 1. Konfigurasi Database Lokal (`laravel-api/.env`)
-Pastikan file `laravel-api/.env` telah terkonfigurasi untuk database lokal MySQL Anda:
+Salin file `laravel-api/.env.example` menjadi `laravel-api/.env` dan pastikan konfigurasi dasar sesuai dengan lingkungan lokal Anda:
 ```env
 APP_NAME=Sekolario
 APP_ENV=local
-APP_KEY=base64:JP97bgkYiRGF2Wct6o7U+QxBbA6uMNmJ3iA7adHeU60=
+APP_KEY= # Dihasilkan melalui: php artisan key:generate
 APP_DEBUG=true
 APP_URL=http://127.0.0.1:8000
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=backdata_administrations
+DB_DATABASE=nama_database_anda
 DB_USERNAME=root
 DB_PASSWORD=
 
@@ -130,18 +130,23 @@ FRONTEND_URL=http://localhost:4000
 SANCTUM_STATEFUL_DOMAINS=localhost:4000,127.0.0.1:4000,localhost,127.0.0.1
 SESSION_DOMAIN=
 ```
-> **Catatan:** Sesuaikan `DB_DATABASE`, `DB_USERNAME`, dan `DB_PASSWORD` dengan setelan MariaDB/MySQL XAMPP Anda.
+> **Catatan:** Sesuaikan `DB_DATABASE`, `DB_USERNAME`, dan `DB_PASSWORD` dengan setelan MariaDB/MySQL Anda (pada XAMPP standar, `DB_USERNAME=root` dan `DB_PASSWORD=` dikosongkan).
 
 #### 2. Migrasi Basis Data & Pembuatan Admin Pertama Kali
 Buka PowerShell atau Command Prompt pada folder `laravel-api`:
 ```bash
 cd D:\xampp-htdocs\app-administration_school\laravel-api
 
-# Jalankan migrasi tabel
+# Buat encryption key unik untuk lingkungan lokal Anda
+php artisan key:generate
+
+# Jalankan migrasi tabel ke basis data
 php artisan migrate
 
-# Buat akun administrator utama (Super Admin)
-php artisan app:bootstrap-admin --username=admin --email=admin@sekolah.sch.id --password="PasswordKuat123!"
+# Buat akun administrator utama (Super Admin) secara aman
+# Perintah akan meminta nama, username, email, NIK, dan kata sandi secara interaktif
+# (Kata sandi diinput melalui secret prompt sehingga tidak terekam pada riwayat terminal)
+php artisan app:bootstrap-admin
 ```
 *(Atau Anda dapat mengklik dua kali file `setup-database-local.bat` untuk menjalankan migrasi dan pembuatan akun admin secara interaktif).*
 
