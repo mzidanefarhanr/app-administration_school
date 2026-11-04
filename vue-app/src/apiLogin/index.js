@@ -79,11 +79,6 @@ let csrfRefreshPromise = null;
 // Deduplicate concurrent 401 session-expired notifications/redirects
 let isSessionExpiredHandled = false;
 
-function getXsrfCookie() {
-    if (typeof document === 'undefined') return null;
-    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]*)/);
-    return match ? decodeURIComponent(match[1]) : null;
-}
 
 // Callbacks registered from main.js to handle session expiration and inactive account cleanly without circular imports
 let onSessionExpiredHandler = null;
