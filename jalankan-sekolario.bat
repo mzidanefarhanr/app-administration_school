@@ -49,7 +49,15 @@ if %ERRORLEVEL% neq 0 (
     echo.
 )
 
-REM 4. Menjalankan Backend Laravel API (Port 8000)
+REM 4. Pemeriksaan dan Migrasi Database
+echo [*] Memeriksa dan memperbarui struktur tabel database lokal...
+cd /d "%~dp0laravel-api"
+call php artisan migrate --force
+cd /d "%~dp0"
+echo [OK] Struktur database telah mutakhir.
+echo.
+
+REM 5. Menjalankan Backend Laravel API (Port 8000)
 echo [*] Menyalakan Backend API Laravel pada port 8000...
 start "Sekolario Backend API" cmd /k "title Sekolario Backend API && color 0B && cd /d "%~dp0laravel-api" && echo ====================================================== && echo          SEKOLARIO BACKEND API (LARAVEL 11) && echo   URL: http://127.0.0.1:8000 && echo   Tekan Ctrl+C pada jendela ini untuk mematikan backend && echo ====================================================== && php artisan serve --host=127.0.0.1 --port=8000"
 

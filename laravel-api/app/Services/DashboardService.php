@@ -716,8 +716,8 @@ class DashboardService
             $schoolYear = SchoolYear::query()->orderByDesc('name')->first();
         }
 
-        if (! $semester && $schoolYear) {
-            $semester = Semester::query()->where('school_year_id', $schoolYear->id)->orderBy('id')->first();
+        if (! $semester) {
+            $semester = Semester::query()->orderBy('id')->first();
         }
 
         return [

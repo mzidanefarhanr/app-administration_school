@@ -22,24 +22,20 @@ return new class extends Migration
         $driver = DB::getDriverName();
 
         // 1. Tambah archive_reason pada students
-        if ($driver === 'mysql') {
-            Schema::table('students', function (Blueprint $table) {
-                $table->string('archive_reason')->nullable()->after('version');
-            });
-        } elseif ($driver === 'sqlite') {
-            Schema::table('students', function (Blueprint $table) {
-                $table->string('archive_reason')->nullable();
-            });
+        if (!Schema::hasColumn('students', 'archive_reason')) {
+            if ($driver === 'mysql') {
+                Schema::table('students', function (Blueprint $table) {
+                    $table->string('archive_reason')->nullable()->after('version');
+                });
+            } elseif ($driver === 'sqlite') {
+                Schema::table('students', function (Blueprint $table) {
+                    $table->string('archive_reason')->nullable();
+                });
+            }
         }
 
         // 2. Tambah archived_at dan archive_reason pada student_rombels
-        if ($driver === 'mysql') {
-            Schema::table('student_rombels', function (Blueprint $table) {
-                $table->timestamp('archived_at')->nullable()->after('latest_information');
-                $table->string('archive_reason')->nullable()->after('archived_at');
-                $table->index('archived_at');
-            });
-        } elseif ($driver === 'sqlite') {
+        if (!Schema::hasColumn('student_rombels', 'archived_at')) {
             Schema::table('student_rombels', function (Blueprint $table) {
                 $table->timestamp('archived_at')->nullable();
                 $table->string('archive_reason')->nullable();
