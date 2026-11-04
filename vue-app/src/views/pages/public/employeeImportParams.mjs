@@ -9,25 +9,37 @@ export const EMPLOYEE_IMPORT_MODES = [
     { label: 'Update existing employees', value: 'update' }
 ];
 
+/**
+ * Opsi mode impor dengan label terjemahan (vue-i18n). Tanpa `t`, memakai label Inggris bawaan.
+ *
+ * @param {((key: string) => string) | null} t
+ */
+export function getEmployeeImportModes(t = null) {
+    if (!t) return EMPLOYEE_IMPORT_MODES;
+
+    return EMPLOYEE_IMPORT_MODES.map((mode) => ({ ...mode, label: t(`employees.import.modes.${mode.value}`) }));
+}
+
 export const EMPLOYEE_IMPORT_MAX_BYTES = 5 * 1024 * 1024;
 
 const MB = 1024 * 1024;
 
 /**
  * @param {{ name?: string, size?: number } | null} file
+ * @param {((key: string, params?: object) => string) | null} t fungsi terjemahan opsional (vue-i18n)
  * @returns {string | null} pesan kesalahan atau null bila file lolos pemeriksaan awal.
  */
-export function validateEmployeeImportFile(file) {
-    if (!file) return 'Choose a CSV file to import.';
+export function validateEmployeeImportFile(file, t = null) {
+    if (!file) return t ? t('employees.import.errors.chooseFile') : 'Choose a CSV file to import.';
 
     if (!/\.csv$/i.test(file.name ?? '')) {
-        return 'The file must be a CSV (UTF-8). Other formats are not supported yet.';
+        return t ? t('employees.import.errors.fileFormat') : 'The file must be a CSV (UTF-8). Other formats are not supported yet.';
     }
 
-    if (!file.size) return 'The file is empty.';
+    if (!file.size) return t ? t('employees.import.errors.fileEmpty') : 'The file is empty.';
 
     if (file.size > EMPLOYEE_IMPORT_MAX_BYTES) {
-        return `The file is larger than ${EMPLOYEE_IMPORT_MAX_BYTES / MB} MB.`;
+        return t ? t('employees.import.errors.fileTooLarge', { size: EMPLOYEE_IMPORT_MAX_BYTES / MB }) : `The file is larger than ${EMPLOYEE_IMPORT_MAX_BYTES / MB} MB.`;
     }
 
     return null;

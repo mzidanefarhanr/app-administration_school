@@ -7,9 +7,12 @@ import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import apiLogin from '@/apiLogin';
 import AppLogoDefault from '@/layout/AppLogoDefault.vue';
+import FloatingConfigurator from '@/components/FloatingConfigurator.vue';
 
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 
@@ -52,22 +55,22 @@ const submitResetPassword = async () => {
     if (isSubmitting.value) return;
 
     if (!email.value || !email.value.trim()) {
-        titleDanger.value = 'Validation Error';
-        fieldDanger.value = 'Please provide your email address.';
+        titleDanger.value = t('auth.resetPassword.validationError');
+        fieldDanger.value = t('auth.resetPassword.emailRequired');
         visibleDanger.value = true;
         return;
     }
 
     if (!password.value || password.value.length < 12) {
-        titleDanger.value = 'Validation Error';
-        fieldDanger.value = 'Password must be at least 12 characters long.';
+        titleDanger.value = t('auth.resetPassword.validationError');
+        fieldDanger.value = t('auth.resetPassword.passwordMinLength');
         visibleDanger.value = true;
         return;
     }
 
     if (password.value !== password_confirmation.value) {
-        titleDanger.value = 'Validation Error';
-        fieldDanger.value = 'Password confirmation does not match.';
+        titleDanger.value = t('auth.resetPassword.validationError');
+        fieldDanger.value = t('auth.resetPassword.passwordMismatch');
         visibleDanger.value = true;
         return;
     }
@@ -82,8 +85,8 @@ const submitResetPassword = async () => {
             password_confirmation: password_confirmation.value
         });
 
-        titleSuccess.value = 'Password Reset Complete';
-        fieldSuccess.value = 'Your password has been reset successfully. Redirecting to sign in...';
+        titleSuccess.value = t('auth.resetPassword.completeTitle');
+        fieldSuccess.value = t('auth.resetPassword.completeDetail');
         visibleSuccess.value = true;
 
         setTimeout(() => {
@@ -92,27 +95,27 @@ const submitResetPassword = async () => {
         }, 1500);
     } catch (error) {
         if (!error.response) {
-            titleDanger.value = 'Connection Error';
-            fieldDanger.value = 'Could not reach the server. Please check your connection and try again.';
+            titleDanger.value = t('auth.resetPassword.connectionError');
+            fieldDanger.value = t('auth.resetPassword.connectionErrorDetail');
         } else if (error.response.status === 422) {
             const data = error.response.data;
             const errors = data?.errors;
             if (errors?.email) {
-                titleDanger.value = 'Invalid Token';
-                fieldDanger.value = errors.email[0] || 'This password reset token is invalid or has expired.';
+                titleDanger.value = t('auth.resetPassword.invalidToken');
+                fieldDanger.value = errors.email[0] || t('auth.resetPassword.invalidTokenDetail');
             } else if (errors?.password) {
-                titleDanger.value = 'Password Validation';
-                fieldDanger.value = errors.password[0] || 'Password does not meet requirements.';
+                titleDanger.value = t('auth.resetPassword.passwordValidation');
+                fieldDanger.value = errors.password[0] || t('auth.resetPassword.passwordRequirement');
             } else {
-                titleDanger.value = 'Reset Failed';
-                fieldDanger.value = data?.message || 'Failed to reset password. Please request a new link.';
+                titleDanger.value = t('auth.resetPassword.resetFailed');
+                fieldDanger.value = data?.message || t('auth.resetPassword.unexpectedError');
             }
         } else if (error.response.status === 429) {
-            titleDanger.value = 'Too Many Requests';
-            fieldDanger.value = 'Too many requests. Please wait a moment before trying again.';
+            titleDanger.value = t('auth.resetPassword.tooManyRequests');
+            fieldDanger.value = t('auth.resetPassword.tooManyRequestsDetail');
         } else {
-            titleDanger.value = 'Reset Failed';
-            fieldDanger.value = error.response.data?.message || 'An unexpected error occurred. Please try again.';
+            titleDanger.value = t('auth.resetPassword.resetFailed');
+            fieldDanger.value = error.response.data?.message || error.message || t('auth.resetPassword.unexpectedError');
         }
         visibleDanger.value = true;
     } finally {
@@ -122,14 +125,15 @@ const submitResetPassword = async () => {
 </script>
 
 <template>
+    <FloatingConfigurator />
     <div class="px-8 py-20 md:px-12 lg:px-20 flex items-center justify-center backdrop-blur-3xl !bg-cover !bg-center reset-background">
         <form @submit.prevent="submitResetPassword">
             <div class="px-8 md:px-12 lg:px-20 py-12 flex flex-col items-center gap-8 w-full max-w-xl backdrop-blur-2xl rounded-2xl bg-white/10 border border-white/10">
                 <div class="flex flex-col items-center gap-4 w-full">
                     <AppLogoDefault width="93" height="92" />
                     <div class="flex flex-col gap-2 w-full text-center">
-                        <div class="text-3xl font-medium text-white leading-tight">Reset Password</div>
-                        <p class="text-white/80 text-sm">Enter your new password below to regain access to your account.</p>
+                        <div class="text-3xl font-medium text-white leading-tight">{{ t('auth.resetPassword.title') }}</div>
+                        <p class="text-white/80 text-sm">{{ t('auth.resetPassword.subtitle') }}</p>
                     </div>
                 </div>
 
@@ -139,7 +143,7 @@ const submitResetPassword = async () => {
                             <InputIcon class="pi pi-envelope !text-white/70" />
                             <FloatLabel variant="on">
                                 <InputText id="email" type="email" class="!ps-9 !appearance-none !border !border-white/0 !w-full !outline-0 !bg-white/10 !text-white placeholder:!text-white/50 !rounded-3xl !shadow-sm" v-model="email" required />
-                                <label for="email" class="ps-7 !appearance-none !outline-0 !bg-white/0 !text-white placeholder:!text-white/50 !rounded-3xl !shadow-sm">Email Address</label>
+                                <label for="email" class="ps-7 !appearance-none !outline-0 !bg-white/0 !text-white placeholder:!text-white/50 !rounded-3xl !shadow-sm">{{ t('auth.resetPassword.email') }}</label>
                             </FloatLabel>
                         </IconField>
 
@@ -147,13 +151,13 @@ const submitResetPassword = async () => {
                             <InputIcon class="pi pi-lock !text-white/70" />
                             <FloatLabel variant="on">
                                 <InputText
-                                    id="password"
                                     :type="inputTypePassword"
+                                    id="password"
                                     class="!ps-9 !appearance-none !border !border-white/0 !w-full !outline-0 !bg-white/10 !text-white placeholder:!text-white/50 !rounded-3xl !shadow-sm"
                                     v-model="password"
                                     required
                                 />
-                                <label for="password" class="ps-7 !appearance-none !outline-0 !bg-white/0 !text-white placeholder:!text-white/50 !rounded-3xl !shadow-sm">New Password (min 12 chars)</label>
+                                <label for="password" class="ps-7 !appearance-none !outline-0 !bg-white/0 !text-white placeholder:!text-white/50 !rounded-3xl !shadow-sm">{{ t('auth.resetPassword.newPassword') }}</label>
                             </FloatLabel>
                             <InputIcon @click="togglePasswordVisibility" :class="inputIconPassword" />
                         </IconField>
@@ -162,21 +166,21 @@ const submitResetPassword = async () => {
                             <InputIcon class="pi pi-lock !text-white/70" />
                             <FloatLabel variant="on">
                                 <InputText
-                                    id="password_confirmation"
                                     :type="inputTypePassword"
+                                    id="password_confirmation"
                                     class="!ps-9 !appearance-none !border !border-white/0 !w-full !outline-0 !bg-white/10 !text-white placeholder:!text-white/50 !rounded-3xl !shadow-sm"
                                     v-model="password_confirmation"
                                     required
                                 />
-                                <label for="password_confirmation" class="ps-7 !appearance-none !outline-0 !bg-white/0 !text-white placeholder:!text-white/50 !rounded-3xl !shadow-sm">Confirm New Password</label>
+                                <label for="password_confirmation" class="ps-7 !appearance-none !outline-0 !bg-white/0 !text-white placeholder:!text-white/50 !rounded-3xl !shadow-sm">{{ t('auth.resetPassword.confirmPassword') }}</label>
                             </FloatLabel>
                         </IconField>
                     </div>
 
-                    <Button type="submit" label="Reset Password" :loading="isSubmitting" :disabled="isSubmitting" class="!w-full !rounded-3xl !bg-surface-950 !border !border-surface-950 !text-white hover:!bg-surface-950/80" />
+                    <Button type="submit" :label="t('auth.resetPassword.submit')" :loading="isSubmitting" :disabled="isSubmitting" class="!w-full !rounded-3xl !bg-surface-950 !border !border-surface-950 !text-white hover:!bg-surface-950/80" />
                 </div>
 
-                <router-link to="/auth/login" class="text-white/80 cursor-pointer hover:text-white/90 text-sm"> Back to Sign In </router-link>
+                <router-link to="/auth/login" class="text-white/80 cursor-pointer hover:text-white/90 text-sm"> {{ t('auth.resetPassword.backToSignIn') }} </router-link>
             </div>
         </form>
 

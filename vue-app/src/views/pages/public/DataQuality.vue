@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useToast } from 'primevue/usetoast';
 import Button from 'primevue/button';
 import { authStore } from '@/stores/authStore';
@@ -8,8 +9,6 @@ import apiLogin from '@/apiLogin';
 import DataQualityReviewDialog from './DataQualityReviewDialog.vue';
 import {
     DATA_QUALITY_PER_PAGE_OPTIONS,
-    ISSUE_STATUS_OPTIONS,
-    ISSUE_TYPE_OPTIONS,
     buildIssueParams,
     buildOpenRecordPath,
     buildStudentSummaryParams,
@@ -18,11 +17,14 @@ import {
     issueFieldLabel,
     issueFieldOptions,
     issueStatusLabel,
+    issueStatusOptions,
     issueTypeLabel,
+    issueTypeOptions,
     resolveInitialTab,
     reviewReasonLabel
 } from './dataQualityParams.mjs';
 
+const { t, te, locale } = useI18n();
 const store = authStore();
 const router = useRouter();
 const toast = useToast();
@@ -62,6 +64,15 @@ const studentList = createListState();
 const employeeList = createListState();
 const listStates = { students: studentList, employees: employeeList };
 
+const issueTypeSelectOptions = computed(() => issueTypeOptions(t));
+const issueStatusSelectOptions = computed(() => issueStatusOptions(t));
+const studentFieldOptions = computed(() => issueFieldOptions('students', t));
+const employeeFieldOptions = computed(() => issueFieldOptions('employees', t));
+const pageReportTemplate = computed(() => t('dataQuality.issues.pageReport', { first: '{first}', last: '{last}', totalRecords: '{totalRecords}' }));
+
+// Label isian ringkasan: terjemahkan bila kode dikenal, jika tidak pakai label dari server.
+const summaryFieldLabel = (row) => (te(`dataQuality.field.${row.field}`) ? issueFieldLabel(row.field, t) : row.label);
+
 const canManageDomain = (domain) => (domain === 'students' ? canManageStudents.value : canManageEmployees.value);
 
 const issueSeverity = (type) =>
@@ -86,11 +97,11 @@ const formatAsOf = (value) => {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return '-';
 
-    return `${date.toLocaleString('en-GB', {
+    return `${date.toLocaleString(locale.value === 'id' ? 'id-ID' : 'en-GB', {
         dateStyle: 'medium',
         timeStyle: 'short',
         timeZone: 'Asia/Jakarta'
-    })} (Asia/Jakarta)`;
+    })} (${t('dataQuality.timezone')})`;
 };
 
 const studentPopulation = computed(() => studentList.summary?.population ?? {});
@@ -138,7 +149,7 @@ const loadSchoolYears = async () => {
             await Promise.all([loadStudentSummary(), loadIssues('students')]);
         }
     } catch (error) {
-        yearsError.value = error.response?.data?.message ?? 'Failed to load school years. Please try again.';
+        yearsError.value = error.response?.data?.message ?? t('dataQuality.errors.loadYears');
     } finally {
         yearsLoading.value = false;
     }
@@ -157,7 +168,7 @@ const loadStudentSummary = async () => {
         studentList.summary = response.data.data ?? null;
     } catch (error) {
         studentList.summary = null;
-        studentList.summaryError = error.response?.data?.message ?? 'Failed to load the student summary.';
+        studentList.summaryError = error.response?.data?.message ?? t('dataQuality.errors.loadStudentSummary');
     } finally {
         studentList.summaryLoading = false;
     }
@@ -172,7 +183,7 @@ const loadEmployeeSummary = async () => {
         employeeList.summary = response.data.data ?? null;
     } catch (error) {
         employeeList.summary = null;
-        employeeList.summaryError = error.response?.data?.message ?? 'Failed to load the employee summary.';
+        employeeList.summaryError = error.response?.data?.message ?? t('dataQuality.errors.loadEmployeeSummary');
     } finally {
         employeeList.summaryLoading = false;
     }
@@ -212,7 +223,7 @@ const loadIssues = async (domain) => {
     } catch (error) {
         if (requestId !== state.requestId) return;
         state.rows = [];
-        state.error = error.response?.data?.message ?? 'Failed to load issues. Please try again.';
+        state.error = error.response?.data?.message ?? t('dataQuality.errors.loadIssues');
     } finally {
         if (requestId === state.requestId) state.loading = false;
     }
@@ -282,8 +293,8 @@ const openReview = (issue, domain, status) => {
 const onReviewed = (result) => {
     toast.add({
         severity: 'success',
-        summary: 'Review Saved',
-        detail: `Issue marked ${issueStatusLabel(result.status)}.`,
+        summary: t('dataQuality.toast.reviewSavedSummary'),
+        detail: t('dataQuality.toast.reviewSavedDetail', { status: issueStatusLabel(result.status, t) }),
         life: 3000
     });
     refreshAll(reviewDomain.value);
@@ -292,7 +303,7 @@ const onReviewed = (result) => {
 const onReviewStale = (message) => {
     toast.add({
         severity: 'warn',
-        summary: 'Review Out Of Date',
+        summary: t('dataQuality.toast.reviewStaleSummary'),
         detail: message,
         life: 5000
     });
@@ -326,14 +337,14 @@ onMounted(async () => {
     <Fluid>
         <div class="bg-surface-0 dark:bg-surface-900 px-6 py-8 md:px-12 lg:px-20">
             <div class="flex flex-col gap-1 mb-6">
-                <h1 class="text-3xl font-bold text-surface-900 dark:text-surface-0">Data Quality</h1>
-                <p class="text-sm text-surface-600 dark:text-surface-300">Completeness findings for placed students and active employees. Review status records workflow only; it does not change record data or completeness percentages.</p>
+                <h1 class="text-3xl font-bold text-surface-900 dark:text-surface-0">{{ t('dataQuality.title') }}</h1>
+                <p class="text-sm text-surface-600 dark:text-surface-300">{{ t('dataQuality.subtitle') }}</p>
             </div>
 
             <Tabs v-model:value="activeTab">
                 <TabList>
-                    <Tab v-if="canStudents" value="students">Students</Tab>
-                    <Tab v-if="canEmployees" value="employees">Employees</Tab>
+                    <Tab v-if="canStudents" value="students">{{ t('dataQuality.tabs.students') }}</Tab>
+                    <Tab v-if="canEmployees" value="employees">{{ t('dataQuality.tabs.employees') }}</Tab>
                 </TabList>
 
                 <TabPanels>
@@ -341,126 +352,137 @@ onMounted(async () => {
                         <div class="flex flex-col gap-4 pt-2">
                             <div class="flex flex-col lg:flex-row lg:items-end gap-3">
                                 <div class="flex flex-col gap-2">
-                                    <label for="dq-student-year" class="text-sm font-medium">School Year</label>
+                                    <label for="dq-student-year" class="text-sm font-medium">{{ t('dataQuality.schoolYear.label') }}</label>
                                     <Select
                                         id="dq-student-year"
                                         v-model="studentYearId"
                                         :options="schoolYears"
                                         optionLabel="name"
                                         optionValue="id"
-                                        placeholder="Select a school year"
+                                        :placeholder="t('dataQuality.schoolYear.placeholder')"
                                         class="w-full md:w-64"
                                         :loading="yearsLoading"
                                         @change="onSchoolYearChange"
                                     />
                                 </div>
-                                <Button label="Refresh" icon="pi pi-refresh" severity="secondary" variant="outlined" :disabled="!studentYearId" @click="refreshAll('students')" />
-                                <span v-if="studentList.summary?.as_of" class="text-xs text-surface-500 lg:ml-auto"> As of {{ formatAsOf(studentList.summary.as_of) }} </span>
+                                <Button :label="t('common.action.refresh')" icon="pi pi-refresh" severity="secondary" variant="outlined" :disabled="!studentYearId" @click="refreshAll('students')" />
+                                <span v-if="studentList.summary?.as_of" class="text-xs text-surface-500 lg:ml-auto">{{ t('dataQuality.asOf', { time: formatAsOf(studentList.summary.as_of) }) }}</span>
                             </div>
 
                             <div v-if="yearsError" class="flex flex-wrap items-center gap-2">
                                 <Message severity="error" :closable="false">{{ yearsError }}</Message>
-                                <Button label="Retry" icon="pi pi-refresh" size="small" text @click="loadSchoolYears" />
+                                <Button :label="t('common.action.retry')" icon="pi pi-refresh" size="small" text @click="loadSchoolYears" />
                             </div>
 
-                            <Message v-else-if="!yearsLoading && schoolYears.length === 0" severity="info" :closable="false"> No school year is available. Add a school year before inspecting students. </Message>
+                            <Message v-else-if="!yearsLoading && schoolYears.length === 0" severity="info" :closable="false">{{ t('dataQuality.schoolYear.empty') }}</Message>
 
                             <div v-if="studentList.summaryError" class="flex flex-wrap items-center gap-2">
                                 <Message severity="error" :closable="false">{{ studentList.summaryError }}</Message>
-                                <Button label="Retry" icon="pi pi-refresh" size="small" text @click="loadStudentSummary" />
+                                <Button :label="t('common.action.retry')" icon="pi pi-refresh" size="small" text @click="loadStudentSummary" />
                             </div>
 
-                            <p v-else-if="studentList.summaryLoading" class="text-sm text-surface-500">Loading summary...</p>
+                            <p v-else-if="studentList.summaryLoading" class="text-sm text-surface-500">{{ t('dataQuality.loadingSummary') }}</p>
 
                             <template v-else-if="studentList.summary">
                                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
                                     <div class="border border-surface-200 dark:border-surface-700 rounded-border p-4">
-                                        <div class="text-sm text-surface-500">Placed Students (denominator)</div>
+                                        <div class="text-sm text-surface-500">{{ t('dataQuality.summary.placedStudents') }}</div>
                                         <div class="text-3xl font-semibold">{{ studentPopulation.placed ?? 0 }}</div>
                                         <div class="grid grid-cols-2 gap-1 text-xs text-surface-500 mt-2">
-                                            <span>Active: {{ studentPopulation.active_students ?? 0 }}</span>
-                                            <span>Unplaced: {{ studentPopulation.unplaced ?? 0 }}</span>
-                                            <span>Not evaluated: {{ studentPopulation.not_evaluated ?? 0 }}</span>
-                                            <span>Archived excluded: {{ studentPopulation.archived_excluded ?? 0 }}</span>
+                                            <span>{{ t('dataQuality.summary.active', { count: studentPopulation.active_students ?? 0 }) }}</span>
+                                            <span>{{ t('dataQuality.summary.unplaced', { count: studentPopulation.unplaced ?? 0 }) }}</span>
+                                            <span>{{ t('dataQuality.summary.notEvaluated', { count: studentPopulation.not_evaluated ?? 0 }) }}</span>
+                                            <span>{{ t('dataQuality.summary.archivedExcluded', { count: studentPopulation.archived_excluded ?? 0 }) }}</span>
                                         </div>
                                     </div>
                                     <div class="border border-surface-200 dark:border-surface-700 rounded-border p-4">
-                                        <div class="text-sm text-surface-500">Complete Records</div>
+                                        <div class="text-sm text-surface-500">{{ t('dataQuality.summary.completeRecords') }}</div>
                                         <div class="text-3xl font-semibold">{{ studentRecords.complete ?? 0 }}</div>
                                         <div class="text-xs text-surface-500 mt-2">
-                                            Incomplete: {{ studentRecords.incomplete ?? 0 }}<br />
-                                            Complete: {{ formatCompletenessPercent(studentRecords.complete_percent) }}
+                                            {{ t('dataQuality.summary.incomplete', { count: studentRecords.incomplete ?? 0 }) }}<br />
+                                            {{ t('dataQuality.summary.complete', { percent: formatCompletenessPercent(studentRecords.complete_percent) }) }}
                                         </div>
                                     </div>
                                     <div class="border border-surface-200 dark:border-surface-700 rounded-border p-4">
-                                        <div class="text-sm text-surface-500">Field Findings</div>
+                                        <div class="text-sm text-surface-500">{{ t('dataQuality.summary.fieldFindings') }}</div>
                                         <div class="text-3xl font-semibold">{{ studentFindings.missing + studentFindings.invalid }}</div>
                                         <div class="text-xs text-surface-500 mt-2">
-                                            Missing: {{ studentFindings.missing }}<br />
-                                            Invalid: {{ studentFindings.invalid }}<br />
-                                            Blocked NIK: {{ studentBlocked.missing }} missing / {{ studentBlocked.invalid }} invalid
+                                            {{ t('dataQuality.summary.missing', { count: studentFindings.missing }) }}<br />
+                                            {{ t('dataQuality.summary.invalid', { count: studentFindings.invalid }) }}<br />
+                                            {{ t('dataQuality.summary.blockedNik', { missing: studentBlocked.missing, invalid: studentBlocked.invalid }) }}
                                         </div>
                                     </div>
                                     <div class="border border-surface-200 dark:border-surface-700 rounded-border p-4">
-                                        <div class="text-sm text-surface-500">Duplicate Candidates</div>
+                                        <div class="text-sm text-surface-500">{{ t('dataQuality.summary.duplicateCandidates') }}</div>
                                         <div class="text-3xl font-semibold">{{ studentDuplicates.candidate_pairs ?? 0 }}</div>
                                         <div class="text-xs text-surface-500 mt-2">
-                                            Affected records: {{ studentDuplicates.affected_subjects ?? 0 }}<br />
-                                            Manual review only; no automatic merge.
+                                            {{ t('dataQuality.summary.affectedRecords', { count: studentDuplicates.affected_subjects ?? 0 }) }}<br />
+                                            {{ t('dataQuality.summary.manualReviewOnly') }}
                                         </div>
                                     </div>
                                     <div class="border border-surface-200 dark:border-surface-700 rounded-border p-4">
-                                        <div class="text-sm text-surface-500">Review Workflow</div>
+                                        <div class="text-sm text-surface-500">{{ t('dataQuality.summary.reviewWorkflow') }}</div>
                                         <div class="text-3xl font-semibold">{{ studentReviews.unresolved ?? 0 }}</div>
                                         <div class="text-xs text-surface-500 mt-2">
-                                            Open: {{ studentReviews.open ?? 0 }}<br />
-                                            Acknowledged: {{ studentReviews.acknowledged ?? 0 }}<br />
-                                            Ignored: {{ studentReviews.ignored ?? 0 }}
+                                            {{ t('dataQuality.summary.open', { count: studentReviews.open ?? 0 }) }}<br />
+                                            {{ t('dataQuality.summary.acknowledged', { count: studentReviews.acknowledged ?? 0 }) }}<br />
+                                            {{ t('dataQuality.summary.ignored', { count: studentReviews.ignored ?? 0 }) }}
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="flex flex-col gap-2">
-                                    <h3 class="text-lg font-semibold">Field Completeness</h3>
+                                    <h3 class="text-lg font-semibold">{{ t('dataQuality.completeness.title') }}</h3>
                                     <DataTable :value="studentList.summary.fields" dataKey="field" size="small" showGridlines scrollable>
-                                        <Column field="label" header="Field" style="min-width: 10rem" />
-                                        <Column field="denominator" header="Denominator" style="min-width: 8rem" />
-                                        <Column field="missing" header="Missing" style="min-width: 7rem" />
-                                        <Column field="invalid" header="Invalid" style="min-width: 7rem" />
-                                        <Column field="complete" header="Complete" style="min-width: 7rem" />
-                                        <Column header="Completeness" style="min-width: 8rem">
+                                        <Column :header="t('dataQuality.columns.field')" style="min-width: 10rem">
+                                            <template #body="{ data }">{{ summaryFieldLabel(data) }}</template>
+                                        </Column>
+                                        <Column field="denominator" :header="t('dataQuality.columns.denominator')" style="min-width: 8rem" />
+                                        <Column field="missing" :header="t('dataQuality.columns.missing')" style="min-width: 7rem" />
+                                        <Column field="invalid" :header="t('dataQuality.columns.invalid')" style="min-width: 7rem" />
+                                        <Column field="complete" :header="t('dataQuality.columns.complete')" style="min-width: 7rem" />
+                                        <Column :header="t('dataQuality.columns.completeness')" style="min-width: 8rem">
                                             <template #body="{ data }">
                                                 {{ formatCompletenessPercent(data.completeness_percent) }}
                                             </template>
                                         </Column>
                                     </DataTable>
                                     <p v-if="studentBlocked.missing || studentBlocked.invalid" class="text-xs text-surface-500">
-                                        NIK blocked outside the denominator: {{ studentBlocked.missing }} missing and {{ studentBlocked.invalid }} invalid. These students are not placed in the selected school year.
+                                        {{ t('dataQuality.completeness.studentsBlockedNote', { missing: studentBlocked.missing, invalid: studentBlocked.invalid }) }}
                                     </p>
                                 </div>
 
                                 <div class="flex flex-col gap-3">
                                     <div class="flex flex-wrap items-center justify-between gap-2">
-                                        <h3 class="text-lg font-semibold">Issues</h3>
-                                        <Tag :value="`${studentList.meta.total} matching`" severity="secondary" />
+                                        <h3 class="text-lg font-semibold">{{ t('dataQuality.issues.title') }}</h3>
+                                        <Tag :value="t('dataQuality.issues.matching', { count: studentList.meta.total })" severity="secondary" />
                                     </div>
 
                                     <div class="flex flex-wrap gap-2">
-                                        <Select v-model="studentList.type" :options="ISSUE_TYPE_OPTIONS" optionLabel="label" optionValue="value" placeholder="All types" showClear class="w-full sm:w-44" @change="onFilterChange('students')" />
                                         <Select
-                                            v-model="studentList.field"
-                                            :options="issueFieldOptions('students')"
+                                            v-model="studentList.type"
+                                            :options="issueTypeSelectOptions"
                                             optionLabel="label"
                                             optionValue="value"
-                                            placeholder="All fields"
+                                            :placeholder="t('dataQuality.issues.allTypes')"
+                                            showClear
+                                            class="w-full sm:w-44"
+                                            @change="onFilterChange('students')"
+                                        />
+                                        <Select
+                                            v-model="studentList.field"
+                                            :options="studentFieldOptions"
+                                            optionLabel="label"
+                                            optionValue="value"
+                                            :placeholder="t('dataQuality.issues.allFields')"
                                             showClear
                                             filter
                                             class="w-full sm:w-52"
                                             @change="onFilterChange('students')"
                                         />
-                                        <Select v-model="studentList.status" :options="ISSUE_STATUS_OPTIONS" optionLabel="label" optionValue="value" class="w-full sm:w-44" @change="onFilterChange('students')" />
-                                        <InputText v-model="studentList.search" placeholder="Name, NIS, or NISN" class="w-full sm:w-56" @input="onSearchInput('students')" />
-                                        <Button label="Reset" icon="pi pi-filter-slash" severity="secondary" variant="outlined" @click="resetFilters('students')" />
+                                        <Select v-model="studentList.status" :options="issueStatusSelectOptions" optionLabel="label" optionValue="value" class="w-full sm:w-44" @change="onFilterChange('students')" />
+                                        <InputText v-model="studentList.search" :placeholder="t('dataQuality.issues.searchStudents')" class="w-full sm:w-56" @input="onSearchInput('students')" />
+                                        <Button :label="t('dataQuality.issues.reset')" icon="pi pi-filter-slash" severity="secondary" variant="outlined" @click="resetFilters('students')" />
                                     </div>
 
                                     <DataTable
@@ -476,63 +498,63 @@ onMounted(async () => {
                                         dataKey="issue_key"
                                         :loading="studentList.loading"
                                         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                                        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} issues"
+                                        :currentPageReportTemplate="pageReportTemplate"
                                         @page="onPage('students', $event)"
                                     >
-                                        <template #loading>Loading issues. Please wait.</template>
+                                        <template #loading>{{ t('dataQuality.issues.loading') }}</template>
                                         <template #empty>
                                             <div class="flex flex-col items-center gap-3 py-6">
                                                 <span v-if="studentList.error" class="text-red-500">{{ studentList.error }}</span>
-                                                <span v-else>No issues match the current filters.</span>
-                                                <Button v-if="studentList.error" icon="pi pi-refresh" label="Retry" @click="loadIssues('students')" />
+                                                <span v-else>{{ t('dataQuality.issues.empty') }}</span>
+                                                <Button v-if="studentList.error" icon="pi pi-refresh" :label="t('common.action.retry')" @click="loadIssues('students')" />
                                             </div>
                                         </template>
-                                        <Column header="No" style="width: 3rem">
+                                        <Column :header="t('dataQuality.columns.no')" style="width: 3rem">
                                             <template #body="{ index }">
                                                 {{ (studentList.meta.current_page - 1) * studentList.meta.per_page + index + 1 }}
                                             </template>
                                         </Column>
-                                        <Column header="Record" style="min-width: 15rem">
+                                        <Column :header="t('dataQuality.columns.record')" style="min-width: 15rem">
                                             <template #body="{ data }">
                                                 <div class="font-medium">{{ data.subject.name }}</div>
                                                 <div class="text-xs text-surface-500 flex flex-wrap items-center gap-1">
                                                     <span>{{ data.subject.nis || '-' }} / {{ data.subject.nisn || '-' }}</span>
-                                                    <Tag :value="data.subject.placement === 'placed' ? 'Placed' : 'Unplaced'" :severity="placementSeverity(data.subject.placement)" />
+                                                    <Tag :value="data.subject.placement === 'placed' ? t('dataQuality.placement.placed') : t('dataQuality.placement.unplaced')" :severity="placementSeverity(data.subject.placement)" />
                                                 </div>
                                             </template>
                                         </Column>
-                                        <Column header="Issue" style="min-width: 18rem">
+                                        <Column :header="t('dataQuality.columns.issue')" style="min-width: 18rem">
                                             <template #body="{ data }">
                                                 <div class="flex flex-wrap items-center gap-2">
-                                                    <Tag :value="issueTypeLabel(data.type)" :severity="issueSeverity(data.type)" />
-                                                    <span class="font-medium">{{ issueFieldLabel(data.field) }}</span>
+                                                    <Tag :value="issueTypeLabel(data.type, t)" :severity="issueSeverity(data.type)" />
+                                                    <span class="font-medium">{{ issueFieldLabel(data.field, t) }}</span>
                                                 </div>
                                                 <div class="text-xs text-surface-500 mt-1">{{ data.message }}</div>
                                             </template>
                                         </Column>
-                                        <Column header="Related" style="min-width: 12rem">
+                                        <Column :header="t('dataQuality.columns.related')" style="min-width: 12rem">
                                             <template #body="{ data }">
                                                 <template v-if="data.related">
                                                     <div class="flex items-center gap-2">
                                                         <span>{{ data.related.name }}</span>
-                                                        <Button icon="pi pi-external-link" text rounded size="small" v-tooltip.top="'Open related record'" @click="openRecord('students', data.related)" />
+                                                        <Button icon="pi pi-external-link" text rounded size="small" v-tooltip.top="t('dataQuality.tooltip.openRelated')" @click="openRecord('students', data.related)" />
                                                     </div>
                                                 </template>
                                                 <span v-else>-</span>
                                             </template>
                                         </Column>
-                                        <Column header="Review" style="min-width: 12rem">
+                                        <Column :header="t('dataQuality.columns.review')" style="min-width: 12rem">
                                             <template #body="{ data }">
-                                                <Tag :value="issueStatusLabel(data.review?.status ?? 'open')" :severity="reviewSeverity(data.review?.status ?? 'open')" />
+                                                <Tag :value="issueStatusLabel(data.review?.status ?? 'open', t)" :severity="reviewSeverity(data.review?.status ?? 'open')" />
                                                 <div v-if="data.review?.reason_code" class="text-xs text-surface-500 mt-1">
-                                                    {{ reviewReasonLabel(data.review.reason_code) }}
+                                                    {{ reviewReasonLabel(data.review.reason_code, t) }}
                                                 </div>
-                                                <div v-if="data.review?.version" class="text-xs text-surface-500">Review version {{ data.review.version }}</div>
+                                                <div v-if="data.review?.version" class="text-xs text-surface-500">{{ t('dataQuality.issues.reviewVersion', { version: data.review.version }) }}</div>
                                             </template>
                                         </Column>
-                                        <Column header="Action" :exportable="false" style="min-width: 13rem">
+                                        <Column :header="t('dataQuality.columns.action')" :exportable="false" style="min-width: 13rem">
                                             <template #body="{ data }">
-                                                <Button icon="pi pi-external-link" variant="outlined" rounded v-tooltip.top="'Open record'" @click="openRecord('students', data.subject)" />
+                                                <Button icon="pi pi-external-link" variant="outlined" rounded v-tooltip.top="t('dataQuality.tooltip.openRecord')" @click="openRecord('students', data.subject)" />
                                                 <template v-if="canManageDomain('students')">
                                                     <Button
                                                         v-if="data.review?.status !== 'acknowledged'"
@@ -541,7 +563,7 @@ onMounted(async () => {
                                                         rounded
                                                         severity="success"
                                                         class="ml-2"
-                                                        v-tooltip.top="'Acknowledge'"
+                                                        v-tooltip.top="t('dataQuality.tooltip.acknowledge')"
                                                         @click="openReview(data, 'students', 'acknowledged')"
                                                     />
                                                     <Button
@@ -551,10 +573,19 @@ onMounted(async () => {
                                                         rounded
                                                         severity="secondary"
                                                         class="ml-2"
-                                                        v-tooltip.top="'Ignore'"
+                                                        v-tooltip.top="t('dataQuality.tooltip.ignore')"
                                                         @click="openReview(data, 'students', 'ignored')"
                                                     />
-                                                    <Button v-if="data.review?.status !== 'open'" icon="pi pi-replay" variant="outlined" rounded severity="info" class="ml-2" v-tooltip.top="'Reopen'" @click="openReview(data, 'students', 'open')" />
+                                                    <Button
+                                                        v-if="data.review?.status !== 'open'"
+                                                        icon="pi pi-replay"
+                                                        variant="outlined"
+                                                        rounded
+                                                        severity="info"
+                                                        class="ml-2"
+                                                        v-tooltip.top="t('dataQuality.tooltip.reopen')"
+                                                        @click="openReview(data, 'students', 'open')"
+                                                    />
                                                 </template>
                                             </template>
                                         </Column>
@@ -568,105 +599,116 @@ onMounted(async () => {
                         <div class="flex flex-col gap-4 pt-2">
                             <div class="flex flex-col lg:flex-row lg:items-end gap-3">
                                 <div class="flex flex-col gap-1">
-                                    <span class="text-sm font-medium">Population</span>
-                                    <span class="text-sm text-surface-500">Active employees (Pendidik and Tenaga Kependidikan)</span>
+                                    <span class="text-sm font-medium">{{ t('dataQuality.population.label') }}</span>
+                                    <span class="text-sm text-surface-500">{{ t('dataQuality.population.employeesHint') }}</span>
                                 </div>
-                                <Button label="Refresh" icon="pi pi-refresh" severity="secondary" variant="outlined" class="lg:ml-auto" @click="refreshAll('employees')" />
-                                <span v-if="employeeList.summary?.as_of" class="text-xs text-surface-500"> As of {{ formatAsOf(employeeList.summary.as_of) }} </span>
+                                <Button :label="t('common.action.refresh')" icon="pi pi-refresh" severity="secondary" variant="outlined" class="lg:ml-auto" @click="refreshAll('employees')" />
+                                <span v-if="employeeList.summary?.as_of" class="text-xs text-surface-500">{{ t('dataQuality.asOf', { time: formatAsOf(employeeList.summary.as_of) }) }}</span>
                             </div>
 
                             <div v-if="employeeList.summaryError" class="flex flex-wrap items-center gap-2">
                                 <Message severity="error" :closable="false">{{ employeeList.summaryError }}</Message>
-                                <Button label="Retry" icon="pi pi-refresh" size="small" text @click="loadEmployeeSummary" />
+                                <Button :label="t('common.action.retry')" icon="pi pi-refresh" size="small" text @click="loadEmployeeSummary" />
                             </div>
 
-                            <p v-else-if="employeeList.summaryLoading" class="text-sm text-surface-500">Loading summary...</p>
+                            <p v-else-if="employeeList.summaryLoading" class="text-sm text-surface-500">{{ t('dataQuality.loadingSummary') }}</p>
 
                             <template v-else-if="employeeList.summary">
                                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
                                     <div class="border border-surface-200 dark:border-surface-700 rounded-border p-4">
-                                        <div class="text-sm text-surface-500">Active Employees (denominator)</div>
+                                        <div class="text-sm text-surface-500">{{ t('dataQuality.summary.activeEmployees') }}</div>
                                         <div class="text-3xl font-semibold">{{ employeePopulation.active ?? 0 }}</div>
                                         <div class="grid grid-cols-2 gap-1 text-xs text-surface-500 mt-2">
-                                            <span>Separated: {{ employeePopulation.separated ?? 0 }}</span>
-                                            <span>Archived excluded: {{ employeePopulation.archived_excluded ?? 0 }}</span>
+                                            <span>{{ t('dataQuality.summary.separated', { count: employeePopulation.separated ?? 0 }) }}</span>
+                                            <span>{{ t('dataQuality.summary.archivedExcluded', { count: employeePopulation.archived_excluded ?? 0 }) }}</span>
                                         </div>
                                     </div>
                                     <div class="border border-surface-200 dark:border-surface-700 rounded-border p-4">
-                                        <div class="text-sm text-surface-500">Complete Records</div>
+                                        <div class="text-sm text-surface-500">{{ t('dataQuality.summary.completeRecords') }}</div>
                                         <div class="text-3xl font-semibold">{{ employeeRecords.complete ?? 0 }}</div>
                                         <div class="text-xs text-surface-500 mt-2">
-                                            Incomplete: {{ employeeRecords.incomplete ?? 0 }}<br />
-                                            Complete: {{ formatCompletenessPercent(employeeRecords.complete_percent) }}
+                                            {{ t('dataQuality.summary.incomplete', { count: employeeRecords.incomplete ?? 0 }) }}<br />
+                                            {{ t('dataQuality.summary.complete', { percent: formatCompletenessPercent(employeeRecords.complete_percent) }) }}
                                         </div>
                                     </div>
                                     <div class="border border-surface-200 dark:border-surface-700 rounded-border p-4">
-                                        <div class="text-sm text-surface-500">Field Findings</div>
+                                        <div class="text-sm text-surface-500">{{ t('dataQuality.summary.fieldFindings') }}</div>
                                         <div class="text-3xl font-semibold">{{ employeeFindings.missing + employeeFindings.invalid }}</div>
                                         <div class="text-xs text-surface-500 mt-2">
-                                            Missing: {{ employeeFindings.missing }}<br />
-                                            Invalid: {{ employeeFindings.invalid }}<br />
-                                            Subject is required for teachers and must be empty for non-teaching employees.
+                                            {{ t('dataQuality.summary.missing', { count: employeeFindings.missing }) }}<br />
+                                            {{ t('dataQuality.summary.invalid', { count: employeeFindings.invalid }) }}<br />
+                                            {{ t('dataQuality.summary.subjectRule') }}
                                         </div>
                                     </div>
                                     <div class="border border-surface-200 dark:border-surface-700 rounded-border p-4">
-                                        <div class="text-sm text-surface-500">Duplicate Candidates</div>
+                                        <div class="text-sm text-surface-500">{{ t('dataQuality.summary.duplicateCandidates') }}</div>
                                         <div class="text-3xl font-semibold">{{ employeeDuplicates.candidate_pairs ?? 0 }}</div>
                                         <div class="text-xs text-surface-500 mt-2">
-                                            Affected records: {{ employeeDuplicates.affected_subjects ?? 0 }}<br />
-                                            Manual review only; no automatic merge.
+                                            {{ t('dataQuality.summary.affectedRecords', { count: employeeDuplicates.affected_subjects ?? 0 }) }}<br />
+                                            {{ t('dataQuality.summary.manualReviewOnly') }}
                                         </div>
                                     </div>
                                     <div class="border border-surface-200 dark:border-surface-700 rounded-border p-4">
-                                        <div class="text-sm text-surface-500">Review Workflow</div>
+                                        <div class="text-sm text-surface-500">{{ t('dataQuality.summary.reviewWorkflow') }}</div>
                                         <div class="text-3xl font-semibold">{{ employeeReviews.unresolved ?? 0 }}</div>
                                         <div class="text-xs text-surface-500 mt-2">
-                                            Open: {{ employeeReviews.open ?? 0 }}<br />
-                                            Acknowledged: {{ employeeReviews.acknowledged ?? 0 }}<br />
-                                            Ignored: {{ employeeReviews.ignored ?? 0 }}
+                                            {{ t('dataQuality.summary.open', { count: employeeReviews.open ?? 0 }) }}<br />
+                                            {{ t('dataQuality.summary.acknowledged', { count: employeeReviews.acknowledged ?? 0 }) }}<br />
+                                            {{ t('dataQuality.summary.ignored', { count: employeeReviews.ignored ?? 0 }) }}
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="flex flex-col gap-2">
-                                    <h3 class="text-lg font-semibold">Field Completeness</h3>
+                                    <h3 class="text-lg font-semibold">{{ t('dataQuality.completeness.title') }}</h3>
                                     <DataTable :value="employeeList.summary.fields" dataKey="field" size="small" showGridlines scrollable>
-                                        <Column field="label" header="Field" style="min-width: 12rem" />
-                                        <Column field="denominator" header="Denominator" style="min-width: 8rem" />
-                                        <Column field="missing" header="Missing" style="min-width: 7rem" />
-                                        <Column field="invalid" header="Invalid" style="min-width: 7rem" />
-                                        <Column field="complete" header="Complete" style="min-width: 7rem" />
-                                        <Column header="Completeness" style="min-width: 8rem">
+                                        <Column :header="t('dataQuality.columns.field')" style="min-width: 12rem">
+                                            <template #body="{ data }">{{ summaryFieldLabel(data) }}</template>
+                                        </Column>
+                                        <Column field="denominator" :header="t('dataQuality.columns.denominator')" style="min-width: 8rem" />
+                                        <Column field="missing" :header="t('dataQuality.columns.missing')" style="min-width: 7rem" />
+                                        <Column field="invalid" :header="t('dataQuality.columns.invalid')" style="min-width: 7rem" />
+                                        <Column field="complete" :header="t('dataQuality.columns.complete')" style="min-width: 7rem" />
+                                        <Column :header="t('dataQuality.columns.completeness')" style="min-width: 8rem">
                                             <template #body="{ data }">
                                                 {{ formatCompletenessPercent(data.completeness_percent) }}
                                             </template>
                                         </Column>
                                     </DataTable>
-                                    <p class="text-xs text-surface-500">NUPTK is measured against active teachers only. Subject is measured against all active employees.</p>
+                                    <p class="text-xs text-surface-500">{{ t('dataQuality.completeness.employeesNote') }}</p>
                                 </div>
 
                                 <div class="flex flex-col gap-3">
                                     <div class="flex flex-wrap items-center justify-between gap-2">
-                                        <h3 class="text-lg font-semibold">Issues</h3>
-                                        <Tag :value="`${employeeList.meta.total} matching`" severity="secondary" />
+                                        <h3 class="text-lg font-semibold">{{ t('dataQuality.issues.title') }}</h3>
+                                        <Tag :value="t('dataQuality.issues.matching', { count: employeeList.meta.total })" severity="secondary" />
                                     </div>
 
                                     <div class="flex flex-wrap gap-2">
-                                        <Select v-model="employeeList.type" :options="ISSUE_TYPE_OPTIONS" optionLabel="label" optionValue="value" placeholder="All types" showClear class="w-full sm:w-44" @change="onFilterChange('employees')" />
                                         <Select
-                                            v-model="employeeList.field"
-                                            :options="issueFieldOptions('employees')"
+                                            v-model="employeeList.type"
+                                            :options="issueTypeSelectOptions"
                                             optionLabel="label"
                                             optionValue="value"
-                                            placeholder="All fields"
+                                            :placeholder="t('dataQuality.issues.allTypes')"
+                                            showClear
+                                            class="w-full sm:w-44"
+                                            @change="onFilterChange('employees')"
+                                        />
+                                        <Select
+                                            v-model="employeeList.field"
+                                            :options="employeeFieldOptions"
+                                            optionLabel="label"
+                                            optionValue="value"
+                                            :placeholder="t('dataQuality.issues.allFields')"
                                             showClear
                                             filter
                                             class="w-full sm:w-52"
                                             @change="onFilterChange('employees')"
                                         />
-                                        <Select v-model="employeeList.status" :options="ISSUE_STATUS_OPTIONS" optionLabel="label" optionValue="value" class="w-full sm:w-44" @change="onFilterChange('employees')" />
-                                        <InputText v-model="employeeList.search" placeholder="Name or NUPTK" class="w-full sm:w-56" @input="onSearchInput('employees')" />
-                                        <Button label="Reset" icon="pi pi-filter-slash" severity="secondary" variant="outlined" @click="resetFilters('employees')" />
+                                        <Select v-model="employeeList.status" :options="issueStatusSelectOptions" optionLabel="label" optionValue="value" class="w-full sm:w-44" @change="onFilterChange('employees')" />
+                                        <InputText v-model="employeeList.search" :placeholder="t('dataQuality.issues.searchEmployees')" class="w-full sm:w-56" @input="onSearchInput('employees')" />
+                                        <Button :label="t('dataQuality.issues.reset')" icon="pi pi-filter-slash" severity="secondary" variant="outlined" @click="resetFilters('employees')" />
                                     </div>
 
                                     <DataTable
@@ -682,23 +724,23 @@ onMounted(async () => {
                                         dataKey="issue_key"
                                         :loading="employeeList.loading"
                                         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                                        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} issues"
+                                        :currentPageReportTemplate="pageReportTemplate"
                                         @page="onPage('employees', $event)"
                                     >
-                                        <template #loading>Loading issues. Please wait.</template>
+                                        <template #loading>{{ t('dataQuality.issues.loading') }}</template>
                                         <template #empty>
                                             <div class="flex flex-col items-center gap-3 py-6">
                                                 <span v-if="employeeList.error" class="text-red-500">{{ employeeList.error }}</span>
-                                                <span v-else>No issues match the current filters.</span>
-                                                <Button v-if="employeeList.error" icon="pi pi-refresh" label="Retry" @click="loadIssues('employees')" />
+                                                <span v-else>{{ t('dataQuality.issues.empty') }}</span>
+                                                <Button v-if="employeeList.error" icon="pi pi-refresh" :label="t('common.action.retry')" @click="loadIssues('employees')" />
                                             </div>
                                         </template>
-                                        <Column header="No" style="width: 3rem">
+                                        <Column :header="t('dataQuality.columns.no')" style="width: 3rem">
                                             <template #body="{ index }">
                                                 {{ (employeeList.meta.current_page - 1) * employeeList.meta.per_page + index + 1 }}
                                             </template>
                                         </Column>
-                                        <Column header="Record" style="min-width: 15rem">
+                                        <Column :header="t('dataQuality.columns.record')" style="min-width: 15rem">
                                             <template #body="{ data }">
                                                 <div class="font-medium">{{ data.subject.name }}</div>
                                                 <div class="text-xs text-surface-500 flex flex-wrap items-center gap-1">
@@ -707,38 +749,38 @@ onMounted(async () => {
                                                 </div>
                                             </template>
                                         </Column>
-                                        <Column header="Issue" style="min-width: 18rem">
+                                        <Column :header="t('dataQuality.columns.issue')" style="min-width: 18rem">
                                             <template #body="{ data }">
                                                 <div class="flex flex-wrap items-center gap-2">
-                                                    <Tag :value="issueTypeLabel(data.type)" :severity="issueSeverity(data.type)" />
-                                                    <span class="font-medium">{{ issueFieldLabel(data.field) }}</span>
+                                                    <Tag :value="issueTypeLabel(data.type, t)" :severity="issueSeverity(data.type)" />
+                                                    <span class="font-medium">{{ issueFieldLabel(data.field, t) }}</span>
                                                 </div>
                                                 <div class="text-xs text-surface-500 mt-1">{{ data.message }}</div>
                                             </template>
                                         </Column>
-                                        <Column header="Related" style="min-width: 12rem">
+                                        <Column :header="t('dataQuality.columns.related')" style="min-width: 12rem">
                                             <template #body="{ data }">
                                                 <template v-if="data.related">
                                                     <div class="flex items-center gap-2">
                                                         <span>{{ data.related.name }}</span>
-                                                        <Button icon="pi pi-external-link" text rounded size="small" v-tooltip.top="'Open related record'" @click="openRecord('employees', data.related)" />
+                                                        <Button icon="pi pi-external-link" text rounded size="small" v-tooltip.top="t('dataQuality.tooltip.openRelated')" @click="openRecord('employees', data.related)" />
                                                     </div>
                                                 </template>
                                                 <span v-else>-</span>
                                             </template>
                                         </Column>
-                                        <Column header="Review" style="min-width: 12rem">
+                                        <Column :header="t('dataQuality.columns.review')" style="min-width: 12rem">
                                             <template #body="{ data }">
-                                                <Tag :value="issueStatusLabel(data.review?.status ?? 'open')" :severity="reviewSeverity(data.review?.status ?? 'open')" />
+                                                <Tag :value="issueStatusLabel(data.review?.status ?? 'open', t)" :severity="reviewSeverity(data.review?.status ?? 'open')" />
                                                 <div v-if="data.review?.reason_code" class="text-xs text-surface-500 mt-1">
-                                                    {{ reviewReasonLabel(data.review.reason_code) }}
+                                                    {{ reviewReasonLabel(data.review.reason_code, t) }}
                                                 </div>
-                                                <div v-if="data.review?.version" class="text-xs text-surface-500">Review version {{ data.review.version }}</div>
+                                                <div v-if="data.review?.version" class="text-xs text-surface-500">{{ t('dataQuality.issues.reviewVersion', { version: data.review.version }) }}</div>
                                             </template>
                                         </Column>
-                                        <Column header="Action" :exportable="false" style="min-width: 13rem">
+                                        <Column :header="t('dataQuality.columns.action')" :exportable="false" style="min-width: 13rem">
                                             <template #body="{ data }">
-                                                <Button icon="pi pi-external-link" variant="outlined" rounded v-tooltip.top="'Open record'" @click="openRecord('employees', data.subject)" />
+                                                <Button icon="pi pi-external-link" variant="outlined" rounded v-tooltip.top="t('dataQuality.tooltip.openRecord')" @click="openRecord('employees', data.subject)" />
                                                 <template v-if="canManageDomain('employees')">
                                                     <Button
                                                         v-if="data.review?.status !== 'acknowledged'"
@@ -747,7 +789,7 @@ onMounted(async () => {
                                                         rounded
                                                         severity="success"
                                                         class="ml-2"
-                                                        v-tooltip.top="'Acknowledge'"
+                                                        v-tooltip.top="t('dataQuality.tooltip.acknowledge')"
                                                         @click="openReview(data, 'employees', 'acknowledged')"
                                                     />
                                                     <Button
@@ -757,10 +799,19 @@ onMounted(async () => {
                                                         rounded
                                                         severity="secondary"
                                                         class="ml-2"
-                                                        v-tooltip.top="'Ignore'"
+                                                        v-tooltip.top="t('dataQuality.tooltip.ignore')"
                                                         @click="openReview(data, 'employees', 'ignored')"
                                                     />
-                                                    <Button v-if="data.review?.status !== 'open'" icon="pi pi-replay" variant="outlined" rounded severity="info" class="ml-2" v-tooltip.top="'Reopen'" @click="openReview(data, 'employees', 'open')" />
+                                                    <Button
+                                                        v-if="data.review?.status !== 'open'"
+                                                        icon="pi pi-replay"
+                                                        variant="outlined"
+                                                        rounded
+                                                        severity="info"
+                                                        class="ml-2"
+                                                        v-tooltip.top="t('dataQuality.tooltip.reopen')"
+                                                        @click="openReview(data, 'employees', 'open')"
+                                                    />
                                                 </template>
                                             </template>
                                         </Column>

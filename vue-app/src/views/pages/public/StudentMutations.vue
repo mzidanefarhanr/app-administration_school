@@ -1,43 +1,46 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import { useToast } from 'primevue/usetoast';
 import apiLogin from '@/apiLogin';
 import { authStore } from '@/stores/authStore';
+import { formatDate as formatDateUtil } from '@/utils/formatters';
 import StudentMutationTimelineDialog from './StudentMutationTimelineDialog.vue';
 
 const emit = defineEmits(['mutated']);
 
 const store = authStore();
 const toast = useToast();
+const { t, locale } = useI18n();
 
 const canManage = computed(() => store.can('students.manage'));
 const canCorrectLocked = computed(() => store.can('students.manage') && store.can('students.correct-locked'));
 
-const typeOptions = [
-    { label: 'All types', value: '' },
-    { label: 'Mutation In', value: 'in' },
-    { label: 'Mutation Out', value: 'out' }
-];
+const typeOptions = computed(() => [
+    { label: t('students.mutations.types.all'), value: '' },
+    { label: t('students.mutations.types.in'), value: 'in' },
+    { label: t('students.mutations.types.out'), value: 'out' }
+]);
 
-const statusOptions = [
-    { label: 'All statuses', value: '' },
-    { label: 'Active', value: 'active' },
-    { label: 'Cancelled', value: 'cancelled' }
-];
+const statusOptions = computed(() => [
+    { label: t('students.mutations.statuses.all'), value: '' },
+    { label: t('students.mutations.statuses.active'), value: 'active' },
+    { label: t('students.mutations.statuses.cancelled'), value: 'cancelled' }
+]);
 
-const correctionActions = [
-    { label: 'Correct mutation-in date/school', value: 'mutation_in' },
-    { label: 'Correct mutation-out date/school', value: 'mutation_out' },
-    { label: 'Cancel an active mutation', value: 'mutation_cancel' },
-    { label: 'Exit an active membership', value: 'membership_exit' },
-    { label: 'Reopen a closed membership', value: 'membership_reopen' }
-];
+const correctionActions = computed(() => [
+    { label: t('students.mutations.dialogCorrection.actions.mutation_in'), value: 'mutation_in' },
+    { label: t('students.mutations.dialogCorrection.actions.mutation_out'), value: 'mutation_out' },
+    { label: t('students.mutations.dialogCorrection.actions.mutation_cancel'), value: 'mutation_cancel' },
+    { label: t('students.mutations.dialogCorrection.actions.membership_exit'), value: 'membership_exit' },
+    { label: t('students.mutations.dialogCorrection.actions.membership_reopen'), value: 'membership_reopen' }
+]);
 
-const targetStatusOptions = [
-    { label: 'Mutation Out', value: 2 },
-    { label: 'Graduated', value: 6 }
-];
+const targetStatusOptions = computed(() => [
+    { label: t('students.mutations.dialogCorrection.targetStatuses.mutationOut'), value: 2 },
+    { label: t('students.mutations.dialogCorrection.targetStatuses.graduated'), value: 6 }
+]);
 
 const options = ref(null);
 const optionsLoading = ref(false);
@@ -78,17 +81,15 @@ const statusLabel = (id) => {
 
 const formatDate = (value) => {
     if (!value) return '-';
-    const raw = String(value).slice(0, 10);
-    const parsed = new Date(raw + 'T00:00:00');
-    if (Number.isNaN(parsed.getTime())) return raw;
-    return parsed.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    return formatDateUtil(value);
 };
 
 const formatDateTime = (value) => {
     if (!value) return '-';
     const parsed = new Date(value);
     if (Number.isNaN(parsed.getTime())) return value;
-    return parsed.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const loc = locale.value === 'en' ? 'en-GB' : 'id-ID';
+    return parsed.toLocaleString(loc, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 };
 
 const dateToInput = (value) => {
@@ -833,8 +834,8 @@ onMounted(() => loadOptions());
         <div class="flex flex-col gap-4">
             <div class="flex flex-col xl:flex-row xl:items-center gap-3">
                 <div>
-                    <div class="font-semibold text-xl">Mutations</div>
-                    <div class="text-sm text-surface-500">Permanent mutation log with a year-level recap.</div>
+                    <div class="font-semibold text-xl">{{ t('students.mutations.title') }}</div>
+                    <div class="text-sm text-surface-500">{{ t('students.mutations.subtitle') }}</div>
                 </div>
                 <div class="flex flex-wrap gap-2 xl:ml-auto items-center">
                     <Select
@@ -842,7 +843,7 @@ onMounted(() => loadOptions());
                         :options="years"
                         optionLabel="name"
                         optionValue="id"
-                        placeholder="Academic Year"
+                        :placeholder="t('students.mutations.academicYear')"
                         class="w-full sm:w-56"
                         :loading="optionsLoading"
                         :disabled="optionsLoading || years.length === 0"
@@ -852,14 +853,14 @@ onMounted(() => loadOptions());
                     <Tag v-if="year?.is_locked" value="Locked" severity="danger" />
                     <Tag v-else-if="year?.is_active" value="Active" severity="success" />
                     <Tag v-if="year && !year.has_dates" value="No dates" severity="warn" />
-                    <Button v-if="canManage" label="New Mutation In" icon="pi pi-plus" :disabled="!canMutate" @click="openInDialog" />
-                    <Button v-if="canManage" label="New Mutation Out" icon="pi pi-arrow-right" severity="secondary" variant="outlined" :disabled="!canMutate" @click="openOutDialog" />
+                    <Button v-if="canManage" :label="t('students.mutations.btnNewIn')" icon="pi pi-plus" :disabled="!canMutate" @click="openInDialog" />
+                    <Button v-if="canManage" :label="t('students.mutations.btnNewOut')" icon="pi pi-arrow-right" severity="secondary" variant="outlined" :disabled="!canMutate" @click="openOutDialog" />
                 </div>
             </div>
 
             <Message v-if="optionsError" severity="error" :closable="false">{{ optionsError }}</Message>
-            <Message v-else-if="year?.is_locked" severity="informational" :closable="false"> This academic year is locked. New mutations are blocked; holders of the locked correction ability can correct existing records. </Message>
-            <Message v-else-if="year && !year.has_dates" severity="warn" :closable="false"> The selected academic year has no start or end date. Set the period dates before recording mutations. </Message>
+            <Message v-else-if="year?.is_locked" severity="informational" :closable="false"> {{ t('students.mutations.yearLockedNotice') }} </Message>
+            <Message v-else-if="year && !year.has_dates" severity="warn" :closable="false"> {{ t('students.mutations.noPeriodDatesNotice') }} </Message>
 
             <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
                 <div v-for="card in recapCards" :key="card.label" class="border border-surface-200 dark:border-surface-700 rounded p-4 flex flex-col gap-2">
@@ -879,11 +880,11 @@ onMounted(() => loadOptions());
             <div class="flex flex-col xl:flex-row gap-3 xl:items-center">
                 <IconField class="w-full xl:w-80">
                     <InputIcon><i class="pi pi-search" /></InputIcon>
-                    <InputText v-model="filters.search" placeholder="Search student name or NIS" class="w-full" @input="onSearchInput" />
+                    <InputText v-model="filters.search" :placeholder="t('students.mutations.searchPlaceholder')" class="w-full" @input="onSearchInput" />
                 </IconField>
                 <Select v-model="filters.type" :options="typeOptions" optionLabel="label" optionValue="value" class="w-full xl:w-44" aria-label="Mutation type" @change="onFilterChange" />
                 <Select v-model="filters.status" :options="statusOptions" optionLabel="label" optionValue="value" class="w-full xl:w-44" aria-label="Mutation status" @change="onFilterChange" />
-                <Button label="Clear" icon="pi pi-filter-slash" variant="outlined" class="xl:ml-auto" @click="clearFilters" />
+                <Button :label="t('common.action.clear')" icon="pi pi-filter-slash" variant="outlined" class="xl:ml-auto" @click="clearFilters" />
             </div>
 
             <DataTable
@@ -901,56 +902,56 @@ onMounted(() => loadOptions());
                 currentPageReportTemplate="Showing {first} to {last} of {totalRecords} mutations"
                 @page="onPage"
             >
-                <template #loading>Loading mutations. Please wait.</template>
+                <template #loading>{{ t('students.mutations.loading') }}</template>
                 <template #empty>
                     <div class="flex flex-col items-center gap-3 py-6">
                         <span v-if="listError" class="text-red-500">{{ listError }}</span>
                         <span v-else>No mutations match the current filters.</span>
-                        <Button v-if="listError" icon="pi pi-refresh" label="Retry" @click="loadHistory" />
+                        <Button v-if="listError" icon="pi pi-refresh" :label="t('common.action.retry')" @click="loadHistory" />
                     </div>
                 </template>
-                <Column field="effective_date" header="Effective Date" style="min-width: 8rem">
+                <Column field="effective_date" :header="t('students.mutations.columns.effectiveDate')" style="min-width: 8rem">
                     <template #body="{ data }">{{ formatDate(data.effective_date) }}</template>
                 </Column>
-                <Column header="Student" style="min-width: 12rem">
+                <Column :header="t('students.mutations.columns.student')" style="min-width: 12rem">
                     <template #body="{ data }">
                         <div class="font-medium">{{ data.student?.name ?? '-' }}</div>
                         <div class="text-xs text-surface-500">{{ data.student?.nis ?? '-' }}</div>
                     </template>
                 </Column>
-                <Column header="Class" style="min-width: 9rem">
+                <Column :header="t('students.mutations.columns.class')" style="min-width: 9rem">
                     <template #body="{ data }">{{ data.class?.name ?? '-' }}</template>
                 </Column>
-                <Column header="Type" style="min-width: 8rem">
+                <Column :header="t('students.mutations.columns.type')" style="min-width: 8rem">
                     <template #body="{ data }">
                         <Tag :value="typeLabel(data.type)" :severity="data.type === 'in' ? 'info' : 'warn'" />
                     </template>
                 </Column>
-                <Column header="School" style="min-width: 12rem">
+                <Column :header="t('students.mutations.columns.school')" style="min-width: 12rem">
                     <template #body="{ data }">
                         <div class="font-medium">{{ data.school_npsn }}</div>
                         <div class="text-xs text-surface-500">{{ data.school_name ?? '-' }}</div>
                     </template>
                 </Column>
-                <Column header="Reason" style="min-width: 12rem">
+                <Column :header="t('students.mutations.columns.reason')" style="min-width: 12rem">
                     <template #body="{ data }">
                         <span :title="data.reason">{{ data.reason }}</span>
                     </template>
                 </Column>
-                <Column header="Status" style="min-width: 7rem">
+                <Column :header="t('students.mutations.columns.status')" style="min-width: 7rem">
                     <template #body="{ data }">
                         <Tag :value="data.status === 'active' ? 'Active' : 'Cancelled'" :severity="data.status === 'active' ? 'success' : 'danger'" />
                     </template>
                 </Column>
-                <Column header="Recorded By" style="min-width: 10rem">
+                <Column :header="t('students.mutations.columns.recordedBy')" style="min-width: 10rem">
                     <template #body="{ data }">
                         <div>{{ data.created_by?.name ?? '-' }}</div>
                         <div class="text-xs text-surface-500">{{ formatDateTime(data.created_at) }}</div>
                     </template>
                 </Column>
-                <Column header="Action" :exportable="false" style="min-width: 10rem">
+                <Column :header="t('students.mutations.columns.action')" :exportable="false" style="min-width: 10rem">
                     <template #body="{ data }">
-                        <Button icon="pi pi-history" aria-label="View student mutation timeline" variant="outlined" rounded class="mr-2" v-tooltip.top="'Student Timeline'" @click="openTimeline(data)" />
+                        <Button icon="pi pi-history" aria-label="View student mutation timeline" variant="outlined" rounded class="mr-2" v-tooltip.top="t('students.mutations.tooltips.timeline')" @click="openTimeline(data)" />
                         <Button
                             v-if="canManage && !year?.is_locked && data.status === 'active' && data.membership"
                             icon="pi pi-times"
@@ -959,10 +960,19 @@ onMounted(() => loadOptions());
                             rounded
                             severity="danger"
                             class="mr-2"
-                            v-tooltip.top="'Cancel Mutation'"
+                            v-tooltip.top="t('students.mutations.tooltips.cancel')"
                             @click="openCancel(data)"
                         />
-                        <Button v-if="canCorrectLocked && year?.is_locked" icon="pi pi-pencil" aria-label="Correct locked mutation" variant="outlined" rounded severity="warn" v-tooltip.top="'Correct Locked Mutation'" @click="openCorrect(data)" />
+                        <Button
+                            v-if="canCorrectLocked && year?.is_locked"
+                            icon="pi pi-pencil"
+                            aria-label="Correct locked mutation"
+                            variant="outlined"
+                            rounded
+                            severity="warn"
+                            v-tooltip.top="t('students.mutations.tooltips.correctLocked')"
+                            @click="openCorrect(data)"
+                        />
                     </template>
                 </Column>
             </DataTable>
@@ -971,12 +981,12 @@ onMounted(() => loadOptions());
         <StudentMutationTimelineDialog v-model:visible="timelineVisible" :student="timelineStudent" />
     </div>
 
-    <Dialog v-model:visible="inDialog" modal :draggable="false" :style="{ width: 'min(94vw, 40rem)' }" header="New Mutation In">
+    <Dialog v-model:visible="inDialog" modal :draggable="false" :style="{ width: 'min(94vw, 40rem)' }" :header="t('students.mutations.dialogIn.title')">
         <div class="flex flex-col gap-4">
-            <Message severity="info" :closable="false"> A mutation-in creates a new active class membership. The student's personal data is not changed. </Message>
+            <Message severity="info" :closable="false"> {{ t('students.mutations.dialogIn.notice') }} </Message>
 
             <div class="flex flex-col gap-2">
-                <label for="inStudent" class="font-medium">Student <span class="text-red-500">*</span></label>
+                <label for="inStudent" class="font-medium">{{ t('students.mutations.dialogIn.student') }} <span class="text-red-500">*</span></label>
                 <AutoComplete
                     id="inStudent"
                     v-model="inForm.studentOption"
@@ -985,11 +995,11 @@ onMounted(() => loadOptions());
                     :minLength="2"
                     forceSelection
                     class="w-full"
-                    placeholder="Search name, NIS, or NISN"
+                    :placeholder="t('students.mutations.dialogIn.studentSearchPlaceholder')"
                     @complete="completeInStudent"
                     @item-select="onInStudentSelect"
                 />
-                <small class="text-surface-500">Search by name or NIS (at least two characters).</small>
+                <small class="text-surface-500">{{ t('students.mutations.dialogIn.searchHelper') }}</small>
                 <small v-if="fieldError(inFieldErrors, 'student_id')" class="text-red-500">{{ fieldError(inFieldErrors, 'student_id') }}</small>
             </div>
 
@@ -999,19 +1009,19 @@ onMounted(() => loadOptions());
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-2">
-                    <label for="inClass" class="font-medium">Class <span class="text-red-500">*</span></label>
-                    <Select id="inClass" v-model="inForm.classId" :options="classes" optionLabel="name" optionValue="id" filter placeholder="Select class" class="w-full" />
+                    <label for="inClass" class="font-medium">{{ t('students.mutations.dialogIn.class') }} <span class="text-red-500">*</span></label>
+                    <Select id="inClass" v-model="inForm.classId" :options="classes" optionLabel="name" optionValue="id" filter :placeholder="t('students.mutations.dialogIn.classSelectPlaceholder')" class="w-full" />
                     <small v-if="fieldError(inFieldErrors, 'school_rombel_id')" class="text-red-500">{{ fieldError(inFieldErrors, 'school_rombel_id') }}</small>
                 </div>
                 <div class="flex flex-col gap-2">
-                    <label for="inDate" class="font-medium">Effective Date <span class="text-red-500">*</span></label>
+                    <label for="inDate" class="font-medium">{{ t('students.mutations.dialogIn.effectiveDate') }} <span class="text-red-500">*</span></label>
                     <DatePicker id="inDate" v-model="inForm.effectiveDate" dateFormat="yy-mm-dd" showIcon manualInput fluid />
                     <small v-if="fieldError(inFieldErrors, 'effective_date')" class="text-red-500">{{ fieldError(inFieldErrors, 'effective_date') }}</small>
                 </div>
             </div>
 
             <div class="flex flex-col gap-2">
-                <label for="inSchool" class="font-medium">Origin School NPSN <span class="text-red-500">*</span></label>
+                <label for="inSchool" class="font-medium">{{ t('students.mutations.dialogIn.originSchoolNpsn') }} <span class="text-red-500">*</span></label>
                 <AutoComplete
                     id="inSchool"
                     v-model="inForm.schoolText"
@@ -1019,16 +1029,16 @@ onMounted(() => loadOptions());
                     optionLabel="label"
                     :minLength="2"
                     class="w-full"
-                    placeholder="Search by school name or NPSN"
+                    :placeholder="t('students.mutations.dialogIn.schoolSearchPlaceholder')"
                     @complete="completeInSchool"
                     @item-select="onInSchoolSelect"
                 />
-                <small class="text-surface-500">Select a school or type its NPSN directly.</small>
+                <small class="text-surface-500">{{ t('students.mutations.dialogIn.schoolSearchHelper') }}</small>
                 <small v-if="fieldError(inFieldErrors, 'school_npsn')" class="text-red-500">{{ fieldError(inFieldErrors, 'school_npsn') }}</small>
             </div>
 
             <div class="flex flex-col gap-2">
-                <label for="inReason" class="font-medium">Reason <span class="text-red-500">*</span></label>
+                <label for="inReason" class="font-medium">{{ t('students.mutations.dialogIn.reason') }} <span class="text-red-500">*</span></label>
                 <Textarea id="inReason" v-model="inForm.reason" rows="3" autoResize maxlength="255" class="w-full" />
                 <small class="text-surface-500">{{ inForm.reason.length }}/255 characters (minimum 10).</small>
                 <small v-if="fieldError(inFieldErrors, 'reason')" class="text-red-500">{{ fieldError(inFieldErrors, 'reason') }}</small>
@@ -1044,18 +1054,18 @@ onMounted(() => loadOptions());
         </div>
         <template #footer>
             <div class="flex justify-end gap-2">
-                <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="inSaving" @click="inDialog = false" />
-                <Button label="Record Mutation In" icon="pi pi-check" :loading="inSaving" @click="submitIn" />
+                <Button :label="t('common.action.cancel')" icon="pi pi-times" text severity="secondary" :disabled="inSaving" @click="inDialog = false" />
+                <Button :label="t('students.mutations.dialogIn.btnSubmit')" icon="pi pi-check" :loading="inSaving" @click="submitIn" />
             </div>
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="outDialog" modal :draggable="false" :style="{ width: 'min(94vw, 40rem)' }" header="New Mutation Out">
+    <Dialog v-model:visible="outDialog" modal :draggable="false" :style="{ width: 'min(94vw, 40rem)' }" :header="t('students.mutations.dialogOut.title')">
         <div class="flex flex-col gap-4">
-            <Message severity="info" :closable="false"> A mutation-out closes one active class membership and records the destination school. </Message>
+            <Message severity="info" :closable="false"> {{ t('students.mutations.dialogOut.notice') }} </Message>
 
             <div class="flex flex-col gap-2">
-                <label for="outStudent" class="font-medium">Student <span class="text-red-500">*</span></label>
+                <label for="outStudent" class="font-medium">{{ t('students.mutations.dialogOut.student') }} <span class="text-red-500">*</span></label>
                 <AutoComplete
                     id="outStudent"
                     v-model="outForm.studentOption"
@@ -1064,15 +1074,15 @@ onMounted(() => loadOptions());
                     :minLength="2"
                     forceSelection
                     class="w-full"
-                    placeholder="Search placed students"
+                    :placeholder="t('students.mutations.dialogOut.studentSearchPlaceholder')"
                     @complete="completeOutStudent"
                     @item-select="onOutStudentSelect"
                 />
-                <small class="text-surface-500">Only students with an active class in the selected year are suggested.</small>
+                <small class="text-surface-500">{{ t('students.mutations.dialogOut.studentSearchHelper') }}</small>
                 <small v-if="fieldError(outFieldErrors, 'student_id')" class="text-red-500">{{ fieldError(outFieldErrors, 'student_id') }}</small>
             </div>
 
-            <Message v-if="outForm.student && !outForm.membershipId" severity="warn" :closable="false"> This student has no active class membership in the selected academic year. </Message>
+            <Message v-if="outForm.student && !outForm.membershipId" severity="warn" :closable="false"> {{ t('students.mutations.dialogOut.noActiveClassNotice') }} </Message>
 
             <div v-if="outForm.student?.rombel" class="text-sm border border-surface-200 dark:border-surface-700 rounded p-3">
                 <div>
@@ -1082,14 +1092,14 @@ onMounted(() => loadOptions());
             </div>
 
             <div class="flex flex-col gap-2">
-                <label for="outDate" class="font-medium">Effective Date <span class="text-red-500">*</span></label>
+                <label for="outDate" class="font-medium">{{ t('students.mutations.dialogOut.effectiveDate') }} <span class="text-red-500">*</span></label>
                 <DatePicker id="outDate" v-model="outForm.effectiveDate" dateFormat="yy-mm-dd" showIcon manualInput fluid />
-                <small class="text-surface-500">The date must be within the academic year and on or after the class entry date.</small>
+                <small class="text-surface-500">{{ t('students.mutations.dialogOut.dateHelper') }}</small>
                 <small v-if="fieldError(outFieldErrors, 'effective_date')" class="text-red-500">{{ fieldError(outFieldErrors, 'effective_date') }}</small>
             </div>
 
             <div class="flex flex-col gap-2">
-                <label for="outSchool" class="font-medium">Destination School NPSN <span class="text-red-500">*</span></label>
+                <label for="outSchool" class="font-medium">{{ t('students.mutations.dialogOut.destSchoolNpsn') }} <span class="text-red-500">*</span></label>
                 <AutoComplete
                     id="outSchool"
                     v-model="outForm.schoolText"
@@ -1097,16 +1107,16 @@ onMounted(() => loadOptions());
                     optionLabel="label"
                     :minLength="2"
                     class="w-full"
-                    placeholder="Search by school name or NPSN"
+                    :placeholder="t('students.mutations.dialogIn.schoolSearchPlaceholder')"
                     @complete="completeOutSchool"
                     @item-select="onOutSchoolSelect"
                 />
-                <small class="text-surface-500">Select a school or type its NPSN directly.</small>
+                <small class="text-surface-500">{{ t('students.mutations.dialogIn.schoolSearchHelper') }}</small>
                 <small v-if="fieldError(outFieldErrors, 'school_npsn')" class="text-red-500">{{ fieldError(outFieldErrors, 'school_npsn') }}</small>
             </div>
 
             <div class="flex flex-col gap-2">
-                <label for="outReason" class="font-medium">Reason <span class="text-red-500">*</span></label>
+                <label for="outReason" class="font-medium">{{ t('students.mutations.dialogOut.reason') }} <span class="text-red-500">*</span></label>
                 <Textarea id="outReason" v-model="outForm.reason" rows="3" autoResize maxlength="255" class="w-full" />
                 <small class="text-surface-500">{{ outForm.reason.length }}/255 characters (minimum 10).</small>
                 <small v-if="fieldError(outFieldErrors, 'reason')" class="text-red-500">{{ fieldError(outFieldErrors, 'reason') }}</small>
@@ -1122,13 +1132,13 @@ onMounted(() => loadOptions());
         </div>
         <template #footer>
             <div class="flex justify-end gap-2">
-                <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="outSaving" @click="outDialog = false" />
-                <Button label="Record Mutation Out" icon="pi pi-check" :loading="outSaving" @click="submitOut" />
+                <Button :label="t('common.action.cancel')" icon="pi pi-times" text severity="secondary" :disabled="outSaving" @click="outDialog = false" />
+                <Button :label="t('students.mutations.dialogOut.btnSubmit')" icon="pi pi-check" :loading="outSaving" @click="submitOut" />
             </div>
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="cancelDialog" modal :draggable="false" :style="{ width: 'min(94vw, 36rem)' }" header="Cancel Mutation">
+    <Dialog v-model:visible="cancelDialog" modal :draggable="false" :style="{ width: 'min(94vw, 36rem)' }" :header="t('students.mutations.dialogCancel.title')">
         <div v-if="cancelTarget" class="flex flex-col gap-4">
             <div class="text-sm border border-surface-200 dark:border-surface-700 rounded p-3 flex flex-col gap-1">
                 <div>
@@ -1141,7 +1151,7 @@ onMounted(() => loadOptions());
             <Message severity="warn" :closable="false">{{ cancelConsequence }}</Message>
 
             <div class="flex flex-col gap-2">
-                <label for="cancelReason" class="font-medium">Reason <span class="text-red-500">*</span></label>
+                <label for="cancelReason" class="font-medium">{{ t('students.mutations.dialogCancel.reason') }} <span class="text-red-500">*</span></label>
                 <Textarea id="cancelReason" v-model="cancelForm.reason" rows="3" autoResize maxlength="255" class="w-full" />
                 <small class="text-surface-500">{{ cancelForm.reason.length }}/255 characters (minimum 10).</small>
                 <small v-if="fieldError(cancelFieldErrors, 'reason')" class="text-red-500">{{ fieldError(cancelFieldErrors, 'reason') }}</small>
@@ -1157,15 +1167,15 @@ onMounted(() => loadOptions());
         </div>
         <template #footer>
             <div class="flex justify-end gap-2">
-                <Button label="Keep Mutation" icon="pi pi-times" text severity="secondary" :disabled="cancelSaving" @click="cancelDialog = false" />
-                <Button label="Cancel Mutation" icon="pi pi-check" severity="danger" :loading="cancelSaving" @click="submitCancel" />
+                <Button :label="t('students.mutations.dialogCancel.btnKeep')" icon="pi pi-times" text severity="secondary" :disabled="cancelSaving" @click="cancelDialog = false" />
+                <Button :label="t('students.mutations.dialogCancel.btnConfirm')" icon="pi pi-check" severity="danger" :loading="cancelSaving" @click="submitCancel" />
             </div>
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="correctDialog" modal :draggable="false" :style="{ width: 'min(94vw, 44rem)' }" header="Correct Locked Mutation">
+    <Dialog v-model:visible="correctDialog" modal :draggable="false" :style="{ width: 'min(94vw, 44rem)' }" :header="t('students.mutations.dialogCorrection.title')">
         <div class="flex flex-col gap-4">
-            <Message severity="warn" :closable="false"> This correction is recorded permanently with before/after values, the actor, and the reason. Nothing is deleted. </Message>
+            <Message severity="warn" :closable="false"> {{ t('students.mutations.dialogCorrection.notice') }} </Message>
 
             <div v-if="correctTarget" class="text-sm border border-surface-200 dark:border-surface-700 rounded p-3 flex flex-col gap-1">
                 <div>
@@ -1177,12 +1187,12 @@ onMounted(() => loadOptions());
             </div>
 
             <div class="flex flex-col gap-2">
-                <label for="correctAction" class="font-medium">Correction Action <span class="text-red-500">*</span></label>
+                <label for="correctAction" class="font-medium">{{ t('students.mutations.dialogCorrection.actionLabel') }} <span class="text-red-500">*</span></label>
                 <Select id="correctAction" v-model="correctForm.action" :options="correctionActions" optionLabel="label" optionValue="value" class="w-full" @change="onCorrectActionChange" />
             </div>
 
             <div v-if="isMutationAction" class="flex flex-col gap-2">
-                <label for="correctMutation" class="font-medium">Active Mutation <span class="text-red-500">*</span></label>
+                <label for="correctMutation" class="font-medium">{{ t('students.mutations.dialogCorrection.activeMutation') }} <span class="text-red-500">*</span></label>
                 <Select
                     id="correctMutation"
                     v-model="correctForm.mutationId"
@@ -1191,16 +1201,16 @@ onMounted(() => loadOptions());
                     optionValue="id"
                     filter
                     class="w-full"
-                    placeholder="Select an active mutation"
+                    :placeholder="t('students.mutations.dialogCorrection.selectActiveMutation')"
                     :loading="correctMutationsLoading"
                     @change="onCorrectMutationChange"
                 />
-                <small v-if="correctMutationOptions.length === 0" class="text-orange-500">No active mutation matches this action.</small>
+                <small v-if="correctMutationOptions.length === 0" class="text-orange-500">{{ t('students.mutations.dialogCorrection.noActiveMutation') }}</small>
                 <small v-if="fieldError(correctFieldErrors, 'mutation_id')" class="text-red-500">{{ fieldError(correctFieldErrors, 'mutation_id') }}</small>
             </div>
 
             <div v-if="isMembershipAction" class="flex flex-col gap-2">
-                <label for="correctMembership" class="font-medium">Class Membership <span class="text-red-500">*</span></label>
+                <label for="correctMembership" class="font-medium">{{ t('students.mutations.dialogCorrection.classMembership') }} <span class="text-red-500">*</span></label>
                 <Select
                     id="correctMembership"
                     v-model="correctForm.membershipId"
@@ -1209,23 +1219,23 @@ onMounted(() => loadOptions());
                     optionValue="id"
                     filter
                     class="w-full"
-                    placeholder="Select a class membership"
+                    :placeholder="t('students.mutations.dialogCorrection.selectClassMembership')"
                     :loading="correctMembershipsLoading"
                 >
                     <template #option="{ option }">{{ option.label }}</template>
                 </Select>
-                <small v-if="correctMembershipOptions.length === 0" class="text-orange-500">No class membership matches this action.</small>
+                <small v-if="correctMembershipOptions.length === 0" class="text-orange-500">{{ t('students.mutations.dialogCorrection.noClassMembership') }}</small>
                 <small v-if="fieldError(correctFieldErrors, 'student_rombel_id')" class="text-red-500">{{ fieldError(correctFieldErrors, 'student_rombel_id') }}</small>
             </div>
 
             <div v-if="needsDate" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-2">
-                    <label for="correctDate" class="font-medium">Effective Date <span class="text-red-500">*</span></label>
+                    <label for="correctDate" class="font-medium">{{ t('students.mutations.dialogCorrection.effectiveDate') }} <span class="text-red-500">*</span></label>
                     <DatePicker id="correctDate" v-model="correctForm.effectiveDate" dateFormat="yy-mm-dd" showIcon manualInput fluid />
                     <small v-if="fieldError(correctFieldErrors, 'effective_date')" class="text-red-500">{{ fieldError(correctFieldErrors, 'effective_date') }}</small>
                 </div>
                 <div class="flex flex-col gap-2">
-                    <label for="correctSchool" class="font-medium">School NPSN</label>
+                    <label for="correctSchool" class="font-medium">{{ t('students.mutations.dialogCorrection.schoolNpsn') }}</label>
                     <AutoComplete
                         id="correctSchool"
                         v-model="correctForm.schoolText"
@@ -1233,7 +1243,7 @@ onMounted(() => loadOptions());
                         optionLabel="label"
                         :minLength="2"
                         class="w-full"
-                        placeholder="Search by school name or NPSN"
+                        :placeholder="t('students.mutations.dialogIn.schoolSearchPlaceholder')"
                         @complete="completeCorrectSchool"
                         @item-select="
                             (event) => {
@@ -1247,7 +1257,7 @@ onMounted(() => loadOptions());
             </div>
 
             <div v-if="correctForm.action === 'membership_exit'" class="flex flex-col gap-2">
-                <label for="correctStatus" class="font-medium">Target Status <span class="text-red-500">*</span></label>
+                <label for="correctStatus" class="font-medium">{{ t('students.mutations.dialogCorrection.targetStatus') }} <span class="text-red-500">*</span></label>
                 <Select id="correctStatus" v-model="correctForm.targetStatusId" :options="targetStatusOptions" optionLabel="label" optionValue="value" class="w-full" />
                 <small v-if="fieldError(correctFieldErrors, 'target_status_id')" class="text-red-500">{{ fieldError(correctFieldErrors, 'target_status_id') }}</small>
             </div>
@@ -1262,15 +1272,15 @@ onMounted(() => loadOptions());
             </div>
 
             <div class="flex flex-col gap-2">
-                <label for="correctReason" class="font-medium">Reason <span class="text-red-500">*</span></label>
+                <label for="correctReason" class="font-medium">{{ t('students.mutations.dialogCorrection.reason') }} <span class="text-red-500">*</span></label>
                 <Textarea id="correctReason" v-model="correctForm.reason" rows="3" autoResize maxlength="255" class="w-full" />
                 <small class="text-surface-500">{{ correctForm.reason.length }}/255 characters (minimum 10).</small>
                 <small v-if="fieldError(correctFieldErrors, 'reason')" class="text-red-500">{{ fieldError(correctFieldErrors, 'reason') }}</small>
             </div>
 
             <div class="flex flex-col gap-2">
-                <label for="correctApproval" class="font-medium">Approval Reference</label>
-                <InputText id="correctApproval" v-model="correctForm.approvalReference" maxlength="100" class="w-full" placeholder="Optional, e.g. PRINCIPAL-2027-014" />
+                <label for="correctApproval" class="font-medium">{{ t('students.mutations.dialogCorrection.approvalRef') }}</label>
+                <InputText id="correctApproval" v-model="correctForm.approvalReference" maxlength="100" class="w-full" :placeholder="t('students.mutations.dialogCorrection.approvalRefPlaceholder')" />
                 <small v-if="fieldError(correctFieldErrors, 'approval_reference')" class="text-red-500">{{ fieldError(correctFieldErrors, 'approval_reference') }}</small>
             </div>
 
@@ -1284,8 +1294,8 @@ onMounted(() => loadOptions());
         </div>
         <template #footer>
             <div class="flex justify-end gap-2">
-                <Button label="Cancel" icon="pi pi-times" text severity="secondary" :disabled="correctSaving" @click="correctDialog = false" />
-                <Button label="Record Correction" icon="pi pi-check" severity="warn" :loading="correctSaving" @click="submitCorrect" />
+                <Button :label="t('common.action.cancel')" icon="pi pi-times" text severity="secondary" :disabled="correctSaving" @click="correctDialog = false" />
+                <Button :label="t('students.mutations.dialogCorrection.btnSubmit')" icon="pi pi-check" severity="warn" :loading="correctSaving" @click="submitCorrect" />
             </div>
         </template>
     </Dialog>

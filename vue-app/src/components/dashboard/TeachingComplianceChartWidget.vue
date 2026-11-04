@@ -1,9 +1,11 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import apiLogin from '@/apiLogin';
 import { useLayout } from '@/layout/composables/layout';
 import { authStore } from '@/stores/authStore';
 
+const { t, locale } = useI18n();
 const { isDarkTheme } = useLayout();
 const store = authStore();
 
@@ -26,15 +28,15 @@ const buildChartConfig = () => {
     const textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary') || '#6c757d';
     const surfaceBorder = documentStyle.getPropertyValue('--surface-border') || '#dfe7ef';
 
-    const complianceColor = documentStyle.getPropertyValue('--p-emerald-500') || '#10B981';
-    const recordedColor = documentStyle.getPropertyValue('--p-indigo-400') || '#818CF8';
+    const complianceColor = documentStyle.getPropertyValue('--sk-chart-1') || '#059669';
+    const recordedColor = documentStyle.getPropertyValue('--sk-chart-2') || '#0ea5e9';
 
     chartData.value = {
         labels: rawData.value.labels,
         datasets: [
             {
                 type: 'line',
-                label: 'Kepatuhan (%)',
+                label: t('dashboard.teachingCompliance.complianceLabel'),
                 borderColor: complianceColor,
                 backgroundColor: complianceColor,
                 borderWidth: 2,
@@ -47,7 +49,7 @@ const buildChartConfig = () => {
             },
             {
                 type: 'bar',
-                label: 'Jurnal Terisi',
+                label: t('dashboard.teachingCompliance.recordedLabel'),
                 backgroundColor: recordedColor,
                 borderRadius: 6,
                 barThickness: 28,
@@ -137,13 +139,13 @@ const load = async () => {
         rawData.value = response.data?.data?.teaching_compliance_trend ?? null;
         buildChartConfig();
     } catch {
-        error.value = 'Data tren kepatuhan mengajar tidak dapat dimuat.';
+        error.value = t('dashboard.teachingCompliance.error');
     } finally {
         loading.value = false;
     }
 };
 
-watch(isDarkTheme, () => {
+watch([isDarkTheme, locale], () => {
     buildChartConfig();
 });
 
@@ -158,29 +160,29 @@ defineExpose({ load });
     <div class="card mb-6">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <div class="font-semibold text-xl">Tren Kepatuhan Mengajar</div>
-                <div class="text-xs text-muted-color">Tingkat pengisian jurnal mengajar dalam 4 bulan terakhir</div>
+                <div class="font-semibold text-xl">{{ t('dashboard.teachingCompliance.title') }}</div>
+                <div class="text-xs text-muted-color">{{ t('dashboard.teachingCompliance.subtitle') }}</div>
             </div>
-            <Button v-if="canViewTeaching" icon="pi pi-refresh" size="small" variant="text" severity="secondary" :loading="loading" aria-label="Segarkan grafik mengajar" @click="load" />
+            <Button v-if="canViewTeaching" icon="pi pi-refresh" size="small" variant="text" severity="secondary" :loading="loading" :aria-label="t('dashboard.teachingCompliance.refreshAria')" @click="load" />
         </div>
 
         <div v-if="!canViewTeaching" class="flex flex-col items-center justify-center py-12 text-surface-400 text-center">
             <i class="pi pi-lock text-3xl mb-2" aria-hidden="true"></i>
-            <span class="text-sm">Grafik kepatuhan mengajar memerlukan kemampuan melihat jadwal mengajar (teaching.view).</span>
+            <span class="text-sm">{{ t('dashboard.teachingCompliance.permissionRequired') }}</span>
         </div>
 
         <div v-else-if="loading" class="flex items-center justify-center py-16 text-surface-500 gap-3">
             <i class="pi pi-spin pi-spinner text-lg" aria-hidden="true"></i>
-            <span class="text-sm">Memuat visualisasi kepatuhan...</span>
+            <span class="text-sm">{{ t('dashboard.teachingCompliance.loading') }}</span>
         </div>
 
         <div v-else-if="error" class="flex flex-col items-center justify-center py-12 text-center text-red-500">
             <i class="pi pi-exclamation-triangle text-2xl mb-2" aria-hidden="true"></i>
             <span class="text-sm">{{ error }}</span>
-            <Button label="Coba Lagi" icon="pi pi-refresh" size="small" severity="secondary" variant="outlined" class="mt-3" @click="load" />
+            <Button :label="t('common.action.retry')" icon="pi pi-refresh" size="small" severity="secondary" variant="outlined" class="mt-3" @click="load" />
         </div>
 
-        <div v-else-if="!chartData || !chartData.labels || !chartData.labels.length" class="py-12 text-center text-surface-400 text-sm">Belum ada data rekaman jurnal mengajar pada rentang periode ini.</div>
+        <div v-else-if="!chartData || !chartData.labels || !chartData.labels.length" class="py-12 text-center text-surface-400 text-sm">{{ t('dashboard.teachingCompliance.empty') }}</div>
 
         <div v-else class="h-80">
             <Chart type="bar" :data="chartData" :options="chartOptions" class="h-full w-full" />

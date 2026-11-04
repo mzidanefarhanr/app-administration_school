@@ -1,8 +1,11 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import apiLogin from '@/apiLogin';
-import { buildReviewPayload, issueFieldLabel, issueTypeLabel, reviewReasonOptions } from './dataQualityParams.mjs';
+import { buildReviewPayload, issueFieldLabel, issueStatusLabel, issueTypeLabel, reviewReasonOptions } from './dataQualityParams.mjs';
+
+const { t } = useI18n();
 
 const props = defineProps({
     visible: { type: Boolean, default: false },
@@ -14,11 +17,11 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible', 'reviewed', 'stale']);
 
-const statusOptions = [
-    { value: 'acknowledged', label: 'Acknowledge' },
-    { value: 'ignored', label: 'Ignore' },
-    { value: 'open', label: 'Reopen' }
-];
+const statusOptions = computed(() => [
+    { value: 'acknowledged', label: t('dataQuality.dialog.action.acknowledged') },
+    { value: 'ignored', label: t('dataQuality.dialog.action.ignored') },
+    { value: 'open', label: t('dataQuality.dialog.action.open') }
+]);
 
 const status = ref('acknowledged');
 const reasonCode = ref(null);
@@ -26,8 +29,8 @@ const saving = ref(false);
 const generalMessage = ref('');
 const fieldMessage = ref('');
 
-const reasonOptions = computed(() => reviewReasonOptions(props.issue?.type));
-const recordLabel = computed(() => (props.domain === 'students' ? 'Student' : 'Employee'));
+const reasonOptions = computed(() => reviewReasonOptions(props.issue?.type, t));
+const recordLabel = computed(() => t(`dataQuality.record.${props.domain === 'employees' ? 'employees' : 'students'}`));
 const needsReason = computed(() => status.value === 'ignored');
 
 const reset = () => {
@@ -60,7 +63,7 @@ const submit = async () => {
     if (saving.value || !props.issue) return;
 
     if (needsReason.value && !reasonCode.value) {
-        fieldMessage.value = 'Select a reason before ignoring this issue.';
+        fieldMessage.value = t('dataQuality.dialog.errors.reasonRequired');
         return;
     }
 
@@ -80,14 +83,14 @@ const submit = async () => {
     } catch (error) {
         const httpStatus = error.response?.status;
         if (httpStatus === 409) {
-            emit('stale', firstError(error.response) ?? 'This issue is out of date. Refresh the list.');
+            emit('stale', firstError(error.response) ?? t('dataQuality.dialog.errors.stale'));
             emit('update:visible', false);
         } else if (httpStatus === 422) {
-            fieldMessage.value = firstError(error.response) ?? 'Check the review values and try again.';
+            fieldMessage.value = firstError(error.response) ?? t('dataQuality.dialog.errors.checkValues');
         } else if (httpStatus === 404) {
-            generalMessage.value = firstError(error.response) ?? 'The record no longer exists.';
+            generalMessage.value = firstError(error.response) ?? t('dataQuality.dialog.errors.notFound');
         } else {
-            generalMessage.value = firstError(error.response) ?? 'Failed to save the review. Please try again.';
+            generalMessage.value = firstError(error.response) ?? t('dataQuality.dialog.errors.saveFailed');
         }
     } finally {
         saving.value = false;
@@ -96,50 +99,52 @@ const submit = async () => {
 </script>
 
 <template>
-    <Dialog :visible="visible" modal :header="`Review ${recordLabel} Issue`" :style="{ width: '34rem' }" :breakpoints="{ '768px': '92vw' }" :closable="!saving" @update:visible="emit('update:visible', $event)">
+    <Dialog :visible="visible" modal :header="t('dataQuality.dialog.title', { record: recordLabel })" :style="{ width: '34rem' }" :breakpoints="{ '768px': '92vw' }" :closable="!saving" @update:visible="emit('update:visible', $event)">
         <div v-if="issue" class="flex flex-col gap-4 text-sm">
             <div class="flex flex-wrap items-center gap-2">
-                <Tag :value="issueTypeLabel(issue.type)" severity="warn" />
-                <span class="font-medium">{{ issueFieldLabel(issue.field) }}</span>
+                <Tag :value="issueTypeLabel(issue.type, t)" severity="warn" />
+                <span class="font-medium">{{ issueFieldLabel(issue.field, t) }}</span>
             </div>
 
             <p class="text-surface-600 dark:text-surface-300">{{ issue.message }}</p>
 
             <div class="rounded-border bg-surface-50 dark:bg-surface-800 p-3 flex flex-col gap-1">
                 <div>
-                    <span class="text-surface-500">Record:</span> <span class="font-medium">{{ issue.subject?.name ?? '-' }}</span>
+                    <span class="text-surface-500">{{ t('dataQuality.dialog.record') }}</span> <span class="font-medium">{{ issue.subject?.name ?? '-' }}</span>
                 </div>
                 <div v-if="domain === 'students' && issue.subject?.nis"><span class="text-surface-500">NIS:</span> {{ issue.subject.nis }}</div>
                 <div v-if="domain === 'employees' && issue.subject?.nuptk"><span class="text-surface-500">NUPTK:</span> {{ issue.subject.nuptk }}</div>
-                <div v-if="issue.related"><span class="text-surface-500">Related record:</span> {{ issue.related.name ?? '-' }}</div>
+                <div v-if="issue.related">
+                    <span class="text-surface-500">{{ t('dataQuality.dialog.relatedRecord') }}</span> {{ issue.related.name ?? '-' }}
+                </div>
                 <div>
-                    <span class="text-surface-500">Review status:</span>
-                    {{ issue.review?.status ?? 'open' }}
-                    <span v-if="issue.review?.version">(version {{ issue.review.version }})</span>
+                    <span class="text-surface-500">{{ t('dataQuality.dialog.reviewStatus') }}</span>
+                    {{ issueStatusLabel(issue.review?.status ?? 'open', t) }}
+                    <span v-if="issue.review?.version">({{ t('dataQuality.dialog.version', { version: issue.review.version }) }})</span>
                 </div>
             </div>
 
             <Message v-if="generalMessage" severity="error" :closable="false">{{ generalMessage }}</Message>
 
             <div>
-                <label class="block mb-2 font-medium">Review action</label>
+                <label class="block mb-2 font-medium">{{ t('dataQuality.dialog.reviewAction') }}</label>
                 <SelectButton v-model="status" :options="statusOptions" optionLabel="label" optionValue="value" :allowEmpty="false" />
             </div>
 
             <div v-if="needsReason">
-                <label class="block mb-2 font-medium">Reason *</label>
-                <Select v-model="reasonCode" :options="reasonOptions" optionLabel="label" optionValue="value" placeholder="Select a reason" class="w-full" />
+                <label class="block mb-2 font-medium">{{ t('dataQuality.dialog.reason') }}</label>
+                <Select v-model="reasonCode" :options="reasonOptions" optionLabel="label" optionValue="value" :placeholder="t('dataQuality.dialog.reasonPlaceholder')" class="w-full" />
                 <small v-if="fieldMessage" class="text-red-500">{{ fieldMessage }}</small>
-                <small v-else class="text-surface-500"> A reason is required when ignoring an issue. It is stored with the review audit trail. </small>
+                <small v-else class="text-surface-500">{{ t('dataQuality.dialog.reasonHelp') }}</small>
             </div>
             <small v-else-if="fieldMessage" class="text-red-500">{{ fieldMessage }}</small>
 
-            <p class="text-xs text-surface-500">Review status records workflow only. It does not change {{ recordLabel.toLowerCase() }} data, completeness percentages, or duplicate candidates. Correct the record through the existing form.</p>
+            <p class="text-xs text-surface-500">{{ t('dataQuality.dialog.note', { record: recordLabel.toLowerCase() }) }}</p>
         </div>
 
         <template #footer>
-            <Button label="Cancel" severity="secondary" variant="outlined" :disabled="saving" @click="emit('update:visible', false)" />
-            <Button label="Save Review" icon="pi pi-check" :loading="saving" @click="submit" />
+            <Button :label="t('common.action.cancel')" severity="secondary" variant="outlined" :disabled="saving" @click="emit('update:visible', false)" />
+            <Button :label="t('dataQuality.dialog.save')" icon="pi pi-check" :loading="saving" @click="submit" />
         </template>
     </Dialog>
 </template>

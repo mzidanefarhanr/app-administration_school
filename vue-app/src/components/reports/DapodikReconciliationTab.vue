@@ -1,9 +1,11 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useToast } from 'primevue/usetoast';
 import apiLogin from '@/apiLogin';
 import { authStore } from '@/stores/authStore';
 
+const { t } = useI18n();
 const toast = useToast();
 const store = authStore();
 
@@ -47,8 +49,8 @@ const runReconciliation = async () => {
     if (!uploadedFile.value) {
         toast.add({
             severity: 'warn',
-            summary: 'Berkas Belum Dipilih',
-            detail: 'Silakan pilih berkas CSV ekspor Dapodik terlebih dahulu.',
+            summary: t('reports.dapodik.toast.fileNotSelectedTitle'),
+            detail: t('reports.dapodik.toast.fileNotSelectedDetail'),
             life: 3000
         });
         return;
@@ -70,15 +72,15 @@ const runReconciliation = async () => {
 
         toast.add({
             severity: 'success',
-            summary: 'Rekonsiliasi Selesai',
-            detail: `Berhasil membandingkan ${result.value?.summary?.total_dapodik_rows || 0} baris Dapodik dengan database sekolah.`,
+            summary: t('reports.dapodik.toast.reconcileSuccessTitle'),
+            detail: t('reports.dapodik.toast.reconcileSuccessDetail', { count: result.value?.summary?.total_dapodik_rows || 0 }),
             life: 4000
         });
     } catch (err) {
         const msg = err.response?.data?.message || err.response?.data?.errors?.file?.[0] || 'Gagal memproses rekonsiliasi Dapodik.';
         toast.add({
             severity: 'error',
-            summary: 'Gagal Rekonsiliasi',
+            summary: t('reports.dapodik.toast.reconcileFailedTitle'),
             detail: msg,
             life: 5000
         });
@@ -115,15 +117,15 @@ const exportAuditCsv = async () => {
 
         toast.add({
             severity: 'success',
-            summary: 'Unduh Berhasil',
-            detail: 'Berkas audit rekonsiliasi Dapodik berhasil diunduh.',
+            summary: t('reports.dapodik.toast.downloadSuccessTitle'),
+            detail: t('reports.dapodik.toast.downloadSuccessDetail'),
             life: 3000
         });
-    } catch (err) {
+    } catch {
         toast.add({
             severity: 'error',
-            summary: 'Gagal Unduh',
-            detail: 'Terjadi kesalahan saat mengekspor hasil audit rekonsiliasi.',
+            summary: t('reports.dapodik.toast.downloadFailedTitle'),
+            detail: t('reports.dapodik.toast.downloadFailedDetail'),
             life: 5000
         });
     } finally {
@@ -162,13 +164,13 @@ const filteredItems = computed(() => {
 const getStatusBadge = (status) => {
     switch (status) {
         case 'MATCHED_IDENTICAL':
-            return { severity: 'success', label: 'Cocok Identik' };
+            return { severity: 'success', label: t('reports.dapodik.results.identicalMatch') };
         case 'MATCHED_DIFF':
-            return { severity: 'warn', label: 'Beda Data' };
+            return { severity: 'warn', label: t('reports.dapodik.results.diffData') };
         case 'LOCAL_ONLY':
-            return { severity: 'info', label: 'Hanya Lokal' };
+            return { severity: 'info', label: t('reports.dapodik.results.localOnly') };
         case 'DAPODIK_ONLY':
-            return { severity: 'secondary', label: 'Hanya Dapodik' };
+            return { severity: 'secondary', label: t('reports.dapodik.results.dapodikOnly') };
         default:
             return { severity: 'secondary', label: status };
     }
@@ -186,25 +188,27 @@ onMounted(() => {
             <div class="flex items-center gap-3">
                 <i class="pi pi-lock text-xl"></i>
                 <div>
-                    <h5 class="font-semibold mb-1">Akses Terbatas: Hanya Operator & Administrator</h5>
-                    <p class="text-sm">Anda memiliki hak akses melihat laporan sekolah, namun proses unggah dan rekonsiliasi data dengan eksternal Dapodik memerlukan wewenang pengelola data kesiswaan (<code>students.import</code>).</p>
+                    <h5 class="font-semibold mb-1">{{ t('reports.dapodik.restricted.title') }}</h5>
+                    <p class="text-sm">
+                        {{ t('reports.dapodik.restricted.desc', { ability: 'students.import' }) }}
+                    </p>
                 </div>
             </div>
         </div>
 
         <!-- Zona Unggah & Konfigurasi -->
         <div v-else-if="!result" class="card p-6 rounded-xl border border-surface-200 dark:border-surface-700 mb-0 shadow-none">
-            <h4 class="font-semibold text-lg text-surface-900 dark:text-surface-0 mb-2">Unggah Berkas CSV Ekspor Dapodik</h4>
-            <p class="text-surface-500 text-sm mb-6">Pilih atau seret berkas CSV hasil unduhan aplikasi Dapodik Kemendikbudristek untuk membandingkan status rombel, NIK, dan NISN siswa lokal secara otomatis (DEC-43, DEC-12).</p>
+            <h4 class="font-semibold text-lg text-surface-900 dark:text-surface-0 mb-2">{{ t('reports.dapodik.upload.title') }}</h4>
+            <p class="text-surface-500 text-sm mb-6">{{ t('reports.dapodik.upload.subtitle') }}</p>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
                 <div>
-                    <label class="block text-sm font-medium text-surface-700 dark:text-surface-200 mb-2">Tahun Ajaran Pembanding:</label>
-                    <Select v-model="selectedSchoolYearId" :options="schoolYears" optionLabel="name" optionValue="id" placeholder="Tahun Ajaran Aktif (Default)" class="w-full" />
+                    <label class="block text-sm font-medium text-surface-700 dark:text-surface-200 mb-2">{{ t('reports.dapodik.upload.compareYearLabel') }}</label>
+                    <Select v-model="selectedSchoolYearId" :options="schoolYears" optionLabel="name" optionValue="id" :placeholder="t('reports.dapodik.upload.activeYearDefault')" class="w-full" />
                 </div>
 
                 <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-surface-700 dark:text-surface-200 mb-2">Pilih Berkas CSV / TXT (Maks. 5 MB):</label>
+                    <label class="block text-sm font-medium text-surface-700 dark:text-surface-200 mb-2">{{ t('reports.dapodik.upload.fileLabel') }}</label>
                     <div class="flex flex-col sm:flex-row items-center gap-3">
                         <input
                             type="file"
@@ -212,18 +216,26 @@ onMounted(() => {
                             class="block w-full text-sm text-surface-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 dark:file:bg-surface-700 dark:file:text-surface-100"
                             @change="onFileSelect"
                         />
-                        <Button icon="pi pi-sync" label="Mulai Rekonsiliasi" severity="primary" :loading="analyzing" :disabled="!uploadedFile" class="whitespace-nowrap" @click="runReconciliation" />
+                        <Button
+                            icon="pi pi-sync"
+                            :label="analyzing ? t('reports.dapodik.upload.processingButton') : t('reports.dapodik.upload.startButton')"
+                            severity="primary"
+                            :loading="analyzing"
+                            :disabled="!uploadedFile"
+                            class="whitespace-nowrap"
+                            @click="runReconciliation"
+                        />
                     </div>
                 </div>
             </div>
 
             <div class="mt-6 p-4 rounded-xl bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 text-xs text-surface-600 dark:text-surface-400">
-                <div class="font-semibold mb-1 text-surface-800 dark:text-surface-200 flex items-center gap-2"><i class="pi pi-info-circle"></i> Format Berkas & Mekanisme Pencocokan:</div>
+                <div class="font-semibold mb-1 text-surface-800 dark:text-surface-200 flex items-center gap-2"><i class="pi pi-info-circle"></i> {{ t('reports.dapodik.upload.formatInfoTitle') }}</div>
                 <ul class="list-disc pl-5 space-y-1 mt-1">
-                    <li>Mendukung pemisah koma (<code>,</code>), titik-koma (<code>;</code>), atau tab secara otomatis.</li>
-                    <li>Kolom yang dibaca: <code>nisn</code>, <code>nik</code>, <code>nama</code>, <code>rombel</code> (case-insensitive).</li>
-                    <li>Sistem menggunakan <em>two-pass matching</em>: pertama dicocokkan berdasarkan <strong>NISN</strong>, jika belum cocok dilanjutkan pencocokan berdasarkan <strong>NIK</strong>.</li>
-                    <li>Tidak ada perubahan data otomatis ke database lokal — hasil berupa visualisasi komparasi dan rekomendasi audit.</li>
+                    <li>{{ t('reports.dapodik.upload.delimiterInfo', { comma: ',', semicolon: ';' }) }}</li>
+                    <li>{{ t('reports.dapodik.upload.columnsRead', { columns: 'nisn, nik, nama, rombel' }) }}</li>
+                    <li>{{ t('reports.dapodik.upload.twoPassMatching') }}</li>
+                    <li>{{ t('reports.dapodik.upload.noAutoMutation') }}</li>
                 </ul>
             </div>
         </div>
@@ -236,24 +248,26 @@ onMounted(() => {
                     <i class="pi pi-file-excel text-emerald-600 text-xl"></i>
                     <div>
                         <div class="font-bold text-surface-900 dark:text-surface-0">{{ uploadedFile?.name }}</div>
-                        <div class="text-xs text-surface-500">{{ result.summary.total_dapodik_rows }} baris Dapodik · {{ result.summary.school_year?.name || 'Tahun Aktif' }}</div>
+                        <div class="text-xs text-surface-500">
+                            {{ t('reports.dapodik.results.summarySub', { count: result.summary.total_dapodik_rows, year: result.summary.school_year?.name || t('reports.dapodik.results.activeYear') }) }}
+                        </div>
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <Button icon="pi pi-download" label="Unduh Audit Rekonsiliasi (CSV)" severity="primary" size="small" :loading="exporting" @click="exportAuditCsv" />
-                    <Button icon="pi pi-arrow-left" label="Unggah Berkas Baru" severity="secondary" outlined size="small" @click="clearFile" />
+                    <Button icon="pi pi-download" :label="t('reports.dapodik.results.downloadAudit')" severity="primary" size="small" :loading="exporting" @click="exportAuditCsv" />
+                    <Button icon="pi pi-arrow-left" :label="t('reports.dapodik.results.uploadNew')" severity="secondary" outlined size="small" @click="clearFile" />
                 </div>
             </div>
 
             <!-- KPI Cards Hasil Komparasi -->
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                 <div class="card p-3 rounded-xl border border-surface-200 dark:border-surface-700 mb-0 shadow-none text-center">
-                    <div class="text-xs text-surface-500 font-medium">Data Dapodik</div>
+                    <div class="text-xs text-surface-500 font-medium">{{ t('reports.dapodik.results.dapodikData') }}</div>
                     <div class="text-xl font-bold mt-1 text-surface-900 dark:text-surface-0">{{ result.summary.total_dapodik_rows }}</div>
                 </div>
 
                 <div class="card p-3 rounded-xl border border-surface-200 dark:border-surface-700 mb-0 shadow-none text-center">
-                    <div class="text-xs text-surface-500 font-medium">Siswa Lokal</div>
+                    <div class="text-xs text-surface-500 font-medium">{{ t('reports.dapodik.results.localStudents') }}</div>
                     <div class="text-xl font-bold mt-1 text-surface-900 dark:text-surface-0">{{ result.summary.total_local_students }}</div>
                 </div>
 
@@ -262,7 +276,7 @@ onMounted(() => {
                     :class="{ 'ring-2 ring-emerald-500 font-bold': activeFilter === 'MATCHED_IDENTICAL' }"
                     @click="activeFilter = activeFilter === 'MATCHED_IDENTICAL' ? 'ALL' : 'MATCHED_IDENTICAL'"
                 >
-                    <div class="text-xs text-emerald-700 dark:text-emerald-300 font-medium">Cocok Identik</div>
+                    <div class="text-xs text-emerald-700 dark:text-emerald-300 font-medium">{{ t('reports.dapodik.results.identicalMatch') }}</div>
                     <div class="text-xl font-bold mt-1 text-emerald-700 dark:text-emerald-300">{{ result.summary.total_identical }}</div>
                 </div>
 
@@ -271,7 +285,7 @@ onMounted(() => {
                     :class="{ 'ring-2 ring-amber-500 font-bold': activeFilter === 'MATCHED_DIFF' }"
                     @click="activeFilter = activeFilter === 'MATCHED_DIFF' ? 'ALL' : 'MATCHED_DIFF'"
                 >
-                    <div class="text-xs text-amber-700 dark:text-amber-300 font-medium">Beda Data</div>
+                    <div class="text-xs text-amber-700 dark:text-amber-300 font-medium">{{ t('reports.dapodik.results.diffData') }}</div>
                     <div class="text-xl font-bold mt-1 text-amber-700 dark:text-amber-300">{{ result.summary.total_diff }}</div>
                 </div>
 
@@ -280,7 +294,7 @@ onMounted(() => {
                     :class="{ 'ring-2 ring-blue-500 font-bold': activeFilter === 'LOCAL_ONLY' }"
                     @click="activeFilter = activeFilter === 'LOCAL_ONLY' ? 'ALL' : 'LOCAL_ONLY'"
                 >
-                    <div class="text-xs text-blue-700 dark:text-blue-300 font-medium">Hanya di Lokal</div>
+                    <div class="text-xs text-blue-700 dark:text-blue-300 font-medium">{{ t('reports.dapodik.results.localOnly') }}</div>
                     <div class="text-xl font-bold mt-1 text-blue-700 dark:text-blue-300">{{ result.summary.total_local_only }}</div>
                 </div>
 
@@ -289,7 +303,7 @@ onMounted(() => {
                     :class="{ 'ring-2 ring-purple-500 font-bold': activeFilter === 'DAPODIK_ONLY' }"
                     @click="activeFilter = activeFilter === 'DAPODIK_ONLY' ? 'ALL' : 'DAPODIK_ONLY'"
                 >
-                    <div class="text-xs text-purple-700 dark:text-purple-300 font-medium">Hanya di Dapodik</div>
+                    <div class="text-xs text-purple-700 dark:text-purple-300 font-medium">{{ t('reports.dapodik.results.dapodikOnly') }}</div>
                     <div class="text-xl font-bold mt-1 text-purple-700 dark:text-purple-300">{{ result.summary.total_dapodik_only }}</div>
                 </div>
             </div>
@@ -297,21 +311,33 @@ onMounted(() => {
             <!-- Filter & Pencarian Bar -->
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div class="flex flex-wrap gap-2">
-                    <Button size="small" :severity="activeFilter === 'ALL' ? 'primary' : 'secondary'" :outlined="activeFilter !== 'ALL'" label="Semua Status" @click="activeFilter = 'ALL'" />
-                    <Button size="small" :severity="activeFilter === 'MATCHED_DIFF' ? 'warn' : 'secondary'" :outlined="activeFilter !== 'MATCHED_DIFF'" :label="`Beda Data (${result.summary.total_diff})`" @click="activeFilter = 'MATCHED_DIFF'" />
-                    <Button size="small" :severity="activeFilter === 'LOCAL_ONLY' ? 'info' : 'secondary'" :outlined="activeFilter !== 'LOCAL_ONLY'" :label="`Hanya Lokal (${result.summary.total_local_only})`" @click="activeFilter = 'LOCAL_ONLY'" />
+                    <Button size="small" :severity="activeFilter === 'ALL' ? 'primary' : 'secondary'" :outlined="activeFilter !== 'ALL'" :label="t('reports.dapodik.results.filterAll')" @click="activeFilter = 'ALL'" />
+                    <Button
+                        size="small"
+                        :severity="activeFilter === 'MATCHED_DIFF' ? 'warn' : 'secondary'"
+                        :outlined="activeFilter !== 'MATCHED_DIFF'"
+                        :label="t('reports.dapodik.results.filterDiff', { count: result.summary.total_diff })"
+                        @click="activeFilter = 'MATCHED_DIFF'"
+                    />
+                    <Button
+                        size="small"
+                        :severity="activeFilter === 'LOCAL_ONLY' ? 'info' : 'secondary'"
+                        :outlined="activeFilter !== 'LOCAL_ONLY'"
+                        :label="t('reports.dapodik.results.filterLocalOnly', { count: result.summary.total_local_only })"
+                        @click="activeFilter = 'LOCAL_ONLY'"
+                    />
                     <Button
                         size="small"
                         :severity="activeFilter === 'DAPODIK_ONLY' ? 'secondary' : 'secondary'"
                         :outlined="activeFilter !== 'DAPODIK_ONLY'"
-                        :label="`Hanya Dapodik (${result.summary.total_dapodik_only})`"
+                        :label="t('reports.dapodik.results.filterDapodikOnly', { count: result.summary.total_dapodik_only })"
                         @click="activeFilter = 'DAPODIK_ONLY'"
                     />
                     <Button
                         size="small"
                         :severity="activeFilter === 'MATCHED_IDENTICAL' ? 'success' : 'secondary'"
                         :outlined="activeFilter !== 'MATCHED_IDENTICAL'"
-                        :label="`Cocok Identik (${result.summary.total_identical})`"
+                        :label="t('reports.dapodik.results.filterIdentical', { count: result.summary.total_identical })"
                         @click="activeFilter = 'MATCHED_IDENTICAL'"
                     />
                 </div>
@@ -319,7 +345,7 @@ onMounted(() => {
                 <div class="w-full sm:w-72">
                     <IconField iconPosition="left">
                         <InputIcon class="pi pi-search" />
-                        <InputText v-model="searchQuery" placeholder="Cari nama, NISN, NIK, rombel..." class="w-full text-sm" />
+                        <InputText v-model="searchQuery" :placeholder="t('reports.dapodik.table.searchPlaceholder')" class="w-full text-sm" />
                     </IconField>
                 </div>
             </div>
@@ -327,21 +353,21 @@ onMounted(() => {
             <!-- Tabel Komparasi Rekonsiliasi -->
             <div class="card p-5 rounded-xl border border-surface-200 dark:border-surface-700 mb-0 shadow-none">
                 <DataTable :value="filteredItems" stripedRows responsiveLayout="scroll" paginator :rows="10" :rowsPerPageOptions="[10, 25, 50]" class="p-datatable-sm">
-                    <Column header="Status" style="width: 130px">
+                    <Column :header="t('reports.dapodik.table.statusCol')" style="width: 130px">
                         <template #body="{ data }">
                             <Tag :severity="getStatusBadge(data.status).severity" :value="getStatusBadge(data.status).label" />
                         </template>
                     </Column>
 
-                    <Column header="Nama Siswa">
+                    <Column :header="t('reports.dapodik.table.studentNameCol')">
                         <template #body="{ data }">
                             <div class="flex flex-col text-xs">
                                 <div>
-                                    <span class="text-surface-400 font-semibold">Lokal:</span>
+                                    <span class="text-surface-400 font-semibold">{{ t('reports.dapodik.table.localPrefix') }}</span>
                                     <span class="ml-1 font-medium text-surface-900 dark:text-surface-100">{{ data.local_name }}</span>
                                 </div>
                                 <div class="mt-0.5">
-                                    <span class="text-surface-400 font-semibold">Dapodik:</span>
+                                    <span class="text-surface-400 font-semibold">{{ t('reports.dapodik.table.dapodikPrefix') }}</span>
                                     <span class="ml-1" :class="{ 'bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200 px-1 rounded font-medium': data.differences.some((d) => d.field === 'name') }">
                                         {{ data.dapodik_name }}
                                     </span>
@@ -350,30 +376,30 @@ onMounted(() => {
                         </template>
                     </Column>
 
-                    <Column header="NISN & NIK">
+                    <Column :header="t('reports.dapodik.table.nisnNikCol')">
                         <template #body="{ data }">
                             <div class="flex flex-col text-xs space-y-0.5">
                                 <div>
-                                    <span class="text-surface-400 font-mono">NISN:</span>
+                                    <span class="text-surface-400 font-mono">{{ t('reports.dapodik.table.nisnPrefix') }}</span>
                                     <span class="ml-1 font-mono">{{ data.local_nisn !== '-' ? data.local_nisn : data.dapodik_nisn }}</span>
                                 </div>
                                 <div>
-                                    <span class="text-surface-400 font-mono">NIK:</span>
+                                    <span class="text-surface-400 font-mono">{{ t('reports.dapodik.table.nikPrefix') }}</span>
                                     <span class="ml-1 font-mono">{{ data.local_nik !== '-' ? data.local_nik : data.dapodik_nik }}</span>
                                 </div>
                             </div>
                         </template>
                     </Column>
 
-                    <Column header="Rombongan Belajar">
+                    <Column :header="t('reports.dapodik.table.rombelCol')">
                         <template #body="{ data }">
                             <div class="flex flex-col text-xs">
                                 <div>
-                                    <span class="text-surface-400">Lokal:</span>
+                                    <span class="text-surface-400">{{ t('reports.dapodik.table.localPrefix') }}</span>
                                     <span class="ml-1 font-medium">{{ data.local_rombel }}</span>
                                 </div>
                                 <div class="mt-0.5">
-                                    <span class="text-surface-400">Dapodik:</span>
+                                    <span class="text-surface-400">{{ t('reports.dapodik.table.dapodikPrefix') }}</span>
                                     <span class="ml-1" :class="{ 'bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200 px-1 rounded font-medium': data.differences.some((d) => d.field === 'rombel') }">
                                         {{ data.dapodik_rombel }}
                                     </span>
@@ -382,7 +408,7 @@ onMounted(() => {
                         </template>
                     </Column>
 
-                    <Column header="Rincian Diskrepansi">
+                    <Column :header="t('reports.dapodik.table.discrepancyCol')">
                         <template #body="{ data }">
                             <div v-if="data.differences && data.differences.length" class="flex flex-wrap gap-1">
                                 <span
@@ -393,7 +419,7 @@ onMounted(() => {
                                     {{ diff.label }}: {{ diff.local }} &rarr; {{ diff.dapodik }}
                                 </span>
                             </div>
-                            <span v-else class="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Sesuai Penuh</span>
+                            <span v-else class="text-xs text-emerald-600 dark:text-emerald-400 font-medium">{{ t('reports.dapodik.table.fullyMatched') }}</span>
                         </template>
                     </Column>
                 </DataTable>

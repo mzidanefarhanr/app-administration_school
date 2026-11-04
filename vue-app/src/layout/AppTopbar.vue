@@ -3,6 +3,7 @@ import { useLayout } from '@/layout/composables/layout';
 import AppUsers from './AppUsers.vue';
 import AppLogoDefault from '@/layout/AppLogoDefault.vue';
 import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const buttonHighlight_1 = ref(false);
 const inputClassButton_1 = ref('');
@@ -12,6 +13,7 @@ const buttonHighlight_3 = ref(false);
 const inputClassButton_3 = ref('');
 
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
+const { t } = useI18n();
 
 //function togglebuttonHighlight_1
 function togglebuttonHighlight_1() {
@@ -80,8 +82,6 @@ onMounted(() => {
             </router-link> -->
             <router-link to="/" class="layout-topbar-logo">
                 <AppLogoDefault />
-
-                <span>Administration Apps</span>
             </router-link>
         </div>
 
@@ -113,11 +113,11 @@ onMounted(() => {
                 <div class="layout-topbar-menu-content">
                     <button type="button" @click="togglebuttonHighlight_1" :class="inputClassButton_1">
                         <i class="pi pi-bell"></i>
-                        <span>Notification</span>
+                        <span>{{ t('layout.topbar.notifications') }}</span>
                     </button>
                     <button type="button" @click="togglebuttonHighlight_2" :class="inputClassButton_2">
                         <i class="pi pi-envelope"></i>
-                        <span>Messages</span>
+                        <span>{{ t('layout.topbar.messages') }}</span>
                     </button>
                     <div class="relative">
                         <button
@@ -127,7 +127,7 @@ onMounted(() => {
                             :class="inputClassButton_3"
                         >
                             <i class="pi pi-user"></i>
-                            <span>Profile</span>
+                            <span>{{ t('layout.topbar.profile') }}</span>
                         </button>
                         <AppUsers />
                     </div>

@@ -1,0 +1,297 @@
+{
+    "entity": {
+        "teacher": "Teacher",
+        "employee": "Employee",
+        "teachers": "Teachers",
+        "employees": "Employees"
+    },
+    "directory": {
+        "titleTeachers": "Teachers",
+        "titleEmployees": "Employees",
+        "subtitleArchived": "Archived records (managers only)",
+        "subtitleTeachers": "Teachers only",
+        "subtitleStaff": "Non-teaching staff only",
+        "searchPlaceholder": "Search name or NUPTK",
+        "loading": "Loading employees. Please wait.",
+        "pageReport": "Showing {first} to {last} of {totalRecords} records",
+        "confirmRestore": "Restore {name}?",
+        "filters": {
+            "status": "Employee Status",
+            "employment": "Employment",
+            "subject": "Subject"
+        },
+        "actions": {
+            "exportCsv": "Export CSV",
+            "importCsv": "Import CSV",
+            "newTeacher": "New Teacher",
+            "newEmployee": "New Employee",
+            "activeRecords": "Active Records",
+            "archived": "Archived",
+            "clear": "Clear"
+        },
+        "columns": {
+            "no": "No",
+            "name": "Name",
+            "nuptk": "NUPTK",
+            "status": "Status",
+            "employment": "Employment",
+            "subject": "Subject",
+            "tmt": "Employment Start Date (TMT)",
+            "account": "Account",
+            "action": "Action"
+        },
+        "account": {
+            "linked": "Linked",
+            "notLinked": "Not linked"
+        },
+        "tooltips": {
+            "view": "View Detail",
+            "linkAccount": "Link Account",
+            "unlinkAccount": "Unlink Account",
+            "archive": "Archive",
+            "restore": "Restore"
+        },
+        "empty": {
+            "archived": "No archived records.",
+            "filtered": "No employees match the current filters."
+        },
+        "toast": {
+            "success": "Success",
+            "notice": "Notice",
+            "conflictTitle": "Conflict",
+            "saved": "{entity} saved.",
+            "archived": "{entity} archived.",
+            "restored": "{entity} restored.",
+            "accountUpdated": "Account link updated.",
+            "conflictVersion": " (version {version})",
+            "conflict": "The record was changed by another user{version}. The latest data has been reloaded.",
+            "imported": "{count} {entity}(s) imported.",
+            "exported": "Export downloaded with {count} column(s)."
+        },
+        "errors": {
+            "loadList": "Failed to load employees. Please try again.",
+            "loadDetail": "Failed to load employee detail.",
+            "restore": "Failed to restore the employee.",
+            "noReference": "{title} reference data is not available. Ask an administrator to seed the reference data."
+        }
+    },
+    "form": {
+        "titleEdit": "Edit {entity}",
+        "titleNew": "New {entity}",
+        "saveChanges": "Save Changes",
+        "create": "Create {entity}",
+        "reloadLatest": "Reload Latest",
+        "confirmDiscard": "Discard unsaved changes?",
+        "sections": {
+            "identity": "Identity",
+            "employment": "Employment",
+            "contact": "Contact & Address",
+            "family": "Family",
+            "education": "Education"
+        },
+        "fields": {
+            "name": "Name *",
+            "nik": "NIK (16 digits)",
+            "nuptk": "NUPTK",
+            "gender": "Gender *",
+            "religion": "Religion *",
+            "placeOfBirth": "Place of Birth",
+            "dateOfBirth": "Date of Birth",
+            "maritalStatus": "Marital Status *",
+            "employeeType": "Employee Type",
+            "employeeStatus": "Employee Status *",
+            "employment": "Employment *",
+            "subject": "Subject *",
+            "tmt": "Employment Start Date (TMT) *",
+            "exitDate": "Exit Date",
+            "appointmentCertificate": "Appointment Certificate",
+            "teachingHoursCertificate": "Teaching Hours Certificate",
+            "dapodikChecked": "Dapodik Checked",
+            "governmentCertificate": "Government Certificate",
+            "address": "Address",
+            "rt": "RT",
+            "rw": "RW",
+            "zip": "ZIP",
+            "district": "District *",
+            "whatsapp": "WhatsApp",
+            "email": "Email",
+            "familyCard": "Family Card Number",
+            "npwp": "Tax Identification Number (NPWP)",
+            "mothersName": "Biological Mother's Name",
+            "partnersName": "Partner's Name"
+        },
+        "education": {
+            "elementary": "Elementary School",
+            "juniorHigh": "Junior High School",
+            "seniorHigh": "Senior High School",
+            "bachelor": "Bachelor Degree",
+            "master": "Master Degree",
+            "schoolName": "School Name",
+            "entryDate": "Entry Date",
+            "graduationDate": "Graduation Date",
+            "nisn": "NISN",
+            "passingGrade": "Passing Grade",
+            "campus": "Campus",
+            "major": "Major",
+            "faculty": "Faculty",
+            "nim": "NIM"
+        },
+        "errors": {
+            "conflict": "This record was updated by another user.",
+            "review": "Please review the highlighted fields.",
+            "save": "Failed to save the employee. Please try again.",
+            "reload": "Failed to reload the latest record."
+        }
+    },
+    "detail": {
+        "title": "{entity} Detail",
+        "status": {
+            "archived": "Archived",
+            "active": "Active"
+        },
+        "sections": {
+            "employment": "Employment",
+            "account": "Account",
+            "personal": "Personal Data",
+            "education": "Education"
+        },
+        "fields": {
+            "type": "Type",
+            "status": "Status",
+            "employment": "Employment",
+            "subject": "Subject",
+            "gender": "Gender",
+            "nuptk": "NUPTK",
+            "tmt": "Employment Start Date (TMT)",
+            "exitDate": "Exit Date",
+            "version": "Record Version",
+            "archivedAt": "Archived At",
+            "nik": "NIK",
+            "npwp": "Tax Identification Number (NPWP)",
+            "familyCard": "Family Card",
+            "religion": "Religion",
+            "district": "District",
+            "maritalStatus": "Marital Status",
+            "placeOfBirth": "Place of Birth",
+            "dateOfBirth": "Date of Birth",
+            "email": "Email",
+            "whatsapp": "WhatsApp",
+            "address": "Address",
+            "mothersName": "Mother's Name",
+            "partnersName": "Partner's Name",
+            "bachelor": "Bachelor",
+            "bachelorMajor": "Bachelor Major",
+            "master": "Master",
+            "masterMajor": "Master Major"
+        },
+        "account": {
+            "notLinked": "Not linked",
+            "numbered": "Account #{id}"
+        },
+        "actions": {
+            "unlink": "Unlink Account",
+            "link": "Link Account",
+            "archive": "Archive",
+            "restore": "Restore"
+        }
+    },
+    "archive": {
+        "title": "Archive {entity}",
+        "notice": "Archiving keeps the record, its history, and its NIK. This record will be hidden from the active directory and can be restored later.",
+        "reason": "Archive Reason *",
+        "submit": "Archive",
+        "errors": {
+            "reasonRequired": "An administrative archiving reason is required.",
+            "archive": "Failed to archive the employee. Please try again."
+        }
+    },
+    "accountLink": {
+        "titleLink": "Link Account",
+        "titleUnlink": "Unlink Account",
+        "unlinkNotice": "Unlinking keeps the account and its roles unchanged. The staff profile will no longer resolve to this account, and the legacy NIK fallback stays disabled.",
+        "searchPlaceholder": "Search name, username, or email",
+        "noCandidates": "No active, unlinked accounts match.",
+        "submitLink": "Link",
+        "submitUnlink": "Unlink",
+        "errors": {
+            "selectAccount": "Select an account to link.",
+            "loadCandidates": "Failed to load account candidates.",
+            "update": "Failed to update the account link."
+        }
+    },
+    "export": {
+        "title": "Export Columns",
+        "loading": "Loading export columns. Please wait.",
+        "summary": "Default set: {defaults} operational columns. Selected: {selected}.",
+        "defaults": "Defaults",
+        "selectAll": "Select All",
+        "clear": "Clear",
+        "operational": "Operational columns",
+        "sensitive": "Sensitive personal data",
+        "sensitiveNotice": "These columns contain personal identifiers and are only available to users who can manage employees. Handle the file accordingly.",
+        "sensitiveHidden": "Personal data columns are hidden for your access level.",
+        "selectAtLeastOne": "Select at least one column to export.",
+        "download": "Download CSV",
+        "errors": {
+            "loadOptions": "Failed to load the export options.",
+            "export": "Failed to export employees."
+        }
+    },
+    "import": {
+        "title": "Import Employees",
+        "modeLabel": "Mode",
+        "modes": {
+            "insert": "Insert new employees",
+            "update": "Update existing employees"
+        },
+        "modeNotice": "Update mode matches employees by NIK only. NIK cannot be changed and blank cells leave the stored values unchanged.",
+        "fileLabel": "CSV file",
+        "fileNotice": "UTF-8 CSV, up to 5 MB and 2,000 rows. Regency and District must be provided together. Use the English template headers only.",
+        "downloadTemplate": "Download Template",
+        "status": "Status:",
+        "statuses": {
+            "committed": "Committed",
+            "ready": "Ready to commit",
+            "invalid": "Needs fixes"
+        },
+        "total": "Total:",
+        "valid": "Valid:",
+        "invalid": "Invalid:",
+        "done": "{count} employee(s) imported successfully.",
+        "preview": "Preview (first {count} valid rows)",
+        "previewColumns": {
+            "row": "Row",
+            "action": "Action",
+            "name": "Name",
+            "nik": "NIK",
+            "nuptk": "NUPTK",
+            "employeeType": "Employee Type"
+        },
+        "actions": {
+            "update": "Update",
+            "insert": "Insert"
+        },
+        "errorsTitle": "Validation errors ({count})",
+        "errorColumns": {
+            "row": "Row",
+            "field": "Field",
+            "message": "Message"
+        },
+        "downloadErrorReport": "Download Error Report",
+        "nothingWritten": "Nothing is written while any row has an error. Fix the file and upload it again.",
+        "importAnother": "Import Another File",
+        "uploadPreview": "Upload and Preview",
+        "commit": "Commit Import",
+        "errors": {
+            "chooseFile": "Choose a CSV file to import.",
+            "fileFormat": "The file must be a CSV (UTF-8). Other formats are not supported yet.",
+            "fileEmpty": "The file is empty.",
+            "fileTooLarge": "The file is larger than {size} MB.",
+            "noPreview": "The server did not return an import preview.",
+            "upload": "Failed to upload the file. Please try again.",
+            "commit": "The import could not be committed. Upload the file again.",
+            "template": "Failed to download the template.",
+            "errorReport": "Failed to download the error report."
+        }
+    }
+}

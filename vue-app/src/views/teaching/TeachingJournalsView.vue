@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
@@ -10,6 +11,7 @@ import { useToast } from 'primevue/usetoast';
 import apiLogin from '@/apiLogin';
 import { authStore } from '@/stores/authStore';
 
+const { t } = useI18n();
 const store = authStore();
 const toast = useToast();
 
@@ -152,30 +154,30 @@ const journalForm = reactive({
     expected_version: 1
 });
 
-const statusFilterOptions = [
-    { value: 'all', label: 'All Slots' },
-    { value: 'effective', label: 'Effective Sessions Only' },
-    { value: 'missing', label: 'Missing Journals Only' },
-    { value: 'recorded', label: 'Recorded Journals Only' },
-    { value: 'excluded', label: 'Excluded (Holiday / Cancelled / Rescheduled Out)' }
-];
+const statusFilterOptions = computed(() => [
+    { value: 'all', label: t('teaching.journals.filters.allSlots') },
+    { value: 'effective', label: t('teaching.journals.filters.effectiveOnly') },
+    { value: 'missing', label: t('teaching.journals.filters.missingOnly') },
+    { value: 'recorded', label: t('teaching.journals.filters.recordedOnly') },
+    { value: 'excluded', label: t('teaching.journals.filters.excludedOnly') }
+]);
 
 const scopeOptions = computed(() => {
-    const items = [{ value: 'all', label: 'All Teachers' }];
+    const items = [{ value: 'all', label: t('teaching.journals.filters.allTeachers') }];
     if (selfEmployee.value) {
-        items.unshift({ value: 'mine', label: `My Sessions (${selfEmployee.value.name})` });
+        items.unshift({ value: 'mine', label: t('teaching.journals.filters.mySessionsWithName', { name: selfEmployee.value.name }) });
     } else if (!canManage.value) {
-        items.unshift({ value: 'mine', label: 'My Sessions' });
+        items.unshift({ value: 'mine', label: t('teaching.journals.filters.mySessions') });
     }
     return items;
 });
 
-const perPageOptions = [
-    { value: 10, label: '10 / page' },
-    { value: 20, label: '20 / page' },
-    { value: 50, label: '50 / page' },
-    { value: 100, label: '100 / page' }
-];
+const perPageOptions = computed(() => [
+    { value: 10, label: t('teaching.journals.pagination.perPage', { count: 10 }) },
+    { value: 20, label: t('teaching.journals.pagination.perPage', { count: 20 }) },
+    { value: 50, label: t('teaching.journals.pagination.perPage', { count: 50 }) },
+    { value: 100, label: t('teaching.journals.pagination.perPage', { count: 100 }) }
+]);
 
 const dialogNeedsCorrectionReason = computed(() => {
     if (!canManage.value || journalDialogMode.value === 'view') {
@@ -207,7 +209,7 @@ function extractErrors(error, fallbackMessage) {
     const data = response.data || {};
     if (response.status === 409) {
         return {
-            message: data.message || 'Conflict: This teaching journal was modified by another user.',
+            message: data.message || t('teaching.journals.dialog.conflictMsg'),
             fieldErrors: {},
             conflict: true,
             latest: data.latest || null
@@ -516,12 +518,7 @@ async function openJournalById(journalId, mode = 'view', sessionFallback = null)
         journalDialogVisible.value = true;
     } catch (err) {
         const parsed = extractErrors(err, 'Failed to load teaching journal details.');
-        toast.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: parsed.message,
-            life: 4000
-        });
+        toast.add({ severity: 'error', summary: t('teaching.journals.toast.errorTitle'), detail: parsed.message, life: 4000 });
     }
 }
 
@@ -549,12 +546,7 @@ function reloadFromConflict() {
     applyJournalDetailToForm(latest);
     journalDialogMode.value = latest.can_update ? 'edit' : 'view';
     clearDialogState();
-    toast.add({
-        severity: 'info',
-        summary: 'Reloaded Latest Version',
-        detail: `Loaded version #${latest.version} from the server.`,
-        life: 3500
-    });
+    toast.add({ severity: 'info', summary: t('teaching.journals.dialog.reloadLatest'), detail: t('teaching.journals.toast.reloadedLatest', { version: latest.version }), life: 3500 });
 }
 
 async function submitJournalForm() {
@@ -591,8 +583,8 @@ async function submitJournalForm() {
             const replay = Boolean(res.data?.idempotent_replay);
             toast.add({
                 severity: replay ? 'info' : 'success',
-                summary: replay ? 'Already Recorded' : 'Journal Recorded',
-                detail: res.data?.message || 'Teaching journal recorded.',
+                summary: replay ? t('teaching.journals.toast.alreadyRecorded') : t('teaching.journals.toast.journalRecorded'),
+                detail: res.data?.message || t('teaching.journals.toast.journalRecorded'),
                 life: 3500
             });
         } else {
@@ -613,12 +605,7 @@ async function submitJournalForm() {
             }
 
             const res = await apiLogin.put(`/teaching/journals/${journalForm.id}`, payload);
-            toast.add({
-                severity: 'success',
-                summary: 'Journal Updated',
-                detail: res.data?.message || 'Teaching journal updated.',
-                life: 3500
-            });
+            toast.add({ severity: 'success', summary: t('teaching.journals.toast.journalUpdated'), detail: res.data?.message || t('teaching.journals.toast.journalUpdated'), life: 3500 });
         }
 
         journalDialogVisible.value = false;
@@ -675,13 +662,31 @@ onMounted(() => {
 
                     <div class="flex flex-wrap align-items-center gap-2">
                         <div class="flex align-items-center gap-2">
-                            <label class="font-medium text-sm">Academic Year:</label>
-                            <Select v-model="context.school_year_id" :options="options.school_years" optionLabel="name" optionValue="id" placeholder="Select Year" class="w-12rem" :loading="loadingOptions" @change="onPeriodContextChange" />
+                            <label class="font-medium text-sm">{{ t('teaching.journals.labels.academicYear') }}</label>
+                            <Select
+                                v-model="context.school_year_id"
+                                :options="options.school_years"
+                                optionLabel="name"
+                                optionValue="id"
+                                :placeholder="t('teaching.schedules.selectYear')"
+                                class="w-12rem"
+                                :loading="loadingOptions"
+                                @change="onPeriodContextChange"
+                            />
                         </div>
 
                         <div class="flex align-items-center gap-2">
-                            <label class="font-medium text-sm">Semester:</label>
-                            <Select v-model="context.semester_id" :options="options.semesters" optionLabel="label" optionValue="id" placeholder="Select Semester" class="w-13rem" :loading="loadingOptions" @change="onPeriodContextChange" />
+                            <label class="font-medium text-sm">{{ t('teaching.journals.labels.semester') }}</label>
+                            <Select
+                                v-model="context.semester_id"
+                                :options="options.semesters"
+                                optionLabel="label"
+                                optionValue="id"
+                                :placeholder="t('teaching.schedules.selectSemester')"
+                                class="w-13rem"
+                                :loading="loadingOptions"
+                                @change="onPeriodContextChange"
+                            />
                         </div>
                     </div>
                 </div>
@@ -689,7 +694,7 @@ onMounted(() => {
                 <!-- Options Error Banner -->
                 <div v-if="optionsError" class="p-3 mb-4 border-round bg-red-50 text-red-700 border-1 border-red-200 flex align-items-center justify-content-between">
                     <span><i class="pi pi-exclamation-triangle mr-2"></i>{{ optionsError }}</span>
-                    <Button label="Retry" icon="pi pi-refresh" size="small" severity="danger" outlined @click="loadOptions" />
+                    <Button :label="t('common.action.retry')" icon="pi pi-refresh" size="small" severity="danger" outlined @click="loadOptions" />
                 </div>
 
                 <!-- Locked School Year Banner -->
@@ -719,8 +724,8 @@ onMounted(() => {
 
                 <!-- Navigation Tabs -->
                 <div class="flex flex-wrap gap-2 mb-4 border-bottom-1 surface-border pb-3">
-                    <Button label="Daily Sessions Worklist" icon="pi pi-calendar-clock" :severity="activeTab === 'sessions' ? 'primary' : 'secondary'" :outlined="activeTab !== 'sessions'" @click="switchTab('sessions')" />
-                    <Button label="Recorded Journals History" icon="pi pi-book" :severity="activeTab === 'journals' ? 'primary' : 'secondary'" :outlined="activeTab !== 'journals'" @click="switchTab('journals')" />
+                    <Button :label="t('teaching.journals.tabs.worklist')" icon="pi pi-calendar-clock" :severity="activeTab === 'sessions' ? 'primary' : 'secondary'" :outlined="activeTab !== 'sessions'" @click="switchTab('sessions')" />
+                    <Button :label="t('teaching.journals.tabs.history')" icon="pi pi-book" :severity="activeTab === 'journals' ? 'primary' : 'secondary'" :outlined="activeTab !== 'journals'" @click="switchTab('journals')" />
                 </div>
 
                 <!-- ─── TAB 1: DAILY SESSIONS WORKLIST ─────────────────────────── -->
@@ -761,10 +766,10 @@ onMounted(() => {
                     <div class="p-3 mb-3 border-round surface-50 border-1 surface-border">
                         <div class="flex flex-wrap align-items-end gap-3">
                             <div>
-                                <label class="block text-xs font-medium mb-1">Date Filter Mode</label>
+                                <label class="block text-xs font-medium mb-1">{{ t('teaching.journals.labels.dateFilterMode') }}</label>
                                 <div class="flex gap-1">
                                     <Button
-                                        label="Single Date"
+                                        :label="t('teaching.journals.worklist.singleDate')"
                                         size="small"
                                         :severity="sessionDateMode === 'single' ? 'primary' : 'secondary'"
                                         :outlined="sessionDateMode !== 'single'"
@@ -774,7 +779,7 @@ onMounted(() => {
                                         "
                                     />
                                     <Button
-                                        label="Date Range (≤14d)"
+                                        :label="t('teaching.journals.worklist.dateRange')"
                                         size="small"
                                         :severity="sessionDateMode === 'range' ? 'primary' : 'secondary'"
                                         :outlined="sessionDateMode !== 'range'"
@@ -788,53 +793,80 @@ onMounted(() => {
 
                             <div v-if="sessionDateMode === 'single'" class="flex align-items-end gap-1">
                                 <div>
-                                    <label class="block text-xs font-medium mb-1">Session Date</label>
+                                    <label class="block text-xs font-medium mb-1">{{ t('teaching.journals.labels.sessionDate') }}</label>
                                     <InputText v-model="sessionFilters.date" type="date" class="w-10rem" @change="fetchSessions" />
                                 </div>
                                 <Button icon="pi pi-chevron-left" size="small" severity="secondary" outlined title="Previous Day" @click="stepSessionDate(-1)" />
-                                <Button label="Today" size="small" severity="secondary" outlined @click="setSessionToday" />
+                                <Button :label="t('teaching.journals.worklist.today')" size="small" severity="secondary" outlined @click="setSessionToday" />
                                 <Button icon="pi pi-chevron-right" size="small" severity="secondary" outlined title="Next Day" @click="stepSessionDate(1)" />
                             </div>
 
                             <template v-else>
                                 <div>
-                                    <label class="block text-xs font-medium mb-1">From Date</label>
+                                    <label class="block text-xs font-medium mb-1">{{ t('teaching.journals.labels.fromDate') }}</label>
                                     <InputText v-model="sessionFilters.date_from" type="date" class="w-10rem" />
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-medium mb-1">To Date</label>
+                                    <label class="block text-xs font-medium mb-1">{{ t('teaching.journals.labels.toDate') }}</label>
                                     <InputText v-model="sessionFilters.date_to" type="date" class="w-10rem" />
                                 </div>
                             </template>
 
                             <div>
-                                <label class="block text-xs font-medium mb-1">Scope</label>
+                                <label class="block text-xs font-medium mb-1">{{ t('teaching.journals.labels.scope') }}</label>
                                 <Select v-model="sessionFilters.scope" :options="scopeOptions" optionLabel="label" optionValue="value" class="w-13rem" @change="fetchSessions" />
                             </div>
 
                             <div>
-                                <label class="block text-xs font-medium mb-1">Session Status</label>
+                                <label class="block text-xs font-medium mb-1">{{ t('teaching.journals.labels.sessionStatus') }}</label>
                                 <Select v-model="sessionFilters.status" :options="statusFilterOptions" optionLabel="label" optionValue="value" class="w-14rem" @change="fetchSessions" />
                             </div>
 
                             <div>
-                                <label class="block text-xs font-medium mb-1">Class / Rombel</label>
-                                <Select v-model="sessionFilters.school_rombel_id" :options="rombelsForSelectedYear" optionLabel="name" optionValue="id" placeholder="All Classes" showClear class="w-11rem" @change="fetchSessions" />
+                                <label class="block text-xs font-medium mb-1">{{ t('teaching.journals.labels.classRombel') }}</label>
+                                <Select
+                                    v-model="sessionFilters.school_rombel_id"
+                                    :options="rombelsForSelectedYear"
+                                    optionLabel="name"
+                                    optionValue="id"
+                                    :placeholder="t('teaching.schedules.timetable.allClasses')"
+                                    showClear
+                                    class="w-11rem"
+                                    @change="fetchSessions"
+                                />
                             </div>
 
                             <div>
-                                <label class="block text-xs font-medium mb-1">Subject</label>
-                                <Select v-model="sessionFilters.subject_id" :options="options.subjects" optionLabel="name" optionValue="id" placeholder="All Subjects" showClear class="w-12rem" @change="fetchSessions" />
+                                <label class="block text-xs font-medium mb-1">{{ t('teaching.journals.labels.subject') }}</label>
+                                <Select
+                                    v-model="sessionFilters.subject_id"
+                                    :options="options.subjects"
+                                    optionLabel="name"
+                                    optionValue="id"
+                                    :placeholder="t('teaching.schedules.timetable.allSubjects')"
+                                    showClear
+                                    class="w-12rem"
+                                    @change="fetchSessions"
+                                />
                             </div>
 
                             <div>
-                                <label class="block text-xs font-medium mb-1">Teacher</label>
-                                <Select v-model="sessionFilters.employee_id" :options="options.teachers" optionLabel="name" optionValue="id" placeholder="All Teachers" showClear class="w-13rem" @change="fetchSessions" />
+                                <label class="block text-xs font-medium mb-1">{{ t('teaching.journals.labels.teacher') }}</label>
+                                <Select
+                                    v-model="sessionFilters.employee_id"
+                                    :options="options.teachers"
+                                    optionLabel="name"
+                                    optionValue="id"
+                                    :placeholder="t('teaching.schedules.timetable.allTeachers')"
+                                    showClear
+                                    class="w-13rem"
+                                    @change="fetchSessions"
+                                />
                             </div>
 
                             <div class="flex gap-2">
-                                <Button label="Apply" icon="pi pi-search" size="small" :loading="sessionsLoading" @click="fetchSessions" />
-                                <Button label="Reset" icon="pi pi-filter-slash" size="small" severity="secondary" outlined @click="resetSessionFilters" />
+                                <Button :label="t('teaching.journals.worklist.apply')" icon="pi pi-search" size="small" :loading="sessionsLoading" @click="fetchSessions" />
+                                <Button :label="t('teaching.journals.worklist.reset')" icon="pi pi-filter-slash" size="small" severity="secondary" outlined @click="resetSessionFilters" />
                             </div>
                         </div>
                     </div>
@@ -911,9 +943,9 @@ onMounted(() => {
 
                                     <td class="p-3 vertical-align-top text-right">
                                         <div class="flex justify-content-end gap-1">
-                                            <Button v-if="session.can_record" label="Fill Journal" icon="pi pi-plus-circle" size="small" severity="success" @click="openCreateJournalFromSession(session)" />
-                                            <Button v-if="session.has_journal" label="View" icon="pi pi-eye" size="small" severity="secondary" outlined @click="openSessionJournalDialog(session, 'view')" />
-                                            <Button v-if="session.can_update" label="Edit" icon="pi pi-pencil" size="small" severity="primary" outlined @click="openSessionJournalDialog(session, 'edit')" />
+                                            <Button v-if="session.can_record" :label="t('teaching.journals.worklist.fillJournal')" icon="pi pi-plus-circle" size="small" severity="success" @click="openCreateJournalFromSession(session)" />
+                                            <Button v-if="session.has_journal" :label="t('teaching.journals.worklist.viewJournal')" icon="pi pi-eye" size="small" severity="secondary" outlined @click="openSessionJournalDialog(session, 'view')" />
+                                            <Button v-if="session.can_update" :label="t('teaching.journals.worklist.editJournal')" icon="pi pi-pencil" size="small" severity="primary" outlined @click="openSessionJournalDialog(session, 'edit')" />
                                         </div>
                                     </td>
                                 </tr>
@@ -928,7 +960,7 @@ onMounted(() => {
                     <div class="p-3 mb-3 border-round surface-50 border-1 surface-border">
                         <div class="flex flex-wrap align-items-end gap-3">
                             <div>
-                                <label class="block text-xs font-medium mb-1">Scope</label>
+                                <label class="block text-xs font-medium mb-1">{{ t('teaching.journals.labels.scope') }}</label>
                                 <Select
                                     v-model="journalFilters.scope"
                                     :options="scopeOptions"
@@ -943,23 +975,23 @@ onMounted(() => {
                             </div>
 
                             <div>
-                                <label class="block text-xs font-medium mb-1">Date From</label>
+                                <label class="block text-xs font-medium mb-1">{{ t('teaching.journals.labels.dateFrom') }}</label>
                                 <InputText v-model="journalFilters.date_from" type="date" class="w-10rem" />
                             </div>
 
                             <div>
-                                <label class="block text-xs font-medium mb-1">Date To</label>
+                                <label class="block text-xs font-medium mb-1">{{ t('teaching.journals.labels.dateTo') }}</label>
                                 <InputText v-model="journalFilters.date_to" type="date" class="w-10rem" />
                             </div>
 
                             <div>
-                                <label class="block text-xs font-medium mb-1">Class / Rombel</label>
+                                <label class="block text-xs font-medium mb-1">{{ t('teaching.journals.labels.classRombel') }}</label>
                                 <Select
                                     v-model="journalFilters.school_rombel_id"
                                     :options="rombelsForSelectedYear"
                                     optionLabel="name"
                                     optionValue="id"
-                                    placeholder="All Classes"
+                                    :placeholder="t('teaching.schedules.timetable.allClasses')"
                                     showClear
                                     class="w-11rem"
                                     @change="
@@ -970,13 +1002,13 @@ onMounted(() => {
                             </div>
 
                             <div>
-                                <label class="block text-xs font-medium mb-1">Subject</label>
+                                <label class="block text-xs font-medium mb-1">{{ t('teaching.journals.labels.subject') }}</label>
                                 <Select
                                     v-model="journalFilters.subject_id"
                                     :options="options.subjects"
                                     optionLabel="name"
                                     optionValue="id"
-                                    placeholder="All Subjects"
+                                    :placeholder="t('teaching.schedules.timetable.allSubjects')"
                                     showClear
                                     class="w-12rem"
                                     @change="
@@ -987,13 +1019,13 @@ onMounted(() => {
                             </div>
 
                             <div>
-                                <label class="block text-xs font-medium mb-1">Teacher</label>
+                                <label class="block text-xs font-medium mb-1">{{ t('teaching.journals.labels.teacher') }}</label>
                                 <Select
                                     v-model="journalFilters.employee_id"
                                     :options="options.teachers"
                                     optionLabel="name"
                                     optionValue="id"
-                                    placeholder="All Teachers"
+                                    :placeholder="t('teaching.schedules.timetable.allTeachers')"
                                     showClear
                                     class="w-13rem"
                                     @change="
@@ -1004,13 +1036,13 @@ onMounted(() => {
                             </div>
 
                             <div>
-                                <label class="block text-xs font-medium mb-1">Method</label>
+                                <label class="block text-xs font-medium mb-1">{{ t('teaching.journals.labels.method') }}</label>
                                 <Select
                                     v-model="journalFilters.method"
                                     :options="options.journal_methods"
                                     optionLabel="label"
                                     optionValue="value"
-                                    placeholder="All Methods"
+                                    :placeholder="t('teaching.journals.history.allMethods')"
                                     showClear
                                     class="w-11rem"
                                     @change="
@@ -1021,10 +1053,10 @@ onMounted(() => {
                             </div>
 
                             <div>
-                                <label class="block text-xs font-medium mb-1">Keyword Search</label>
+                                <label class="block text-xs font-medium mb-1">{{ t('teaching.journals.labels.keywordSearch') }}</label>
                                 <InputText
                                     v-model="journalFilters.search"
-                                    placeholder="Topic, summary, class, teacher..."
+                                    :placeholder="t('teaching.journals.history.searchPlaceholder')"
                                     class="w-14rem"
                                     @keyup.enter="
                                         journalFilters.page = 1;
@@ -1035,7 +1067,7 @@ onMounted(() => {
 
                             <div class="flex gap-2">
                                 <Button
-                                    label="Search"
+                                    :label="t('teaching.journals.worklist.apply')"
                                     icon="pi pi-search"
                                     size="small"
                                     :loading="journalsLoading"
@@ -1044,7 +1076,7 @@ onMounted(() => {
                                         fetchJournals();
                                     "
                                 />
-                                <Button label="Reset" icon="pi pi-filter-slash" size="small" severity="secondary" outlined @click="resetJournalFilters" />
+                                <Button :label="t('teaching.journals.worklist.reset')" icon="pi pi-filter-slash" size="small" severity="secondary" outlined @click="resetJournalFilters" />
                             </div>
                         </div>
                     </div>
@@ -1106,8 +1138,8 @@ onMounted(() => {
 
                                     <td class="p-3 vertical-align-top text-right">
                                         <div class="flex justify-content-end gap-1">
-                                            <Button label="View" icon="pi pi-eye" size="small" severity="secondary" outlined @click="openJournalById(item.id, 'view')" />
-                                            <Button v-if="item.can_update" label="Edit" icon="pi pi-pencil" size="small" severity="primary" outlined @click="openJournalById(item.id, 'edit')" />
+                                            <Button :label="t('teaching.journals.worklist.viewJournal')" icon="pi pi-eye" size="small" severity="secondary" outlined @click="openJournalById(item.id, 'view')" />
+                                            <Button v-if="item.can_update" :label="t('teaching.journals.worklist.editJournal')" icon="pi pi-pencil" size="small" severity="primary" outlined @click="openJournalById(item.id, 'edit')" />
                                         </div>
                                     </td>
                                 </tr>
@@ -1144,7 +1176,7 @@ onMounted(() => {
         <!-- ─── DIALOG: FILL / EDIT / VIEW JOURNAL ─────────────────────────────── -->
         <Dialog
             v-model:visible="journalDialogVisible"
-            :header="journalDialogMode === 'create' ? 'Record Teaching Journal' : journalDialogMode === 'edit' ? 'Edit Teaching Journal' : 'Teaching Journal Details'"
+            :header="journalDialogMode === 'create' ? t('teaching.journals.dialog.createTitle') : journalDialogMode === 'edit' ? t('teaching.journals.dialog.editTitle') : t('teaching.journals.dialog.viewTitle')"
             modal
             :style="{ width: '44rem', maxWidth: '96vw' }"
         >
@@ -1182,7 +1214,7 @@ onMounted(() => {
                     <i class="pi pi-exclamation-triangle mr-2"></i>
                     <strong>Version Conflict:</strong> {{ journalConflictState.message }}
                 </div>
-                <Button v-if="journalConflictState.latest" label="Reload Latest" icon="pi pi-refresh" size="small" severity="warn" @click="reloadFromConflict" />
+                <Button v-if="journalConflictState.latest" :label="t('teaching.journals.dialog.reloadLatest')" icon="pi pi-refresh" size="small" severity="warn" @click="reloadFromConflict" />
             </div>
 
             <!-- General Form Error -->
@@ -1190,33 +1222,33 @@ onMounted(() => {
 
             <div class="grid">
                 <div class="col-12 sm:col-8">
-                    <label class="block text-sm font-medium mb-1">Learning Topic <span class="text-red-500">*</span></label>
-                    <InputText v-model="journalForm.topic" class="w-full" placeholder="e.g. Persamaan Kuadrat & Faktorisasi" :disabled="journalDialogMode === 'view'" />
+                    <label class="block text-sm font-medium mb-1">{{ t('teaching.journals.labels.learningTopicRequired') }}</label>
+                    <InputText v-model="journalForm.topic" class="w-full" :placeholder="t('teaching.journals.dialog.form.topicPlaceholder')" :disabled="journalDialogMode === 'view'" />
                 </div>
 
                 <div class="col-12 sm:col-4">
-                    <label class="block text-sm font-medium mb-1">Method <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium mb-1">{{ t('teaching.journals.labels.methodRequired') }}</label>
                     <Select v-model="journalForm.method" :options="options.journal_methods" optionLabel="label" optionValue="value" class="w-full" :disabled="journalDialogMode === 'view'" />
                 </div>
 
                 <div class="col-12 sm:col-6">
-                    <label class="block text-sm font-medium mb-1">Actual Start Time (HH:mm)</label>
+                    <label class="block text-xs font-medium mb-1">{{ t('teaching.journals.labels.actualStartTime') }}</label>
                     <InputText v-model="journalForm.actual_start_time" type="time" class="w-full" :disabled="journalDialogMode === 'view'" />
                 </div>
 
                 <div class="col-12 sm:col-6">
-                    <label class="block text-sm font-medium mb-1">Actual End Time (HH:mm)</label>
+                    <label class="block text-xs font-medium mb-1">{{ t('teaching.journals.labels.actualEndTime') }}</label>
                     <InputText v-model="journalForm.actual_end_time" type="time" class="w-full" :disabled="journalDialogMode === 'view'" />
                 </div>
 
                 <div class="col-12">
-                    <label class="block text-sm font-medium mb-1">Activity Summary <span class="text-red-500">*</span></label>
-                    <Textarea v-model="journalForm.summary" rows="3" class="w-full" placeholder="Describe classroom learning activities, student engagement, and key outcomes (min. 10 characters)..." :disabled="journalDialogMode === 'view'" />
+                    <label class="block text-sm font-medium mb-1">{{ t('teaching.journals.labels.activitySummaryRequired') }}</label>
+                    <Textarea v-model="journalForm.summary" rows="3" class="w-full" :placeholder="t('teaching.journals.dialog.form.activitiesPlaceholder')" :disabled="journalDialogMode === 'view'" />
                 </div>
 
                 <div class="col-12">
-                    <label class="block text-sm font-medium mb-1">Follow-up / Notes (Optional)</label>
-                    <Textarea v-model="journalForm.notes" rows="2" class="w-full" placeholder="Optional homework, follow-up notes, or special classroom observations..." :disabled="journalDialogMode === 'view'" />
+                    <label class="block text-xs font-medium mb-1">{{ t('teaching.journals.labels.notesOptional') }}</label>
+                    <Textarea v-model="journalForm.notes" rows="2" class="w-full" :placeholder="t('teaching.journals.dialog.form.notesPlaceholder')" :disabled="journalDialogMode === 'view'" />
                 </div>
 
                 <!-- Admin / Operator Teacher Override & Correction Reason -->
@@ -1225,15 +1257,15 @@ onMounted(() => {
                         <div class="font-semibold text-sm mb-2"><i class="pi pi-shield mr-1"></i>Admin / Operator Governance Controls</div>
                         <div class="grid">
                             <div class="col-12 sm:col-6">
-                                <label class="block text-xs font-medium mb-1">Executing Teacher (Pendidik)</label>
+                                <label class="block text-xs font-medium mb-1">{{ t('teaching.journals.labels.executingTeacher') }}</label>
                                 <Select v-model="journalForm.teacher_employee_id" :options="options.teachers" optionLabel="name" optionValue="id" class="w-full" />
                             </div>
                             <div class="col-12 sm:col-6">
                                 <label class="block text-xs font-medium mb-1">
-                                    Correction / Backfill Reason
+                                    {{ t('teaching.journals.labels.correctionReasonRequired') }}
                                     <span v-if="dialogNeedsCorrectionReason" class="text-red-500">*</span>
                                 </label>
-                                <InputText v-model="journalForm.correction_reason" class="w-full" placeholder="Required (10–255 chars) for past-grace or override..." />
+                                <InputText v-model="journalForm.correction_reason" class="w-full" :placeholder="t('teaching.journals.dialog.form.graceReasonPlaceholder')" />
                             </div>
                         </div>
                     </div>
@@ -1257,9 +1289,15 @@ onMounted(() => {
 
             <template #footer>
                 <div class="flex justify-content-end gap-2">
-                    <Button :label="journalDialogMode === 'view' ? 'Close' : 'Cancel'" severity="secondary" outlined @click="journalDialogVisible = false" />
-                    <Button v-if="journalDialogMode === 'view' && activeJournalRecord?.can_update" label="Switch to Edit" icon="pi pi-pencil" @click="journalDialogMode = 'edit'" />
-                    <Button v-if="journalDialogMode !== 'view'" :label="journalDialogMode === 'create' ? 'Record Journal' : 'Save Changes'" icon="pi pi-check" :loading="journalSubmitting" @click="submitJournalForm" />
+                    <Button :label="journalDialogMode === 'view' ? t('teaching.journals.dialog.buttons.close') : t('teaching.journals.dialog.buttons.cancel')" severity="secondary" outlined @click="journalDialogVisible = false" />
+                    <Button v-if="journalDialogMode === 'view' && activeJournalRecord?.can_update" :label="t('teaching.journals.dialog.buttons.switchToEdit')" icon="pi pi-pencil" @click="journalDialogMode = 'edit'" />
+                    <Button
+                        v-if="journalDialogMode !== 'view'"
+                        :label="journalDialogMode === 'create' ? t('teaching.journals.dialog.buttons.record') : t('teaching.journals.dialog.buttons.save')"
+                        icon="pi pi-check"
+                        :loading="journalSubmitting"
+                        @click="submitJournalForm"
+                    />
                 </div>
             </template>
         </Dialog>

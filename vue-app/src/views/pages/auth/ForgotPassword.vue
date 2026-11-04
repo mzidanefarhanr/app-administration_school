@@ -6,9 +6,12 @@ import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import apiLogin from '@/apiLogin';
 import AppLogoDefault from '@/layout/AppLogoDefault.vue';
+import FloatingConfigurator from '@/components/FloatingConfigurator.vue';
 
+const { t } = useI18n();
 const email = ref('');
 const isSubmitting = ref(false);
 
@@ -24,8 +27,8 @@ const submitForgotPassword = async () => {
     if (isSubmitting.value) return;
 
     if (!email.value || !email.value.trim()) {
-        titleDanger.value = 'Validation Error';
-        fieldDanger.value = 'Please enter your email address.';
+        titleDanger.value = t('auth.forgotPassword.validationError');
+        fieldDanger.value = t('auth.forgotPassword.emailRequired');
         visibleDanger.value = true;
         return;
     }
@@ -38,33 +41,33 @@ const submitForgotPassword = async () => {
         });
 
         // Anti-enumeration: always display uniform confirmation
-        titleSuccess.value = 'Check Your Email';
-        fieldSuccess.value = 'If your email address is registered, you will receive a password reset link shortly.';
+        titleSuccess.value = t('auth.forgotPassword.checkEmail');
+        fieldSuccess.value = t('auth.forgotPassword.checkEmailDetail');
         visibleSuccess.value = true;
     } catch (error) {
         if (!error.response) {
-            titleDanger.value = 'Connection Error';
-            fieldDanger.value = 'Could not reach the server. Please check your connection and try again.';
+            titleDanger.value = t('auth.forgotPassword.connectionError');
+            fieldDanger.value = t('auth.forgotPassword.connectionErrorDetail');
             visibleDanger.value = true;
         } else if (error.response.status === 422) {
             const errors = error.response.data?.errors;
             if (errors?.email && errors.email[0]?.toLowerCase().includes('valid email')) {
-                titleDanger.value = 'Invalid Email';
-                fieldDanger.value = 'Please provide a valid email address.';
+                titleDanger.value = t('auth.forgotPassword.invalidEmail');
+                fieldDanger.value = t('auth.forgotPassword.invalidEmailDetail');
                 visibleDanger.value = true;
             } else {
                 // Anti-enumeration: if email is not found, show the same generic message
-                titleSuccess.value = 'Check Your Email';
-                fieldSuccess.value = 'If your email address is registered, you will receive a password reset link shortly.';
+                titleSuccess.value = t('auth.forgotPassword.checkEmail');
+                fieldSuccess.value = t('auth.forgotPassword.checkEmailDetail');
                 visibleSuccess.value = true;
             }
         } else if (error.response.status === 429) {
-            titleDanger.value = 'Too Many Requests';
-            fieldDanger.value = 'Too many requests. Please wait a moment before trying again.';
+            titleDanger.value = t('auth.forgotPassword.tooManyRequests');
+            fieldDanger.value = t('auth.forgotPassword.tooManyRequestsDetail');
             visibleDanger.value = true;
         } else {
-            titleDanger.value = 'Request Failed';
-            fieldDanger.value = error.response.data?.message || 'An unexpected error occurred. Please try again.';
+            titleDanger.value = t('auth.forgotPassword.requestFailed');
+            fieldDanger.value = error.response.data?.message || t('auth.forgotPassword.unexpectedError');
             visibleDanger.value = true;
         }
     } finally {
@@ -74,14 +77,15 @@ const submitForgotPassword = async () => {
 </script>
 
 <template>
+    <FloatingConfigurator />
     <div class="px-8 py-20 md:px-12 lg:px-20 flex items-center justify-center backdrop-blur-3xl !bg-cover !bg-center forgot-background">
         <form @submit.prevent="submitForgotPassword">
             <div class="px-8 md:px-12 lg:px-20 py-12 flex flex-col items-center gap-10 w-full max-w-xl backdrop-blur-2xl rounded-2xl bg-white/10 border border-white/10">
                 <div class="flex flex-col items-center gap-4 w-full">
                     <AppLogoDefault width="93" height="92" />
                     <div class="flex flex-col gap-2 w-full text-center">
-                        <div class="text-3xl font-medium text-white leading-tight">Forgot Password</div>
-                        <p class="text-white/80 text-sm">Enter your registered email address to receive a password reset link.</p>
+                        <div class="text-3xl font-medium text-white leading-tight">{{ t('auth.forgotPassword.title') }}</div>
+                        <p class="text-white/80 text-sm">{{ t('auth.forgotPassword.subtitle') }}</p>
                     </div>
                 </div>
 
@@ -91,15 +95,15 @@ const submitForgotPassword = async () => {
                             <InputIcon class="pi pi-envelope !text-white/70" />
                             <FloatLabel variant="on">
                                 <InputText id="email" type="email" class="!ps-9 !appearance-none !border !border-white/0 !w-full !outline-0 !bg-white/10 !text-white placeholder:!text-white/50 !rounded-3xl !shadow-sm" v-model="email" required />
-                                <label for="email" class="ps-7 !appearance-none !outline-0 !bg-white/0 !text-white placeholder:!text-white/50 !rounded-3xl !shadow-sm">Email Address</label>
+                                <label for="email" class="ps-7 !appearance-none !outline-0 !bg-white/0 !text-white placeholder:!text-white/50 !rounded-3xl !shadow-sm">{{ t('auth.forgotPassword.email') }}</label>
                             </FloatLabel>
                         </IconField>
                     </div>
 
-                    <Button type="submit" label="Send Reset Link" :loading="isSubmitting" :disabled="isSubmitting" class="!w-full !rounded-3xl !bg-surface-950 !border !border-surface-950 !text-white hover:!bg-surface-950/80" />
+                    <Button type="submit" :label="t('auth.forgotPassword.sendLink')" :loading="isSubmitting" :disabled="isSubmitting" class="!w-full !rounded-3xl !bg-surface-950 !border !border-surface-950 !text-white hover:!bg-surface-950/80" />
                 </div>
 
-                <router-link to="/auth/login" class="text-white/80 cursor-pointer hover:text-white/90 text-sm"> Back to Sign In </router-link>
+                <router-link to="/auth/login" class="text-white/80 cursor-pointer hover:text-white/90 text-sm"> {{ t('auth.forgotPassword.backToSignIn') }} </router-link>
             </div>
         </form>
 

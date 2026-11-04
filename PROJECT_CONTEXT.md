@@ -1,6 +1,17 @@
 # Konteks proyek
 
-## Current addendum — 2026-11-03 (PENGESAHAN AKHIR: RILIS v1.0.0 RESMI DITERIMA; FASE 13 & SELURUH ROADMAP PROYEK SELESAI PARIPURNA — 100% COMPLETE & CLOSED)
+## Current addendum — 2026-11-04 (INTEGRASI PARALEL i18n + BRANDING SELESAI; G0–G6 PASSED; DEC-51 S.D. DEC-53 DISAHKAN; FASE 7 DOKUMENTASI)
+
+Penggabungan paralel cabang `feature/i18n` (Worktree A) dan `feature/branding` (Worktree B) pada branch `integration/i18n-branding` di worktree `../school-integration` telah berhasil menyelesaikan seluruh Gerbang G0 sampai G6 sesuai acuan `reports/parallel/integration/INTEGRATION-PLAN.md`.
+- **Hasil Gerbang G6 & Validasi Browser:** Matriks 8 kombinasi viewport (Desktop 1366px, Mobile 390px) x tema (Terang, Gelap) x bahasa (Indonesia, English) untuk halaman kritis Login, Students, dan Accounts seluruhnya lulus **PASS** (100+ tangkapan layar di `D:\xampp-htdocs\evidence-integration\`). Kunci terjemahan simetris 2.728 di ID dan 2.728 di EN (0 intlify missing key).
+- **Pengesahan Keputusan Pemilik:**
+  1. **DEC-51**: Pemilik menetapkan **Opsi A** (mempertahankan warna emerald-600 `#059669` rasio 3,77:1 pada tombol primer dan tautan teks) secara sadar sesuai `DESIGN.md`.
+  2. **DEC-52**: Pemilih bahasa dan tema di halaman autentikasi (`FloatingConfigurator`) terintegrasi reaktif tanpa reload dan persisten di `localStorage`.
+  3. **DEC-53**: `DESIGN.md` disahkan sebagai satu-satunya acuan desain resmi (Single Source of Truth) dan dokumen lama `docs/DESIGN_SYSTEM.md` dinyatakan tersuperseed untuk klausul yang bertentangan.
+- **Integritas Repositori:** Nol perubahan skema database (*zero schema change*), backend `laravel-api` tidak tersentuh, `npm run build` sukses 0 galat, 67/67 unit test passing.
+- **Status Fase Saat Ini:** Fase 7 (Dokumentasi) selesai; dokumen siap ditinjau pemilik untuk melanjutkan ke Fase 8 (Merge ke `main`).
+
+## Previous addendum — 2026-11-03 (PENGESAHAN AKHIR: RILIS v1.0.0 RESMI DITERIMA; FASE 13 & SELURUH ROADMAP PROYEK SELESAI PARIPURNA — 100% COMPLETE & CLOSED)
 
 Pernyataan pemilik **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Rilis v1.0.0 resmi diterima dan proyek selesai."** (2026-11-03 WIB) dicatat sebagai **PENGESAHAN AKHIR PROYEK (FINAL PROJECT SIGN-OFF)**. Checklist manual akhir Subfase 13c **#1–#18 APPROVED**. Tag Git rilis resmi **`v1.0.0`** resmi diterima. **Subfase 13c — Rilis dan Handoff Operasional** resmi **SELESAI LENGKAP & DITUTUP** (`1b8ec6f`). **DEC-50 disahkan menjadi APPROVED & CLOSED**.
 

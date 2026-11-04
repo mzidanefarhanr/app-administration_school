@@ -84,7 +84,8 @@
 
             &.active-route {
                 font-weight: 700;
-                color: var(--primary-color);
+                color: var(--p-primary-700);
+                background-color: var(--p-primary-100);
             }
 
             &:hover {

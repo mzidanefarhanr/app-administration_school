@@ -4,7 +4,14 @@ Versi dokumen: 1.0, 14 Oktober 2026 (WIB); audit HEAD 15 Oktober 2026.
 Baseline kode: `b02a87f0d57adffec297ed465a8afcd8e8d7ec59`; HEAD audit `b699feccd65357a10f7430c165400906e6394d49` (delta = paket docs saja, kode tidak berubah).
 Historical drafting status (2026-10-14/15): DRAFT; Fase 00 PARTIAL. The original “all other phases not started” statement is obsolete; current statuses are in the table and correction addendum below.
 
-## Addendum — 2026-11-03 (Subfase 13a OWNER APPROVED #1–#18; SUBFASE 13A SELESAI LENGKAP & DITUTUP; Rencana Subfase 13b DISUSUN — DEC-49 PROPOSED)
+## Addendum — 2026-11-04 (INTEGRASI PARALEL i18n + BRANDING SELESAI; G0–G6 PASSED; FASE 7 DOKUMENTASI; MENUNGGU FASE 8 MERGE KE MAIN)
+
+Integrasi paralel fitur internasionalisasi (`feature/i18n`) dan identitas jenama Sekolario (`feature/branding`) pada branch `integration/i18n-branding` telah menyelesaikan seluruh Gerbang G0 sampai G6 dan Gerbang G7 dokumentasi.
+- **Validasi Terpadu:** Seluruh 8 kombinasi viewport (desktop & mobile 390px) x tema (terang & gelap) x bahasa (ID & EN) pada Login, Students, dan Accounts teruji lulus PASS. Halaman sekunder teruji pada Desktop-Terang-ID dan Mobile-Gelap-EN.
+- **Keputusan Arsitektur Baru:** DEC-51 (Opsi A kontras warna emerald-600), DEC-52 (FloatingConfigurator pada halaman auth), dan DEC-53 (`DESIGN.md` sebagai acuan desain tunggal) resmi disahkan.
+- **Kesiapan Rilis:** Repositori siap untuk penggabungan final ke `main` pada Fase 8 melalui instruksi pemilik.
+
+## Previous addendum — 2026-11-03 (Subfase 13a OWNER APPROVED #1–#18; SUBFASE 13A SELESAI LENGKAP & DITUTUP; Rencana Subfase 13b DISUSUN — DEC-49 PROPOSED)
 
 Pemilik menyatakan **"Pengujian nomor 1-18 sudah berhasil dan saya approved. Buatkan plan untuk lanjutan tahap/fase berikutnya."** (2026-11-03 WIB); checklist manual Subfase 13a **#1–#18 APPROVED**. **Subfase 13a — QA Integrasi dan UAT** resmi **SELESAI LENGKAP & DITUTUP** (`cace7d3`). **DEC-48 disahkan menjadi APPROVED & CLOSED**. Port 18028 dan 14028 bebas listener (`PORTS_18028_14028_FREE`).
 

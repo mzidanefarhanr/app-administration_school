@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 import Button from 'primevue/button';
 import { useToast } from 'primevue/usetoast';
@@ -9,14 +10,15 @@ import { authStore } from '@/stores/authStore';
 const store = authStore();
 const route = useRoute();
 const toast = useToast();
+const { t, locale } = useI18n();
 
-const validityLabels = {
-    none: 'No Expiry',
-    upcoming: 'Upcoming',
-    valid: 'Valid',
-    expiring_soon: 'Expiring Soon',
-    expired: 'Expired'
-};
+const validityLabels = computed(() => ({
+    none: t('archives.validity.none'),
+    upcoming: t('archives.validity.upcoming'),
+    valid: t('archives.validity.valid'),
+    expiring_soon: t('archives.validity.expiring_soon'),
+    expired: t('archives.validity.expired')
+}));
 
 const validitySeverity = {
     none: 'secondary',
@@ -26,10 +28,10 @@ const validitySeverity = {
     expired: 'danger'
 };
 
-const statusLabels = {
-    active: 'Active',
-    archived: 'Archived'
-};
+const statusLabels = computed(() => ({
+    active: t('archives.statuses.active'),
+    archived: t('archives.statuses.archived')
+}));
 
 const statusSeverity = {
     active: 'success',
@@ -57,17 +59,17 @@ const fileRuleLabel = computed(() => `${allowedExtensions.value.map((extension) 
 const archiveReasonMin = computed(() => options.value?.archive_reason?.min ?? 10);
 const archiveReasonMax = computed(() => options.value?.archive_reason?.max ?? 255);
 const accessLogLabels = computed(() => Object.fromEntries((options.value?.access_log_actions ?? []).map((action) => [action.value, action.label])));
-const perPageLabel = computed(() => `Rows: ${filters.perPage}`);
-const totalLabel = computed(() => `${meta.value.total} ${meta.value.total === 1 ? 'document' : 'documents'}`);
+const perPageLabel = computed(() => t('archives.common.perPageLabel', { count: filters.perPage }));
+const totalLabel = computed(() => t('archives.metaTotal', { count: meta.value.total }));
 
-const categoryFilterOptions = computed(() => [{ label: 'All categories', value: '' }, ...categories.value]);
-const subjectTypeFilterOptions = computed(() => [{ label: 'All subject types', value: '' }, ...subjectTypes.value]);
-const validityFilterOptions = computed(() => [{ label: 'All validity statuses', value: '' }, ...(options.value?.validity_statuses ?? [])]);
-const statusFilterOptions = computed(() => [{ label: 'All statuses', value: 'all' }, ...(options.value?.statuses ?? [])]);
-const createSubjectTypeOptions = computed(() => [{ label: 'No subject link', value: '' }, ...subjectTypes.value]);
+const categoryFilterOptions = computed(() => [{ label: t('archives.filters.allCategories'), value: '' }, ...categories.value]);
+const subjectTypeFilterOptions = computed(() => [{ label: t('archives.filters.allSubjectTypes'), value: '' }, ...subjectTypes.value]);
+const validityFilterOptions = computed(() => [{ label: t('archives.filters.allValidity'), value: '' }, ...(options.value?.validity_statuses ?? [])]);
+const statusFilterOptions = computed(() => [{ label: t('archives.filters.allStatuses'), value: 'all' }, ...(options.value?.statuses ?? [])]);
+const createSubjectTypeOptions = computed(() => [{ label: t('archives.fields.noSubjectLink'), value: '' }, ...subjectTypes.value]);
 
 const notify = (severity, detail) => {
-    toast.add({ severity, summary: 'Archives', detail, life: 5000 });
+    toast.add({ severity, summary: t('archives.title'), detail, life: 5000 });
 };
 
 const errorMessage = (error, fallback) => error.response?.data?.message ?? fallback;
@@ -112,7 +114,7 @@ const formatDate = (value) => {
     const raw = String(value).slice(0, 10);
     const parsed = new Date(`${raw}T00:00:00`);
     if (Number.isNaN(parsed.getTime())) return raw;
-    return parsed.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    return parsed.toLocaleDateString(locale.value === 'en' ? 'en-GB' : 'id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
 const formatDateTime = (value) => {
@@ -998,12 +1000,12 @@ onBeforeUnmount(() => {
         <div class="bg-surface-0 dark:bg-surface-950 px-4 py-6 sm:px-6 sm:py-8 md:px-12 lg:px-20">
             <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div>
-                    <div class="font-bold text-2xl sm:text-3xl text-surface-900 dark:text-surface-0 mb-2">Archive Documents</div>
-                    <p class="text-surface-500 dark:text-surface-400">Private document archive with metadata, validity tracking, subject links, and immutable file versions.</p>
+                    <div class="font-bold text-2xl sm:text-3xl text-surface-900 dark:text-surface-0 mb-2">{{ t('archives.title') }}</div>
+                    <p class="text-surface-500 dark:text-surface-400">{{ t('archives.subtitle') }}</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                     <Tag :value="totalLabel" severity="secondary" />
-                    <Button v-if="canManage" label="New Archive Document" icon="pi pi-plus" @click="openCreate" />
+                    <Button v-if="canManage" :label="t('archives.newDocument')" icon="pi pi-plus" @click="openCreate" />
                 </div>
             </div>
 
@@ -1013,54 +1015,54 @@ onBeforeUnmount(() => {
                 <div class="flex flex-col xl:flex-row xl:flex-wrap xl:items-center gap-3">
                     <IconField class="w-full xl:max-w-sm">
                         <InputIcon><i class="pi pi-search" /></InputIcon>
-                        <InputText v-model="filters.q" placeholder="Search title or document number" class="w-full" :maxlength="searchMax" aria-label="Search archive documents" @input="onSearchInput" />
+                        <InputText v-model="filters.q" :placeholder="t('archives.searchPlaceholder')" class="w-full" :maxlength="searchMax" :aria-label="t('archives.searchPlaceholder')" @input="onSearchInput" />
                     </IconField>
-                    <Select v-model="filters.category" :options="categoryFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-48" aria-label="Archive category" @change="onFilterChange" />
-                    <Select v-model="filters.subjectType" :options="subjectTypeFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-44" aria-label="Subject type" @change="onSubjectTypeFilterChange" />
+                    <Select v-model="filters.category" :options="categoryFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-48" :aria-label="t('archives.filters.category')" @change="onFilterChange" />
+                    <Select v-model="filters.subjectType" :options="subjectTypeFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-44" :aria-label="t('archives.filters.subjectType')" @change="onSubjectTypeFilterChange" />
                     <Select
                         v-model="filters.subjectId"
                         :options="filterSubjects"
                         :optionLabel="subjectOptionText"
                         optionValue="id"
-                        :placeholder="filters.subjectType ? 'All subjects' : 'Select subject type first'"
+                        :placeholder="filters.subjectType ? t('archives.filters.allSubjects') : t('archives.filters.selectSubjectTypeFirst')"
                         :disabled="!filters.subjectType"
                         :loading="filterSubjectsLoading"
                         showClear
                         filter
                         class="w-full xl:w-64"
-                        aria-label="Subject"
+                        :aria-label="t('archives.filters.subject')"
                         @change="onFilterChange"
                     />
-                    <Select v-model="filters.validity" :options="validityFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-48" aria-label="Validity status" @change="onFilterChange" />
-                    <Select v-model="filters.status" :options="statusFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-40" aria-label="Archive status" @change="onFilterChange" />
+                    <Select v-model="filters.validity" :options="validityFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-48" :aria-label="t('archives.filters.validity')" @change="onFilterChange" />
+                    <Select v-model="filters.status" :options="statusFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-40" :aria-label="t('archives.filters.status')" @change="onFilterChange" />
                     <DatePicker
                         v-model="filters.dateFrom"
-                        placeholder="Document date from"
+                        :placeholder="t('archives.filters.dateFrom')"
                         dateFormat="yy-mm-dd"
                         showIcon
                         manualInput
                         fluid
                         class="w-full xl:w-44"
-                        aria-label="Document date from"
+                        :aria-label="t('archives.filters.dateFrom')"
                         @date-select="onDateFilterChange"
                         @blur="onDateFilterChange"
                     />
                     <DatePicker
                         v-model="filters.dateTo"
-                        placeholder="Document date to"
+                        :placeholder="t('archives.filters.dateTo')"
                         dateFormat="yy-mm-dd"
                         showIcon
                         manualInput
                         fluid
                         class="w-full xl:w-44"
-                        aria-label="Document date to"
+                        :aria-label="t('archives.filters.dateTo')"
                         @date-select="onDateFilterChange"
                         @blur="onDateFilterChange"
                     />
                     <div class="flex flex-wrap items-center gap-2 xl:ml-auto">
                         <Select v-model="filters.perPage" :options="perPageOptions" class="w-28" :aria-label="perPageLabel" @change="onFilterChange" />
-                        <Button icon="pi pi-refresh" label="Refresh" severity="secondary" variant="outlined" :loading="listLoading" aria-label="Refresh archive documents" @click="loadList" />
-                        <Button icon="pi pi-filter-slash" label="Reset" severity="secondary" variant="text" aria-label="Reset filters" @click="resetFilters" />
+                        <Button icon="pi pi-refresh" :label="t('archives.common.refresh')" severity="secondary" variant="outlined" :loading="listLoading" :aria-label="t('archives.buttons.refreshDocuments')" @click="loadList" />
+                        <Button icon="pi pi-filter-slash" :label="t('archives.common.reset')" severity="secondary" variant="text" :aria-label="t('archives.buttons.resetFilters')" @click="resetFilters" />
                     </div>
                 </div>
 
@@ -1078,112 +1080,131 @@ onBeforeUnmount(() => {
                     :loading="listLoading"
                     tableStyle="min-width: 96rem"
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} documents"
+                    :currentPageReportTemplate="t('archives.reportTemplate')"
                     @page="onPage"
                 >
-                    <template #loading>Loading archive documents. Please wait.</template>
+                    <template #loading>{{ t('archives.messages.loading') }}</template>
                     <template #empty>
                         <div class="flex flex-col items-center gap-3 py-6">
                             <span v-if="listError" class="text-red-500">{{ listError }}</span>
-                            <span v-else>No archive documents match the current filters.</span>
-                            <Button v-if="listError" icon="pi pi-refresh" label="Retry" @click="loadList" />
+                            <span v-else>{{ t('archives.messages.empty') }}</span>
+                            <Button v-if="listError" icon="pi pi-refresh" :label="t('archives.common.retry')" @click="loadList" />
                         </div>
                     </template>
-                    <Column header="Title" style="min-width: 18rem">
+                    <Column :header="t('archives.columns.title')" style="min-width: 18rem">
                         <template #body="{ data }">
                             <div class="flex flex-wrap items-center gap-2">
                                 <button type="button" class="text-left font-medium text-primary hover:underline" :title="data.title" @click="openDetail(data)">{{ data.title }}</button>
-                                <Tag v-if="data.status === 'archived'" value="Archived" :severity="statusSeverity.archived" />
+                                <Tag v-if="data.status === 'archived'" :value="t('archives.statuses.archived')" :severity="statusSeverity.archived" />
                             </div>
                             <div class="text-xs text-surface-500 mt-1">Version {{ data.version }} · {{ data.current_version }} file version{{ data.current_version === 1 ? '' : 's' }}</div>
                         </template>
                     </Column>
-                    <Column header="Category" style="min-width: 9rem">
+                    <Column :header="t('archives.columns.category')" style="min-width: 9rem">
                         <template #body="{ data }">
                             <Tag :value="data.category_label" severity="secondary" />
                         </template>
                     </Column>
-                    <Column header="Subject" style="min-width: 14rem">
+                    <Column :header="t('archives.columns.subject')" style="min-width: 14rem">
                         <template #body="{ data }">
                             <div v-if="data.subject">
                                 <div class="font-medium truncate" :title="data.subject.label">{{ data.subject.label }}</div>
                                 <div class="text-xs text-surface-500">{{ data.subject.secondary }}</div>
-                                <Tag v-if="data.subject.archived" value="Archived" severity="secondary" class="mt-1" />
+                                <Tag v-if="data.subject.archived" :value="t('archives.statuses.archived')" severity="secondary" class="mt-1" />
                             </div>
-                            <span v-else class="text-surface-500">No subject link</span>
+                            <span v-else class="text-surface-500">{{ t('archives.fields.noSubjectLink') }}</span>
                         </template>
                     </Column>
-                    <Column header="Number" style="min-width: 9rem">
+                    <Column :header="t('archives.columns.number')" style="min-width: 9rem">
                         <template #body="{ data }">
                             <span class="whitespace-nowrap">{{ data.document_number || '-' }}</span>
                         </template>
                     </Column>
-                    <Column header="Document Date" style="min-width: 9rem">
+                    <Column :header="t('archives.columns.documentDate')" style="min-width: 9rem">
                         <template #body="{ data }">
                             <span class="whitespace-nowrap">{{ formatDate(data.document_date) }}</span>
                         </template>
                     </Column>
-                    <Column header="Validity" style="min-width: 10rem">
+                    <Column :header="t('archives.columns.validity')" style="min-width: 10rem">
                         <template #body="{ data }">
                             <Tag :value="validityLabels[data.validity_status] ?? data.validity_status" :severity="validitySeverity[data.validity_status] ?? 'secondary'" />
                             <div class="text-xs text-surface-500 mt-1">
-                                <template v-if="data.valid_until">Until {{ formatDate(data.valid_until) }}</template>
-                                <template v-else>No expiry date</template>
+                                <template v-if="data.valid_until">{{ t('archives.until', { date: formatDate(data.valid_until) }) }}</template>
+                                <template v-else>{{ t('archives.noExpiry') }}</template>
                             </div>
                         </template>
                     </Column>
-                    <Column header="Updated" style="min-width: 11rem">
+                    <Column :header="t('archives.columns.updated')" style="min-width: 11rem">
                         <template #body="{ data }">
                             <span class="whitespace-nowrap">{{ formatDateTime(data.updated_at) }}</span>
                         </template>
                     </Column>
-                    <Column header="Actions" style="min-width: 16rem">
+                    <Column :header="t('archives.columns.actions')" style="min-width: 16rem">
                         <template #body="{ data }">
                             <div class="flex flex-wrap items-center gap-2">
-                                <Button icon="pi pi-eye" aria-label="View archive document" size="small" variant="outlined" rounded v-tooltip.top="'View'" @click="openDetail(data)" />
+                                <Button icon="pi pi-eye" :aria-label="t('archives.buttons.viewDocument')" size="small" variant="outlined" rounded v-tooltip.top="t('archives.tooltips.view')" @click="openDetail(data)" />
                                 <Button
                                     v-if="data.can?.update"
                                     icon="pi pi-pencil"
-                                    aria-label="Edit archive metadata"
+                                    :aria-label="t('archives.buttons.editMetadata')"
                                     size="small"
                                     variant="outlined"
                                     rounded
                                     :loading="editLoading && editTargetId === data.id"
-                                    v-tooltip.top="'Edit'"
+                                    v-tooltip.top="t('archives.tooltips.edit')"
                                     @click="openEdit(data)"
                                 />
-                                <Button v-if="data.can?.add_version" icon="pi pi-upload" aria-label="Add archive version" size="small" variant="outlined" rounded v-tooltip.top="'Add Version'" @click="openAddVersion(data)" />
                                 <Button
-                                    v-if="data.can?.preview"
-                                    icon="pi pi-search-plus"
-                                    aria-label="Preview current archive file"
+                                    v-if="data.can?.add_version"
+                                    icon="pi pi-upload"
+                                    :aria-label="t('archives.buttons.addVersion')"
                                     size="small"
                                     variant="outlined"
                                     rounded
-                                    v-tooltip.top="'Preview'"
+                                    v-tooltip.top="t('archives.tooltips.addVersion')"
+                                    @click="openAddVersion(data)"
+                                />
+                                <Button
+                                    v-if="data.can?.preview"
+                                    icon="pi pi-search-plus"
+                                    :aria-label="t('archives.buttons.previewCurrent')"
+                                    size="small"
+                                    variant="outlined"
+                                    rounded
+                                    v-tooltip.top="t('archives.tooltips.preview')"
                                     @click="openPreview(data.id, { version_number: data.current_version })"
                                 />
                                 <Button
                                     v-if="data.can?.download"
                                     icon="pi pi-download"
-                                    aria-label="Download current archive file"
+                                    :aria-label="t('archives.buttons.downloadCurrent')"
                                     size="small"
                                     variant="outlined"
                                     rounded
                                     :loading="downloadingKey === `${data.id}:${data.current_version}`"
-                                    v-tooltip.top="'Download'"
+                                    v-tooltip.top="t('archives.tooltips.download')"
                                     @click="downloadVersion(data.id, data.current_version)"
                                 />
-                                <Button v-if="data.can?.archive" icon="pi pi-box" aria-label="Archive document" size="small" variant="outlined" rounded severity="warn" v-tooltip.top="'Archive'" @click="openArchive(data)" />
+                                <Button
+                                    v-if="data.can?.archive"
+                                    icon="pi pi-box"
+                                    :aria-label="t('archives.buttons.archiveDocument')"
+                                    size="small"
+                                    variant="outlined"
+                                    rounded
+                                    severity="warn"
+                                    v-tooltip.top="t('archives.tooltips.archive')"
+                                    @click="openArchive(data)"
+                                />
                                 <Button
                                     v-if="data.can?.restore"
                                     icon="pi pi-undo"
-                                    label="Restore"
+                                    :label="t('archives.restore')"
                                     size="small"
                                     variant="outlined"
                                     severity="secondary"
                                     :loading="restoringId === data.id"
-                                    aria-label="Restore archived document"
+                                    :aria-label="t('archives.buttons.restoreDocument')"
                                     @click="submitRestore(data)"
                                 />
                             </div>
@@ -1194,48 +1215,48 @@ onBeforeUnmount(() => {
         </div>
     </Fluid>
 
-    <Dialog v-model:visible="createVisible" modal :draggable="false" :style="{ width: 'min(96vw, 56rem)' }" header="New Archive Document">
+    <Dialog v-model:visible="createVisible" modal :draggable="false" :style="{ width: 'min(96vw, 56rem)' }" :header="t('archives.dialogs.newTitle')">
         <div class="flex flex-col gap-4 max-h-[70vh] overflow-y-auto pr-1">
             <Message v-if="createError" severity="error" :closable="false">{{ createError }}</Message>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-2">
-                    <label for="archiveCreateCategory" class="font-medium">Category <span class="text-red-500">*</span></label>
+                    <label for="archiveCreateCategory" class="font-medium">{{ t('archives.fields.category') }} <span class="text-red-500">*</span></label>
                     <Select inputId="archiveCreateCategory" v-model="createForm.category" :options="categories" optionLabel="label" optionValue="value" placeholder="Select category" filter fluid />
                     <small v-if="fieldError(createErrors, 'category')" class="text-red-500">{{ fieldError(createErrors, 'category') }}</small>
                 </div>
                 <div class="flex flex-col gap-2">
-                    <label for="archiveCreateDocumentDate" class="font-medium">Document Date <span class="text-red-500">*</span></label>
+                    <label for="archiveCreateDocumentDate" class="font-medium">{{ t('archives.fields.documentDate') }} <span class="text-red-500">*</span></label>
                     <DatePicker inputId="archiveCreateDocumentDate" v-model="createForm.documentDate" dateFormat="yy-mm-dd" showIcon manualInput fluid />
                     <small v-if="fieldError(createErrors, 'document_date')" class="text-red-500">{{ fieldError(createErrors, 'document_date') }}</small>
                 </div>
             </div>
             <div class="flex flex-col gap-2">
-                <label for="archiveCreateTitle" class="font-medium">Title <span class="text-red-500">*</span></label>
-                <InputText id="archiveCreateTitle" v-model="createForm.title" :maxlength="titleMax" placeholder="Describe the archived document" fluid />
+                <label for="archiveCreateTitle" class="font-medium">{{ t('archives.fields.title') }} <span class="text-red-500">*</span></label>
+                <InputText id="archiveCreateTitle" v-model="createForm.title" :maxlength="titleMax" :placeholder="t('archives.fields.descriptionPlaceholder')" fluid />
                 <small class="text-surface-500">At least {{ titleMin }} characters. {{ createForm.title.trim().length }}/{{ titleMax }}</small>
                 <small v-if="fieldError(createErrors, 'title')" class="text-red-500">{{ fieldError(createErrors, 'title') }}</small>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-2">
-                    <label for="archiveCreateNumber" class="font-medium">Document Number</label>
-                    <InputText id="archiveCreateNumber" v-model="createForm.documentNumber" :maxlength="documentNumberMax" placeholder="Optional document number" fluid />
+                    <label for="archiveCreateNumber" class="font-medium">{{ t('archives.fields.documentNumber') }}</label>
+                    <InputText id="archiveCreateNumber" v-model="createForm.documentNumber" :maxlength="documentNumberMax" :placeholder="t('archives.fields.documentNumberPlaceholder')" fluid />
                     <small v-if="fieldError(createErrors, 'document_number')" class="text-red-500">{{ fieldError(createErrors, 'document_number') }}</small>
                 </div>
                 <div class="flex flex-col gap-2">
-                    <label for="archiveCreateSubjectType" class="font-medium">Subject Type</label>
+                    <label for="archiveCreateSubjectType" class="font-medium">{{ t('archives.fields.subjectType') }}</label>
                     <Select inputId="archiveCreateSubjectType" v-model="createForm.subjectType" :options="createSubjectTypeOptions" optionLabel="label" optionValue="value" fluid @change="onCreateSubjectTypeChange" />
                     <small v-if="fieldError(createErrors, 'subject_type')" class="text-red-500">{{ fieldError(createErrors, 'subject_type') }}</small>
                 </div>
             </div>
             <div v-if="createForm.subjectType" class="flex flex-col gap-2">
-                <label for="archiveCreateSubject" class="font-medium">Subject <span class="text-red-500">*</span></label>
+                <label for="archiveCreateSubject" class="font-medium">{{ t('archives.fields.subject') }} <span class="text-red-500">*</span></label>
                 <Select
                     inputId="archiveCreateSubject"
                     v-model="createForm.subjectId"
                     :options="createSubjectOptions"
                     :optionLabel="subjectOptionText"
                     optionValue="id"
-                    placeholder="Search and select a subject"
+                    :placeholder="t('archives.fields.searchSubject')"
                     :loading="createSubjectLoading"
                     filter
                     fluid
@@ -1273,12 +1294,12 @@ onBeforeUnmount(() => {
             </div>
         </div>
         <template #footer>
-            <Button label="Cancel" severity="secondary" variant="text" :disabled="createSaving" @click="createVisible = false" />
-            <Button label="Create Archive Document" icon="pi pi-check" :loading="createSaving" @click="submitCreate" />
+            <Button :label="t('archives.common.cancel')" severity="secondary" variant="text" :disabled="createSaving" @click="createVisible = false" />
+            <Button :label="t('archives.buttons.createDocument')" icon="pi pi-check" :loading="createSaving" @click="submitCreate" />
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="editVisible" modal :draggable="false" :style="{ width: 'min(96vw, 52rem)' }" header="Edit Archive Metadata">
+    <Dialog v-model:visible="editVisible" modal :draggable="false" :style="{ width: 'min(96vw, 52rem)' }" :header="t('archives.dialogs.editTitle')">
         <div class="flex flex-col gap-4 max-h-[70vh] overflow-y-auto pr-1">
             <Message v-if="editError" severity="error" :closable="false">{{ editError }}</Message>
             <div v-if="editTarget" class="text-sm text-surface-500">
@@ -1304,7 +1325,7 @@ onBeforeUnmount(() => {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-2">
                     <label for="archiveEditNumber" class="font-medium">Document Number</label>
-                    <InputText id="archiveEditNumber" v-model="editForm.documentNumber" :maxlength="documentNumberMax" placeholder="Optional document number" fluid />
+                    <InputText id="archiveEditNumber" v-model="editForm.documentNumber" :maxlength="documentNumberMax" :placeholder="t('archives.fields.documentNumberPlaceholder')" fluid />
                     <small v-if="fieldError(editErrors, 'document_number')" class="text-red-500">{{ fieldError(editErrors, 'document_number') }}</small>
                 </div>
                 <div class="flex flex-col gap-2">
@@ -1314,7 +1335,7 @@ onBeforeUnmount(() => {
                             <div class="font-medium">{{ editTarget.subject.label }}</div>
                             <div class="text-xs text-surface-500">{{ editTarget.subject.secondary }}</div>
                         </template>
-                        <span v-else class="text-surface-500">No subject link</span>
+                        <span v-else class="text-surface-500">{{ t('archives.fields.noSubjectLink') }}</span>
                     </div>
                     <small class="text-surface-500">The subject link cannot be changed after creation.</small>
                 </div>
@@ -1341,11 +1362,11 @@ onBeforeUnmount(() => {
         </div>
         <template #footer>
             <Button label="Cancel" severity="secondary" variant="text" :disabled="editSaving" @click="editVisible = false" />
-            <Button label="Save Changes" icon="pi pi-check" :loading="editSaving" @click="submitEdit" />
+            <Button :label="t('archives.common.saveChanges')" icon="pi pi-check" :loading="editSaving" @click="submitEdit" />
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="detailVisible" modal :draggable="false" :style="{ width: 'min(96vw, 64rem)' }" header="Archive Document">
+    <Dialog v-model:visible="detailVisible" modal :draggable="false" :style="{ width: 'min(96vw, 64rem)' }" :header="t('archives.dialogs.viewTitle')">
         <div class="flex flex-col gap-3 max-h-[74vh] overflow-y-auto pr-1">
             <div v-if="detailLoading" class="py-8 text-center text-surface-500">Loading archive document...</div>
             <TabView v-else-if="detail" v-model:activeIndex="detailTab" @tab-change="onDetailTabChange">
@@ -1577,7 +1598,7 @@ onBeforeUnmount(() => {
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="addVisible" modal :draggable="false" :style="{ width: 'min(96vw, 44rem)' }" header="Add Archive Version">
+    <Dialog v-model:visible="addVisible" modal :draggable="false" :style="{ width: 'min(96vw, 44rem)' }" :header="t('archives.dialogs.addVersionTitle')">
         <div class="flex flex-col gap-4 max-h-[70vh] overflow-y-auto pr-1">
             <Message v-if="addError" severity="error" :closable="false">{{ addError }}</Message>
             <div v-if="addTarget" class="text-sm text-surface-500">
@@ -1606,7 +1627,7 @@ onBeforeUnmount(() => {
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="archiveVisible" modal :draggable="false" :style="{ width: 'min(94vw, 38rem)' }" header="Archive Document">
+    <Dialog v-model:visible="archiveVisible" modal :draggable="false" :style="{ width: 'min(94vw, 38rem)' }" :header="t('archives.dialogs.viewTitle')">
         <div class="flex flex-col gap-4 max-h-[70vh] overflow-y-auto pr-1">
             <Message v-if="archiveError" severity="error" :closable="false">{{ archiveError }}</Message>
             <div v-if="archiveTarget" class="text-sm text-surface-500">
@@ -1625,11 +1646,11 @@ onBeforeUnmount(() => {
         </div>
         <template #footer>
             <Button label="Cancel" severity="secondary" variant="text" :disabled="archiveSaving" @click="archiveVisible = false" />
-            <Button label="Archive Document" icon="pi pi-box" severity="warn" :loading="archiveSaving" @click="submitArchive" />
+            <Button :label="t('archives.buttons.archiveDocument')" icon="pi pi-box" severity="warn" :loading="archiveSaving" @click="submitArchive" />
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="previewVisible" modal :draggable="false" :style="{ width: 'min(96vw, 72rem)' }" header="Archive File Preview" @hide="closePreview">
+    <Dialog v-model:visible="previewVisible" modal :draggable="false" :style="{ width: 'min(96vw, 72rem)' }" :header="t('archives.dialogs.previewTitle')" @hide="closePreview">
         <div v-if="previewLoading" class="flex justify-center py-12">
             <i class="pi pi-spin pi-spinner text-2xl" aria-label="Loading archive preview"></i>
         </div>
@@ -1645,7 +1666,7 @@ onBeforeUnmount(() => {
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="conflictVisible" modal :draggable="false" :style="{ width: 'min(94vw, 34rem)' }" header="Conflict">
+    <Dialog v-model:visible="conflictVisible" modal :draggable="false" :style="{ width: 'min(94vw, 34rem)' }" :header="t('archives.common.conflictTitle')">
         <div class="flex flex-col gap-3">
             <Message severity="warn" :closable="false">{{ conflictMessage }}</Message>
             <p class="text-sm text-surface-500">Reload the latest archive documents to see the current version before trying again.</p>

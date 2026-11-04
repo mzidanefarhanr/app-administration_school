@@ -1,9 +1,11 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { authStore } from '@/stores/authStore';
 import { useRouter } from 'vue-router';
 import gifSuccess from '@/assets/gif/success.gif';
 
+const { t, te } = useI18n();
 const useAuthStore = authStore();
 const router = useRouter();
 
@@ -14,13 +16,14 @@ const visibleStaticBackdropWaiting = ref(false);
 
 // Nama tampilan pengguna login (dari check-auth). Null-safe.
 const userName = computed(() => useAuthStore.displayName);
-const roleLabels = {
-    'admin-sistem': 'System Administrator',
-    'operator-sekolah': 'School Operator',
-    'kepala-sekolah': 'Principal',
-    'wakil-kesiswaan': 'Vice Principal for Student Affairs'
+const roleKeyMap = {
+    'admin-sistem': 'layout.userMenu.roles.adminSistem',
+    'operator-sekolah': 'layout.userMenu.roles.operatorSekolah',
+    'kepala-sekolah': 'layout.userMenu.roles.kepalaSekolah',
+    'wakil-kesiswaan': 'layout.userMenu.roles.wakilKesiswaan',
+    guru: 'layout.userMenu.roles.guru'
 };
-const displayedRoles = computed(() => useAuthStore.roles.map((role) => roleLabels[role] ?? role).join(', '));
+const displayedRoles = computed(() => useAuthStore.roles.map((role) => (roleKeyMap[role] && te(roleKeyMap[role]) ? t(roleKeyMap[role]) : role)).join(', '));
 
 //function visibleStaticBackdropWaitings
 function visibleStaticBackdropWaitings() {
@@ -38,8 +41,8 @@ function clickLogOt() {
     useAuthStore.logOut().then((result) => {
         visibleStaticBackdropWaitings();
         visibleStaticBackdropSuccesss();
-        titleSuccess.value = 'Signed out';
-        fieldSuccess.value = result?.serverSuccess !== false ? 'You have been signed out. Please wait a moment.' : 'Signed out locally. Could not reach server to terminate session.';
+        titleSuccess.value = t('layout.userMenu.signedOut');
+        fieldSuccess.value = result?.serverSuccess !== false ? t('layout.userMenu.signedOutDetail') : t('layout.userMenu.signedOutLocalDetail');
         setTimeout(function () {
             visibleStaticBackdropSuccesss();
             router.push({ path: '/auth/login' });
@@ -67,22 +70,22 @@ onMounted(() => {
                 <button v-ripple class="relative overflow-hidden w-full border-0 bg-transparent flex items-start p-2 pl-4 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-none cursor-pointer transition-colors duration-200">
                     <Avatar image="https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png" class="mr-2" shape="circle" />
                     <span class="inline-flex flex-col items-start">
-                        <span class="font-bold">{{ userName || 'Loading...' }}</span>
+                        <span class="font-bold">{{ userName || t('layout.userMenu.loading') }}</span>
                         <span class="text-sm">{{ displayedRoles }}</span>
                     </span>
                 </button>
             </div>
             <div class="flex flex-col gap-2">
-                <span class="text-surface-900 dark:text-white font-bold">Users</span>
+                <span class="text-surface-900 dark:text-white font-bold">{{ t('layout.userMenu.title') }}</span>
                 <button
                     @click="clickShowProfile()"
                     v-ripple
                     class="relative overflow-hidden w-full border-0 bg-transparent flex items-start p-2 pl-4 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-none cursor-pointer transition-colors duration-200"
                 >
                     <i class="pi pi-user-edit pe-2"></i>
-                    <span> Profile</span>
+                    <span>{{ t('layout.userMenu.profile') }}</span>
                 </button>
-                <Button label="Logout" icon="pi pi-sign-out" @click="clickLogOt()" type="button" class="inputClassButton_1" />
+                <Button :label="t('layout.userMenu.logout')" icon="pi pi-sign-out" @click="clickLogOt()" type="button" class="inputClassButton_1" />
             </div>
         </div>
     </div>
@@ -93,10 +96,10 @@ onMounted(() => {
     </Dialog>
 
     <!-- Waiting Dialog -->
-    <Dialog v-model:visible="visibleStaticBackdropWaiting" modal header="Processing Request">
+    <Dialog v-model:visible="visibleStaticBackdropWaiting" modal :header="t('common.state.processing')">
         <div class="text-center justify-content-center align-items-center">
             <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: green"></i>
-            <p class="text-success" style="font-size: medium">Loading...</p>
+            <p class="text-success" style="font-size: medium">{{ t('common.state.loading') }}</p>
         </div>
     </Dialog>
 </template>

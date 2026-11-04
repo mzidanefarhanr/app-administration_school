@@ -1,9 +1,11 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import apiLogin from '@/apiLogin';
 import { useLayout } from '@/layout/composables/layout';
 import { authStore } from '@/stores/authStore';
 
+const { t, locale } = useI18n();
 const { isDarkTheme } = useLayout();
 const store = authStore();
 
@@ -26,8 +28,8 @@ const buildChartConfig = () => {
     const textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary') || '#6c757d';
     const surfaceBorder = documentStyle.getPropertyValue('--surface-border') || '#dfe7ef';
 
-    const maleColor = documentStyle.getPropertyValue('--p-primary-500') || '#3B82F6';
-    const femaleColor = documentStyle.getPropertyValue('--p-pink-400') || '#EC4899';
+    const maleColor = documentStyle.getPropertyValue('--sk-gender-l') || '#0ea5e9';
+    const femaleColor = documentStyle.getPropertyValue('--sk-gender-p') || '#ec4899';
 
     const datasets = (rawData.value.datasets || [])
         .filter((ds) => ds.label !== 'Total')
@@ -35,7 +37,7 @@ const buildChartConfig = () => {
             const isMale = ds.label.toLowerCase().includes('laki') || ds.label.toLowerCase().includes('male');
             const color = isMale ? maleColor : femaleColor;
             return {
-                label: ds.label,
+                label: isMale ? t('dashboard.studentDistribution.male') : t('dashboard.studentDistribution.female'),
                 data: ds.data,
                 backgroundColor: color,
                 borderColor: color,
@@ -109,13 +111,13 @@ const load = async () => {
         rawData.value = response.data?.data?.students_by_level ?? null;
         buildChartConfig();
     } catch {
-        error.value = 'Data grafik distribusi siswa tidak dapat dimuat.';
+        error.value = t('dashboard.studentDistribution.error');
     } finally {
         loading.value = false;
     }
 };
 
-watch(isDarkTheme, () => {
+watch([isDarkTheme, locale], () => {
     buildChartConfig();
 });
 
@@ -130,29 +132,29 @@ defineExpose({ load });
     <div class="card mb-6">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <div class="font-semibold text-xl">Distribusi Siswa per Rombel</div>
-                <div class="text-xs text-muted-color">Komposisi jumlah siswa per kelas dan jenis kelamin</div>
+                <div class="font-semibold text-xl">{{ t('dashboard.studentDistribution.title') }}</div>
+                <div class="text-xs text-muted-color">{{ t('dashboard.studentDistribution.subtitle') }}</div>
             </div>
-            <Button v-if="canViewStudents" icon="pi pi-refresh" size="small" variant="text" severity="secondary" :loading="loading" aria-label="Segarkan grafik siswa" @click="load" />
+            <Button v-if="canViewStudents" icon="pi pi-refresh" size="small" variant="text" severity="secondary" :loading="loading" :aria-label="t('dashboard.studentDistribution.refreshAria')" @click="load" />
         </div>
 
         <div v-if="!canViewStudents" class="flex flex-col items-center justify-center py-12 text-surface-400 text-center">
             <i class="pi pi-lock text-3xl mb-2" aria-hidden="true"></i>
-            <span class="text-sm">Grafik distribusi siswa memerlukan kemampuan melihat data siswa (students.view).</span>
+            <span class="text-sm">{{ t('dashboard.studentDistribution.permissionRequired') }}</span>
         </div>
 
         <div v-else-if="loading" class="flex items-center justify-center py-16 text-surface-500 gap-3">
             <i class="pi pi-spin pi-spinner text-lg" aria-hidden="true"></i>
-            <span class="text-sm">Memuat visualisasi siswa...</span>
+            <span class="text-sm">{{ t('dashboard.studentDistribution.loading') }}</span>
         </div>
 
         <div v-else-if="error" class="flex flex-col items-center justify-center py-12 text-center text-red-500">
             <i class="pi pi-exclamation-triangle text-2xl mb-2" aria-hidden="true"></i>
             <span class="text-sm">{{ error }}</span>
-            <Button label="Coba Lagi" icon="pi pi-refresh" size="small" severity="secondary" variant="outlined" class="mt-3" @click="load" />
+            <Button :label="t('common.action.retry')" icon="pi pi-refresh" size="small" severity="secondary" variant="outlined" class="mt-3" @click="load" />
         </div>
 
-        <div v-else-if="!chartData || !chartData.labels || !chartData.labels.length" class="py-12 text-center text-surface-400 text-sm">Belum ada rombel atau data siswa terdaftar pada tahun ajaran aktif.</div>
+        <div v-else-if="!chartData || !chartData.labels || !chartData.labels.length" class="py-12 text-center text-surface-400 text-sm">{{ t('dashboard.studentDistribution.empty') }}</div>
 
         <div v-else class="h-80">
             <Chart type="bar" :data="chartData" :options="chartOptions" class="h-full w-full" />

@@ -1,28 +1,47 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import Breadcrumb from 'primevue/breadcrumb';
 
 const route = useRoute();
+const { t, te } = useI18n();
+
+// Helper untuk menerjemahkan label breadcrumb (kunci i18n, fallback string asli)
+function resolveBreadcrumbLabel(match) {
+    const key = match.meta?.breadcrumbKey;
+    if (key && te(key)) {
+        return t(key);
+    }
+    const legacyKey = match.meta?.breadcrumb;
+    if (legacyKey && te(legacyKey)) {
+        return t(legacyKey);
+    }
+    if (match.name && te(`menu.item.${match.name}`)) {
+        return t(`menu.item.${match.name}`);
+    }
+    return match.meta?.breadcrumb || '';
+}
 
 // Dynamically generate breadcrumb paths based on router metadata
 const breadcrumbItems = computed(() => {
     // route.matched contains the complete tree chain of the active view page
     return route.matched
-        .filter((match) => match.meta && match.meta.breadcrumb) // Only pick routes with custom labels
+        .filter((match) => match.meta && (match.meta.breadcrumb || match.meta.breadcrumbKey))
         .map((match) => {
             return {
-                label: match.meta.breadcrumb, // Delivers your custom menu title text!
-                to: match.path // Smooth SPA destination redirect links
+                label: resolveBreadcrumbLabel(match),
+                to: match.path
             };
         });
 });
 
 // The standard static starting root home node configuration
-const homeItem = ref({
+const homeItem = computed(() => ({
     icon: 'pi pi-home',
-    to: '/'
-});
+    to: '/',
+    label: t('menu.group.home')
+}));
 </script>
 
 <template>

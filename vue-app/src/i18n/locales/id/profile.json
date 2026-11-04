@@ -1,0 +1,49 @@
+{
+    "stats": {
+        "followers": "Pengikut",
+        "projects": "Proyek",
+        "collections": "Koleksi",
+        "shots": "Karya"
+    },
+    "verticalForm": {
+        "title": "Formulir Vertikal",
+        "name": "Nama",
+        "email": "Email",
+        "age": "Usia"
+    },
+    "changePassword": {
+        "title": "Ubah Kata Sandi",
+        "currentPassword": "Kata Sandi Saat Ini",
+        "newPassword": "Kata Sandi Baru (min 12 karakter)",
+        "confirmNewPassword": "Konfirmasi Kata Sandi Baru",
+        "passwordMismatch": "Konfirmasi kata sandi tidak cocok!"
+    },
+    "advancedForm": {
+        "title": "Formulir Lanjutan",
+        "firstName": "Nama Depan",
+        "lastName": "Nama Belakang",
+        "address": "Alamat",
+        "state": "Provinsi / Wilayah",
+        "selectOne": "Pilih Salah Satu",
+        "zip": "Kode Pos"
+    },
+    "dialog": {
+        "warningHeader": "Peringatan!",
+        "warningMessage": "Apakah informasi yang Anda masukkan sudah benar?",
+        "confirmHeader": "Apakah Anda yakin ingin mengubah kata sandi?",
+        "confirmMessage": "Klik Simpan untuk melanjutkan.",
+        "cancelledSummary": "Dibatalkan",
+        "cancelledDetail": "Perubahan kata sandi dibatalkan.",
+        "successTitle": "Berhasil",
+        "successMessage": "Kata sandi berhasil diubah!",
+        "waitingHeader": "Mohon tunggu sementara informasi Anda sedang diproses.",
+        "loading": "Memuat...",
+        "failedTitle": "Gagal",
+        "requiredFields": "Semua bidang kata sandi wajib diisi.",
+        "minLength": "Kata sandi baru harus minimal 12 karakter.",
+        "mismatch": "Kata sandi baru dan konfirmasi tidak cocok.",
+        "sameAsOld": "Kata sandi baru tidak boleh sama dengan kata sandi saat ini.",
+        "validationError": "Terjadi kesalahan validasi. Silakan periksa kembali isian Anda.",
+        "unexpectedError": "Terjadi kesalahan yang tidak diharapkan."
+    }
+}

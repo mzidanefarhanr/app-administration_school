@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import { useToast } from 'primevue/usetoast';
 import apiLogin from '@/apiLogin';
@@ -7,6 +8,7 @@ import { authStore } from '@/stores/authStore';
 
 const store = authStore();
 const toast = useToast();
+const { t, locale } = useI18n();
 
 const data = ref(null);
 const loading = ref(false);
@@ -53,35 +55,38 @@ const canManageHeader = computed(() => data.value?.permissions?.can_manage_heade
 const canManageSignatory = computed(() => data.value?.permissions?.can_manage_signatory === true);
 const settingsVersion = computed(() => settings.value?.version ?? 0);
 
-const missingLabels = {
-    active_school_year: 'Active school year',
-    school_profile: 'School profile',
-    header: 'Letterhead',
-    signatory: 'Signatory identity',
-    signature: 'Signature image'
-};
+const missingLabels = computed(() => ({
+    active_school_year: t('letters.settings.missing.active_school_year'),
+    school_profile: t('letters.settings.missing.school_profile'),
+    header: t('letters.settings.missing.header'),
+    signatory: t('letters.settings.missing.signatory'),
+    signature: t('letters.settings.missing.signature'),
+    stamp: t('letters.settings.missing.stamp')
+}));
 
 const readinessItems = computed(() => {
     const state = readiness.value;
     if (!state) return [];
+    const labels = missingLabels.value;
 
     return [
-        { key: 'active_year', label: missingLabels.active_school_year, ready: state.active_year },
-        { key: 'profile', label: missingLabels.school_profile, ready: state.profile },
-        { key: 'header', label: missingLabels.header, ready: state.header },
-        { key: 'signatory', label: missingLabels.signatory, ready: state.signatory },
-        { key: 'signature', label: missingLabels.signature, ready: state.signature },
+        { key: 'active_year', label: labels.active_school_year, ready: state.active_year },
+        { key: 'profile', label: labels.school_profile, ready: state.profile },
+        { key: 'header', label: labels.header, ready: state.header },
+        { key: 'signatory', label: labels.signatory, ready: state.signatory },
+        { key: 'signature', label: labels.signature, ready: state.signature },
         { key: 'template', label: 'PDF templates', ready: state.template }
     ];
 });
 
 const missingText = computed(() => {
     const missing = readiness.value?.missing ?? [];
-    return missing.map((key) => missingLabels[key] ?? key).join(', ');
+    const labels = missingLabels.value;
+    return missing.map((key) => labels[key] ?? key).join(', ');
 });
 
 const notify = (severity, detail) => {
-    toast.add({ severity, summary: 'Letter Settings', detail, life: 5000 });
+    toast.add({ severity, summary: t('letters.settings.title'), detail, life: 5000 });
 };
 
 const errorMessage = (error, fallback) => error.response?.data?.message ?? fallback;
@@ -330,18 +335,18 @@ onBeforeUnmount(() => {
         <div class="bg-surface-0 dark:bg-surface-950 px-4 py-6 sm:px-6 sm:py-8 md:px-12 lg:px-20">
             <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div>
-                    <div class="font-bold text-2xl sm:text-3xl text-surface-900 dark:text-surface-0 mb-2">Letter Settings</div>
-                    <p class="text-surface-500 dark:text-surface-400">Letterhead, logo, signatory, signature, and stamp used to render typed letter PDFs for the active school year.</p>
+                    <div class="font-bold text-2xl sm:text-3xl text-surface-900 dark:text-surface-0 mb-2">{{ t('letters.settings.title') }}</div>
+                    <p class="text-surface-500 dark:text-surface-400">{{ t('letters.settings.subtitle') }}</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                     <Tag v-if="data?.active_school_year" :value="data.active_school_year.name" severity="secondary" />
-                    <Tag v-if="readiness" :value="readiness.ready ? 'Ready' : 'Incomplete'" :severity="readiness.ready ? 'success' : 'warn'" />
+                    <Tag v-if="readiness" :value="readiness.ready ? t('letters.settings.ready') : t('letters.settings.incomplete')" :severity="readiness.ready ? 'success' : 'warn'" />
                 </div>
             </div>
 
             <div v-if="loadError" class="mt-4 flex flex-col sm:flex-row sm:items-center gap-3 rounded border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950 px-4 py-3 text-sm text-red-700 dark:text-red-300">
                 <span class="flex-1">{{ loadError }}</span>
-                <Button label="Retry" icon="pi pi-refresh" size="small" severity="secondary" variant="outlined" @click="load" />
+                <Button :label="t('letters.common.retry')" icon="pi pi-refresh" size="small" severity="secondary" variant="outlined" @click="load" />
             </div>
 
             <Message v-if="conflictMessage" severity="warn" class="mt-4" :closable="false">{{ conflictMessage }}</Message>
@@ -353,30 +358,30 @@ onBeforeUnmount(() => {
             <template v-else-if="data">
                 <div class="mt-6 grid grid-cols-1 xl:grid-cols-3 gap-4">
                     <div class="card xl:col-span-1">
-                        <div class="font-semibold text-lg mb-3">Active Period</div>
+                        <div class="font-semibold text-lg mb-3">{{ t('letters.settings.activePeriodCard') }}</div>
                         <div class="flex flex-col gap-3 text-sm">
                             <div>
-                                <div class="text-surface-500">School year</div>
-                                <div class="font-medium">{{ data.active_school_year?.name ?? 'No active school year' }}</div>
+                                <div class="text-surface-500">{{ t('letters.settings.schoolYear') }}</div>
+                                <div class="font-medium">{{ data.active_school_year?.name ?? t('letters.settings.noActiveSchoolYear') }}</div>
                             </div>
                             <div>
-                                <div class="text-surface-500">School profile</div>
-                                <div class="font-medium">{{ data.school_profile?.school_name ?? 'No profile for the active year' }}</div>
+                                <div class="text-surface-500">{{ t('letters.settings.schoolProfile') }}</div>
+                                <div class="font-medium">{{ data.school_profile?.school_name ?? t('letters.settings.noProfileForActiveYear') }}</div>
                                 <div v-if="data.school_profile?.npsn" class="text-xs text-surface-500">NPSN {{ data.school_profile.npsn }}</div>
                             </div>
                             <div class="border-t border-surface-200 dark:border-surface-700 pt-3">
-                                <div class="text-surface-500 mb-2">Readiness</div>
+                                <div class="text-surface-500 mb-2">{{ t('letters.settings.readiness') }}</div>
                                 <ul class="flex flex-col gap-2">
                                     <li v-for="item in readinessItems" :key="item.key" class="flex items-center gap-2">
                                         <i :class="item.ready ? 'pi pi-check-circle text-green-500' : 'pi pi-circle text-surface-400'" aria-hidden="true"></i>
                                         <span :class="item.ready ? '' : 'text-surface-500'">{{ item.label }}</span>
                                     </li>
                                 </ul>
-                                <Message v-if="!readiness.ready" severity="warn" class="mt-3" :closable="false">Missing: {{ missingText }}</Message>
+                                <Message v-if="!readiness.ready" severity="warn" class="mt-3" :closable="false">{{ t('letters.settings.missingText', { items: missingText }) }}</Message>
                             </div>
                             <div class="text-xs text-surface-500">
-                                Typed letters can only be issued when every readiness item is complete.
-                                <router-link to="/public/schoolprofile" class="text-primary font-medium">Open School Profile</router-link>
+                                {{ t('letters.settings.readinessHint') }}
+                                <router-link to="/public/schoolprofile" class="text-primary font-medium">{{ t('letters.settings.openSchoolProfile') }}</router-link>
                             </div>
                         </div>
                     </div>
@@ -384,43 +389,43 @@ onBeforeUnmount(() => {
                     <div class="card xl:col-span-2">
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                             <div>
-                                <div class="font-semibold text-lg">Letterhead</div>
-                                <div class="text-sm text-surface-500">Printed at the top of every typed letter PDF.</div>
+                                <div class="font-semibold text-lg">{{ t('letters.settings.headerCard') }}</div>
+                                <div class="text-sm text-surface-500">{{ t('letters.settings.printedAtTop') }}</div>
                             </div>
-                            <Tag v-if="settings" :value="`Version ${settings.version}`" severity="contrast" />
+                            <Tag v-if="settings" :value="t('letters.settings.versionBadge', { version: settings.version })" severity="contrast" />
                         </div>
 
                         <form v-if="canManageHeader" class="flex flex-col gap-4" @submit.prevent="submitHeader">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="flex flex-col gap-2 md:col-span-2">
-                                    <label for="letterGovernmentLine" class="font-medium">Government line</label>
-                                    <InputText id="letterGovernmentLine" v-model="headerForm.government_line" maxlength="150" placeholder="e.g. PEMERINTAH KOTA ..." />
+                                    <label for="letterGovernmentLine" class="font-medium">{{ t('letters.settings.fields.governmentLine') }}</label>
+                                    <InputText id="letterGovernmentLine" v-model="headerForm.government_line" maxlength="150" :placeholder="t('letters.settings.fields.governmentLinePlaceholder')" />
                                     <small v-if="fieldError(headerErrors, 'government_line')" class="text-red-500">{{ fieldError(headerErrors, 'government_line') }}</small>
                                 </div>
                                 <div class="flex flex-col gap-2">
-                                    <label for="letterSchoolName" class="font-medium">School name</label>
+                                    <label for="letterSchoolName" class="font-medium">{{ t('letters.settings.fields.schoolName') }}</label>
                                     <InputText id="letterSchoolName" v-model="headerForm.school_name" maxlength="150" />
                                     <small v-if="fieldError(headerErrors, 'school_name')" class="text-red-500">{{ fieldError(headerErrors, 'school_name') }}</small>
                                 </div>
                                 <div class="flex flex-col gap-2">
-                                    <label for="letterPlaceOfIssue" class="font-medium">Place of issue</label>
+                                    <label for="letterPlaceOfIssue" class="font-medium">{{ t('letters.settings.fields.placeOfIssue') }}</label>
                                     <InputText id="letterPlaceOfIssue" v-model="headerForm.place_of_issue" maxlength="100" />
                                     <small v-if="fieldError(headerErrors, 'place_of_issue')" class="text-red-500">{{ fieldError(headerErrors, 'place_of_issue') }}</small>
                                 </div>
                                 <div class="flex flex-col gap-2 md:col-span-2">
-                                    <label for="letterAddressLine" class="font-medium">Address</label>
+                                    <label for="letterAddressLine" class="font-medium">{{ t('letters.settings.fields.address') }}</label>
                                     <InputText id="letterAddressLine" v-model="headerForm.address_line" maxlength="255" />
                                     <small v-if="fieldError(headerErrors, 'address_line')" class="text-red-500">{{ fieldError(headerErrors, 'address_line') }}</small>
                                 </div>
                                 <div class="flex flex-col gap-2 md:col-span-2">
-                                    <label for="letterContactLine" class="font-medium">Contact line</label>
-                                    <InputText id="letterContactLine" v-model="headerForm.contact_line" maxlength="150" placeholder="Phone, email, or website" />
+                                    <label for="letterContactLine" class="font-medium">{{ t('letters.settings.fields.contact') }}</label>
+                                    <InputText id="letterContactLine" v-model="headerForm.contact_line" maxlength="150" :placeholder="t('letters.settings.fields.contactPlaceholder')" />
                                     <small v-if="fieldError(headerErrors, 'contact_line')" class="text-red-500">{{ fieldError(headerErrors, 'contact_line') }}</small>
                                 </div>
                             </div>
 
                             <div class="border border-surface-200 dark:border-surface-700 rounded p-3 flex flex-col gap-3">
-                                <div class="font-medium">Logo</div>
+                                <div class="font-medium">{{ t('letters.settings.fields.logo') }}</div>
                                 <div class="flex flex-col sm:flex-row sm:items-center gap-3">
                                     <img
                                         v-if="filePreviews.logo || (assetUrls.logo && !headerRemoveLogo)"
@@ -428,16 +433,16 @@ onBeforeUnmount(() => {
                                         alt="School logo preview"
                                         class="h-16 w-16 object-contain rounded border border-surface-200 dark:border-surface-700 bg-white p-1"
                                     />
-                                    <span v-else class="text-sm text-surface-500">No logo uploaded.</span>
+                                    <span v-else class="text-sm text-surface-500">{{ t('letters.settings.fields.noLogo') }}</span>
                                     <div class="flex flex-col gap-2">
                                         <input ref="headerLogoInput" type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg" class="block w-full text-sm" aria-label="Choose a school logo" @change="onLogoSelected" />
                                         <div v-if="settings?.logo_available" class="flex items-center gap-2">
                                             <Checkbox v-model="headerRemoveLogo" binary inputId="removeLetterLogo" @change="onRemoveLogoChange" />
-                                            <label for="removeLetterLogo" class="text-sm">Remove current logo</label>
+                                            <label for="removeLetterLogo" class="text-sm">{{ t('letters.settings.removeLogo') }}</label>
                                         </div>
                                     </div>
                                 </div>
-                                <small class="text-surface-500">PNG, JPG, or JPEG. Maximum 2 MB and 2000 pixels per side. Images are stored privately and re-encoded.</small>
+                                <small class="text-surface-500">{{ t('letters.settings.logoHint') }}</small>
                                 <small v-if="fieldError(headerErrors, 'logo')" class="text-red-500">{{ fieldError(headerErrors, 'logo') }}</small>
                             </div>
 
@@ -445,7 +450,7 @@ onBeforeUnmount(() => {
                             <small v-if="fieldError(headerErrors, 'letter_settings')" class="text-red-500">{{ fieldError(headerErrors, 'letter_settings') }}</small>
 
                             <div class="flex justify-end">
-                                <Button type="submit" label="Save Header" icon="pi pi-check" :loading="headerSaving" />
+                                <Button type="submit" :label="t('letters.settings.actions.saveHeader')" icon="pi pi-check" :loading="headerSaving" />
                             </div>
                         </form>
 
@@ -476,7 +481,7 @@ onBeforeUnmount(() => {
                                 <img v-if="assetUrls.logo" :src="assetUrls.logo" alt="School logo" class="h-16 w-16 object-contain rounded border border-surface-200 dark:border-surface-700 bg-white p-1" />
                                 <span v-else class="text-surface-500">No logo uploaded.</span>
                             </div>
-                            <Message severity="info" :closable="false">You can view letterhead settings but not edit them.</Message>
+                            <Message severity="info" :closable="false">{{ t('letters.settings.viewOnlyHeader') }}</Message>
                         </div>
                     </div>
                 </div>
@@ -484,31 +489,31 @@ onBeforeUnmount(() => {
                 <div class="card mt-4">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                         <div>
-                            <div class="font-semibold text-lg">Signatory</div>
-                            <div class="text-sm text-surface-500">Name, title, signature, and stamp printed on issued letters.</div>
+                            <div class="font-semibold text-lg">{{ t('letters.settings.signatoryCard') }}</div>
+                            <div class="text-sm text-surface-500">{{ t('letters.settings.signatorySubtitle') }}</div>
                         </div>
-                        <Tag v-if="settings" :value="`Version ${settings.version}`" severity="contrast" />
+                        <Tag v-if="settings" :value="t('letters.settings.versionBadge', { version: settings.version })" severity="contrast" />
                     </div>
 
                     <form v-if="canManageSignatory" class="flex flex-col gap-4" @submit.prevent="submitSignatory">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="flex flex-col gap-2">
-                                <label for="letterSignatoryName" class="font-medium">Name <span class="text-red-500">*</span></label>
+                                <label for="letterSignatoryName" class="font-medium">{{ t('letters.settings.fields.signatoryName') }} <span class="text-red-500">*</span></label>
                                 <InputText id="letterSignatoryName" v-model="signatoryForm.signatory_name" maxlength="150" />
                                 <small v-if="fieldError(signatoryErrors, 'signatory_name')" class="text-red-500">{{ fieldError(signatoryErrors, 'signatory_name') }}</small>
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label for="letterSignatoryTitle" class="font-medium">Title <span class="text-red-500">*</span></label>
+                                <label for="letterSignatoryTitle" class="font-medium">{{ t('letters.settings.fields.jobTitle') }} <span class="text-red-500">*</span></label>
                                 <InputText id="letterSignatoryTitle" v-model="signatoryForm.signatory_title" maxlength="150" />
                                 <small v-if="fieldError(signatoryErrors, 'signatory_title')" class="text-red-500">{{ fieldError(signatoryErrors, 'signatory_title') }}</small>
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label for="letterIdentifierLabel" class="font-medium">Identifier label</label>
+                                <label for="letterIdentifierLabel" class="font-medium">{{ t('letters.settings.fields.idLabel') }}</label>
                                 <InputText id="letterIdentifierLabel" v-model="signatoryForm.signatory_identifier_label" maxlength="30" placeholder="NIP" />
                                 <small v-if="fieldError(signatoryErrors, 'signatory_identifier_label')" class="text-red-500">{{ fieldError(signatoryErrors, 'signatory_identifier_label') }}</small>
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label for="letterIdentifier" class="font-medium">Identifier</label>
+                                <label for="letterIdentifier" class="font-medium">{{ t('letters.settings.fields.idValue') }}</label>
                                 <InputText id="letterIdentifier" v-model="signatoryForm.signatory_identifier" maxlength="50" />
                                 <small v-if="fieldError(signatoryErrors, 'signatory_identifier')" class="text-red-500">{{ fieldError(signatoryErrors, 'signatory_identifier') }}</small>
                             </div>
@@ -516,43 +521,43 @@ onBeforeUnmount(() => {
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="border border-surface-200 dark:border-surface-700 rounded p-3 flex flex-col gap-3">
-                                <div class="font-medium">Signature image <span class="text-red-500">*</span></div>
+                                <div class="font-medium">{{ t('letters.settings.fields.signatureImage') }} <span class="text-red-500">*</span></div>
                                 <img
                                     v-if="filePreviews.signature || assetUrls.signature"
                                     :src="filePreviews.signature || assetUrls.signature"
                                     alt="Signature preview"
                                     class="h-20 max-w-full object-contain rounded border border-surface-200 dark:border-surface-700 bg-white p-1"
                                 />
-                                <span v-else class="text-sm text-surface-500">No signature uploaded yet.</span>
+                                <span v-else class="text-sm text-surface-500">{{ t('letters.settings.fields.noSignature') }}</span>
                                 <input ref="signatureInput" type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg" class="block w-full text-sm" aria-label="Choose a signature image" @change="onSignatureSelected" />
-                                <small v-if="settings?.signature_available" class="text-surface-500">Uploading a new image replaces the current signature.</small>
+                                <small v-if="settings?.signature_available" class="text-surface-500">{{ t('letters.settings.replaceSignatureHint') }}</small>
                                 <small v-if="fieldError(signatoryErrors, 'signature')" class="text-red-500">{{ fieldError(signatoryErrors, 'signature') }}</small>
                             </div>
 
                             <div class="border border-surface-200 dark:border-surface-700 rounded p-3 flex flex-col gap-3">
-                                <div class="font-medium">Stamp</div>
+                                <div class="font-medium">{{ t('letters.settings.fields.stampImage') }}</div>
                                 <img
                                     v-if="filePreviews.stamp || (assetUrls.stamp && !stampRemove)"
                                     :src="filePreviews.stamp || assetUrls.stamp"
                                     alt="Stamp preview"
                                     class="h-20 max-w-full object-contain rounded border border-surface-200 dark:border-surface-700 bg-white p-1"
                                 />
-                                <span v-else class="text-sm text-surface-500">No stamp uploaded.</span>
+                                <span v-else class="text-sm text-surface-500">{{ t('letters.settings.fields.noStamp') }}</span>
                                 <input ref="stampInput" type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg" class="block w-full text-sm" aria-label="Choose a stamp image" @change="onStampSelected" />
                                 <div v-if="settings?.stamp_available" class="flex items-center gap-2">
                                     <Checkbox v-model="stampRemove" binary inputId="removeLetterStamp" @change="onRemoveStampChange" />
-                                    <label for="removeLetterStamp" class="text-sm">Remove current stamp</label>
+                                    <label for="removeLetterStamp" class="text-sm">{{ t('letters.settings.removeStamp') }}</label>
                                 </div>
                                 <small v-if="fieldError(signatoryErrors, 'stamp')" class="text-red-500">{{ fieldError(signatoryErrors, 'stamp') }}</small>
                             </div>
                         </div>
 
-                        <small class="text-surface-500">PNG, JPG, or JPEG. Maximum 2 MB and 2000 pixels per side. Signature and stamp are stored privately and only visible to authorized signers.</small>
+                        <small class="text-surface-500">{{ t('letters.settings.signatoryHint') }}</small>
                         <Message v-if="signatoryError" severity="error" :closable="false">{{ signatoryError }}</Message>
                         <small v-if="fieldError(signatoryErrors, 'letter_settings')" class="text-red-500">{{ fieldError(signatoryErrors, 'letter_settings') }}</small>
 
                         <div class="flex justify-end">
-                            <Button type="submit" label="Save Signatory" icon="pi pi-check" :loading="signatorySaving" />
+                            <Button type="submit" :label="t('letters.settings.actions.saveSignatory')" icon="pi pi-check" :loading="signatorySaving" />
                         </div>
                     </form>
 
@@ -579,11 +584,13 @@ onBeforeUnmount(() => {
                                 <div class="font-medium">{{ settings?.stamp_available ? 'On file' : 'Not available' }}</div>
                             </div>
                         </div>
-                        <Message severity="info" :closable="false">You can view signatory metadata but not edit the signatory or raw signature assets.</Message>
+                        <Message severity="info" :closable="false">{{ t('letters.settings.viewOnlySignatory') }}</Message>
                     </div>
                 </div>
 
-                <div v-if="settings?.updated_by" class="mt-4 text-xs text-surface-500">Last updated by {{ settings.updated_by.name }} on {{ settings.updated_at ? new Date(settings.updated_at).toLocaleString('en-GB') : '-' }}.</div>
+                <div v-if="settings?.updated_by" class="mt-4 text-xs text-surface-500">
+                    {{ t('letters.settings.lastUpdatedBy', { name: settings.updated_by.name, date: settings.updated_at ? new Date(settings.updated_at).toLocaleString(locale === 'en' ? 'en-GB' : 'id-ID') : '-' }) }}
+                </div>
             </template>
         </div>
     </Fluid>

@@ -1,8 +1,11 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import Checkbox from 'primevue/checkbox';
 import apiLogin from '@/apiLogin';
+
+const { t, te } = useI18n();
 
 // ── State ─────────────────────────────────────────────────────────────────
 const roles = ref([]);
@@ -15,8 +18,6 @@ const dialogVisible = ref(false);
 const errorMessage = ref('');
 
 // ── Ability labels ────────────────────────────────────────────────────────
-// Display labels are kept separate from ability identifiers so they can be
-// translated later without changing backend identifiers or field names.
 const GROUP_LABELS = {
     system: 'System',
     master: 'Master Data',
@@ -29,7 +30,11 @@ const GROUP_LABELS = {
     lainnya: 'Other'
 };
 
-const groupLabel = (group) => GROUP_LABELS[group] || group;
+const groupLabel = (group) => {
+    const key = `master.roles.groups.${group}`;
+    if (te(key)) return t(key);
+    return GROUP_LABELS[group] || group;
+};
 
 const ABILITY_LABELS = {
     'roles.view': 'View roles',
@@ -60,7 +65,11 @@ const ABILITY_LABELS = {
     'teaching.manage': 'Manage teaching'
 };
 
-const abilityLabel = (name) => ABILITY_LABELS[name] || name;
+const abilityLabel = (name) => {
+    const key = `master.roles.abilities.${name}`;
+    if (te(key)) return t(key);
+    return ABILITY_LABELS[name] || name;
+};
 
 // ── Grouping abilities by module group ────────────────────────────────────
 const abilityGroups = computed(() => {
@@ -143,8 +152,8 @@ onMounted(() => {
         <div class="bg-surface-0 dark:bg-surface-950 px-6 py-8 md:px-12 lg:px-20">
             <div class="flex items-start flex-col md:justify-between md:flex-row">
                 <div>
-                    <div class="font-bold text-3xl text-surface-900 dark:text-surface-0 mb-4">Roles &amp; Abilities</div>
-                    <p class="text-surface-500 dark:text-surface-300">Configure abilities per role. Changes apply on the next request.</p>
+                    <div class="font-bold text-3xl text-surface-900 dark:text-surface-0 mb-4">{{ t('master.roles.title') }}</div>
+                    <p class="text-surface-500 dark:text-surface-300">{{ t('master.roles.subtitle') }}</p>
                 </div>
             </div>
 
@@ -153,11 +162,11 @@ onMounted(() => {
             <div class="card flex flex-col gap-4 mt-4">
                 <DataTable :value="roles" dataKey="id" :loading="loading" showGridlines paginator :rows="10">
                     <template #header>
-                        <div class="flex flex-wrap gap-2 w-full">Total Roles: {{ roles ? roles.length : 'Loading' }}</div>
+                        <div class="flex flex-wrap gap-2 w-full">{{ t('master.dialog.totalCount', { entity: t('master.roles.title'), count: roles ? roles.length : t('master.common.loading') }) }}</div>
                     </template>
-                    <template #empty> No roles found. </template>
+                    <template #empty> {{ t('master.roles.noAbilities') }} </template>
 
-                    <Column field="name" header="Role" style="min-width: 14rem">
+                    <Column field="name" :header="t('master.roles.roleName')" style="min-width: 14rem">
                         <template #body="{ data }">
                             <div class="flex flex-col">
                                 <span class="font-semibold">{{ data.name }}</span>
@@ -165,21 +174,21 @@ onMounted(() => {
                         </template>
                     </Column>
 
-                    <Column field="description" header="Description" style="min-width: 16rem" />
+                    <Column field="description" :header="t('master.roles.description')" style="min-width: 16rem" />
 
-                    <Column header="Abilities" style="min-width: 8rem">
+                    <Column :header="t('master.roles.abilitiesTitle')" style="min-width: 8rem">
                         <template #body="{ data }">
-                            <Tag :value="`${data.abilities ? data.abilities.length : 0} abilities`" severity="info" />
+                            <Tag :value="t('master.roles.abilitiesCount', { count: data.abilities ? data.abilities.length : 0 })" severity="info" />
                         </template>
                     </Column>
 
-                    <Column header="Users" style="min-width: 6rem">
+                    <Column :header="t('master.roles.usersCount')" style="min-width: 6rem">
                         <template #body="{ data }">
                             {{ data.users_count }}
                         </template>
                     </Column>
 
-                    <Column header="Action" :exportable="false" style="min-width: 6rem">
+                    <Column :header="t('master.common.action')" :exportable="false" style="min-width: 6rem">
                         <template #body="slotProps">
                             <Button icon="pi pi-pencil" variant="outlined" rounded @click="openEdit(slotProps.data)" />
                         </template>
@@ -189,21 +198,21 @@ onMounted(() => {
         </div>
     </Fluid>
 
-    <Dialog v-model:visible="dialogVisible" :style="{ width: '52rem' }" :header="`Configure Abilities: ${editingRole?.name || ''}`" :modal="true">
+    <Dialog v-model:visible="dialogVisible" :style="{ width: '52rem' }" :header="t('master.roles.editRole', { name: editingRole?.name || '' })" :modal="true">
         <div v-if="editingRole" class="flex flex-col gap-4 max-h-[70vh] overflow-auto">
             <div class="flex flex-col gap-2">
-                <label class="font-bold">Role Name</label>
+                <label class="font-bold">{{ t('master.roles.roleName') }}</label>
                 <InputText v-model="editingRole.name" fluid />
             </div>
             <div class="flex flex-col gap-2">
-                <label class="font-bold">Description</label>
+                <label class="font-bold">{{ t('master.roles.description') }}</label>
                 <InputText v-model="editingRole.description" fluid />
             </div>
 
             <div v-for="(list, group) in abilityGroups" :key="group" class="flex flex-col gap-2 border-t pt-3">
                 <div class="flex items-center justify-between">
                     <span class="font-bold">{{ groupLabel(group) }}</span>
-                    <Button label="Select all" text size="small" @click="toggleGroupAll(group, list)" />
+                    <Button :label="t('master.roles.selectAll')" text size="small" @click="toggleGroupAll(group, list)" />
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                     <div v-for="ability in list" :key="ability.name" class="flex items-center gap-2">
@@ -219,8 +228,8 @@ onMounted(() => {
         </div>
 
         <template #footer>
-            <Button label="Cancel" icon="pi pi-times" text @click="dialogVisible = false" />
-            <Button label="Save" icon="pi pi-check" :loading="saving" @click="saveRole" />
+            <Button :label="t('common.action.cancel')" icon="pi pi-times" text @click="dialogVisible = false" />
+            <Button :label="t('common.action.save')" icon="pi pi-check" :loading="saving" @click="saveRole" />
         </template>
     </Dialog>
 </template>

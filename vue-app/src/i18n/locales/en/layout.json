@@ -1,0 +1,35 @@
+{
+    "topbar": {
+        "notifications": "Notifications",
+        "messages": "Messages",
+        "profile": "Profile"
+    },
+    "userMenu": {
+        "title": "Users",
+        "profile": "Profile",
+        "logout": "Logout",
+        "loading": "Loading...",
+        "signedOut": "Signed out",
+        "signedOutDetail": "You have been signed out. Please wait a moment.",
+        "signedOutLocalDetail": "Signed out locally. Could not reach server to terminate session.",
+        "roles": {
+            "adminSistem": "System Administrator",
+            "operatorSekolah": "School Operator",
+            "kepalaSekolah": "Principal",
+            "wakilKesiswaan": "Vice Principal for Student Affairs",
+            "guru": "Teacher"
+        }
+    },
+    "config": {
+        "primary": "Primary",
+        "surface": "Surface",
+        "presets": "Presets",
+        "menuMode": "Menu Mode",
+        "menuModeStatic": "Static",
+        "menuModeOverlay": "Overlay"
+    },
+    "footer": {
+        "createdBy": "Created by",
+        "notAcquired": "(not yet Acquired or Purchased)"
+    }
+}

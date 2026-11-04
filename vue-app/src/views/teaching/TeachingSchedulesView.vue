@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
@@ -10,6 +11,7 @@ import { useToast } from 'primevue/usetoast';
 import apiLogin from '@/apiLogin';
 import { authStore } from '@/stores/authStore';
 
+const { t } = useI18n();
 const store = authStore();
 const toast = useToast();
 
@@ -408,10 +410,10 @@ async function saveAssignment() {
         if (assignmentDialog.isEdit) {
             payload.expected_version = assignmentDialog.expected_version;
             await apiLogin.put(`/teaching/assignments/${assignmentDialog.id}`, payload);
-            toast.add({ severity: 'success', summary: 'Assignment Updated', detail: 'Teaching assignment updated.', life: 3000 });
+            toast.add({ severity: 'success', summary: t('teaching.schedules.dialogs.assignment.save'), detail: t('teaching.schedules.toast.assignmentUpdated'), life: 3000 });
         } else {
             await apiLogin.post('/teaching/assignments', payload);
-            toast.add({ severity: 'success', summary: 'Assignment Created', detail: 'Teaching assignment created.', life: 3000 });
+            toast.add({ severity: 'success', summary: t('teaching.schedules.dialogs.assignment.create'), detail: t('teaching.schedules.toast.assignmentCreated'), life: 3000 });
         }
         assignmentDialog.visible = false;
         await Promise.all([loadAssignments(), loadAllPeriodAssignments(), loadSchedules()]);
@@ -429,11 +431,11 @@ async function saveAssignment() {
 async function removeAssignment(row) {
     try {
         await apiLogin.delete(`/teaching/assignments/${row.id}`);
-        toast.add({ severity: 'success', summary: 'Assignment Deleted', detail: 'Teaching assignment removed.', life: 3000 });
+        toast.add({ severity: 'success', summary: t('teaching.schedules.assignments.table.actionsCol'), detail: t('teaching.schedules.toast.assignmentDeleted'), life: 3000 });
         await Promise.all([loadAssignments(), loadAllPeriodAssignments(), loadSchedules()]);
     } catch (err) {
         const parsed = extractErrors(err, 'Failed to delete teaching assignment.');
-        toast.add({ severity: 'error', summary: 'Cannot Delete Assignment', detail: parsed.message, life: 5000 });
+        toast.add({ severity: 'error', summary: t('teaching.schedules.toast.cannotDeleteAssignment'), detail: parsed.message, life: 5000 });
     }
 }
 
@@ -464,7 +466,7 @@ const assignmentDropdownOptions = computed(() => {
         const classLabel = a.school_rombel?.name || `#${a.school_rombel_id}`;
         const subjLabel = a.subject?.name || `#${a.subject_id}`;
         const teacherLabel = a.employee?.name || `#${a.employee_id}`;
-        const statusSuffix = a.status === 'inactive' ? ' [Inactive]' : '';
+        const statusSuffix = a.status === 'inactive' ? ` [${t('teaching.schedules.dialogs.assignment.inactive')}]` : '';
         return {
             id: a.id,
             label: `${classLabel} — ${subjLabel} (${teacherLabel})${statusSuffix}`
@@ -562,10 +564,10 @@ async function saveSchedule() {
         if (scheduleDialog.isEdit) {
             payload.expected_version = scheduleDialog.expected_version;
             await apiLogin.put(`/teaching/schedules/${scheduleDialog.id}`, payload);
-            toast.add({ severity: 'success', summary: 'Schedule Updated', detail: 'Schedule slot updated.', life: 3000 });
+            toast.add({ severity: 'success', summary: t('teaching.schedules.dialogs.scheduleSlot.save'), detail: t('teaching.schedules.toast.scheduleUpdated'), life: 3000 });
         } else {
             await apiLogin.post('/teaching/schedules', payload);
-            toast.add({ severity: 'success', summary: 'Schedule Created', detail: 'Schedule slot created.', life: 3000 });
+            toast.add({ severity: 'success', summary: t('teaching.schedules.dialogs.scheduleSlot.create'), detail: t('teaching.schedules.toast.scheduleCreated'), life: 3000 });
         }
         scheduleDialog.visible = false;
         await Promise.all([loadSchedules(), loadAllPeriodSchedules(), loadAssignments(), loadAllPeriodAssignments()]);
@@ -583,11 +585,11 @@ async function saveSchedule() {
 async function removeSchedule(slot) {
     try {
         await apiLogin.delete(`/teaching/schedules/${slot.id}`);
-        toast.add({ severity: 'success', summary: 'Schedule Deleted', detail: 'Schedule slot removed.', life: 3000 });
+        toast.add({ severity: 'success', summary: t('teaching.schedules.timetable.newSlot'), detail: t('teaching.schedules.toast.scheduleDeleted'), life: 3000 });
         await Promise.all([loadSchedules(), loadAllPeriodSchedules(), loadAssignments(), loadAllPeriodAssignments()]);
     } catch (err) {
         const parsed = extractErrors(err, 'Failed to delete schedule slot.');
-        toast.add({ severity: 'error', summary: 'Cannot Delete Slot', detail: parsed.message, life: 5000 });
+        toast.add({ severity: 'error', summary: t('teaching.schedules.toast.cannotDeleteSlot'), detail: parsed.message, life: 5000 });
     }
 }
 
@@ -736,10 +738,10 @@ async function saveException() {
         if (exceptionDialog.isEdit) {
             payload.expected_version = exceptionDialog.expected_version;
             await apiLogin.put(`/teaching/exceptions/${exceptionDialog.id}`, payload);
-            toast.add({ severity: 'success', summary: 'Exception Updated', detail: 'Schedule exception updated.', life: 3000 });
+            toast.add({ severity: 'success', summary: t('teaching.schedules.dialogs.exception.save'), detail: t('teaching.schedules.toast.exceptionUpdated'), life: 3000 });
         } else {
             await apiLogin.post('/teaching/exceptions', payload);
-            toast.add({ severity: 'success', summary: 'Exception Created', detail: 'Schedule exception recorded.', life: 3000 });
+            toast.add({ severity: 'success', summary: t('teaching.schedules.dialogs.exception.create'), detail: t('teaching.schedules.toast.exceptionCreated'), life: 3000 });
         }
         exceptionDialog.visible = false;
         await Promise.all([loadExceptions(), loadSchedules(), loadAllPeriodSchedules()]);
@@ -757,11 +759,11 @@ async function saveException() {
 async function removeException(exc) {
     try {
         await apiLogin.delete(`/teaching/exceptions/${exc.id}`);
-        toast.add({ severity: 'success', summary: 'Exception Deleted', detail: 'Schedule exception removed.', life: 3000 });
+        toast.add({ severity: 'success', summary: t('teaching.schedules.exceptions.newException'), detail: t('teaching.schedules.toast.exceptionDeleted'), life: 3000 });
         await Promise.all([loadExceptions(), loadSchedules(), loadAllPeriodSchedules()]);
     } catch (err) {
         const parsed = extractErrors(err, 'Failed to delete schedule exception.');
-        toast.add({ severity: 'error', summary: 'Cannot Delete Exception', detail: parsed.message, life: 5000 });
+        toast.add({ severity: 'error', summary: t('teaching.schedules.toast.cannotDeleteException'), detail: parsed.message, life: 5000 });
     }
 }
 
@@ -784,12 +786,12 @@ onMounted(async () => {
         <div class="card p-4 flex flex-col gap-3">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div>
-                    <h1 class="text-2xl font-bold m-0">Teaching Assignments &amp; Timetable</h1>
-                    <p class="text-sm text-surface-500 m-0">Manage teacher–subject–class assignments, weekly timetable slots with collision detection, and calendar exceptions.</p>
+                    <h1 class="text-2xl font-bold m-0">{{ t('teaching.schedules.title') }}</h1>
+                    <p class="text-sm text-surface-500 m-0">{{ t('teaching.schedules.subtitle') }}</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
-                    <Tag v-if="isSelectedYearLocked" severity="warn" icon="pi pi-lock" value="Locked School Year (Read-Only)" data-testid="locked-year-badge" />
-                    <Tag v-else-if="selectedSchoolYear" severity="success" icon="pi pi-check-circle" :value="`Period: ${selectedSchoolYear.name}`" />
+                    <Tag v-if="isSelectedYearLocked" severity="warn" icon="pi pi-lock" :value="t('teaching.schedules.lockedYearBadge')" data-testid="locked-year-badge" />
+                    <Tag v-else-if="selectedSchoolYear" severity="success" icon="pi pi-check-circle" :value="t('teaching.schedules.periodBadge', { name: selectedSchoolYear.name })" />
                 </div>
             </div>
 
@@ -799,36 +801,36 @@ onMounted(async () => {
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
                 <div class="flex flex-col gap-1">
-                    <label for="ctx-school-year" class="text-sm font-medium">School Year</label>
+                    <label for="ctx-school-year" class="text-sm font-medium">{{ t('teaching.schedules.labels.schoolYear') }}</label>
                     <Select
                         inputId="ctx-school-year"
                         v-model="context.school_year_id"
                         :options="options.school_years"
                         optionLabel="name"
                         optionValue="id"
-                        placeholder="Select School Year"
+                        :placeholder="t('teaching.schedules.selectYear')"
                         class="w-full"
                         data-testid="ctx-school-year"
                         @change="refreshAllForContext"
                     />
                 </div>
                 <div class="flex flex-col gap-1">
-                    <label for="ctx-semester" class="text-sm font-medium">Semester</label>
+                    <label for="ctx-semester" class="text-sm font-medium">{{ t('teaching.schedules.labels.semester') }}</label>
                     <Select
                         inputId="ctx-semester"
                         v-model="context.semester_id"
                         :options="options.semesters"
                         optionLabel="label"
                         optionValue="id"
-                        placeholder="Select Semester"
+                        :placeholder="t('teaching.schedules.selectSemester')"
                         class="w-full"
                         data-testid="ctx-semester"
                         @change="refreshAllForContext"
                     />
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
-                    <Button label="Refresh" icon="pi pi-refresh" severity="secondary" outlined :loading="schedulesLoading || assignmentsLoading || exceptionsLoading" @click="refreshAllForContext" />
-                    <Button v-if="options.actor_employee_id" label="My Schedule" icon="pi pi-user" severity="info" outlined data-testid="btn-my-schedule" @click="filterMySchedule" />
+                    <Button :label="t('teaching.schedules.refresh')" icon="pi pi-refresh" severity="secondary" outlined :loading="schedulesLoading || assignmentsLoading || exceptionsLoading" @click="refreshAllForContext" />
+                    <Button v-if="options.actor_employee_id" :label="t('teaching.schedules.timetable.mySchedule')" icon="pi pi-user" severity="info" outlined data-testid="btn-my-schedule" @click="filterMySchedule" />
                 </div>
             </div>
 
@@ -843,9 +845,16 @@ onMounted(async () => {
 
         <!-- Navigation Tabs -->
         <div class="flex flex-wrap gap-2 border-b border-surface-200 pb-2">
-            <Button label="Weekly Timetable" icon="pi pi-calendar" :severity="activeTab === 'timetable' ? 'primary' : 'secondary'" :outlined="activeTab !== 'timetable'" data-testid="tab-timetable" @click="activeTab = 'timetable'" />
             <Button
-                :label="`Teaching Assignments (${assignmentMeta.total})`"
+                :label="t('teaching.schedules.tabs.timetable')"
+                icon="pi pi-calendar"
+                :severity="activeTab === 'timetable' ? 'primary' : 'secondary'"
+                :outlined="activeTab !== 'timetable'"
+                data-testid="tab-timetable"
+                @click="activeTab = 'timetable'"
+            />
+            <Button
+                :label="t('teaching.schedules.tabs.assignments', { count: assignmentMeta.total })"
                 icon="pi pi-briefcase"
                 :severity="activeTab === 'assignments' ? 'primary' : 'secondary'"
                 :outlined="activeTab !== 'assignments'"
@@ -853,7 +862,7 @@ onMounted(async () => {
                 @click="activeTab = 'assignments'"
             />
             <Button
-                :label="`Schedule Exceptions (${exceptionMeta.total})`"
+                :label="t('teaching.schedules.tabs.exceptions', { count: exceptionMeta.total })"
                 icon="pi pi-exclamation-circle"
                 :severity="activeTab === 'exceptions' ? 'primary' : 'secondary'"
                 :outlined="activeTab !== 'exceptions'"
@@ -867,7 +876,7 @@ onMounted(async () => {
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div class="flex flex-wrap items-center gap-2">
                     <Button
-                        label="Matrix View"
+                        :label="t('teaching.schedules.timetable.matrixView')"
                         icon="pi pi-th-large"
                         size="small"
                         :severity="timetableMode === 'matrix' ? 'primary' : 'secondary'"
@@ -879,7 +888,7 @@ onMounted(async () => {
                         "
                     />
                     <Button
-                        label="List View"
+                        :label="t('teaching.schedules.timetable.listView')"
                         icon="pi pi-list"
                         size="small"
                         :severity="timetableMode === 'list' ? 'primary' : 'secondary'"
@@ -892,21 +901,21 @@ onMounted(async () => {
                     />
                 </div>
                 <div v-if="canManage && !isSelectedYearLocked" class="flex flex-wrap gap-2">
-                    <Button label="New Schedule Slot" icon="pi pi-plus" data-testid="btn-new-schedule" @click="openNewScheduleDialog()" />
+                    <Button :label="t('teaching.schedules.timetable.newSlot')" icon="pi pi-plus" data-testid="btn-new-schedule" @click="openNewScheduleDialog()" />
                 </div>
             </div>
 
             <!-- Schedule Filters -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
                 <div class="flex flex-col gap-1">
-                    <label class="text-xs font-medium">Class (Rombel)</label>
+                    <label class="text-xs font-medium">{{ t('teaching.schedules.labels.class') }}</label>
                     <Select
                         v-model="scheduleFilters.school_rombel_id"
                         :options="rombelsForSelectedYear"
                         optionLabel="name"
                         optionValue="id"
                         showClear
-                        placeholder="All Classes"
+                        :placeholder="t('teaching.schedules.timetable.allClasses')"
                         class="w-full"
                         data-testid="filter-schedule-rombel"
                         @change="
@@ -916,7 +925,7 @@ onMounted(async () => {
                     />
                 </div>
                 <div class="flex flex-col gap-1">
-                    <label class="text-xs font-medium">Teacher</label>
+                    <label class="text-xs font-medium">{{ t('teaching.schedules.labels.teacher') }}</label>
                     <Select
                         v-model="scheduleFilters.employee_id"
                         :options="options.teachers"
@@ -924,7 +933,7 @@ onMounted(async () => {
                         optionValue="id"
                         showClear
                         filter
-                        placeholder="All Teachers"
+                        :placeholder="t('teaching.schedules.timetable.allTeachers')"
                         class="w-full"
                         data-testid="filter-schedule-teacher"
                         @change="
@@ -934,14 +943,14 @@ onMounted(async () => {
                     />
                 </div>
                 <div class="flex flex-col gap-1">
-                    <label class="text-xs font-medium">Day of Week</label>
+                    <label class="text-xs font-medium">{{ t('teaching.schedules.labels.dayOfWeek') }}</label>
                     <Select
                         v-model="scheduleFilters.day_of_week"
                         :options="options.days_of_week"
                         optionLabel="label"
                         optionValue="value"
                         showClear
-                        placeholder="All Days"
+                        :placeholder="t('teaching.schedules.timetable.allDays')"
                         class="w-full"
                         data-testid="filter-schedule-day"
                         @change="
@@ -951,7 +960,7 @@ onMounted(async () => {
                     />
                 </div>
                 <div class="flex flex-col gap-1">
-                    <label class="text-xs font-medium">Room</label>
+                    <label class="text-xs font-medium">{{ t('teaching.schedules.labels.room') }}</label>
                     <InputText
                         v-model="scheduleFilters.room"
                         placeholder="e.g. LAB-KOMP-1"
@@ -964,7 +973,7 @@ onMounted(async () => {
                     />
                 </div>
                 <div class="flex flex-col gap-1">
-                    <label class="text-xs font-medium">Status</label>
+                    <label class="text-xs font-medium">{{ t('teaching.schedules.labels.status') }}</label>
                     <Select
                         v-model="scheduleFilters.status"
                         :options="[
@@ -982,11 +991,11 @@ onMounted(async () => {
                     />
                 </div>
                 <div class="flex flex-col gap-1">
-                    <label class="text-xs font-medium">Search</label>
+                    <label class="text-xs font-medium">{{ t('teaching.schedules.labels.search') }}</label>
                     <div class="flex gap-1">
                         <InputText
                             v-model="scheduleFilters.search"
-                            placeholder="Subject / teacher / class"
+                            :placeholder="t('teaching.schedules.assignments.filterSearch')"
                             class="w-full"
                             @keyup.enter="
                                 scheduleFilters.page = 1;
@@ -1035,8 +1044,8 @@ onMounted(async () => {
                             {{ slot.notes }}
                         </div>
                         <div v-if="canManage && !isSelectedYearLocked" class="flex justify-end gap-1 pt-1">
-                            <Button icon="pi pi-pencil" size="small" text rounded aria-label="Edit Schedule Slot" :data-testid="`btn-edit-schedule-${slot.id}`" @click="openEditScheduleDialog(slot)" />
-                            <Button icon="pi pi-trash" size="small" text rounded severity="danger" aria-label="Delete Schedule Slot" :data-testid="`btn-delete-schedule-${slot.id}`" @click="removeSchedule(slot)" />
+                            <Button icon="pi pi-pencil" size="small" text rounded :aria-label="t('teaching.schedules.dialogs.scheduleSlot.editTitle')" :data-testid="`btn-edit-schedule-${slot.id}`" @click="openEditScheduleDialog(slot)" />
+                            <Button icon="pi pi-trash" size="small" text rounded severity="danger" :aria-label="t('teaching.schedules.toast.scheduleDeleted')" :data-testid="`btn-delete-schedule-${slot.id}`" @click="removeSchedule(slot)" />
                         </div>
                     </div>
                 </div>
@@ -1089,20 +1098,20 @@ onMounted(async () => {
         <!-- TAB 2: TEACHING ASSIGNMENTS -->
         <div v-if="activeTab === 'assignments'" class="card p-4 flex flex-col gap-4" data-testid="panel-assignments">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <h2 class="text-lg font-semibold m-0">Teacher–Subject–Class Assignments</h2>
-                <Button v-if="canManage && !isSelectedYearLocked" label="New Assignment" icon="pi pi-plus" data-testid="btn-new-assignment" @click="openNewAssignmentDialog" />
+                <h2 class="text-lg font-semibold m-0">{{ t('teaching.schedules.assignments.title') }}</h2>
+                <Button v-if="canManage && !isSelectedYearLocked" :label="t('teaching.schedules.assignments.newAssignment')" icon="pi pi-plus" data-testid="btn-new-assignment" @click="openNewAssignmentDialog" />
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                 <div class="flex flex-col gap-1">
-                    <label class="text-xs font-medium">Class (Rombel)</label>
+                    <label class="text-xs font-medium">{{ t('teaching.schedules.labels.class') }}</label>
                     <Select
                         v-model="assignmentFilters.school_rombel_id"
                         :options="rombelsForSelectedYear"
                         optionLabel="name"
                         optionValue="id"
                         showClear
-                        placeholder="All Classes"
+                        :placeholder="t('teaching.schedules.timetable.allClasses')"
                         class="w-full"
                         @change="
                             assignmentFilters.page = 1;
@@ -1111,7 +1120,7 @@ onMounted(async () => {
                     />
                 </div>
                 <div class="flex flex-col gap-1">
-                    <label class="text-xs font-medium">Subject</label>
+                    <label class="text-xs font-medium">{{ t('teaching.schedules.labels.subject') }}</label>
                     <Select
                         v-model="assignmentFilters.subject_id"
                         :options="options.subjects"
@@ -1119,7 +1128,7 @@ onMounted(async () => {
                         optionValue="id"
                         showClear
                         filter
-                        placeholder="All Subjects"
+                        :placeholder="t('teaching.schedules.timetable.allSubjects')"
                         class="w-full"
                         @change="
                             assignmentFilters.page = 1;
@@ -1128,7 +1137,7 @@ onMounted(async () => {
                     />
                 </div>
                 <div class="flex flex-col gap-1">
-                    <label class="text-xs font-medium">Teacher</label>
+                    <label class="text-xs font-medium">{{ t('teaching.schedules.labels.teacher') }}</label>
                     <Select
                         v-model="assignmentFilters.employee_id"
                         :options="options.teachers"
@@ -1136,7 +1145,7 @@ onMounted(async () => {
                         optionValue="id"
                         showClear
                         filter
-                        placeholder="All Teachers"
+                        :placeholder="t('teaching.schedules.timetable.allTeachers')"
                         class="w-full"
                         @change="
                             assignmentFilters.page = 1;
@@ -1145,7 +1154,7 @@ onMounted(async () => {
                     />
                 </div>
                 <div class="flex flex-col gap-1">
-                    <label class="text-xs font-medium">Status</label>
+                    <label class="text-xs font-medium">{{ t('teaching.schedules.labels.status') }}</label>
                     <Select
                         v-model="assignmentFilters.status"
                         :options="[
@@ -1163,11 +1172,11 @@ onMounted(async () => {
                     />
                 </div>
                 <div class="flex flex-col gap-1">
-                    <label class="text-xs font-medium">Search</label>
+                    <label class="text-xs font-medium">{{ t('teaching.schedules.labels.search') }}</label>
                     <div class="flex gap-1">
                         <InputText
                             v-model="assignmentFilters.search"
-                            placeholder="Teacher / subject / class"
+                            :placeholder="t('teaching.schedules.timetable.filterSearch')"
                             class="w-full"
                             @keyup.enter="
                                 assignmentFilters.page = 1;
@@ -1224,8 +1233,17 @@ onMounted(async () => {
                             <td v-if="canManage && !isSelectedYearLocked" class="p-2 text-right">
                                 <div class="flex justify-end gap-1">
                                     <Button icon="pi pi-calendar-plus" size="small" text rounded title="Add Schedule Slot" :data-testid="`btn-add-slot-for-assignment-${row.id}`" @click="openNewScheduleDialog(row.id)" />
-                                    <Button icon="pi pi-pencil" size="small" text rounded aria-label="Edit Assignment" :data-testid="`btn-edit-assignment-${row.id}`" @click="openEditAssignmentDialog(row)" />
-                                    <Button icon="pi pi-trash" size="small" text rounded severity="danger" aria-label="Delete Assignment" :data-testid="`btn-delete-assignment-${row.id}`" @click="removeAssignment(row)" />
+                                    <Button icon="pi pi-pencil" size="small" text rounded :aria-label="t('teaching.schedules.dialogs.assignment.editTitle')" :data-testid="`btn-edit-assignment-${row.id}`" @click="openEditAssignmentDialog(row)" />
+                                    <Button
+                                        icon="pi pi-trash"
+                                        size="small"
+                                        text
+                                        rounded
+                                        severity="danger"
+                                        :aria-label="t('teaching.schedules.toast.assignmentDeleted')"
+                                        :data-testid="`btn-delete-assignment-${row.id}`"
+                                        @click="removeAssignment(row)"
+                                    />
                                 </div>
                             </td>
                         </tr>
@@ -1238,7 +1256,7 @@ onMounted(async () => {
                 <span>Showing page {{ assignmentMeta.current_page }} of {{ assignmentMeta.last_page }} ({{ assignmentMeta.total }} total)</span>
                 <div class="flex gap-1">
                     <Button
-                        label="Previous"
+                        :label="t('teaching.schedules.pagination.prev')"
                         size="small"
                         outlined
                         :disabled="assignmentMeta.current_page <= 1"
@@ -1248,7 +1266,7 @@ onMounted(async () => {
                         "
                     />
                     <Button
-                        label="Next"
+                        :label="t('teaching.schedules.pagination.next')"
                         size="small"
                         outlined
                         :disabled="assignmentMeta.current_page >= assignmentMeta.last_page"
@@ -1264,13 +1282,13 @@ onMounted(async () => {
         <!-- TAB 3: SCHEDULE EXCEPTIONS -->
         <div v-if="activeTab === 'exceptions'" class="card p-4 flex flex-col gap-4" data-testid="panel-exceptions">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <h2 class="text-lg font-semibold m-0">Calendar &amp; Schedule Exceptions (Holidays, Cancellations, Reschedules)</h2>
-                <Button v-if="canManage && !isSelectedYearLocked" label="New Exception" icon="pi pi-plus" data-testid="btn-new-exception" @click="openNewExceptionDialog" />
+                <h2 class="text-lg font-semibold m-0">{{ t('teaching.schedules.exceptions.title') }}</h2>
+                <Button v-if="canManage && !isSelectedYearLocked" :label="t('teaching.schedules.exceptions.newException')" icon="pi pi-plus" data-testid="btn-new-exception" @click="openNewExceptionDialog" />
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                 <div class="flex flex-col gap-1">
-                    <label class="text-xs font-medium">Exception Type</label>
+                    <label class="text-xs font-medium">{{ t('teaching.schedules.labels.exceptionType') }}</label>
                     <Select
                         v-model="exceptionFilters.exception_type"
                         :options="[
@@ -1289,14 +1307,14 @@ onMounted(async () => {
                     />
                 </div>
                 <div class="flex flex-col gap-1">
-                    <label class="text-xs font-medium">Class (Rombel)</label>
+                    <label class="text-xs font-medium">{{ t('teaching.schedules.labels.class') }}</label>
                     <Select
                         v-model="exceptionFilters.school_rombel_id"
                         :options="rombelsForSelectedYear"
                         optionLabel="name"
                         optionValue="id"
                         showClear
-                        placeholder="All Classes"
+                        :placeholder="t('teaching.schedules.timetable.allClasses')"
                         class="w-full"
                         @change="
                             exceptionFilters.page = 1;
@@ -1305,7 +1323,7 @@ onMounted(async () => {
                     />
                 </div>
                 <div class="flex flex-col gap-1">
-                    <label class="text-xs font-medium">Date From</label>
+                    <label class="text-xs font-medium">{{ t('teaching.schedules.labels.dateFrom') }}</label>
                     <InputText
                         v-model="exceptionFilters.date_from"
                         type="date"
@@ -1317,7 +1335,7 @@ onMounted(async () => {
                     />
                 </div>
                 <div class="flex flex-col gap-1">
-                    <label class="text-xs font-medium">Date To</label>
+                    <label class="text-xs font-medium">{{ t('teaching.schedules.labels.dateTo') }}</label>
                     <InputText
                         v-model="exceptionFilters.date_to"
                         type="date"
@@ -1329,11 +1347,11 @@ onMounted(async () => {
                     />
                 </div>
                 <div class="flex flex-col gap-1">
-                    <label class="text-xs font-medium">Search</label>
+                    <label class="text-xs font-medium">{{ t('teaching.schedules.labels.search') }}</label>
                     <div class="flex gap-1">
                         <InputText
                             v-model="exceptionFilters.search"
-                            placeholder="Reason / subject / teacher"
+                            :placeholder="t('teaching.schedules.exceptions.filterSearch')"
                             class="w-full"
                             @keyup.enter="
                                 exceptionFilters.page = 1;
@@ -1401,8 +1419,8 @@ onMounted(async () => {
                             <td class="p-2">{{ exc.reason }}</td>
                             <td v-if="canManage && !isSelectedYearLocked" class="p-2 text-right">
                                 <div class="flex justify-end gap-1">
-                                    <Button icon="pi pi-pencil" size="small" text rounded aria-label="Edit Exception" :data-testid="`btn-edit-exception-${exc.id}`" @click="openEditExceptionDialog(exc)" />
-                                    <Button icon="pi pi-trash" size="small" text rounded severity="danger" aria-label="Delete Exception" :data-testid="`btn-delete-exception-${exc.id}`" @click="removeException(exc)" />
+                                    <Button icon="pi pi-pencil" size="small" text rounded :aria-label="t('teaching.schedules.dialogs.exception.editTitle')" :data-testid="`btn-edit-exception-${exc.id}`" @click="openEditExceptionDialog(exc)" />
+                                    <Button icon="pi pi-trash" size="small" text rounded severity="danger" :aria-label="t('teaching.schedules.toast.exceptionDeleted')" :data-testid="`btn-delete-exception-${exc.id}`" @click="removeException(exc)" />
                                 </div>
                             </td>
                         </tr>
@@ -1412,29 +1430,42 @@ onMounted(async () => {
         </div>
 
         <!-- DIALOG 1: CREATE / EDIT ASSIGNMENT -->
-        <Dialog v-model:visible="assignmentDialog.visible" modal :header="assignmentDialog.isEdit ? 'Edit Teaching Assignment' : 'New Teaching Assignment'" :style="{ width: '34rem', maxWidth: '95vw' }">
+        <Dialog
+            v-model:visible="assignmentDialog.visible"
+            modal
+            :header="assignmentDialog.isEdit ? t('teaching.schedules.dialogs.assignment.editTitle') : t('teaching.schedules.dialogs.assignment.createTitle')"
+            :style="{ width: '34rem', maxWidth: '95vw' }"
+        >
             <div class="flex flex-col gap-3">
                 <div v-if="assignmentDialog.errorMessage" class="p-3 rounded bg-red-50 border border-red-200 text-red-700 text-sm flex flex-col gap-2" data-testid="assignment-dialog-error">
                     <span>{{ assignmentDialog.errorMessage }}</span>
                     <div v-if="assignmentDialog.conflict && assignmentDialog.latest">
-                        <Button label="Reload Latest" icon="pi pi-refresh" size="small" severity="warn" data-testid="btn-reload-latest-assignment" @click="reloadLatestAssignment" />
+                        <Button :label="t('teaching.schedules.dialogs.assignment.reloadLatest')" icon="pi pi-refresh" size="small" severity="warn" data-testid="btn-reload-latest-assignment" @click="reloadLatestAssignment" />
                     </div>
                 </div>
 
                 <div class="flex flex-col gap-1">
-                    <label class="text-sm font-medium">Class (Rombel) *</label>
-                    <Select v-model="assignmentDialog.school_rombel_id" :options="rombelsForSelectedYear" optionLabel="name" optionValue="id" placeholder="Select Class" class="w-full" data-testid="input-assignment-rombel" />
+                    <label class="text-sm font-medium">{{ t('teaching.schedules.labels.classRequired') }}</label>
+                    <Select
+                        v-model="assignmentDialog.school_rombel_id"
+                        :options="rombelsForSelectedYear"
+                        optionLabel="name"
+                        optionValue="id"
+                        :placeholder="t('teaching.schedules.dialogs.assignment.selectClass')"
+                        class="w-full"
+                        data-testid="input-assignment-rombel"
+                    />
                 </div>
 
                 <div class="flex flex-col gap-1">
-                    <label class="text-sm font-medium">Teacher (Pendidik) *</label>
+                    <label class="text-sm font-medium">{{ t('teaching.schedules.labels.teacherRequired') }}</label>
                     <Select
                         v-model="assignmentDialog.employee_id"
                         :options="options.teachers"
                         optionLabel="name"
                         optionValue="id"
                         filter
-                        placeholder="Select Teacher"
+                        :placeholder="t('teaching.schedules.dialogs.assignment.selectTeacher')"
                         class="w-full"
                         data-testid="input-assignment-teacher"
                         @change="onAssignmentTeacherChange"
@@ -1445,17 +1476,26 @@ onMounted(async () => {
                 </div>
 
                 <div class="flex flex-col gap-1">
-                    <label class="text-sm font-medium">Subject *</label>
-                    <Select v-model="assignmentDialog.subject_id" :options="options.subjects" optionLabel="name" optionValue="id" filter placeholder="Select Subject" class="w-full" data-testid="input-assignment-subject" />
+                    <label class="text-sm font-medium">{{ t('teaching.schedules.labels.subjectRequired') }}</label>
+                    <Select
+                        v-model="assignmentDialog.subject_id"
+                        :options="options.subjects"
+                        optionLabel="name"
+                        optionValue="id"
+                        filter
+                        :placeholder="t('teaching.schedules.dialogs.assignment.selectSubject')"
+                        class="w-full"
+                        data-testid="input-assignment-subject"
+                    />
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div class="flex flex-col gap-1">
-                        <label class="text-sm font-medium">Target Hours / Week</label>
+                        <label class="text-sm font-medium">{{ t('teaching.schedules.labels.targetHours') }}</label>
                         <InputText v-model="assignmentDialog.hours_per_week" type="number" min="1" max="24" class="w-full" data-testid="input-assignment-hours" />
                     </div>
                     <div class="flex flex-col gap-1">
-                        <label class="text-sm font-medium">Status</label>
+                        <label class="text-sm font-medium">{{ t('teaching.schedules.labels.status') }}</label>
                         <Select
                             v-model="assignmentDialog.status"
                             :options="[
@@ -1471,65 +1511,85 @@ onMounted(async () => {
                 </div>
 
                 <div class="flex flex-col gap-1">
-                    <label class="text-sm font-medium">Notes (Optional)</label>
+                    <label class="text-sm font-medium">{{ t('teaching.schedules.labels.notesOptional') }}</label>
                     <Textarea v-model="assignmentDialog.notes" rows="2" class="w-full" maxlength="255" />
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2">
-                    <Button label="Cancel" severity="secondary" outlined @click="assignmentDialog.visible = false" />
-                    <Button :label="assignmentDialog.isEdit ? 'Save Changes' : 'Create Assignment'" icon="pi pi-check" :loading="assignmentDialog.saving" data-testid="btn-save-assignment" @click="saveAssignment" />
+                    <Button :label="t('common.action.cancel')" severity="secondary" outlined @click="assignmentDialog.visible = false" />
+                    <Button
+                        :label="assignmentDialog.isEdit ? t('teaching.schedules.dialogs.assignment.save') : t('teaching.schedules.dialogs.assignment.create')"
+                        icon="pi pi-check"
+                        :loading="assignmentDialog.saving"
+                        data-testid="btn-save-assignment"
+                        @click="saveAssignment"
+                    />
                 </div>
             </div>
         </Dialog>
 
         <!-- DIALOG 2: CREATE / EDIT SCHEDULE SLOT -->
-        <Dialog v-model:visible="scheduleDialog.visible" modal :header="scheduleDialog.isEdit ? 'Edit Timetable Slot' : 'New Timetable Slot'" :style="{ width: '36rem', maxWidth: '95vw' }">
+        <Dialog
+            v-model:visible="scheduleDialog.visible"
+            modal
+            :header="scheduleDialog.isEdit ? t('teaching.schedules.dialogs.scheduleSlot.editTitle') : t('teaching.schedules.dialogs.scheduleSlot.createTitle')"
+            :style="{ width: '36rem', maxWidth: '95vw' }"
+        >
             <div class="flex flex-col gap-3">
                 <div v-if="scheduleDialog.errorMessage" class="p-3 rounded bg-red-50 border border-red-200 text-red-700 text-sm flex flex-col gap-2" data-testid="schedule-dialog-error">
                     <span>{{ scheduleDialog.errorMessage }}</span>
                     <div v-if="scheduleDialog.conflict && scheduleDialog.latest">
-                        <Button label="Reload Latest" icon="pi pi-refresh" size="small" severity="warn" data-testid="btn-reload-latest-schedule" @click="reloadLatestSchedule" />
+                        <Button :label="t('teaching.schedules.dialogs.assignment.reloadLatest')" icon="pi pi-refresh" size="small" severity="warn" data-testid="btn-reload-latest-schedule" @click="reloadLatestSchedule" />
                     </div>
                 </div>
 
                 <div class="flex flex-col gap-1">
-                    <label class="text-sm font-medium">Teaching Assignment (Class — Subject — Teacher) *</label>
-                    <Select v-model="scheduleDialog.teaching_assignment_id" :options="assignmentDropdownOptions" optionLabel="label" optionValue="id" filter placeholder="Select Assignment" class="w-full" data-testid="input-schedule-assignment" />
+                    <label class="text-sm font-medium">{{ t('teaching.schedules.labels.assignmentRequired') }}</label>
+                    <Select
+                        v-model="scheduleDialog.teaching_assignment_id"
+                        :options="assignmentDropdownOptions"
+                        optionLabel="label"
+                        optionValue="id"
+                        filter
+                        :placeholder="t('teaching.schedules.dialogs.scheduleSlot.selectAssignment')"
+                        class="w-full"
+                        data-testid="input-schedule-assignment"
+                    />
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div class="flex flex-col gap-1">
-                        <label class="text-sm font-medium">Day of Week *</label>
+                        <label class="text-sm font-medium">{{ t('teaching.schedules.labels.dayOfWeekRequired') }}</label>
                         <Select v-model="scheduleDialog.day_of_week" :options="options.days_of_week" optionLabel="label" optionValue="value" class="w-full" data-testid="input-schedule-day" />
                     </div>
                     <div class="flex flex-col gap-1">
-                        <label class="text-sm font-medium">Start Period *</label>
+                        <label class="text-sm font-medium">{{ t('teaching.schedules.labels.startPeriodRequired') }}</label>
                         <Select v-model="scheduleDialog.period_start" :options="options.period_presets" optionLabel="label" optionValue="period" class="w-full" data-testid="input-schedule-period-start" @change="syncPresetTimesForSchedule" />
                     </div>
                     <div class="flex flex-col gap-1">
-                        <label class="text-sm font-medium">End Period *</label>
+                        <label class="text-sm font-medium">{{ t('teaching.schedules.labels.endPeriodRequired') }}</label>
                         <Select v-model="scheduleDialog.period_end" :options="options.period_presets" optionLabel="label" optionValue="period" class="w-full" data-testid="input-schedule-period-end" @change="syncPresetTimesForSchedule" />
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div class="flex flex-col gap-1">
-                        <label class="text-sm font-medium">Start Time (HH:MM) *</label>
+                        <label class="text-sm font-medium">{{ t('teaching.schedules.labels.startTimeRequired') }}</label>
                         <InputText v-model="scheduleDialog.start_time" placeholder="07:00" class="w-full" data-testid="input-schedule-start-time" />
                     </div>
                     <div class="flex flex-col gap-1">
-                        <label class="text-sm font-medium">End Time (HH:MM) *</label>
+                        <label class="text-sm font-medium">{{ t('teaching.schedules.labels.endTimeRequired') }}</label>
                         <InputText v-model="scheduleDialog.end_time" placeholder="08:30" class="w-full" data-testid="input-schedule-end-time" />
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div class="flex flex-col gap-1">
-                        <label class="text-sm font-medium">Room (Optional)</label>
-                        <InputText v-model="scheduleDialog.room" placeholder="e.g. R-101 or LAB-KOMP-1" maxlength="60" class="w-full" data-testid="input-schedule-room" />
+                        <label class="text-sm font-medium">{{ t('teaching.schedules.labels.roomOptional') }}</label>
+                        <InputText v-model="scheduleDialog.room" :placeholder="t('teaching.schedules.timetable.filterRoom')" maxlength="60" class="w-full" data-testid="input-schedule-room" />
                     </div>
                     <div class="flex flex-col gap-1">
-                        <label class="text-sm font-medium">Status</label>
+                        <label class="text-sm font-medium">{{ t('teaching.schedules.labels.status') }}</label>
                         <Select
                             v-model="scheduleDialog.status"
                             :options="[
@@ -1545,55 +1605,75 @@ onMounted(async () => {
                 </div>
 
                 <div class="flex flex-col gap-1">
-                    <label class="text-sm font-medium">Notes (Optional)</label>
+                    <label class="text-sm font-medium">{{ t('teaching.schedules.labels.notesOptional') }}</label>
                     <InputText v-model="scheduleDialog.notes" maxlength="255" class="w-full" />
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2">
-                    <Button label="Cancel" severity="secondary" outlined @click="scheduleDialog.visible = false" />
-                    <Button :label="scheduleDialog.isEdit ? 'Save Slot' : 'Add Slot'" icon="pi pi-check" :loading="scheduleDialog.saving" data-testid="btn-save-schedule" @click="saveSchedule" />
+                    <Button :label="t('common.action.cancel')" severity="secondary" outlined @click="scheduleDialog.visible = false" />
+                    <Button
+                        :label="scheduleDialog.isEdit ? t('teaching.schedules.dialogs.scheduleSlot.save') : t('teaching.schedules.dialogs.scheduleSlot.create')"
+                        icon="pi pi-check"
+                        :loading="scheduleDialog.saving"
+                        data-testid="btn-save-schedule"
+                        @click="saveSchedule"
+                    />
                 </div>
             </div>
         </Dialog>
 
         <!-- DIALOG 3: CREATE / EDIT SCHEDULE EXCEPTION -->
-        <Dialog v-model:visible="exceptionDialog.visible" modal :header="exceptionDialog.isEdit ? 'Edit Schedule Exception' : 'New Schedule Exception'" :style="{ width: '38rem', maxWidth: '95vw' }">
+        <Dialog
+            v-model:visible="exceptionDialog.visible"
+            modal
+            :header="exceptionDialog.isEdit ? t('teaching.schedules.dialogs.exception.editTitle') : t('teaching.schedules.dialogs.exception.createTitle')"
+            :style="{ width: '38rem', maxWidth: '95vw' }"
+        >
             <div class="flex flex-col gap-3">
                 <div v-if="exceptionDialog.errorMessage" class="p-3 rounded bg-red-50 border border-red-200 text-red-700 text-sm flex flex-col gap-2" data-testid="exception-dialog-error">
                     <span>{{ exceptionDialog.errorMessage }}</span>
                     <div v-if="exceptionDialog.conflict && exceptionDialog.latest">
-                        <Button label="Reload Latest" icon="pi pi-refresh" size="small" severity="warn" data-testid="btn-reload-latest-exception" @click="reloadLatestException" />
+                        <Button :label="t('teaching.schedules.dialogs.assignment.reloadLatest')" icon="pi pi-refresh" size="small" severity="warn" data-testid="btn-reload-latest-exception" @click="reloadLatestException" />
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div class="flex flex-col gap-1">
-                        <label class="text-sm font-medium">Exception Type *</label>
+                        <label class="text-sm font-medium">{{ t('teaching.schedules.labels.exceptionTypeRequired') }}</label>
                         <Select v-model="exceptionDialog.exception_type" :options="options.exception_types" optionLabel="label" optionValue="value" class="w-full" data-testid="input-exception-type" />
                     </div>
                     <div class="flex flex-col gap-1">
-                        <label class="text-sm font-medium">Exception Date *</label>
+                        <label class="text-sm font-medium">{{ t('teaching.schedules.labels.exceptionDateRequired') }}</label>
                         <InputText v-model="exceptionDialog.exception_date" type="date" class="w-full" data-testid="input-exception-date" />
                     </div>
                 </div>
 
                 <div v-if="exceptionDialog.exception_type === 'holiday'" class="flex flex-col gap-1">
-                    <label class="text-sm font-medium">Holiday Scope (Leave empty for School-Wide Holiday)</label>
+                    <label class="text-sm font-medium">{{ t('teaching.schedules.labels.holidayScope') }}</label>
                     <Select
                         v-model="exceptionDialog.school_rombel_id"
                         :options="rombelsForSelectedYear"
                         optionLabel="name"
                         optionValue="id"
                         showClear
-                        placeholder="All Classes (School-Wide Holiday)"
+                        :placeholder="t('teaching.schedules.dialogs.exception.allSchoolHoliday')"
                         class="w-full"
                         data-testid="input-exception-rombel"
                     />
                 </div>
 
                 <div v-else class="flex flex-col gap-1">
-                    <label class="text-sm font-medium">Affected Timetable Slot *</label>
-                    <Select v-model="exceptionDialog.teaching_schedule_id" :options="scheduleDropdownOptions" optionLabel="label" optionValue="id" filter placeholder="Select Timetable Slot" class="w-full" data-testid="input-exception-schedule" />
+                    <label class="text-sm font-medium">{{ t('teaching.schedules.labels.affectedSlotRequired') }}</label>
+                    <Select
+                        v-model="exceptionDialog.teaching_schedule_id"
+                        :options="scheduleDropdownOptions"
+                        optionLabel="label"
+                        optionValue="id"
+                        filter
+                        :placeholder="t('teaching.schedules.dialogs.exception.selectSchedule')"
+                        class="w-full"
+                        data-testid="input-exception-schedule"
+                    />
                 </div>
 
                 <template v-if="exceptionDialog.exception_type === 'rescheduled'">
@@ -1601,11 +1681,11 @@ onMounted(async () => {
                         <div class="font-semibold text-sm">Rescheduled Target Details</div>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div class="flex flex-col gap-1">
-                                <label class="text-xs font-medium">Target Date *</label>
+                                <label class="text-xs font-medium">{{ t('teaching.schedules.labels.targetDateRequired') }}</label>
                                 <InputText v-model="exceptionDialog.rescheduled_date" type="date" class="w-full" data-testid="input-rescheduled-date" />
                             </div>
                             <div class="flex flex-col gap-1">
-                                <label class="text-xs font-medium">Start Period *</label>
+                                <label class="text-xs font-medium">{{ t('teaching.schedules.labels.startPeriodRequired') }}</label>
                                 <Select
                                     v-model="exceptionDialog.rescheduled_period_start"
                                     :options="options.period_presets"
@@ -1617,7 +1697,7 @@ onMounted(async () => {
                                 />
                             </div>
                             <div class="flex flex-col gap-1">
-                                <label class="text-xs font-medium">End Period *</label>
+                                <label class="text-xs font-medium">{{ t('teaching.schedules.labels.endPeriodRequired') }}</label>
                                 <Select
                                     v-model="exceptionDialog.rescheduled_period_end"
                                     :options="options.period_presets"
@@ -1632,22 +1712,22 @@ onMounted(async () => {
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div class="flex flex-col gap-1">
-                                <label class="text-xs font-medium">Start Time (HH:MM) *</label>
+                                <label class="text-xs font-medium">{{ t('teaching.schedules.labels.startTimeRequired') }}</label>
                                 <InputText v-model="exceptionDialog.rescheduled_start_time" placeholder="07:00" class="w-full" data-testid="input-rescheduled-start-time" />
                             </div>
                             <div class="flex flex-col gap-1">
-                                <label class="text-xs font-medium">End Time (HH:MM) *</label>
+                                <label class="text-xs font-medium">{{ t('teaching.schedules.labels.endTimeRequired') }}</label>
                                 <InputText v-model="exceptionDialog.rescheduled_end_time" placeholder="08:30" class="w-full" data-testid="input-rescheduled-end-time" />
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div class="flex flex-col gap-1">
-                                <label class="text-xs font-medium">Target Room (Optional)</label>
+                                <label class="text-xs font-medium">{{ t('teaching.schedules.labels.targetRoomOptional') }}</label>
                                 <InputText v-model="exceptionDialog.rescheduled_room" placeholder="e.g. LAB-KOMP-1" maxlength="60" class="w-full" data-testid="input-rescheduled-room" />
                             </div>
                             <div class="flex flex-col gap-1">
-                                <label class="text-xs font-medium">Substitute Teacher (Optional)</label>
+                                <label class="text-xs font-medium">{{ t('teaching.schedules.labels.substituteTeacherOptional') }}</label>
                                 <Select
                                     v-model="exceptionDialog.substitute_employee_id"
                                     :options="options.teachers"
@@ -1655,7 +1735,7 @@ onMounted(async () => {
                                     optionValue="id"
                                     showClear
                                     filter
-                                    placeholder="Same Assigned Teacher"
+                                    :placeholder="t('teaching.schedules.dialogs.exception.sameTeacher')"
                                     class="w-full"
                                     data-testid="input-rescheduled-substitute"
                                 />
@@ -1665,13 +1745,19 @@ onMounted(async () => {
                 </template>
 
                 <div class="flex flex-col gap-1">
-                    <label class="text-sm font-medium">Reason (10–255 characters) *</label>
-                    <Textarea v-model="exceptionDialog.reason" rows="2" maxlength="255" placeholder="Provide a clear reason (minimum 10 characters)..." class="w-full" data-testid="input-exception-reason" />
+                    <label class="text-sm font-medium">{{ t('teaching.schedules.labels.reasonRequired') }}</label>
+                    <Textarea v-model="exceptionDialog.reason" rows="2" maxlength="255" :placeholder="t('teaching.schedules.dialogs.exception.reasonPlaceholder')" class="w-full" data-testid="input-exception-reason" />
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2">
-                    <Button label="Cancel" severity="secondary" outlined @click="exceptionDialog.visible = false" />
-                    <Button :label="exceptionDialog.isEdit ? 'Save Exception' : 'Record Exception'" icon="pi pi-check" :loading="exceptionDialog.saving" data-testid="btn-save-exception" @click="saveException" />
+                    <Button :label="t('common.action.cancel')" severity="secondary" outlined @click="exceptionDialog.visible = false" />
+                    <Button
+                        :label="exceptionDialog.isEdit ? t('teaching.schedules.dialogs.exception.save') : t('teaching.schedules.dialogs.exception.create')"
+                        icon="pi pi-check"
+                        :loading="exceptionDialog.saving"
+                        data-testid="btn-save-exception"
+                        @click="saveException"
+                    />
                 </div>
             </div>
         </Dialog>

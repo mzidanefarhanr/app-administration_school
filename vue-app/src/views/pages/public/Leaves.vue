@@ -1,23 +1,25 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useToast } from 'primevue/usetoast';
 import apiLogin from '@/apiLogin';
 import { authStore } from '@/stores/authStore';
 
 const store = authStore();
 const toast = useToast();
+const { t, locale } = useI18n();
 
 const canView = computed(() => store.can('leaves.view'));
 const canRequest = computed(() => store.can('leaves.request'));
 const canManage = computed(() => store.can('leaves.manage'));
 
-const statusLabels = {
-    draft: 'Draft',
-    submitted: 'Submitted',
-    approved: 'Approved',
-    rejected: 'Rejected',
-    cancelled: 'Cancelled'
-};
+const statusLabels = computed(() => ({
+    draft: t('leaves.statuses.draft'),
+    submitted: t('leaves.statuses.submitted'),
+    approved: t('leaves.statuses.approved'),
+    rejected: t('leaves.statuses.rejected'),
+    cancelled: t('leaves.statuses.cancelled')
+}));
 
 const statusSeverity = {
     draft: 'secondary',
@@ -27,12 +29,12 @@ const statusSeverity = {
     cancelled: 'warn'
 };
 
-const decisionLabels = {
-    submitted: 'Submitted',
-    approved: 'Approved',
-    rejected: 'Rejected',
-    cancelled: 'Cancelled'
-};
+const decisionLabels = computed(() => ({
+    submitted: t('leaves.decisions.submitted'),
+    approved: t('leaves.decisions.approved'),
+    rejected: t('leaves.decisions.rejected'),
+    cancelled: t('leaves.decisions.cancelled')
+}));
 
 const decisionSeverity = {
     submitted: 'info',
@@ -86,7 +88,7 @@ const activeSchoolYearLabel = computed(() => {
 });
 
 const subjectTypeOptions = computed(() => options.value?.subject_types ?? []);
-const statusFilterOptions = computed(() => [{ label: 'All statuses', value: 'all' }, ...(options.value?.statuses ?? []).map((status) => ({ label: status.label, value: status.value }))]);
+const statusFilterOptions = computed(() => [{ label: t('leaves.filters.allStatuses'), value: 'all' }, ...(options.value?.statuses ?? []).map((status) => ({ label: statusLabels.value[status.value] ?? status.label, value: status.value }))]);
 const perPageOptions = computed(() => options.value?.per_page_options ?? [10, 20, 50, 100]);
 const maxFiles = computed(() => options.value?.attachment?.max_files_per_request ?? 3);
 const maxFileKb = computed(() => options.value?.attachment?.max_file_kb ?? 5120);
@@ -112,16 +114,16 @@ const buildTypeOptions = (subjectType) => {
         unique.push({ label: type.label, value: type.code });
     }
 
-    return [{ label: 'All types', value: 'all' }, ...unique];
+    return [{ label: t('leaves.filters.allTypes'), value: 'all' }, ...unique];
 };
 
 const typeFilterOptions = computed(() => buildTypeOptions(filters.subjectType));
 
-const totalLabel = computed(() => `${meta.value.total} ${meta.value.total === 1 ? 'request' : 'requests'}`);
-const emptyMessage = computed(() => (activeTab.value === 'mine' ? 'You have no self-service leave requests matching the current filters.' : 'No leave requests match the current filters.'));
+const totalLabel = computed(() => t('leaves.metaTotal', { count: meta.value.total }));
+const emptyMessage = computed(() => t('leaves.messages.empty'));
 
 const notify = (severity, detail) => {
-    toast.add({ severity, summary: 'Leaves', detail, life: 5000 });
+    toast.add({ severity, summary: t('leaves.title'), detail, life: 5000 });
 };
 
 const errorMessage = (error, fallback) => error.response?.data?.message ?? fallback;
@@ -171,7 +173,7 @@ const formatDate = (value) => {
     const raw = String(value).slice(0, 10);
     const parsed = new Date(`${raw}T00:00:00`);
     if (Number.isNaN(parsed.getTime())) return raw;
-    return parsed.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    return parsed.toLocaleDateString(locale.value === 'en' ? 'en-GB' : 'id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
 const formatDateTime = (value) => {
@@ -971,7 +973,7 @@ const decisionError = ref('');
 const decisionIsApprove = computed(() => decisionMode.value === 'approve');
 const decisionRequiresReason = computed(() => decisionMode.value === 'reject');
 const decisionErrorList = computed(() => errorList(decisionErrors.value));
-const decisionTitle = computed(() => (decisionIsApprove.value ? 'Approve Leave Request' : 'Reject Leave Request'));
+const decisionTitle = computed(() => (decisionIsApprove.value ? t('leaves.dialogs.approveTitle') : t('leaves.dialogs.rejectTitle')));
 
 const openDecision = (source, mode) => {
     if (!source || !['approve', 'reject'].includes(mode)) return;
@@ -1216,75 +1218,84 @@ onMounted(async () => {
         <div class="bg-surface-0 dark:bg-surface-950 px-4 py-6 sm:px-6 sm:py-8 md:px-12 lg:px-20">
             <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div>
-                    <div class="font-bold text-2xl sm:text-3xl text-surface-900 dark:text-surface-0 mb-2">Leaves</div>
-                    <p class="text-surface-500 dark:text-surface-400">Submit student and employee leave requests, attach supporting files, and track their status.</p>
+                    <div class="font-bold text-2xl sm:text-3xl text-surface-900 dark:text-surface-0 mb-2">{{ t('leaves.title') }}</div>
+                    <p class="text-surface-500 dark:text-surface-400">{{ t('leaves.subtitle') }}</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                     <Tag v-if="activeTab !== 'recap'" :value="totalLabel" severity="secondary" />
-                    <Button v-if="activeTab === 'requests' && canManage" label="New Request" icon="pi pi-plus" :disabled="!optionsReady" @click="openCreate(false)" />
-                    <Button v-if="activeTab === 'mine' && canRequest && selfEmployeeOption" label="New Self Request" icon="pi pi-plus" :disabled="!optionsReady" @click="openCreate(true)" />
+                    <Button v-if="activeTab === 'requests' && canManage" :label="t('leaves.newRequest')" icon="pi pi-plus" :disabled="!optionsReady" @click="openCreate(false)" />
+                    <Button v-if="activeTab === 'mine' && canRequest && selfEmployeeOption" :label="t('leaves.newSelfRequest')" icon="pi pi-plus" :disabled="!optionsReady" @click="openCreate(true)" />
                 </div>
             </div>
 
             <div v-if="optionsError" class="mt-4 flex flex-col sm:flex-row sm:items-center gap-3 rounded border border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-950 px-4 py-3 text-sm text-orange-700 dark:text-orange-300">
                 <span class="flex-1">{{ optionsError }}</span>
-                <Button label="Retry" icon="pi pi-refresh" size="small" severity="secondary" variant="outlined" @click="loadOptions" />
+                <Button :label="t('leaves.common.retry')" icon="pi pi-refresh" size="small" severity="secondary" variant="outlined" @click="loadOptions" />
             </div>
 
-            <Message v-if="!canView && !canRequest" severity="error" :closable="false" class="mt-4"> You do not have access to leave requests. </Message>
+            <Message v-if="!canView && !canRequest" severity="error" :closable="false" class="mt-4">{{ t('leaves.noAccessNotice') }}</Message>
 
             <template v-else>
                 <Tabs :value="activeTab" class="mt-6" @update:value="onTabChange">
                     <TabList>
-                        <Tab v-if="canView" value="requests">Requests</Tab>
-                        <Tab v-if="canRequest" value="mine">My Leaves</Tab>
-                        <Tab v-if="canView" value="recap">Recap</Tab>
+                        <Tab v-if="canView" value="requests">{{ t('leaves.requestsTab') }}</Tab>
+                        <Tab v-if="canRequest" value="mine">{{ t('leaves.myLeavesTab') }}</Tab>
+                        <Tab v-if="canView" value="recap">{{ t('leaves.recapTab') }}</Tab>
                     </TabList>
                 </Tabs>
 
                 <div class="text-sm text-surface-500 dark:text-surface-400 mt-2">
-                    {{ activeTab === 'requests' ? 'All leave requests visible to your role.' : activeTab === 'recap' ? 'Aggregated leave requests and days for the selected period.' : 'Leave requests linked to your employee account.' }}
+                    {{ activeTab === 'requests' ? t('leaves.tabDescriptions.requests') : activeTab === 'recap' ? t('leaves.tabDescriptions.recap') : t('leaves.tabDescriptions.mine') }}
                 </div>
 
-                <Message v-if="activeTab === 'mine' && canRequest && !selfEmployeeOption" severity="warn" :closable="false" class="mt-4">
-                    Your account is not linked to an employee record. Contact an administrator to link it before requesting leave.
-                </Message>
+                <Message v-if="activeTab === 'mine' && canRequest && !selfEmployeeOption" severity="warn" :closable="false" class="mt-4">{{ t('leaves.unlinkedNotice') }}</Message>
 
                 <template v-if="activeTab !== 'recap'">
                     <div class="card mt-4 flex flex-col gap-4">
                         <div class="flex flex-col xl:flex-row xl:items-center xl:flex-wrap gap-3">
                             <IconField class="w-full xl:max-w-sm">
                                 <InputIcon><i class="pi pi-search" /></InputIcon>
-                                <InputText v-model="filters.search" placeholder="Search name, NIS, NISN, or NUPTK" class="w-full" maxlength="100" aria-label="Search leave requests" @input="onSearchInput" />
+                                <InputText v-model="filters.search" :placeholder="t('leaves.searchPlaceholder')" class="w-full" maxlength="100" :aria-label="t('leaves.searchPlaceholder')" @input="onSearchInput" />
                             </IconField>
-                            <Select v-model="filters.status" :options="statusFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-44" aria-label="Leave status" @change="onFilterChange" />
+                            <Select v-model="filters.status" :options="statusFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-44" :aria-label="t('leaves.filters.leaveStatus')" @change="onFilterChange" />
                             <Select
                                 v-if="activeTab === 'requests'"
                                 v-model="filters.subjectType"
-                                :options="[{ label: 'All subject types', value: 'all' }, ...subjectTypeOptions]"
+                                :options="[{ label: t('leaves.filters.allSubjectTypes'), value: 'all' }, ...subjectTypeOptions]"
                                 optionLabel="label"
                                 optionValue="value"
                                 class="w-full xl:w-44"
-                                aria-label="Subject type"
+                                :aria-label="t('leaves.filters.subjectType')"
                                 @change="onSubjectFilterChange"
                             />
-                            <Select v-model="filters.type" :options="typeFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-48" aria-label="Leave type" @change="onFilterChange" />
+                            <Select v-model="filters.type" :options="typeFilterOptions" optionLabel="label" optionValue="value" class="w-full xl:w-48" :aria-label="t('leaves.filters.leaveType')" @change="onFilterChange" />
                             <DatePicker
                                 v-model="filters.dateFrom"
-                                placeholder="From date"
+                                :placeholder="t('leaves.fields.fromDate')"
                                 dateFormat="yy-mm-dd"
                                 showIcon
                                 manualInput
                                 fluid
                                 class="w-full xl:w-40"
-                                aria-label="Leave date from"
+                                :aria-label="t('leaves.filters.leaveDateFrom')"
                                 @date-select="onDateFilterChange"
                                 @blur="onDateFilterChange"
                             />
-                            <DatePicker v-model="filters.dateTo" placeholder="To date" dateFormat="yy-mm-dd" showIcon manualInput fluid class="w-full xl:w-40" aria-label="Leave date to" @date-select="onDateFilterChange" @blur="onDateFilterChange" />
+                            <DatePicker
+                                v-model="filters.dateTo"
+                                :placeholder="t('leaves.fields.toDate')"
+                                dateFormat="yy-mm-dd"
+                                showIcon
+                                manualInput
+                                fluid
+                                class="w-full xl:w-40"
+                                :aria-label="t('leaves.filters.leaveDateTo')"
+                                @date-select="onDateFilterChange"
+                                @blur="onDateFilterChange"
+                            />
                             <div class="flex items-center gap-2 xl:ml-auto">
-                                <Select v-model="filters.perPage" :options="perPageOptions" class="w-28" :aria-label="`Rows: ${filters.perPage}`" @change="onFilterChange" />
-                                <Button label="Clear" icon="pi pi-filter-slash" severity="secondary" variant="outlined" @click="resetFilters" />
+                                <Select v-model="filters.perPage" :options="perPageOptions" class="w-28" :aria-label="t('leaves.common.perPageLabel', { count: filters.perPage })" @change="onFilterChange" />
+                                <Button :label="t('leaves.common.clear')" icon="pi pi-filter-slash" severity="secondary" variant="outlined" @click="resetFilters" />
                             </div>
                         </div>
 
@@ -1302,57 +1313,84 @@ onMounted(async () => {
                             :loading="listLoading"
                             tableStyle="min-width: 76rem"
                             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} requests"
+                            :currentPageReportTemplate="t('leaves.reportTemplate')"
                             @page="onPage"
                         >
-                            <template #loading>Loading leave requests. Please wait.</template>
+                            <template #loading>{{ t('leaves.messages.loading') }}</template>
                             <template #empty>
                                 <div class="flex flex-col items-center gap-3 py-6">
                                     <span v-if="listError" class="text-red-500">{{ listError }}</span>
                                     <span v-else>{{ emptyMessage }}</span>
-                                    <Button v-if="listError" icon="pi pi-refresh" label="Retry" @click="loadList" />
+                                    <Button v-if="listError" icon="pi pi-refresh" :label="t('leaves.common.retry')" @click="loadList" />
                                 </div>
                             </template>
-                            <Column header="Subject" style="min-width: 16rem">
+                            <Column :header="t('leaves.columns.subject')" style="min-width: 16rem">
                                 <template #body="{ data }">
-                                    <div class="font-medium truncate" :title="data.subject?.name ?? ''">{{ data.subject?.name ?? 'Unknown subject' }}</div>
+                                    <div class="font-medium truncate" :title="data.subject?.name ?? ''">{{ data.subject?.name ?? t('leaves.unknownSubject') }}</div>
                                     <div class="text-xs text-surface-500 truncate" :title="subjectMeta(data)">{{ subjectMeta(data) || '-' }}</div>
                                 </template>
                             </Column>
-                            <Column header="Type" style="min-width: 11rem">
+                            <Column :header="t('leaves.columns.type')" style="min-width: 11rem">
                                 <template #body="{ data }">
                                     <div class="font-medium">{{ data.type_label ?? data.type }}</div>
                                     <div class="text-xs text-surface-500">{{ subjectTypeLabel(data.subject_type) }}</div>
                                 </template>
                             </Column>
-                            <Column header="Dates" style="min-width: 14rem">
+                            <Column :header="t('leaves.columns.dates')" style="min-width: 14rem">
                                 <template #body="{ data }">
                                     <div>{{ formatDate(data.start_date) }} – {{ formatDate(data.end_date) }}</div>
-                                    <div class="text-xs text-surface-500">{{ data.days }} {{ data.days === 1 ? 'day' : 'days' }}</div>
+                                    <div class="text-xs text-surface-500">{{ t('leaves.daysCount', { count: data.days }) }}</div>
                                 </template>
                             </Column>
-                            <Column header="Status" style="min-width: 9rem">
+                            <Column :header="t('leaves.columns.status')" style="min-width: 9rem">
                                 <template #body="{ data }">
                                     <Tag :value="statusLabel(data.status)" :severity="statusTagSeverity(data.status)" />
-                                    <div class="text-xs text-surface-500 mt-1">Version {{ data.version }}</div>
+                                    <div class="text-xs text-surface-500 mt-1">{{ t('leaves.version', { version: data.version }) }}</div>
                                 </template>
                             </Column>
-                            <Column header="Requested by" style="min-width: 12rem">
+                            <Column :header="t('leaves.columns.requestedBy')" style="min-width: 12rem">
                                 <template #body="{ data }">
                                     <span class="block truncate" :title="data.requested_by?.name ?? ''">{{ data.requested_by?.name ?? '-' }}</span>
                                 </template>
                             </Column>
-                            <Column header="Files" style="min-width: 5rem">
+                            <Column :header="t('leaves.columns.files')" style="min-width: 5rem">
                                 <template #body="{ data }">{{ data.attachments_count ?? 0 }}</template>
                             </Column>
-                            <Column header="Actions" style="min-width: 12rem">
+                            <Column :header="t('leaves.columns.actions')" style="min-width: 12rem">
                                 <template #body="{ data }">
                                     <div class="flex flex-wrap items-center gap-2">
-                                        <Button icon="pi pi-eye" aria-label="View leave request" variant="outlined" rounded v-tooltip.top="'View'" @click="openDetail(data)" />
-                                        <Button v-if="data.can?.edit" icon="pi pi-pencil" aria-label="Edit draft leave request" variant="outlined" rounded v-tooltip.top="'Edit'" @click="startEdit(data)" />
-                                        <Button v-if="data.can?.submit" icon="pi pi-send" aria-label="Submit draft leave request" severity="info" variant="outlined" rounded v-tooltip.top="'Submit'" @click="openSubmit(data)" />
-                                        <Button v-if="data.can?.approve" icon="pi pi-check" aria-label="Approve leave request" severity="success" variant="outlined" rounded v-tooltip.top="'Approve'" @click="openDecision(data, 'approve')" />
-                                        <Button v-if="data.can?.reject" icon="pi pi-times" aria-label="Reject leave request" severity="danger" variant="outlined" rounded v-tooltip.top="'Reject'" @click="openDecision(data, 'reject')" />
+                                        <Button icon="pi pi-eye" :aria-label="t('leaves.buttons.viewRequest')" variant="outlined" rounded v-tooltip.top="t('leaves.tooltips.view')" @click="openDetail(data)" />
+                                        <Button v-if="data.can?.edit" icon="pi pi-pencil" :aria-label="t('leaves.buttons.editDraft')" variant="outlined" rounded v-tooltip.top="t('leaves.tooltips.edit')" @click="startEdit(data)" />
+                                        <Button
+                                            v-if="data.can?.submit"
+                                            icon="pi pi-send"
+                                            :aria-label="t('leaves.buttons.submitDraft')"
+                                            severity="info"
+                                            variant="outlined"
+                                            rounded
+                                            v-tooltip.top="t('leaves.tooltips.submit')"
+                                            @click="openSubmit(data)"
+                                        />
+                                        <Button
+                                            v-if="data.can?.approve"
+                                            icon="pi pi-check"
+                                            :aria-label="t('leaves.buttons.approveRequest')"
+                                            severity="success"
+                                            variant="outlined"
+                                            rounded
+                                            v-tooltip.top="t('leaves.tooltips.approve')"
+                                            @click="openDecision(data, 'approve')"
+                                        />
+                                        <Button
+                                            v-if="data.can?.reject"
+                                            icon="pi pi-times"
+                                            :aria-label="t('leaves.buttons.rejectRequest')"
+                                            severity="danger"
+                                            variant="outlined"
+                                            rounded
+                                            v-tooltip.top="t('leaves.tooltips.reject')"
+                                            @click="openDecision(data, 'reject')"
+                                        />
                                     </div>
                                 </template>
                             </Column>
@@ -1363,23 +1401,23 @@ onMounted(async () => {
                 <div v-else class="card mt-4 flex flex-col gap-4">
                     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
                         <div class="flex flex-col gap-1">
-                            <label for="recapFrom" class="text-sm font-medium">From</label>
+                            <label for="recapFrom" class="text-sm font-medium">{{ t('leaves.from') }}</label>
                             <DatePicker inputId="recapFrom" v-model="recapFilters.from" dateFormat="yy-mm-dd" showIcon manualInput fluid />
                         </div>
                         <div class="flex flex-col gap-1">
-                            <label for="recapTo" class="text-sm font-medium">To</label>
+                            <label for="recapTo" class="text-sm font-medium">{{ t('leaves.to') }}</label>
                             <DatePicker inputId="recapTo" v-model="recapFilters.to" dateFormat="yy-mm-dd" showIcon manualInput fluid />
                         </div>
                         <div class="flex flex-col gap-1">
-                            <label for="recapStatus" class="text-sm font-medium">Status</label>
+                            <label for="recapStatus" class="text-sm font-medium">{{ t('leaves.status') }}</label>
                             <Select inputId="recapStatus" v-model="recapFilters.status" :options="statusFilterOptions" optionLabel="label" optionValue="value" fluid />
                         </div>
                         <div class="flex flex-col gap-1">
-                            <label for="recapSubject" class="text-sm font-medium">Subject type</label>
+                            <label for="recapSubject" class="text-sm font-medium">{{ t('leaves.subjectType') }}</label>
                             <Select
                                 inputId="recapSubject"
                                 v-model="recapFilters.subjectType"
-                                :options="[{ label: 'All subject types', value: 'all' }, ...subjectTypeOptions]"
+                                :options="[{ label: t('leaves.filters.allSubjectTypes'), value: 'all' }, ...subjectTypeOptions]"
                                 optionLabel="label"
                                 optionValue="value"
                                 fluid
@@ -1387,11 +1425,11 @@ onMounted(async () => {
                             />
                         </div>
                         <div class="flex flex-col gap-1">
-                            <label for="recapType" class="text-sm font-medium">Leave type</label>
+                            <label for="recapType" class="text-sm font-medium">{{ t('leaves.leaveType') }}</label>
                             <Select inputId="recapType" v-model="recapFilters.type" :options="recapTypeOptions" optionLabel="label" optionValue="value" fluid />
                         </div>
                         <div class="flex flex-col gap-1">
-                            <label for="recapSchoolYear" class="text-sm font-medium">School year</label>
+                            <label for="recapSchoolYear" class="text-sm font-medium">{{ t('leaves.schoolYear') }}</label>
                             <Select
                                 inputId="recapSchoolYear"
                                 v-model="recapFilters.schoolYearId"
@@ -1404,11 +1442,11 @@ onMounted(async () => {
                             />
                         </div>
                         <div class="flex flex-col gap-1">
-                            <label for="recapRombel" class="text-sm font-medium">Class</label>
+                            <label for="recapRombel" class="text-sm font-medium">{{ t('leaves.rombel') }}</label>
                             <Select inputId="recapRombel" v-model="recapFilters.rombelId" :options="recapRombelOptions" optionLabel="label" optionValue="value" :disabled="recapFilters.subjectType === 'employee'" fluid @change="onRecapRombelChange" />
                         </div>
                         <div class="flex flex-col gap-1">
-                            <label for="recapEmployeeType" class="text-sm font-medium">Employee type</label>
+                            <label for="recapEmployeeType" class="text-sm font-medium">{{ t('leaves.employeeType') }}</label>
                             <Select
                                 inputId="recapEmployeeType"
                                 v-model="recapFilters.employeeTypeId"
@@ -1423,9 +1461,9 @@ onMounted(async () => {
                     </div>
 
                     <div class="flex flex-wrap items-center gap-2">
-                        <Button label="Refresh" icon="pi pi-refresh" :loading="recapLoading" @click="loadRecap" />
-                        <Button label="Reset" icon="pi pi-filter-slash" severity="secondary" variant="outlined" :disabled="recapLoading" @click="resetRecapFilters" />
-                        <small class="text-surface-500 sm:ml-auto">Maximum {{ recapMaxRange }} days per recap period.</small>
+                        <Button :label="t('leaves.common.refresh')" icon="pi pi-refresh" :loading="recapLoading" @click="loadRecap" />
+                        <Button :label="t('leaves.common.reset')" icon="pi pi-filter-slash" severity="secondary" variant="outlined" :disabled="recapLoading" @click="resetRecapFilters" />
+                        <small class="text-surface-500 sm:ml-auto">{{ t('leaves.maxRecapRange', { max: recapMaxRange }) }}</small>
                     </div>
 
                     <Message v-if="recapError" severity="error" :closable="false">{{ recapError }}</Message>
@@ -1437,7 +1475,7 @@ onMounted(async () => {
                     <template v-else-if="recap">
                         <div class="flex flex-wrap items-center gap-2">
                             <Tag :value="`${formatDate(recap.period.from)} – ${formatDate(recap.period.to)}`" severity="secondary" />
-                            <Tag :value="`${recap.period.days} ${recap.period.days === 1 ? 'day' : 'days'} in period`" severity="contrast" />
+                            <Tag :value="t('leaves.daysInPeriod', { days: recap.period.days })" severity="contrast" />
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -1447,58 +1485,58 @@ onMounted(async () => {
                             </div>
                         </div>
 
-                        <Message v-if="recap.totals.requests === 0" severity="info" :closable="false">No leave requests intersect this period.</Message>
+                        <Message v-if="recap.totals.requests === 0" severity="info" :closable="false">{{ t('leaves.noRecapData') }}</Message>
 
                         <template v-else>
                             <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
                                 <div class="border border-surface-200 dark:border-surface-700 rounded p-4 flex flex-col gap-3">
-                                    <div class="font-semibold">By status</div>
+                                    <div class="font-semibold">{{ t('leaves.tabs.byStatus') }}</div>
                                     <DataTable :value="recap.by_status" size="small" scrollable tableStyle="min-width: 18rem">
                                         <Column header="Status">
                                             <template #body="{ data }">{{ data.label }}</template>
                                         </Column>
-                                        <Column field="requests" header="Requests" />
-                                        <Column field="days" header="Days" />
+                                        <Column field="requests" :header="t('leaves.columns.requests')" />
+                                        <Column field="days" :header="t('leaves.columns.days')" />
                                     </DataTable>
                                 </div>
 
                                 <div class="border border-surface-200 dark:border-surface-700 rounded p-4 flex flex-col gap-3">
-                                    <div class="font-semibold">By type</div>
+                                    <div class="font-semibold">{{ t('leaves.tabs.byType') }}</div>
                                     <DataTable :value="recap.by_type" size="small" scrollable tableStyle="min-width: 22rem">
                                         <Column header="Subject">
                                             <template #body="{ data }">{{ subjectTypeLabel(data.subject_type) }}</template>
                                         </Column>
                                         <Column field="label" header="Type" />
-                                        <Column field="requests" header="Requests" />
-                                        <Column field="days" header="Days" />
+                                        <Column field="requests" :header="t('leaves.columns.requests')" />
+                                        <Column field="days" :header="t('leaves.columns.days')" />
                                     </DataTable>
                                 </div>
 
                                 <div class="border border-surface-200 dark:border-surface-700 rounded p-4 flex flex-col gap-3">
-                                    <div class="font-semibold">By class</div>
+                                    <div class="font-semibold">{{ t('leaves.tabs.byClass') }}</div>
                                     <DataTable :value="recap.by_class" size="small" scrollable tableStyle="min-width: 18rem">
                                         <template #empty>No student leave in this period.</template>
                                         <Column field="class" header="Class" />
-                                        <Column field="requests" header="Requests" />
-                                        <Column field="days" header="Days" />
+                                        <Column field="requests" :header="t('leaves.columns.requests')" />
+                                        <Column field="days" :header="t('leaves.columns.days')" />
                                     </DataTable>
                                 </div>
 
                                 <div class="border border-surface-200 dark:border-surface-700 rounded p-4 flex flex-col gap-3">
-                                    <div class="font-semibold">By employee</div>
+                                    <div class="font-semibold">{{ t('leaves.tabs.byEmployee') }}</div>
                                     <DataTable :value="recap.by_employee" size="small" scrollable tableStyle="min-width: 28rem">
                                         <template #empty>No employee leave in this period.</template>
-                                        <Column header="Employee">
+                                        <Column :header="t('leaves.columns.employee')">
                                             <template #body="{ data }">{{ data.name ?? '-' }}</template>
                                         </Column>
-                                        <Column header="NUPTK">
+                                        <Column :header="t('leaves.columns.nuptk')">
                                             <template #body="{ data }">{{ data.nuptk ?? '-' }}</template>
                                         </Column>
-                                        <Column header="Employee type">
+                                        <Column :header="t('leaves.columns.employeeType')">
                                             <template #body="{ data }">{{ data.employee_type ?? '-' }}</template>
                                         </Column>
-                                        <Column field="requests" header="Requests" />
-                                        <Column field="days" header="Days" />
+                                        <Column field="requests" :header="t('leaves.columns.requests')" />
+                                        <Column field="days" :header="t('leaves.columns.days')" />
                                     </DataTable>
                                 </div>
                             </div>
@@ -1509,7 +1547,7 @@ onMounted(async () => {
         </div>
     </Fluid>
 
-    <Dialog v-model:visible="formVisible" modal :draggable="false" :style="{ width: 'min(94vw, 44rem)' }" :header="formMode === 'create' ? 'New Leave Request' : 'Edit Leave Request'">
+    <Dialog v-model:visible="formVisible" modal :draggable="false" :style="{ width: 'min(94vw, 44rem)' }" :header="formMode === 'create' ? t('leaves.dialogs.newTitle') : t('leaves.dialogs.editTitle')">
         <div class="flex flex-col gap-4">
             <Message v-if="formError" severity="error" :closable="false">{{ formError }}</Message>
 
@@ -1548,7 +1586,7 @@ onMounted(async () => {
             <small v-if="fieldError(formErrors, 'school_year')" class="text-red-500">{{ fieldError(formErrors, 'school_year') }}</small>
 
             <div class="flex flex-col gap-2">
-                <label for="leaveType" class="font-medium">Leave Type <span class="text-red-500">*</span></label>
+                <label for="leaveType" class="font-medium">{{ t('leaves.fields.leaveType') }} <span class="text-red-500">*</span></label>
                 <Select inputId="leaveType" v-model="form.type" :options="formTypeOptions" optionLabel="label" optionValue="value" placeholder="Select leave type" fluid />
                 <small v-if="formSelectedType" class="text-surface-500">Maximum {{ formSelectedType.max_days }} days for this type.</small>
                 <small v-if="fieldError(formErrors, 'type')" class="text-red-500">{{ fieldError(formErrors, 'type') }}</small>
@@ -1578,12 +1616,12 @@ onMounted(async () => {
         </div>
 
         <template #footer>
-            <Button label="Cancel" severity="secondary" variant="text" :disabled="formSaving" @click="formVisible = false" />
-            <Button :label="formMode === 'create' ? 'Create Draft' : 'Save Changes'" icon="pi pi-check" :loading="formSaving" @click="submitForm" />
+            <Button :label="t('leaves.common.cancel')" severity="secondary" variant="text" :disabled="formSaving" @click="formVisible = false" />
+            <Button :label="formMode === 'create' ? t('leaves.buttons.createDraft') : t('leaves.buttons.saveChanges')" icon="pi pi-check" :loading="formSaving" @click="submitForm" />
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="detailVisible" modal :draggable="false" :style="{ width: 'min(94vw, 60rem)' }" header="Leave Request">
+    <Dialog v-model:visible="detailVisible" modal :draggable="false" :style="{ width: 'min(94vw, 60rem)' }" :header="t('leaves.dialogs.viewTitle')">
         <div v-if="detailLoading" class="flex justify-center py-10">
             <i class="pi pi-spin pi-spinner text-2xl" aria-hidden="true"></i>
         </div>
@@ -1703,7 +1741,7 @@ onMounted(async () => {
         </div>
     </Dialog>
 
-    <Dialog v-model:visible="submitVisible" modal :draggable="false" :style="{ width: 'min(94vw, 36rem)' }" header="Submit Leave Request">
+    <Dialog v-model:visible="submitVisible" modal :draggable="false" :style="{ width: 'min(94vw, 36rem)' }" :header="t('leaves.dialogs.submitTitle')">
         <div class="flex flex-col gap-4">
             <div v-if="submitTarget" class="text-sm text-surface-500">
                 <span class="font-medium text-surface-900 dark:text-surface-0">{{ submitTarget.subject || 'Leave request' }}</span>
@@ -1759,11 +1797,17 @@ onMounted(async () => {
         </div>
         <template #footer>
             <Button label="Close" severity="secondary" variant="text" :disabled="decisionSaving" @click="decisionVisible = false" />
-            <Button :label="decisionIsApprove ? 'Approve' : 'Reject'" :icon="decisionIsApprove ? 'pi pi-check' : 'pi pi-times'" :severity="decisionIsApprove ? 'success' : 'danger'" :loading="decisionSaving" @click="confirmDecision" />
+            <Button
+                :label="decisionIsApprove ? t('leaves.buttons.approve') : t('leaves.buttons.reject')"
+                :icon="decisionIsApprove ? 'pi pi-check' : 'pi pi-times'"
+                :severity="decisionIsApprove ? 'success' : 'danger'"
+                :loading="decisionSaving"
+                @click="confirmDecision"
+            />
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="cancelVisible" modal :draggable="false" :style="{ width: 'min(94vw, 38rem)' }" :header="cancelIsApproved ? 'Cancel Approved Leave' : 'Cancel Leave Request'">
+    <Dialog v-model:visible="cancelVisible" modal :draggable="false" :style="{ width: 'min(94vw, 38rem)' }" :header="cancelIsApproved ? t('leaves.dialogs.cancelApprovedTitle') : t('leaves.dialogs.cancelTitle')">
         <div class="flex flex-col gap-4">
             <div v-if="cancelTarget" class="text-sm text-surface-500">
                 <span class="font-medium text-surface-900 dark:text-surface-0">{{ cancelTarget.subject || 'Leave request' }}</span>
@@ -1795,11 +1839,11 @@ onMounted(async () => {
         </div>
         <template #footer>
             <Button label="Close" severity="secondary" variant="text" :disabled="cancelSaving" @click="cancelVisible = false" />
-            <Button :label="cancelIsApproved ? 'Cancel Approved Leave' : 'Cancel Request'" icon="pi pi-ban" severity="danger" :loading="cancelSaving" @click="confirmCancel" />
+            <Button :label="cancelIsApproved ? t('leaves.buttons.cancelApproved') : t('leaves.buttons.cancelRequest')" icon="pi pi-ban" severity="danger" :loading="cancelSaving" @click="confirmCancel" />
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="removeVisible" modal :draggable="false" :style="{ width: 'min(94vw, 34rem)' }" header="Remove Attachment">
+    <Dialog v-model:visible="removeVisible" modal :draggable="false" :style="{ width: 'min(94vw, 34rem)' }" :header="t('leaves.dialogs.removeAttachmentTitle')">
         <div class="flex flex-col gap-3">
             <p class="text-sm">
                 Remove
@@ -1814,7 +1858,7 @@ onMounted(async () => {
         </template>
     </Dialog>
 
-    <Dialog v-model:visible="conflictVisible" modal :draggable="false" :style="{ width: 'min(94vw, 34rem)' }" header="Conflict">
+    <Dialog v-model:visible="conflictVisible" modal :draggable="false" :style="{ width: 'min(94vw, 34rem)' }" :header="t('leaves.common.conflictTitle')">
         <div class="flex flex-col gap-3">
             <Message severity="warn" :closable="false">{{ conflictMessage }}</Message>
             <p class="text-sm text-surface-500">Reload the latest request to see the current version before trying again.</p>
