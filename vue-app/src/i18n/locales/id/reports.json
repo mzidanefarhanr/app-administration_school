@@ -1,0 +1,178 @@
+{
+    "school": {
+        "title": "Laporan Rekapitulasi Sekolah & Rekonsiliasi Dapodik",
+        "subtitle": "Analisis perkembangan multi-tahun, profil demografi kesiswaan, audit kelengkapan profil, dan rekonsiliasi data Dapodik (DEC-43, DEC-12)."
+    },
+    "tabs": {
+        "trends": "Tren Multi-Tahun",
+        "demographics": "Demografi & Kesiapan Profil",
+        "dapodik": "Rekonsiliasi Data Dapodik"
+    },
+    "multiYear": {
+        "timeRange": "Rentang Waktu:",
+        "limit3": "3 Tahun Terakhir",
+        "limit5": "5 Tahun Terakhir",
+        "limit10": "10 Tahun Terakhir",
+        "exportCsv": "Ekspor CSV Rekap",
+        "refresh": "Segarkan",
+        "kpi": {
+            "currentActiveStudents": "Siswa Aktif Terkini",
+            "academicYearSub": "Tahun Ajaran {year}",
+            "rombelCount": "Rombongan Belajar",
+            "rombelCountSub": "Rata-rata {avg} siswa / rombel",
+            "mutationFlow": "Arus Mutasi Siswa",
+            "mutationFlowSub": "+{in} masuk / -{out} keluar",
+            "totalActiveStaff": "Total PTK Aktif",
+            "totalActiveStaffSub": "{teachers} Guru / {staff} Tendik"
+        },
+        "charts": {
+            "populationTitle": "Tren Populasi Siswa & Gender",
+            "maleStudents": "Siswa Laki-Laki",
+            "femaleStudents": "Siswa Perempuan",
+            "totalStudents": "Total Siswa",
+            "mutationTitle": "Tren Mutasi Siswa (Masuk vs Keluar)",
+            "mutationIn": "Mutasi Masuk",
+            "mutationOut": "Mutasi Keluar",
+            "loading": "Memuat grafik...",
+            "empty": "Data grafik belum tersedia"
+        },
+        "table": {
+            "title": "Rekapitulasi Tabular per Tahun Ajaran",
+            "schoolYear": "Tahun Ajaran",
+            "male": "Siswa Laki-Laki",
+            "female": "Siswa Perempuan",
+            "total": "Total Siswa",
+            "rombel": "Rombel",
+            "mutationIn": "Mutasi Masuk",
+            "mutationOut": "Mutasi Keluar",
+            "teachers": "Guru",
+            "staff": "Tendik",
+            "locked": "Terkunci"
+        },
+        "toast": {
+            "errorTitle": "Kesalahan",
+            "exportSuccessTitle": "Ekspor Berhasil",
+            "exportSuccessDetail": "Berkas rekapitulasi statistik sekolah berhasil diunduh.",
+            "exportErrorTitle": "Gagal Ekspor",
+            "exportErrorDetail": "Terjadi kesalahan saat mengunduh CSV rekapitulasi."
+        }
+    },
+    "demographics": {
+        "schoolYear": "Tahun Ajaran:",
+        "refresh": "Segarkan",
+        "male": "Laki-Laki",
+        "female": "Perempuan",
+        "kpi": {
+            "totalActiveStudents": "Total Siswa Aktif",
+            "totalActiveStudentsSub": "Terdaftar pada rombel aktif",
+            "maleStudents": "Siswa Laki-Laki",
+            "maleStudentsSub": "Proporsi siswa putra",
+            "femaleStudents": "Siswa Perempuan",
+            "femaleStudentsSub": "Proporsi siswa putri",
+            "dapodikReadiness": "Kesiapan Profil Dapodik",
+            "dapodikReadinessSub": "Siswa dengan identitas lengkap"
+        },
+        "charts": {
+            "genderTitle": "Distribusi Gender Siswa",
+            "noGenderData": "Tidak ada data gender",
+            "religionTitle": "Distribusi Agama Siswa",
+            "noReligionData": "Tidak ada data agama"
+        },
+        "audit": {
+            "title": "Audit Kesiapan Data Sinkronisasi Dapodik",
+            "subtitle": "Memastikan kelengkapan kolom mandatori Dapodik (NIK 16 digit, NISN 10 digit, Nomor KK, Nama Ibu Kandung, Tempat/Tanggal Lahir) untuk pencegahan residu.",
+            "studentReadiness": "Kesiapan Profil Siswa",
+            "nikValid": "NIK Valid (16 Digit)",
+            "nisnValid": "NISN Valid (10 Digit)",
+            "kkNumber": "Nomor Kartu Keluarga (KK)",
+            "motherName": "Nama Ibu Kandung",
+            "birthPlaceDate": "Tempat & Tanggal Lahir",
+            "staffReadiness": "Kesiapan Profil Pendidik & Tenaga Kependidikan",
+            "staffNikValid": "NIK PTK Valid (16 Digit)",
+            "nuptkValid": "Pendidik dengan NUPTK",
+            "subjectMapped": "Pendidik Terpetakan Mata Pelajaran"
+        },
+        "tables": {
+            "ageTitle": "Distribusi Kelompok Usia",
+            "ageCol": "Usia (Tahun)",
+            "countCol": "Jumlah Siswa",
+            "percentCol": "%",
+            "rombelTitle": "Rekapitulasi per Rombongan Belajar",
+            "rombelCol": "Rombel",
+            "levelCol": "Jenjang",
+            "maleCol": "Laki-Laki",
+            "femaleCol": "Perempuan",
+            "totalCol": "Total Siswa"
+        },
+        "toast": {
+            "errorTitle": "Gagal Memuat Data",
+            "errorDetail": "Gagal memuat demografi sekolah."
+        },
+        "selectYearPlaceholder": "Pilih Tahun Ajaran",
+        "complete": "Lengkap",
+        "filledCount": "{count} Terisi",
+        "teacherCount": "{count} Guru"
+    },
+    "dapodik": {
+        "restricted": {
+            "title": "Akses Terbatas: Hanya Operator & Administrator",
+            "desc": "Anda memiliki hak akses melihat laporan sekolah, namun proses unggah dan rekonsiliasi data dengan eksternal Dapodik memerlukan wewenang pengelola data kesiswaan ({ability})."
+        },
+        "upload": {
+            "title": "Unggah Berkas CSV Ekspor Dapodik",
+            "subtitle": "Pilih atau seret berkas CSV hasil unduhan aplikasi Dapodik Kemendikbudristek untuk membandingkan status rombel, NIK, dan NISN siswa lokal secara otomatis (DEC-43, DEC-12).",
+            "compareYearLabel": "Tahun Ajaran Pembanding:",
+            "fileLabel": "Pilih Berkas CSV / TXT (Maks. 5 MB):",
+            "formatInfoTitle": "Format Berkas & Mekanisme Pencocokan:",
+            "delimiterInfo": "Mendukung pemisah koma ({comma}), titik-koma ({semicolon}), atau tab secara otomatis.",
+            "columnsRead": "Kolom yang dibaca: {columns} (case-insensitive).",
+            "twoPassMatching": "Sistem menggunakan two-pass matching: pertama dicocokkan berdasarkan NISN, jika belum cocok dilanjutkan pencocokan berdasarkan NIK.",
+            "noAutoMutation": "Tidak ada perubahan data otomatis ke database lokal — hasil berupa visualisasi komparasi dan rekomendasi audit.",
+            "startButton": "Mulai Rekonsiliasi",
+            "processingButton": "Memproses Rekonsiliasi...",
+            "activeYearDefault": "Tahun Ajaran Aktif (Default)"
+        },
+        "results": {
+            "dapodikData": "Data Dapodik",
+            "localStudents": "Siswa Lokal",
+            "identicalMatch": "Cocok Identik",
+            "diffData": "Beda Data",
+            "localOnly": "Hanya di Lokal",
+            "dapodikOnly": "Hanya di Dapodik",
+            "uploadNew": "Unggah Berkas Baru",
+            "downloadAudit": "Unduh Audit Rekonsiliasi (CSV)",
+            "filterAll": "Semua Status",
+            "filterIdentical": "Cocok Identik ({count})",
+            "filterDiff": "Beda Data ({count})",
+            "filterLocalOnly": "Hanya Lokal ({count})",
+            "filterDapodikOnly": "Hanya Dapodik ({count})",
+            "summarySub": "{count} baris Dapodik · {year}",
+            "activeYear": "Tahun Aktif"
+        },
+        "table": {
+            "statusCol": "Status",
+            "studentNameCol": "Nama Siswa",
+            "nisnNikCol": "NISN & NIK",
+            "rombelCol": "Rombongan Belajar",
+            "discrepancyCol": "Rincian Diskrepansi",
+            "localPrefix": "Lokal:",
+            "dapodikPrefix": "Dapodik:",
+            "nisnPrefix": "NISN:",
+            "nikPrefix": "NIK:",
+            "fullyMatched": "Sesuai Penuh",
+            "noDifferences": "Tidak ada perbedaan kolom identitas dan rombel.",
+            "searchPlaceholder": "Cari nama, NISN, NIK, rombel..."
+        },
+        "toast": {
+            "fileNotSelectedTitle": "Berkas Belum Dipilih",
+            "fileNotSelectedDetail": "Silakan pilih berkas CSV ekspor Dapodik terlebih dahulu.",
+            "reconcileSuccessTitle": "Rekonsiliasi Selesai",
+            "reconcileSuccessDetail": "Berhasil membandingkan {count} baris Dapodik dengan database sekolah.",
+            "reconcileFailedTitle": "Gagal Rekonsiliasi",
+            "downloadSuccessTitle": "Unduh Berhasil",
+            "downloadSuccessDetail": "Berkas audit rekonsiliasi Dapodik berhasil diunduh.",
+            "downloadFailedTitle": "Gagal Unduh",
+            "downloadFailedDetail": "Terjadi kesalahan saat mengekspor hasil audit rekonsiliasi."
+        }
+    }
+}

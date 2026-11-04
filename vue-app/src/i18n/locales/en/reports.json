@@ -1,0 +1,178 @@
+{
+    "school": {
+        "title": "School Summary Reports & Dapodik Reconciliation",
+        "subtitle": "Multi-year trend analysis, student demographic profiles, profile completeness audits, and Dapodik data reconciliation (DEC-43, DEC-12)."
+    },
+    "tabs": {
+        "trends": "Multi-Year Trends",
+        "demographics": "Demographics & Profile Readiness",
+        "dapodik": "Dapodik Data Reconciliation"
+    },
+    "multiYear": {
+        "timeRange": "Time Range:",
+        "limit3": "Last 3 Years",
+        "limit5": "Last 5 Years",
+        "limit10": "Last 10 Years",
+        "exportCsv": "Export Summary CSV",
+        "refresh": "Refresh",
+        "kpi": {
+            "currentActiveStudents": "Current Active Students",
+            "academicYearSub": "Academic Year {year}",
+            "rombelCount": "Class Groups",
+            "rombelCountSub": "Average {avg} students / class",
+            "mutationFlow": "Student Transfer Flow",
+            "mutationFlowSub": "+{in} incoming / -{out} outgoing",
+            "totalActiveStaff": "Total Active Staff",
+            "totalActiveStaffSub": "{teachers} Teachers / {staff} Staff"
+        },
+        "charts": {
+            "populationTitle": "Student Population & Gender Trends",
+            "maleStudents": "Male Students",
+            "femaleStudents": "Female Students",
+            "totalStudents": "Total Students",
+            "mutationTitle": "Student Transfer Trends (In vs Out)",
+            "mutationIn": "Incoming Transfers",
+            "mutationOut": "Outgoing Transfers",
+            "loading": "Loading chart...",
+            "empty": "Chart data not available"
+        },
+        "table": {
+            "title": "Tabular Summary by School Year",
+            "schoolYear": "School Year",
+            "male": "Male Students",
+            "female": "Female Students",
+            "total": "Total Students",
+            "rombel": "Classes",
+            "mutationIn": "Incoming Transfers",
+            "mutationOut": "Outgoing Transfers",
+            "teachers": "Teachers",
+            "staff": "Staff",
+            "locked": "Locked"
+        },
+        "toast": {
+            "errorTitle": "Error",
+            "exportSuccessTitle": "Export Successful",
+            "exportSuccessDetail": "School statistics summary file downloaded successfully.",
+            "exportErrorTitle": "Export Failed",
+            "exportErrorDetail": "Failed to download summary CSV."
+        }
+    },
+    "demographics": {
+        "schoolYear": "School Year:",
+        "refresh": "Refresh",
+        "male": "Male",
+        "female": "Female",
+        "kpi": {
+            "totalActiveStudents": "Total Active Students",
+            "totalActiveStudentsSub": "Enrolled in active class groups",
+            "maleStudents": "Male Students",
+            "maleStudentsSub": "Male student proportion",
+            "femaleStudents": "Female Students",
+            "femaleStudentsSub": "Female student proportion",
+            "dapodikReadiness": "Dapodik Profile Readiness",
+            "dapodikReadinessSub": "Students with complete identities"
+        },
+        "charts": {
+            "genderTitle": "Student Gender Distribution",
+            "noGenderData": "No gender data available",
+            "religionTitle": "Student Religion Distribution",
+            "noReligionData": "No religion data available"
+        },
+        "audit": {
+            "title": "Dapodik Synchronization Data Readiness Audit",
+            "subtitle": "Ensuring completeness of mandatory Dapodik fields (16-digit NIK, 10-digit NISN, Family Card No., Mother's Maiden Name, Place/Date of Birth) to prevent invalid records.",
+            "studentReadiness": "Student Profile Readiness",
+            "nikValid": "Valid NIK (16 Digits)",
+            "nisnValid": "Valid NISN (10 Digits)",
+            "kkNumber": "Family Card Number (KK)",
+            "motherName": "Mother's Maiden Name",
+            "birthPlaceDate": "Place & Date of Birth",
+            "staffReadiness": "Teacher & Staff Profile Readiness",
+            "staffNikValid": "Valid PTK NIK (16 Digits)",
+            "nuptkValid": "Teachers with NUPTK",
+            "subjectMapped": "Teachers Mapped to Subjects"
+        },
+        "tables": {
+            "ageTitle": "Age Group Distribution",
+            "ageCol": "Age (Years)",
+            "countCol": "Student Count",
+            "percentCol": "%",
+            "rombelTitle": "Summary by Class Group",
+            "rombelCol": "Class Group",
+            "levelCol": "Level",
+            "maleCol": "Male",
+            "femaleCol": "Female",
+            "totalCol": "Total Students"
+        },
+        "toast": {
+            "errorTitle": "Failed to Load Data",
+            "errorDetail": "Failed to load school demographics."
+        },
+        "selectYearPlaceholder": "Select School Year",
+        "complete": "Complete",
+        "filledCount": "{count} Filled",
+        "teacherCount": "{count} Teachers"
+    },
+    "dapodik": {
+        "restricted": {
+            "title": "Restricted Access: Operators & Administrators Only",
+            "desc": "You have permission to view school reports, but uploading and reconciling data with external Dapodik requires student data management authority ({ability})."
+        },
+        "upload": {
+            "title": "Upload Dapodik Export CSV File",
+            "subtitle": "Select or drag a CSV file exported from Kemendikbudristek Dapodik to automatically compare class status, NIK, and NISN with local student records (DEC-43, DEC-12).",
+            "compareYearLabel": "Comparison School Year:",
+            "fileLabel": "Select CSV / TXT File (Max 5 MB):",
+            "formatInfoTitle": "File Format & Matching Mechanism:",
+            "delimiterInfo": "Automatically supports comma ({comma}), semicolon ({semicolon}), or tab delimiters.",
+            "columnsRead": "Columns read: {columns} (case-insensitive).",
+            "twoPassMatching": "System uses two-pass matching: first matched by NISN, if unmatched then followed by NIK matching.",
+            "noAutoMutation": "No automatic mutations to local database — result is comparative visualization and audit recommendations.",
+            "startButton": "Start Reconciliation",
+            "processingButton": "Processing Reconciliation...",
+            "activeYearDefault": "Active School Year (Default)"
+        },
+        "results": {
+            "dapodikData": "Dapodik Records",
+            "localStudents": "Local Students",
+            "identicalMatch": "Identical Matches",
+            "diffData": "Data Discrepancies",
+            "localOnly": "Local Only",
+            "dapodikOnly": "Dapodik Only",
+            "uploadNew": "Upload New File",
+            "downloadAudit": "Download Reconciliation Audit (CSV)",
+            "filterAll": "All Statuses",
+            "filterIdentical": "Identical Matches ({count})",
+            "filterDiff": "Data Discrepancies ({count})",
+            "filterLocalOnly": "Local Only ({count})",
+            "filterDapodikOnly": "Dapodik Only ({count})",
+            "summarySub": "{count} Dapodik rows · {year}",
+            "activeYear": "Active Year"
+        },
+        "table": {
+            "statusCol": "Status",
+            "studentNameCol": "Student Name",
+            "nisnNikCol": "NISN & NIK",
+            "rombelCol": "Class Group",
+            "discrepancyCol": "Discrepancy Details",
+            "localPrefix": "Local:",
+            "dapodikPrefix": "Dapodik:",
+            "nisnPrefix": "NISN:",
+            "nikPrefix": "NIK:",
+            "fullyMatched": "Fully Matched",
+            "noDifferences": "No differences in identity and class group columns.",
+            "searchPlaceholder": "Search name, NISN, NIK, class..."
+        },
+        "toast": {
+            "fileNotSelectedTitle": "No File Selected",
+            "fileNotSelectedDetail": "Please select a Dapodik export CSV file first.",
+            "reconcileSuccessTitle": "Reconciliation Completed",
+            "reconcileSuccessDetail": "Successfully compared {count} Dapodik rows with the school database.",
+            "reconcileFailedTitle": "Reconciliation Failed",
+            "downloadSuccessTitle": "Download Successful",
+            "downloadSuccessDetail": "Dapodik reconciliation audit file downloaded successfully.",
+            "downloadFailedTitle": "Download Failed",
+            "downloadFailedDetail": "Failed to export reconciliation audit results."
+        }
+    }
+}

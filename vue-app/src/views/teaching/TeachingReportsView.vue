@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
@@ -10,6 +11,7 @@ import { useToast } from 'primevue/usetoast';
 import apiLogin from '@/apiLogin';
 import { authStore } from '@/stores/authStore';
 
+const { t } = useI18n();
 const store = authStore();
 const toast = useToast();
 
@@ -259,12 +261,7 @@ async function fetchReport() {
     } catch (err) {
         const parsed = extractErrors(err, 'Failed to generate teaching journal compliance report.');
         reportError.value = parsed.message;
-        toast.add({
-            severity: 'error',
-            summary: 'Report Error',
-            detail: parsed.message,
-            life: 4000
-        });
+        toast.add({ severity: 'error', summary: t('teaching.reports.toast.reportError'), detail: parsed.message, life: 4000 });
     } finally {
         loadingReport.value = false;
     }
@@ -293,19 +290,9 @@ async function exportCsv() {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
 
-        toast.add({
-            severity: 'success',
-            summary: 'Export Successful',
-            detail: 'Compliance & missing journals report exported to CSV.',
-            life: 3000
-        });
+        toast.add({ severity: 'success', summary: t('teaching.reports.toast.exportSuccessTitle'), detail: t('teaching.reports.toast.exportSuccessDetail'), life: 3000 });
     } catch (err) {
-        toast.add({
-            severity: 'error',
-            summary: 'Export Failed',
-            detail: 'Failed to download report CSV.',
-            life: 4000
-        });
+        toast.add({ severity: 'error', summary: t('teaching.reports.toast.exportFailedTitle'), detail: t('teaching.reports.toast.exportFailedDetail'), life: 4000 });
     } finally {
         exportingCsv.value = false;
     }
@@ -416,8 +403,8 @@ async function submitJournalForm() {
 
         toast.add({
             severity: replay ? 'info' : 'success',
-            summary: replay ? 'Already Recorded' : 'Journal Recorded',
-            detail: res.data?.message || 'Teaching journal recorded successfully.',
+            summary: replay ? t('teaching.journals.toast.alreadyRecorded') : t('teaching.journals.toast.journalRecorded'),
+            detail: res.data?.message || t('teaching.journals.toast.journalRecorded'),
             life: 3500
         });
 
@@ -489,13 +476,31 @@ onMounted(() => {
 
                     <div class="flex flex-wrap align-items-center gap-2">
                         <div class="flex align-items-center gap-2">
-                            <label class="font-medium text-sm">Academic Year:</label>
-                            <Select v-model="context.school_year_id" :options="options.school_years" optionLabel="name" optionValue="id" placeholder="Select Year" class="w-12rem" :loading="loadingOptions" @change="onPeriodContextChange" />
+                            <label class="font-medium text-sm">{{ t('teaching.journals.labels.academicYear') }}</label>
+                            <Select
+                                v-model="context.school_year_id"
+                                :options="options.school_years"
+                                optionLabel="name"
+                                optionValue="id"
+                                :placeholder="t('teaching.schedules.selectYear')"
+                                class="w-12rem"
+                                :loading="loadingOptions"
+                                @change="onPeriodContextChange"
+                            />
                         </div>
 
                         <div class="flex align-items-center gap-2">
-                            <label class="font-medium text-sm">Semester:</label>
-                            <Select v-model="context.semester_id" :options="options.semesters" optionLabel="label" optionValue="id" placeholder="Select Semester" class="w-13rem" :loading="loadingOptions" @change="onPeriodContextChange" />
+                            <label class="font-medium text-sm">{{ t('teaching.journals.labels.semester') }}</label>
+                            <Select
+                                v-model="context.semester_id"
+                                :options="options.semesters"
+                                optionLabel="label"
+                                optionValue="id"
+                                :placeholder="t('teaching.schedules.selectSemester')"
+                                class="w-13rem"
+                                :loading="loadingOptions"
+                                @change="onPeriodContextChange"
+                            />
                         </div>
                     </div>
                 </div>
@@ -503,12 +508,12 @@ onMounted(() => {
                 <!-- Error Banners -->
                 <div v-if="optionsError" class="p-3 mb-4 border-round bg-red-50 text-red-700 border-1 border-red-200 flex align-items-center justify-content-between">
                     <span><i class="pi pi-exclamation-triangle mr-2"></i>{{ optionsError }}</span>
-                    <Button label="Retry" icon="pi pi-refresh" size="small" severity="danger" outlined @click="loadOptions" />
+                    <Button :label="t('teaching.reports.retry')" icon="pi pi-refresh" size="small" severity="danger" outlined @click="loadOptions" />
                 </div>
 
                 <div v-if="reportError" class="p-3 mb-4 border-round bg-red-50 text-red-700 border-1 border-red-200 flex align-items-center justify-content-between">
                     <span><i class="pi pi-exclamation-triangle mr-2"></i>{{ reportError }}</span>
-                    <Button label="Retry" icon="pi pi-refresh" size="small" severity="danger" outlined @click="fetchReport" />
+                    <Button :label="t('teaching.reports.retry')" icon="pi pi-refresh" size="small" severity="danger" outlined @click="fetchReport" />
                 </div>
 
                 <!-- Locked Year Warning -->
@@ -540,54 +545,54 @@ onMounted(() => {
                     <div class="flex flex-wrap align-items-end gap-3">
                         <!-- Date From -->
                         <div class="flex flex-column gap-1">
-                            <label class="text-xs font-semibold text-color-secondary">Date From</label>
+                            <label class="text-xs font-semibold text-color-secondary">{{ t('teaching.journals.labels.dateFrom') }}</label>
                             <InputText v-model="filters.date_from" type="date" class="p-inputtext-sm w-10rem" />
                         </div>
 
                         <!-- Date To -->
                         <div class="flex flex-column gap-1">
-                            <label class="text-xs font-semibold text-color-secondary">Date To</label>
+                            <label class="text-xs font-semibold text-color-secondary">{{ t('teaching.journals.labels.dateTo') }}</label>
                             <InputText v-model="filters.date_to" type="date" class="p-inputtext-sm w-10rem" />
                         </div>
 
                         <!-- Quick Range Presets -->
                         <div class="flex flex-column gap-1">
-                            <label class="text-xs font-semibold text-color-secondary">Presets</label>
+                            <label class="text-xs font-semibold text-color-secondary">{{ t('teaching.reports.labels.presets') }}</label>
                             <div class="flex gap-1">
-                                <Button label="7D" size="small" severity="secondary" outlined @click="setDatePreset('7d')" />
-                                <Button label="30D" size="small" severity="secondary" outlined @click="setDatePreset('30d')" />
-                                <Button label="This Month" size="small" severity="secondary" outlined @click="setDatePreset('month')" />
+                                <Button :label="t('teaching.reports.quickRange.sevenDays')" size="small" severity="secondary" outlined @click="setDatePreset('7d')" />
+                                <Button :label="t('teaching.reports.quickRange.thirtyDays')" size="small" severity="secondary" outlined @click="setDatePreset('30d')" />
+                                <Button :label="t('teaching.reports.quickRange.thisMonth')" size="small" severity="secondary" outlined @click="setDatePreset('month')" />
                             </div>
                         </div>
 
                         <!-- Class / Rombel -->
                         <div class="flex flex-column gap-1">
-                            <label class="text-xs font-semibold text-color-secondary">Class / Rombel</label>
-                            <Select v-model="filters.school_rombel_id" :options="rombelsForSelectedYear" optionLabel="name" optionValue="id" placeholder="All Classes" showClear class="w-12rem p-select-sm" />
+                            <label class="text-xs font-semibold text-color-secondary">{{ t('teaching.journals.labels.classRombel') }}</label>
+                            <Select v-model="filters.school_rombel_id" :options="rombelsForSelectedYear" optionLabel="name" optionValue="id" :placeholder="t('teaching.schedules.timetable.allClasses')" showClear class="w-12rem p-select-sm" />
                         </div>
 
                         <!-- Subject -->
                         <div class="flex flex-column gap-1">
-                            <label class="text-xs font-semibold text-color-secondary">Subject</label>
-                            <Select v-model="filters.subject_id" :options="options.subjects" optionLabel="name" optionValue="id" placeholder="All Subjects" showClear class="w-12rem p-select-sm" />
+                            <label class="text-xs font-semibold text-color-secondary">{{ t('teaching.journals.labels.subject') }}</label>
+                            <Select v-model="filters.subject_id" :options="options.subjects" optionLabel="name" optionValue="id" :placeholder="t('teaching.schedules.timetable.allSubjects')" showClear class="w-12rem p-select-sm" />
                         </div>
 
                         <!-- Teacher (Leadership/Operator only) -->
                         <div v-if="reportMeta.can_view_all" class="flex flex-column gap-1">
-                            <label class="text-xs font-semibold text-color-secondary">Teacher</label>
-                            <Select v-model="filters.employee_id" :options="options.teachers" optionLabel="name" optionValue="id" placeholder="All Teachers" showClear class="w-14rem p-select-sm" />
+                            <label class="text-xs font-semibold text-color-secondary">{{ t('teaching.journals.labels.teacher') }}</label>
+                            <Select v-model="filters.employee_id" :options="options.teachers" optionLabel="name" optionValue="id" :placeholder="t('teaching.schedules.timetable.allTeachers')" showClear class="w-14rem p-select-sm" />
                         </div>
 
                         <!-- Status Filter -->
                         <div class="flex flex-column gap-1">
-                            <label class="text-xs font-semibold text-color-secondary">Journal Status</label>
+                            <label class="text-xs font-semibold text-color-secondary">{{ t('teaching.reports.labels.journalStatus') }}</label>
                             <Select v-model="filters.status" :options="statusOptions" optionLabel="label" optionValue="value" class="w-13rem p-select-sm" />
                         </div>
 
                         <!-- Filter & Export Actions -->
                         <div class="flex align-items-center gap-2 ml-auto">
-                            <Button label="Apply Filters" icon="pi pi-filter" size="small" severity="primary" :loading="loadingReport" @click="fetchReport" />
-                            <Button label="Export CSV" icon="pi pi-download" size="small" severity="success" outlined :loading="exportingCsv" @click="exportCsv" />
+                            <Button :label="t('teaching.reports.applyFilters')" icon="pi pi-filter" size="small" severity="primary" :loading="loadingReport" @click="fetchReport" />
+                            <Button :label="t('teaching.reports.exportCsv')" icon="pi pi-download" size="small" severity="success" outlined :loading="exportingCsv" @click="exportCsv" />
                         </div>
                     </div>
 
@@ -597,7 +602,7 @@ onMounted(() => {
                             <i class="pi pi-user mr-2 text-primary"></i>
                             Filtering by Teacher ID: <strong>{{ filters.employee_id }}</strong>
                         </span>
-                        <Button label="Clear Teacher Filter" icon="pi pi-times" size="small" severity="secondary" text @click="clearTeacherFilter" />
+                        <Button :label="t('teaching.reports.summary.clearTeacherFilter')" icon="pi pi-times" size="small" severity="secondary" text @click="clearTeacherFilter" />
                     </div>
                 </div>
 
@@ -660,8 +665,8 @@ onMounted(() => {
 
                 <!-- Navigation Tabs -->
                 <div class="flex flex-wrap gap-2 mb-4 border-bottom-1 surface-border pb-3">
-                    <Button label="Teacher Compliance Summary" icon="pi pi-users" :severity="activeTab === 'summary' ? 'primary' : 'secondary'" :outlined="activeTab !== 'summary'" @click="activeTab = 'summary'" />
-                    <Button label="Missing Sessions Drilldown" icon="pi pi-list" :severity="activeTab === 'drilldown' ? 'primary' : 'secondary'" :outlined="activeTab !== 'drilldown'" @click="activeTab = 'drilldown'" />
+                    <Button :label="t('teaching.reports.tabs.summary')" icon="pi pi-users" :severity="activeTab === 'summary' ? 'primary' : 'secondary'" :outlined="activeTab !== 'summary'" @click="activeTab = 'summary'" />
+                    <Button :label="t('teaching.reports.tabs.drilldown')" icon="pi pi-list" :severity="activeTab === 'drilldown' ? 'primary' : 'secondary'" :outlined="activeTab !== 'drilldown'" @click="activeTab = 'drilldown'" />
                 </div>
 
                 <!-- ─── TAB 1: TEACHER COMPLIANCE SUMMARY ─────────────────────── -->
@@ -721,7 +726,7 @@ onMounted(() => {
                                         </div>
                                     </td>
                                     <td class="p-3 text-right">
-                                        <Button label="View Sessions" icon="pi pi-list" size="small" severity="secondary" outlined @click="filterByTeacherInDrilldown(teacher)" />
+                                        <Button :label="t('teaching.reports.summary.viewSessions')" icon="pi pi-list" size="small" severity="secondary" outlined @click="filterByTeacherInDrilldown(teacher)" />
                                     </td>
                                 </tr>
                             </tbody>
@@ -790,8 +795,8 @@ onMounted(() => {
                                         </td>
                                         <td class="p-3 text-right">
                                             <div class="flex justify-content-end gap-1">
-                                                <Button v-if="session.can_record" label="Fill Journal" icon="pi pi-plus-circle" size="small" severity="success" @click="openFillJournalModal(session)" />
-                                                <Button v-if="session.has_journal" label="View" icon="pi pi-eye" size="small" severity="secondary" outlined @click="openViewJournalModal(session)" />
+                                                <Button v-if="session.can_record" :label="t('teaching.reports.drilldown.fillJournal')" icon="pi pi-plus-circle" size="small" severity="success" @click="openFillJournalModal(session)" />
+                                                <Button v-if="session.has_journal" :label="t('teaching.reports.drilldown.viewJournal')" icon="pi pi-eye" size="small" severity="secondary" outlined @click="openViewJournalModal(session)" />
                                             </div>
                                         </td>
                                     </tr>
@@ -817,7 +822,7 @@ onMounted(() => {
         </div>
 
         <!-- ─── MODAL: FILL / VIEW TEACHING JOURNAL ───────────────────────────── -->
-        <Dialog v-model:visible="journalDialogVisible" modal :header="journalDialogMode === 'create' ? 'Record Teaching Journal' : 'View Teaching Journal Details'" :style="{ width: '560px' }" :closable="!journalSubmitting">
+        <Dialog v-model:visible="journalDialogVisible" modal :header="journalDialogMode === 'create' ? t('teaching.journals.dialog.createTitle') : t('teaching.journals.dialog.viewTitle')" :style="{ width: '560px' }" :closable="!journalSubmitting">
             <div v-if="activeSession" class="flex flex-column gap-3">
                 <!-- Session Context Banner -->
                 <div class="p-3 border-round surface-100 text-sm">
@@ -851,54 +856,61 @@ onMounted(() => {
 
                 <!-- Topic -->
                 <div class="flex flex-column gap-1">
-                    <label class="text-xs font-semibold">Teaching Topic / Kompetensi Dasar <span class="text-red-500">*</span></label>
-                    <InputText v-model="journalForm.topic" :disabled="journalDialogMode === 'view' || journalSubmitting" placeholder="e.g. Aljabar Linear - Matriks dan Determinan" :class="{ 'p-invalid': journalFieldErrors.topic }" />
+                    <label class="text-xs font-semibold">{{ t('teaching.reports.labels.topicRequired') }}</label>
+                    <InputText v-model="journalForm.topic" :disabled="journalDialogMode === 'view' || journalSubmitting" :placeholder="t('teaching.journals.dialog.form.topicPlaceholder')" :class="{ 'p-invalid': journalFieldErrors.topic }" />
                     <small v-if="journalFieldErrors.topic" class="text-red-500 text-xs">{{ journalFieldErrors.topic[0] }}</small>
                 </div>
 
                 <!-- Method -->
                 <div class="flex flex-column gap-1">
-                    <label class="text-xs font-semibold">Delivery Method <span class="text-red-500">*</span></label>
-                    <Select v-model="journalForm.method" :options="options.journal_methods" optionLabel="label" optionValue="value" :disabled="journalDialogMode === 'view' || journalSubmitting" placeholder="Select Method" />
+                    <label class="text-xs font-semibold">{{ t('teaching.reports.labels.methodRequired') }}</label>
+                    <Select
+                        v-model="journalForm.method"
+                        :options="options.journal_methods"
+                        optionLabel="label"
+                        optionValue="value"
+                        :disabled="journalDialogMode === 'view' || journalSubmitting"
+                        :placeholder="t('teaching.journals.dialog.form.selectMethod')"
+                    />
                 </div>
 
                 <!-- Actual Times -->
                 <div class="grid">
                     <div class="col-6">
-                        <label class="text-xs font-semibold block mb-1">Actual Start Time</label>
+                        <label class="text-xs font-semibold block mb-1">{{ t('teaching.journals.labels.actualStartTime') }}</label>
                         <InputText v-model="journalForm.actual_start_time" type="time" :disabled="journalDialogMode === 'view' || journalSubmitting" class="w-full" />
                     </div>
                     <div class="col-6">
-                        <label class="text-xs font-semibold block mb-1">Actual End Time</label>
+                        <label class="text-xs font-semibold block mb-1">{{ t('teaching.journals.labels.actualEndTime') }}</label>
                         <InputText v-model="journalForm.actual_end_time" type="time" :disabled="journalDialogMode === 'view' || journalSubmitting" class="w-full" />
                     </div>
                 </div>
 
                 <!-- Summary -->
                 <div class="flex flex-column gap-1">
-                    <label class="text-xs font-semibold">Learning Activity Summary</label>
-                    <Textarea v-model="journalForm.summary" rows="3" :disabled="journalDialogMode === 'view' || journalSubmitting" placeholder="Ringkasan materi, kegiatan siswa, atau asesmen..." />
+                    <label class="text-xs font-semibold">{{ t('teaching.reports.labels.activitySummary') }}</label>
+                    <Textarea v-model="journalForm.summary" rows="3" :disabled="journalDialogMode === 'view' || journalSubmitting" :placeholder="t('teaching.journals.dialog.form.activitiesPlaceholder')" />
                 </div>
 
                 <!-- Notes -->
                 <div class="flex flex-column gap-1">
-                    <label class="text-xs font-semibold">Teacher Notes / Catatan Tambahan</label>
-                    <Textarea v-model="journalForm.notes" rows="2" :disabled="journalDialogMode === 'view' || journalSubmitting" placeholder="Catatan keaktifan siswa, kendala, atau tindak lanjut..." />
+                    <label class="text-xs font-semibold">{{ t('teaching.reports.labels.teacherNotes') }}</label>
+                    <Textarea v-model="journalForm.notes" rows="2" :disabled="journalDialogMode === 'view' || journalSubmitting" :placeholder="t('teaching.journals.dialog.form.notesPlaceholder')" />
                 </div>
 
                 <!-- Teacher Selector (Manage only) -->
                 <div v-if="canManage && journalDialogMode === 'create'" class="flex flex-column gap-1">
-                    <label class="text-xs font-semibold">Teacher Attribution (Operator Override)</label>
-                    <Select v-model="journalForm.teacher_employee_id" :options="options.teachers" optionLabel="name" optionValue="id" placeholder="Select Teacher" class="w-full" />
+                    <label class="text-xs font-semibold">{{ t('teaching.reports.labels.teacherAttribution') }}</label>
+                    <Select v-model="journalForm.teacher_employee_id" :options="options.teachers" optionLabel="name" optionValue="id" :placeholder="t('teaching.schedules.dialogs.assignment.selectTeacher')" class="w-full" />
                 </div>
 
                 <!-- Correction Reason (Required if overdue) -->
                 <div v-if="canManage && (activeSession.is_overdue || journalForm.correction_reason)" class="flex flex-column gap-1">
-                    <label class="text-xs font-semibold">Correction Reason <span v-if="activeSession.is_overdue" class="text-red-500">*</span></label>
+                    <label class="text-xs font-semibold">{{ t('teaching.reports.labels.correctionReasonRequired') }}</label>
                     <InputText
                         v-model="journalForm.correction_reason"
                         :disabled="journalDialogMode === 'view' || journalSubmitting"
-                        placeholder="Alasan koreksi/pengisian jurnal melewati batas waktu..."
+                        :placeholder="t('teaching.journals.dialog.form.graceReasonPlaceholder')"
                         :class="{ 'p-invalid': journalFieldErrors.correction_reason }"
                     />
                     <small v-if="journalFieldErrors.correction_reason" class="text-red-500 text-xs">{{ journalFieldErrors.correction_reason[0] }}</small>
@@ -907,8 +919,8 @@ onMounted(() => {
 
             <template #footer>
                 <div class="flex justify-content-end gap-2">
-                    <Button label="Close" severity="secondary" outlined :disabled="journalSubmitting" @click="journalDialogVisible = false" />
-                    <Button v-if="journalDialogMode === 'create'" label="Save Journal" icon="pi pi-check" severity="primary" :loading="journalSubmitting" @click="submitJournalForm" />
+                    <Button :label="t('teaching.journals.dialog.buttons.close')" severity="secondary" outlined :disabled="journalSubmitting" @click="journalDialogVisible = false" />
+                    <Button v-if="journalDialogMode === 'create'" :label="t('teaching.journals.dialog.buttons.save')" icon="pi pi-check" severity="primary" :loading="journalSubmitting" @click="submitJournalForm" />
                 </div>
             </template>
         </Dialog>
