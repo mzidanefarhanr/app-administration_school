@@ -372,7 +372,7 @@ const reloadLatest = async () => {
                         <label class="block mb-2">{{ t('employees.form.fields.appointmentCertificate') }}</label>
                         <InputText v-model="form.appointment_certificate" class="w-full" maxlength="255" />
                     </div>
-                    <div class="col-span-12 md:col-span-4">
+                    <div v-if="isTeacher" class="col-span-12 md:col-span-4">
                         <label class="block mb-2">{{ t('employees.form.fields.teachingHoursCertificate') }}</label>
                         <InputText v-model="form.certificate_of_teaching_hours" class="w-full" maxlength="255" />
                     </div>

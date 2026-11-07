@@ -17,7 +17,8 @@ const hasSensitive = computed(() => props.employee !== null && props.employee !=
 const isArchived = computed(() => Boolean(props.employee?.archived_at));
 
 const relationName = (relation) => relation?.display_name ?? relation?.name ?? '-';
-const recordLabel = computed(() => (props.employee?.employee_type?.name === 'Pendidik' ? t('employees.entity.teacher') : t('employees.entity.employee')));
+const isTeacher = computed(() => props.employee?.employee_type?.name === 'Pendidik');
+const recordLabel = computed(() => (isTeacher.value ? t('employees.entity.teacher') : t('employees.entity.employee')));
 
 const value = (key) => {
     const raw = props.employee?.[key];
@@ -53,7 +54,7 @@ const accountLabel = computed(() => {
                     <div class="col-span-12 md:col-span-6">
                         {{ t('employees.detail.fields.employment') }}: <strong>{{ relationName(employee.employment) }}</strong>
                     </div>
-                    <div class="col-span-12 md:col-span-6">
+                    <div v-if="isTeacher" class="col-span-12 md:col-span-6">
                         {{ t('employees.detail.fields.subject') }}: <strong>{{ relationName(employee.subject) }}</strong>
                     </div>
                     <div class="col-span-12 md:col-span-6">
@@ -71,7 +72,7 @@ const accountLabel = computed(() => {
                     <div class="col-span-12 md:col-span-6">
                         {{ t('employees.detail.fields.version') }}: <strong>{{ employee.version }}</strong>
                     </div>
-                    <div class="col-span-12 md:col-span-6">
+                    <div v-if="isTeacher" class="col-span-12 md:col-span-6">
                         {{ t('employees.form.fields.teachingHoursCertificate') }}: <strong>{{ value('certificate_of_teaching_hours') }}</strong>
                     </div>
                     <div class="col-span-12 md:col-span-6">
