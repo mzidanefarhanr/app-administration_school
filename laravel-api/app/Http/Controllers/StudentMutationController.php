@@ -7,8 +7,11 @@ use App\Http\Requests\RecordStudentMutationInRequest;
 use App\Http\Requests\RecordStudentMutationOutRequest;
 use App\Http\Resources\StatusResource;
 use App\Services\Academic\StudentMutationService;
+use App\Services\Academic\StudentMutationReportService;
+use App\Services\Academic\StudentMutationImportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class StudentMutationController extends Controller
 {
@@ -162,5 +165,116 @@ class StudentMutationController extends Controller
             'message' => 'Mutation cancelled successfully.',
             'data' => $result,
         ], 200);
+    }
+
+    /**
+     * Data laporan mutasi siswa (sesuai format PDF resmi).
+     */
+    public function report(Request $request, StudentMutationReportService $reportService): JsonResponse
+    {
+        $this->authorize('students.view');
+
+        $validated = $request->validate([
+            'school_year_id' => ['required', 'integer', 'min:1'],
+            'month' => ['nullable', 'integer', 'between:1,12'],
+            'year' => ['nullable', 'integer', 'min:2000', 'max:2100'],
+        ]);
+
+        $data = $reportService->getReportData(
+            (int) $validated['school_year_id'],
+            isset($validated['month']) ? (int) $validated['month'] : null,
+            isset($validated['year']) ? (int) $validated['year'] : null
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Mutation report retrieved successfully.',
+            'data' => $data,
+        ], 200);
+    }
+
+    /**
+     * Unduh laporan mutasi siswa dalam format Excel (.xlsx).
+     */
+    public function exportExcel(Request $request, StudentMutationReportService $reportService): StreamedResponse
+    {
+        $this->authorize('students.view');
+
+        $validated = $request->validate([
+            'school_year_id' => ['required', 'integer', 'min:1'],
+            'month' => ['nullable', 'integer', 'between:1,12'],
+            'year' => ['nullable', 'integer', 'min:2000', 'max:2100'],
+        ]);
+
+        $xlsxContent = $reportService->exportExcel(
+            (int) $validated['school_year_id'],
+            isset($validated['month']) ? (int) $validated['month'] : null,
+            isset($validated['year']) ? (int) $validated['year'] : null
+        );
+
+        $month = $validated['month'] ?? date('n');
+        $year = $validated['year'] ?? date('Y');
+        $fileName = "Data-Mutasi-Siswa-{$year}-{$month}.xlsx";
+
+        return response()->streamDownload(
+            fn () => print $xlsxContent,
+            $fileName,
+            [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Cache-Control' => 'no-cache, private',
+            ]
+        );
+    }
+
+    /**
+     * Unduh template impor mutasi siswa (Excel / CSV).
+     */
+    public function importTemplate(Request $request, StudentMutationImportService $importService): StreamedResponse
+    {
+        $this->authorize('students.view');
+
+        $lang = strtolower((string) $request->query('lang', 'en')) === 'id' ? 'id' : 'en';
+        $format = strtolower((string) $request->query('format', 'xlsx'));
+
+        if ($format === 'csv') {
+            return response()->streamDownload(
+                fn () => print $importService->templateCsv($lang),
+                'mutations-import-template.csv',
+                [
+                    'Content-Type' => 'text/csv; charset=UTF-8',
+                    'Cache-Control' => 'no-cache, private',
+                ]
+            );
+        }
+
+        return response()->streamDownload(
+            fn () => print $importService->templateXlsx($lang),
+            'mutations-import-template.xlsx',
+            [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Cache-Control' => 'no-cache, private',
+            ]
+        );
+    }
+
+    /**
+     * Impor berkas mutasi siswa (Excel / CSV).
+     */
+    public function import(Request $request, StudentMutationImportService $importService): JsonResponse
+    {
+        $this->authorize('students.manage');
+
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx,xls,csv,txt', 'max:10240'],
+            'school_year_id' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $result = $importService->import(
+            $request->file('file'),
+            $request->user(),
+            (int) $request->input('school_year_id')
+        );
+
+        return response()->json($result, $result['success'] ? 200 : 422);
     }
 }

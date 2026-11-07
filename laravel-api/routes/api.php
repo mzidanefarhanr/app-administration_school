@@ -195,6 +195,14 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
             ->middleware('can:students.view');
         Route::get('/recap', [StudentMutationController::class, 'recap'])
             ->middleware('can:students.view');
+        Route::get('/report', [StudentMutationController::class, 'report'])
+            ->middleware('can:students.view');
+        Route::get('/report/excel', [StudentMutationController::class, 'exportExcel'])
+            ->middleware('can:students.view');
+        Route::get('/import/template', [StudentMutationController::class, 'importTemplate'])
+            ->middleware('can:students.view');
+        Route::post('/import', [StudentMutationController::class, 'import'])
+            ->middleware('can:students.manage');
         Route::get('/', [StudentMutationController::class, 'index'])
             ->middleware('can:students.view');
     });

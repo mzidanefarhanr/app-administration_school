@@ -1532,6 +1532,6 @@ test('mutation and correction routes are registered with the expected middleware
             || preg_match('#^api/students/\{id\}/(?:mutations|locked-corrections)(?:/|$)#', $uri) === 1;
     });
 
-    expect($phaseRoutes)->toHaveCount(10)
+    expect($phaseRoutes)->toHaveCount(14)
         ->and($phaseRoutes->contains(fn ($route) => str_contains($route->uri(), 'token')))->toBeFalse();
 });

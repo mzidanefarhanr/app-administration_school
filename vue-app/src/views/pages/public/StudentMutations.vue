@@ -7,6 +7,8 @@ import apiLogin from '@/apiLogin';
 import { authStore } from '@/stores/authStore';
 import { formatDate as formatDateUtil } from '@/utils/formatters';
 import StudentMutationTimelineDialog from './StudentMutationTimelineDialog.vue';
+import StudentMutationReportDialog from './StudentMutationReportDialog.vue';
+import StudentMutationImportDialog from './StudentMutationImportDialog.vue';
 
 const emit = defineEmits(['mutated']);
 
@@ -90,6 +92,14 @@ const formatDateTime = (value) => {
     if (Number.isNaN(parsed.getTime())) return value;
     const loc = locale.value === 'en' ? 'en-GB' : 'id-ID';
     return parsed.toLocaleString(loc, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+};
+
+const reportDialogVisible = ref(false);
+const importDialogVisible = ref(false);
+
+const onImported = () => {
+    loadYearData();
+    emit('mutated');
 };
 
 const dateToInput = (value) => {
@@ -853,6 +863,23 @@ onMounted(() => loadOptions());
                     <Tag v-if="year?.is_locked" value="Locked" severity="danger" />
                     <Tag v-else-if="year?.is_active" value="Active" severity="success" />
                     <Tag v-if="year && !year.has_dates" value="No dates" severity="warn" />
+                    <Button
+                        label="Laporan Mutasi (PDF A4 / Excel)"
+                        icon="pi pi-file-pdf"
+                        severity="success"
+                        size="small"
+                        @click="reportDialogVisible = true"
+                    />
+                    <Button
+                        v-if="canManage"
+                        label="Impor Mutasi"
+                        icon="pi pi-upload"
+                        severity="secondary"
+                        variant="outlined"
+                        size="small"
+                        :disabled="!canMutate"
+                        @click="importDialogVisible = true"
+                    />
                     <Button v-if="canManage" :label="t('students.mutations.btnNewIn')" icon="pi pi-plus" :disabled="!canMutate" @click="openInDialog" />
                     <Button v-if="canManage" :label="t('students.mutations.btnNewOut')" icon="pi pi-arrow-right" severity="secondary" variant="outlined" :disabled="!canMutate" @click="openOutDialog" />
                 </div>
@@ -1299,4 +1326,17 @@ onMounted(() => loadOptions());
             </div>
         </template>
     </Dialog>
+    <!-- ── Laporan Mutasi (Format PDF A4 / Excel) ── -->
+    <StudentMutationReportDialog
+        v-model:visible="reportDialogVisible"
+        :schoolYearId="yearId"
+        :schoolYearName="year?.name"
+    />
+
+    <!-- ── Impor Mutasi Siswa ── -->
+    <StudentMutationImportDialog
+        v-model:visible="importDialogVisible"
+        :schoolYearId="yearId"
+        @imported="onImported"
+    />
 </template>
