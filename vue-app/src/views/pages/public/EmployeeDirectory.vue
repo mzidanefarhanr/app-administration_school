@@ -3,6 +3,14 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
+import Tag from 'primevue/tag';
+import Dialog from 'primevue/dialog';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import InputText from 'primevue/inputtext';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
+import Select from 'primevue/select';
 import { useToast } from 'primevue/usetoast';
 import { authStore } from '@/stores/authStore';
 import apiLogin from '@/apiLogin';
@@ -12,6 +20,7 @@ import EmployeeArchiveDialog from './EmployeeArchiveDialog.vue';
 import EmployeeAccountLinkDialog from './EmployeeAccountLinkDialog.vue';
 import EmployeeImportDialog from './EmployeeImportDialog.vue';
 import EmployeeExportDialog from './EmployeeExportDialog.vue';
+import EmployeeBatchArchiveDialog from './EmployeeBatchArchiveDialog.vue';
 import { buildEmployeeListParams, resolveEmployeeTypeId, firstValidationMessage, EMPLOYEE_PER_PAGE_OPTIONS } from './employeeDirectoryParams.mjs';
 
 const props = defineProps({
@@ -64,6 +73,50 @@ const importVisible = ref(false);
 const exportVisible = ref(false);
 const selectedEmployee = ref(null);
 const selectedDetail = ref(null);
+
+const generatingAccountId = ref(null);
+const generatedAccountDialog = ref(false);
+const generatedAccountData = ref(null);
+const copiedPassword = ref(false);
+
+const deleteAccountDialog = ref(false);
+const targetEmployeeForDeleteAccount = ref(null);
+const deletingAccount = ref(false);
+
+const selectedEmployees = ref([]);
+const batchArchiveVisible = ref(false);
+const restoringBatch = ref(false);
+
+const openBatchArchive = () => {
+    if (!selectedEmployees.value?.length) return;
+    batchArchiveVisible.value = true;
+};
+
+const onBatchArchived = (count) => {
+    notify('success', `${count} data ${entityName.value.toLowerCase()} berhasil diarsipkan.`);
+    selectedEmployees.value = [];
+    fetchList();
+};
+
+const confirmBatchRestore = async () => {
+    if (restoringBatch.value || !selectedEmployees.value?.length) return;
+    restoringBatch.value = true;
+    try {
+        const items = selectedEmployees.value.map((e) => ({
+            id: e.id,
+            version: e.version
+        }));
+
+        await apiLogin.post('/api/employees/batch-restore', { items });
+        notify('success', `${items.length} data ${entityName.value.toLowerCase()} berhasil dipulihkan.`);
+        selectedEmployees.value = [];
+        fetchList();
+    } catch (error) {
+        notify('error', firstValidationMessage(error.response) ?? 'Gagal memulihkan data.');
+    } finally {
+        restoringBatch.value = false;
+    }
+};
 
 const isTeacherPage = computed(() => props.employeeTypeName === 'Pendidik');
 const pageTitle = computed(() => (isTeacherPage.value ? t('employees.directory.titleTeachers') : t('employees.directory.titleEmployees')));
@@ -162,12 +215,14 @@ const onSort = (event) => {
 };
 
 const toggleArchived = () => {
+    selectedEmployees.value = [];
     onlyArchived.value = !onlyArchived.value;
     page.value = 1;
     fetchList();
 };
 
 const resetFilters = () => {
+    selectedEmployees.value = [];
     search.value = '';
     statusFilter.value = null;
     employmentFilter.value = null;
@@ -264,6 +319,62 @@ const onAccountSaved = () => {
     notify('success', t('employees.directory.toast.accountUpdated'));
     detailVisible.value = false;
     fetchList();
+};
+
+const executeGenerateAccount = async (row) => {
+    generatingAccountId.value = row.id;
+    try {
+        const response = await apiLogin.post(`/api/employees/${toId(row)}/generate-account`);
+        generatedAccountData.value = response.data?.data;
+        copiedPassword.value = false;
+        generatedAccountDialog.value = true;
+        detailVisible.value = false;
+        notify('success', `Akun untuk ${row.name} berhasil dibuat.`);
+        fetchList();
+    } catch (error) {
+        notify('error', error.response?.data?.message || 'Gagal membuat akun untuk pegawai.');
+    } finally {
+        generatingAccountId.value = null;
+    }
+};
+
+const copyGeneratedPassword = async () => {
+    if (!generatedAccountData.value?.initial_password) return;
+    try {
+        await navigator.clipboard.writeText(generatedAccountData.value.initial_password);
+        copiedPassword.value = true;
+        setTimeout(() => {
+            copiedPassword.value = false;
+        }, 2000);
+    } catch (err) {
+        console.error('Clipboard copy failed', err);
+    }
+};
+
+const openDeleteAccountConfirm = (row) => {
+    if (row.account?.is_admin) {
+        notify('warn', 'Akun Administrator terlindungi dan tidak dapat dihapus melalui data pegawai.');
+        return;
+    }
+    targetEmployeeForDeleteAccount.value = row;
+    detailVisible.value = false;
+    deleteAccountDialog.value = true;
+};
+
+const executeDeleteAccount = async () => {
+    if (!targetEmployeeForDeleteAccount.value) return;
+    deletingAccount.value = true;
+    try {
+        await apiLogin.delete(`/api/employees/${toId(targetEmployeeForDeleteAccount.value)}/delete-account`);
+        notify('success', `Akun pengguna untuk ${targetEmployeeForDeleteAccount.value.name} berhasil dihapus.`);
+        deleteAccountDialog.value = false;
+        targetEmployeeForDeleteAccount.value = null;
+        fetchList();
+    } catch (error) {
+        notify('error', error.response?.data?.message || 'Gagal menghapus akun pengguna.');
+    } finally {
+        deletingAccount.value = false;
+    }
 };
 
 const onConflict = (currentVersion) => {
@@ -387,7 +498,42 @@ watch(
             />
         </div>
 
+        <div v-if="selectedEmployees.length > 0" class="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg bg-primary-50 dark:bg-primary-950/40 border border-primary-200 dark:border-primary-800 transition-all">
+            <div class="flex items-center gap-2 text-sm font-semibold text-primary-900 dark:text-primary-100">
+                <i class="pi pi-check-square text-base text-primary-600 dark:text-primary-400" />
+                <span>{{ selectedEmployees.length }} {{ entityName.toLowerCase() }} dipilih</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <Button
+                    v-if="canManage && !onlyArchived"
+                    icon="pi pi-box"
+                    :label="`Arsipkan (${selectedEmployees.length})`"
+                    severity="warn"
+                    size="small"
+                    @click="openBatchArchive"
+                />
+                <Button
+                    v-if="canManage && onlyArchived"
+                    icon="pi pi-undo"
+                    :label="`Pulihkan (${selectedEmployees.length})`"
+                    severity="success"
+                    size="small"
+                    :loading="restoringBatch"
+                    @click="confirmBatchRestore"
+                />
+                <Button
+                    icon="pi pi-times"
+                    label="Batal Pilih"
+                    severity="secondary"
+                    variant="text"
+                    size="small"
+                    @click="selectedEmployees = []"
+                />
+            </div>
+        </div>
+
         <DataTable
+            v-model:selection="selectedEmployees"
             :value="rows"
             :lazy="true"
             paginator
@@ -414,6 +560,7 @@ watch(
                     <Button v-if="listError" icon="pi pi-refresh" :label="t('common.action.retry')" @click="fetchList()" />
                 </div>
             </template>
+            <Column selectionMode="multiple" headerStyle="width: 3rem" :exportable="false" />
             <Column :header="t('employees.directory.columns.no')" style="width: 3rem">
                 <template #body="{ index }">{{ rowNumber(index) }}</template>
             </Column>
@@ -434,26 +581,55 @@ watch(
                 <template #body="{ data }">{{ data.subject?.display_name ?? data.subject?.name ?? '-' }}</template>
             </Column>
             <Column field="tmt_employee" :header="t('employees.directory.columns.tmt')" sortable style="min-width: 8rem" />
-            <Column :header="t('employees.directory.columns.account')" style="min-width: 8rem">
+            <Column :header="t('employees.directory.columns.account')" style="min-width: 9rem">
                 <template #body="{ data }">
-                    <Tag :value="data.account?.linked ? t('employees.directory.account.linked') : t('employees.directory.account.notLinked')" :severity="data.account?.linked ? 'success' : 'secondary'" />
+                    <Tag v-if="data.account?.is_admin" value="Admin" severity="info" v-tooltip.top="'Akun Administrator Sistem'" />
+                    <Tag v-else-if="data.account?.linked" :value="data.account?.username ? `@${data.account.username}` : t('employees.directory.account.linked')" severity="success" />
+                    <Tag v-else :value="t('employees.directory.account.notLinked')" severity="secondary" />
                 </template>
             </Column>
-            <Column :header="t('employees.directory.columns.action')" :exportable="false" style="min-width: 12rem">
+            <Column :header="t('employees.directory.columns.action')" :exportable="false" style="min-width: 13rem">
                 <template #body="{ data }">
                     <Button icon="pi pi-eye" variant="outlined" rounded class="mr-2" v-tooltip.top="t('employees.directory.tooltips.view')" @click="openDetail(data)" />
                     <template v-if="canManage">
                         <template v-if="!onlyArchived">
                             <Button icon="pi pi-pencil" variant="outlined" rounded class="mr-2" v-tooltip.top="t('common.action.edit')" @click="openEdit(data)" />
+
+                            <!-- Generate Akun (jika belum punya akun) -->
                             <Button
-                                :icon="data.account?.linked ? 'pi pi-user-minus' : 'pi pi-user-plus'"
+                                v-if="!data.account?.linked"
+                                icon="pi pi-user-plus"
                                 variant="outlined"
                                 rounded
-                                severity="info"
+                                severity="success"
                                 class="mr-2"
-                                v-tooltip.top="data.account?.linked ? t('employees.directory.tooltips.unlinkAccount') : t('employees.directory.tooltips.linkAccount')"
-                                @click="openAccount(data)"
+                                v-tooltip.top="t('employees.directory.tooltips.generateAccount')"
+                                :loading="generatingAccountId === data.id"
+                                @click="executeGenerateAccount(data)"
                             />
+
+                            <!-- Hapus Akun / Terkunci (jika sudah punya akun) -->
+                            <Button
+                                v-else-if="data.account?.is_admin"
+                                icon="pi pi-lock"
+                                variant="outlined"
+                                rounded
+                                severity="secondary"
+                                class="mr-2 opacity-60 cursor-not-allowed"
+                                v-tooltip.top="t('employees.directory.tooltips.adminAccountLocked')"
+                                disabled
+                            />
+                            <Button
+                                v-else
+                                icon="pi pi-user-minus"
+                                variant="outlined"
+                                rounded
+                                severity="danger"
+                                class="mr-2"
+                                v-tooltip.top="t('employees.directory.tooltips.deleteAccount')"
+                                @click="openDeleteAccountConfirm(data)"
+                            />
+
                             <Button icon="pi pi-inbox" variant="outlined" rounded severity="danger" v-tooltip.top="t('employees.directory.tooltips.archive')" @click="openArchive(data)" />
                         </template>
                         <Button v-else icon="pi pi-replay" variant="outlined" rounded severity="success" v-tooltip.top="t('employees.directory.tooltips.restore')" @click="restore(data)" />
@@ -461,16 +637,94 @@ watch(
                 </template>
             </Column>
         </DataTable>
+
         <EmployeeFormDialog v-model:visible="formVisible" :employee="selectedEmployee" :fixed-type-id="fixedTypeId" :options="options" @saved="onSaved" />
 
-        <EmployeeDetailDialog v-model:visible="detailVisible" :employee="selectedDetail" :can-manage="canManage" @edit="openEdit" @archive="openArchive" @restore="restore" @link="openAccount" @unlink="openAccount" />
+        <EmployeeDetailDialog
+            v-model:visible="detailVisible"
+            :employee="selectedDetail"
+            :can-manage="canManage"
+            @edit="openEdit"
+            @archive="openArchive"
+            @restore="restore"
+            @generate-account="executeGenerateAccount"
+            @delete-account="openDeleteAccountConfirm"
+        />
 
         <EmployeeArchiveDialog v-model:visible="archiveVisible" :employee="selectedEmployee" @archived="onArchived" @conflict="onConflict" />
+        <EmployeeBatchArchiveDialog v-model:visible="batchArchiveVisible" :employees="selectedEmployees" :is-teacher="isTeacherPage" @archived="onBatchArchived" />
 
         <EmployeeAccountLinkDialog v-model:visible="accountVisible" :employee="selectedEmployee" @saved="onAccountSaved" @conflict="onConflict" />
 
-        <EmployeeImportDialog v-model:visible="importVisible" @imported="onImported" />
+        <EmployeeImportDialog v-model:visible="importVisible" :employee-type-name="props.employeeTypeName" @imported="onImported" />
 
         <EmployeeExportDialog v-model:visible="exportVisible" :filters="exportFilters" :entity-label="isTeacherPage ? 'Teachers' : 'Employees'" @downloaded="onExported" />
+
+        <!-- Dialog Hasil Generate Akun -->
+        <Dialog v-model:visible="generatedAccountDialog" modal header="Akun Pengguna Berhasil Dibuat" :style="{ width: '32rem' }">
+            <div class="flex flex-col gap-4">
+                <div class="p-3 bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 rounded text-sm text-green-800 dark:text-green-200">
+                    Akun pengguna berhasil dibuat dan dihubungkan ke data pegawai. Silakan salin kredensial berikut untuk diberikan kepada pegawai yang bersangkutan:
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <span class="text-xs font-semibold text-surface-500 uppercase block mb-1">Nama</span>
+                        <div class="p-2.5 bg-surface-50 dark:bg-surface-800 rounded border border-surface-200 dark:border-surface-700 text-sm font-medium">
+                            {{ generatedAccountData?.name }}
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-xs font-semibold text-surface-500 uppercase block mb-1">Nama Pengguna (Username)</span>
+                        <div class="p-2.5 bg-surface-50 dark:bg-surface-800 rounded border border-surface-200 dark:border-surface-700 text-sm font-mono font-semibold">
+                            {{ generatedAccountData?.username }}
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-xs font-semibold text-surface-500 uppercase block mb-1">Email</span>
+                        <div class="p-2.5 bg-surface-50 dark:bg-surface-800 rounded border border-surface-200 dark:border-surface-700 text-sm">
+                            {{ generatedAccountData?.email }}
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-xs font-semibold text-surface-500 uppercase block mb-1">Kata Sandi Sementara</span>
+                        <div class="flex gap-2">
+                            <div class="p-2.5 bg-surface-50 dark:bg-surface-800 rounded border border-surface-200 dark:border-surface-700 text-sm font-mono font-bold flex-1 text-primary-600">
+                                {{ generatedAccountData?.initial_password }}
+                            </div>
+                            <Button
+                                :icon="copiedPassword ? 'pi pi-check' : 'pi pi-copy'"
+                                :severity="copiedPassword ? 'success' : 'secondary'"
+                                variant="outlined"
+                                v-tooltip.top="copiedPassword ? 'Tersalin!' : 'Salin kata sandi'"
+                                @click="copyGeneratedPassword"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <template #footer>
+                <Button label="Tutup" severity="primary" @click="generatedAccountDialog = false" />
+            </template>
+        </Dialog>
+
+        <!-- Dialog Konfirmasi Hapus Akun -->
+        <Dialog v-model:visible="deleteAccountDialog" modal header="Konfirmasi Hapus Akun Pengguna" :style="{ width: '28rem' }">
+            <div class="flex items-start gap-3">
+                <i class="pi pi-exclamation-triangle text-red-500 text-3xl mt-1"></i>
+                <div>
+                    <p class="text-sm text-surface-800 dark:text-surface-100 font-medium m-0">
+                        Apakah Anda yakin ingin menghapus akun pengguna untuk pegawai <b>{{ targetEmployeeForDeleteAccount?.name }}</b>?
+                    </p>
+                    <p class="text-xs text-surface-500 m-0 mt-2">
+                        Akun pengguna akan dihapus dan pegawai tidak lagi memiliki akses login. Data kepegawaian akan tetap ada tanpa akun.
+                    </p>
+                </div>
+            </div>
+            <template #footer>
+                <Button label="Batal" severity="secondary" variant="outlined" :disabled="deletingAccount" @click="deleteAccountDialog = false" />
+                <Button label="Hapus Akun" severity="danger" icon="pi pi-trash" :loading="deletingAccount" @click="executeDeleteAccount" />
+            </template>
+        </Dialog>
     </div>
 </template>

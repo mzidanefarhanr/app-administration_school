@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
+use PhpOffice\PhpSpreadsheet\Writer\Csv as CsvWriter;
+use Throwable;
 
 /**
  * Mesin impor CSV bersama (Fase 05, DEC-25/DEC-26).
@@ -103,15 +107,60 @@ abstract class ImportService
     /**
      * @return array<int, string>
      */
-    public static function templateHeaders(): array
+    public static function templateHeaders(?string $lang = 'en'): array
     {
-        return array_keys(static::columns());
+        if ($lang === 'id') {
+            $id = static::columnsId();
+            if (! empty($id)) {
+                return array_keys($id);
+            }
+        }
+
+        return array_keys(static::columnsEn());
     }
 
-    public function templateCsv(): string
+    /**
+     * @return array<string, string>
+     */
+    public static function columnsEn(): array
     {
+        return static::columns();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function columnsId(): array
+    {
+        return [];
+    }
+
+    /**
+     * Seluruh alias header yang didukung: [ 'Header' => 'internal_field' ]
+     *
+     * @return array<string, string>
+     */
+    public static function columnAliases(): array
+    {
+        return array_merge(static::columnsEn(), static::columnsId());
+    }
+
+    /**
+     * @return array<int, array<int, string|null>>
+     */
+    public static function templateSampleRows(?string $context = null, string $lang = 'en'): array
+    {
+        return [];
+    }
+
+    public function templateCsv(?string $context = null, string $lang = 'en'): string
+    {
+        $headers = static::templateHeaders($lang);
         $stream = fopen('php://temp', 'r+');
-        fputcsv($stream, static::templateHeaders(), ',', '"', '\\');
+        fputcsv($stream, $headers, ',', '"', '\\');
+        foreach (static::templateSampleRows($context, $lang) as $sampleRow) {
+            fputcsv($stream, $sampleRow, ',', '"', '\\');
+        }
         rewind($stream);
         $csv = (string) stream_get_contents($stream);
         fclose($stream);
@@ -124,7 +173,7 @@ abstract class ImportService
      */
     public function createBatch(UploadedFile $file, string $mode, int $userId): array
     {
-        $contents = (string) file_get_contents($file->getRealPath());
+        $contents = $this->extractContents($file);
 
         if (trim($contents) === '') {
             throw ValidationException::withMessages(['file' => ['The file is empty.']]);
@@ -176,6 +225,58 @@ abstract class ImportService
             'preview' => $this->previewRows($result['rows']),
             'errors' => $result['errors'],
         ];
+    }
+
+    /**
+     * Ekstrak isi berkas. Jika berkas merupakan Excel (.xlsx), konversi Sheet 0 ke format CSV UTF-8.
+     */
+    protected function extractContents(UploadedFile $file): string
+    {
+        $extension = strtolower((string) $file->getClientOriginalExtension());
+        $mime = (string) $file->getMimeType();
+
+        $isXlsx = $extension === 'xlsx'
+            || str_contains($mime, 'spreadsheetml')
+            || str_contains($mime, 'excel');
+
+        if ($isXlsx) {
+            return $this->xlsxToCsv($file->getRealPath());
+        }
+
+        return (string) file_get_contents($file->getRealPath());
+    }
+
+    /**
+     * Baca Sheet pertama dari file Excel dan tulis ke stream CSV in-memory.
+     */
+    protected function xlsxToCsv(string $filePath): string
+    {
+        try {
+            $reader = IOFactory::createReaderForFile($filePath);
+            $reader->setReadDataOnly(true);
+            $spreadsheet = $reader->load($filePath);
+            $spreadsheet->setActiveSheetIndex(0);
+
+            $stream = fopen('php://temp', 'r+');
+            $writer = new CsvWriter($spreadsheet);
+            $writer->setSheetIndex(0);
+            $writer->setDelimiter(',');
+            $writer->setEnclosure('"');
+            $writer->setLineEnding("\r\n");
+            $writer->save($stream);
+            rewind($stream);
+            $csv = (string) stream_get_contents($stream);
+            fclose($stream);
+
+            $spreadsheet->disconnectWorksheets();
+            unset($spreadsheet);
+
+            return $csv;
+        } catch (Throwable $e) {
+            throw ValidationException::withMessages([
+                'file' => ['The Excel file could not be read or is invalid: '.$e->getMessage()],
+            ]);
+        }
     }
 
     public function commit(ImportBatch $batch): ImportBatch
@@ -273,20 +374,65 @@ abstract class ImportService
             array_pop($headers);
         }
 
-        $expected = static::templateHeaders();
-        $unknown = array_values(array_diff($headers, $expected));
-        $missing = array_values(array_diff($expected, $headers));
+        $headersEn = static::templateHeaders('en');
+        $headersId = static::templateHeaders('id');
+        $aliases = static::columnAliases();
 
         $messages = [];
-        if ($unknown !== []) {
-            $messages[] = 'Unknown column(s): '.implode(', ', $unknown).'. Use the English template headers only.';
-        }
-        if ($missing !== []) {
-            $messages[] = 'Missing column(s): '.implode(', ', $missing).'.';
-        }
         if (count($headers) !== count(array_unique($headers))) {
             $messages[] = 'The header contains duplicate column names.';
         }
+
+        $missingEn = array_values(array_diff($headersEn, $headers));
+        $unknownEn = array_values(array_diff($headers, $headersEn));
+
+        $hasIdHeaders = ! empty($headersId);
+        $missingId = $hasIdHeaders ? array_values(array_diff($headersId, $headers)) : [1];
+        $unknownId = $hasIdHeaders ? array_values(array_diff($headers, $headersId)) : [1];
+
+        $isExactEn = ($missingEn === [] && $unknownEn === []);
+        $isExactId = ($missingId === [] && $unknownId === []);
+
+        $headerToField = [];
+
+        if ($isExactEn) {
+            foreach ($headersEn as $h) {
+                $headerToField[$h] = static::columnsEn()[$h] ?? $h;
+            }
+        } elseif ($isExactId) {
+            foreach ($headersId as $h) {
+                $headerToField[$h] = static::columnsId()[$h] ?? $h;
+            }
+        } else {
+            $unknownHeaders = [];
+            foreach ($headers as $h) {
+                $foundField = null;
+                foreach ($aliases as $aliasKey => $field) {
+                    if (strcasecmp($aliasKey, $h) === 0) {
+                        $foundField = $field;
+                        break;
+                    }
+                }
+                if ($foundField !== null) {
+                    $headerToField[$h] = $foundField;
+                } else {
+                    $unknownHeaders[] = $h;
+                }
+            }
+
+            if ($unknownHeaders !== []) {
+                $messages[] = 'Unknown column(s): '.implode(', ', $unknownHeaders).'. Use English or Indonesian template headers.';
+            } else {
+                $foundFields = array_unique(array_values($headerToField));
+                $expectedFields = array_unique(array_values(static::columnsEn()));
+                $missingFields = array_diff($expectedFields, $foundFields);
+                if ($missingFields !== []) {
+                    $missingLabel = $missingEn !== [] ? $missingEn : $missingFields;
+                    $messages[] = 'Missing column(s): '.implode(', ', $missingLabel).'.';
+                }
+            }
+        }
+
         if ($messages !== []) {
             throw ValidationException::withMessages(['file' => $messages]);
         }
@@ -329,7 +475,13 @@ abstract class ImportService
 
             $mapped = [];
             foreach ($headers as $index => $header) {
-                $mapped[$header] = isset($cells[$index]) ? (string) $cells[$index] : null;
+                $val = isset($cells[$index]) ? (string) $cells[$index] : null;
+                $mapped[$header] = $val;
+
+                $field = $headerToField[$header] ?? null;
+                if ($field !== null) {
+                    $mapped['__field_'.$field] = $val;
+                }
             }
 
             $rows[] = ['line' => $line, 'cells' => $mapped];
@@ -470,12 +622,51 @@ abstract class ImportService
 
     protected function normalizeDate(string $value): ?string
     {
-        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) === 1) {
-            return $value;
+        $value = trim($value);
+        if ($value === '') {
+            return null;
         }
 
-        if (preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/', $value, $matches) === 1) {
-            return sprintf('%04d-%02d-%02d', (int) $matches[3], (int) $matches[2], (int) $matches[1]);
+        // 1. Dukungan format angka serial tanggal Excel (mis. 44013 atau 31149)
+        if (is_numeric($value) && (float) $value >= 1000 && (float) $value <= 200000) {
+            try {
+                return ExcelDate::excelToDateTimeObject((float) $value)->format('Y-m-d');
+            } catch (Throwable) {
+                // Lanjut ke pemeriksaan pola teks berikutnya
+            }
+        }
+
+        // 2. Format ISO: YYYY-MM-DD atau YYYY/MM/DD
+        if (preg_match('/^(\d{4})[-\/\.](\d{1,2})[-\/\.](\d{1,2})$/', $value, $matches) === 1) {
+            $year = (int) $matches[1];
+            $month = (int) $matches[2];
+            $day = (int) $matches[3];
+
+            if (checkdate($month, $day, $year)) {
+                return sprintf('%04d-%02d-%02d', $year, $month, $day);
+            }
+        }
+
+        // 3. Format baku Excel: M/D/YYYY atau M/D/YY (default format date Excel)
+        if (preg_match('/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/', $value, $matches) === 1) {
+            $part1 = (int) $matches[1];
+            $part2 = (int) $matches[2];
+            $year = (int) $matches[3];
+
+            if ($year < 100) {
+                $year += ($year >= 50 ? 1900 : 2000);
+            }
+
+            // Fallback toleran jika angka pertama > 12 dan angka kedua <= 12
+            // (misal: 25/10/1995 pasti Day=25, Month=10 karena bulan tidak mungkin > 12)
+            if ($part1 > 12 && $part2 <= 12 && checkdate($part2, $part1, $year)) {
+                return sprintf('%04d-%02d-%02d', $year, $part2, $part1);
+            }
+
+            // Format default Excel: M/D/YYYY (part1 = month, part2 = day)
+            if (checkdate($part1, $part2, $year)) {
+                return sprintf('%04d-%02d-%02d', $year, $part1, $part2);
+            }
         }
 
         return null;

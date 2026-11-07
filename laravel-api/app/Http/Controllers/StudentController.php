@@ -456,6 +456,167 @@ class StudentController extends Controller
     }
 
     /**
+     * Batch soft-delete (archive) students and deactivate their active rombels.
+     */
+    public function batchArchive(Request $request): JsonResponse
+    {
+        $this->authorize('students.manage');
+
+        $request->validate([
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.id' => ['required', 'integer'],
+            'items.*.version' => ['nullable', 'integer'],
+            'archive_reason' => ['required', 'string', 'max:255'],
+        ], [
+            'items.required' => 'No students selected for archiving.',
+            'items.min' => 'Select at least one student.',
+            'archive_reason.required' => 'An administrative archiving reason is required.',
+        ]);
+
+        $items = $request->input('items');
+        $archiveReason = (string) $request->input('archive_reason');
+
+        $archivedCount = DB::transaction(function () use ($items, $archiveReason) {
+            $count = 0;
+            foreach ($items as $item) {
+                $id = (int) $item['id'];
+                $expectedVersion = isset($item['version']) && $item['version'] !== null ? (int) $item['version'] : null;
+
+                $student = Student::where('id', $id)->lockForUpdate()->first();
+                if (! $student) {
+                    continue;
+                }
+
+                $this->authorize('delete', $student);
+
+                if ($expectedVersion !== null && (int) $student->version !== $expectedVersion) {
+                    abort(response()->json([
+                        'message' => "Conflict: Student {$student->name} was modified by another operator. Please reload before archiving.",
+                        'current_version' => (int) $student->version,
+                    ], 409));
+                }
+
+                $student->archive_reason = $archiveReason;
+                $student->version = $student->version + 1;
+                $student->save();
+                $student->delete();
+
+                // Nonaktifkan rombel aktif
+                $activeRombels = StudentRombel::query()
+                    ->where(function ($q) use ($student) {
+                        $q->where('student_id', $student->id);
+                        if ($student->nik) {
+                            $q->orWhere(function ($sub) use ($student) {
+                                $sub->whereNull('student_id')->where('student_nik', $student->nik);
+                            });
+                        }
+                    })
+                    ->whereNull('deleted_at')
+                    ->whereNull('archived_at')
+                    ->where(function ($q) {
+                        $q->where('student_status_id', 1)->orWhereNull('student_status_id');
+                    })
+                    ->whereNull('latest_student_exit_date')
+                    ->lockForUpdate()
+                    ->get();
+
+                foreach ($activeRombels as $sr) {
+                    $sr->archived_at = now();
+                    $sr->archive_reason = 'Administrative archive: '.$archiveReason;
+                    $sr->version = $sr->version + 1;
+                    $sr->save();
+                }
+
+                $count++;
+            }
+
+            return $count;
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => "Successfully archived {$archivedCount} student(s).",
+            'count' => $archivedCount,
+        ], 200);
+    }
+
+    /**
+     * Batch restore soft-deleted students.
+     */
+    public function batchRestore(Request $request): JsonResponse
+    {
+        $this->authorize('students.manage');
+
+        $request->validate([
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.id' => ['required', 'integer'],
+            'items.*.version' => ['nullable', 'integer'],
+        ], [
+            'items.required' => 'No students selected for restoring.',
+            'items.min' => 'Select at least one student.',
+        ]);
+
+        $items = $request->input('items');
+
+        try {
+            $restoredCount = DB::transaction(function () use ($items) {
+                $count = 0;
+                foreach ($items as $item) {
+                    $id = (int) $item['id'];
+                    $expectedVersion = isset($item['version']) && $item['version'] !== null ? (int) $item['version'] : null;
+
+                    $student = Student::onlyTrashed()->where('id', $id)->lockForUpdate()->first();
+                    if (! $student) {
+                        continue;
+                    }
+
+                    $this->authorize('restore', $student);
+
+                    if ($expectedVersion !== null && (int) $student->version !== $expectedVersion) {
+                        abort(response()->json([
+                            'message' => "Conflict: Student {$student->name} was modified by another process. Please reload.",
+                            'current_version' => (int) $student->version,
+                        ], 409));
+                    }
+
+                    if ($student->nik && Student::where('nik', $student->nik)->whereNull('deleted_at')->where('id', '!=', $student->id)->exists()) {
+                        throw ValidationException::withMessages([
+                            'nik' => ["Cannot restore {$student->name}: NIK is already registered by another active student."],
+                        ]);
+                    }
+                    if ($student->nis && Student::where('nis', $student->nis)->whereNull('deleted_at')->where('id', '!=', $student->id)->exists()) {
+                        throw ValidationException::withMessages([
+                            'nis' => ["Cannot restore {$student->name}: NIS is already registered in this school."],
+                        ]);
+                    }
+                    if ($student->nisn && Student::where('nisn', $student->nisn)->whereNull('deleted_at')->where('id', '!=', $student->id)->exists()) {
+                        throw ValidationException::withMessages([
+                            'nisn' => ["Cannot restore {$student->name}: NISN is already registered by another active student."],
+                        ]);
+                    }
+
+                    $student->restore();
+                    $student->archive_reason = null;
+                    $student->version = $student->version + 1;
+                    $student->save();
+
+                    $count++;
+                }
+
+                return $count;
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully restored {$restoredCount} student(s).",
+                'count' => $restoredCount,
+            ], 200);
+        } catch (QueryException $e) {
+            return $this->handleUniqueConstraintViolation($e);
+        }
+    }
+
+    /**
      * Handle raw SQL unique constraint violation into safe, clean English validation messages.
      */
     private function handleUniqueConstraintViolation(QueryException $e): JsonResponse

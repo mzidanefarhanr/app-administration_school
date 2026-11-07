@@ -336,6 +336,14 @@ onMounted(() => {
                         </template>
                     </Column>
 
+                    <Column header="Pegawai Terkait" :exportable="false" style="min-width: 12rem">
+                        <template #body="{ data }">
+                            <Tag v-if="data.type_user_id === 1" value="Admin Sistem" severity="secondary" />
+                            <Tag v-else-if="data.employee" :value="`${data.employee.employee_type?.name || 'Pegawai'}: ${data.employee.name}`" severity="success" />
+                            <Tag v-else value="Belum Ditautkan" severity="warn" />
+                        </template>
+                    </Column>
+
                     <Column :header="t('master.common.action')" :exportable="false" style="min-width: 10rem">
                         <template #body="slotProps">
                             <Button icon="pi pi-shield" variant="outlined" rounded class="mr-2" :title="t('master.accounts.assignRoles')" @click="openRolesDialog(slotProps.data)" />

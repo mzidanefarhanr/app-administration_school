@@ -11,7 +11,7 @@ const props = defineProps({
     canManage: { type: Boolean, default: false }
 });
 
-const emit = defineEmits(['update:visible', 'edit', 'archive', 'restore', 'link', 'unlink']);
+const emit = defineEmits(['update:visible', 'edit', 'archive', 'restore', 'link', 'unlink', 'generate-account', 'delete-account']);
 
 const hasSensitive = computed(() => props.employee !== null && props.employee !== undefined && props.employee.nik !== undefined);
 const isArchived = computed(() => Boolean(props.employee?.archived_at));
@@ -70,6 +70,18 @@ const accountLabel = computed(() => {
                     </div>
                     <div class="col-span-12 md:col-span-6">
                         {{ t('employees.detail.fields.version') }}: <strong>{{ employee.version }}</strong>
+                    </div>
+                    <div class="col-span-12 md:col-span-6">
+                        {{ t('employees.form.fields.teachingHoursCertificate') }}: <strong>{{ value('certificate_of_teaching_hours') }}</strong>
+                    </div>
+                    <div class="col-span-12 md:col-span-6">
+                        {{ t('employees.form.fields.appointmentCertificate') }}: <strong>{{ value('appointment_certificate') }}</strong>
+                    </div>
+                    <div class="col-span-12 md:col-span-6">
+                        {{ t('employees.detail.fields.dapodikStatus') }}: <strong>{{ value('dapodik_status') }}</strong>
+                    </div>
+                    <div class="col-span-12 md:col-span-6">
+                        {{ t('employees.detail.fields.certificationStatus') }}: <strong>{{ value('certification_status') }}</strong>
                     </div>
                     <div v-if="isArchived" class="col-span-12 md:col-span-6">
                         {{ t('employees.detail.fields.archivedAt') }}: <strong>{{ value('archived_at') }}</strong>
@@ -132,6 +144,24 @@ const accountLabel = computed(() => {
                     <h3 class="font-semibold mb-2">{{ t('employees.detail.sections.education') }}</h3>
                     <div class="grid grid-cols-12 gap-3 text-sm">
                         <div class="col-span-12 md:col-span-6">
+                            {{ t('employees.detail.fields.elementarySchool') }}: <strong>{{ employee.education?.elementary_school_name || '-' }}</strong>
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            {{ t('employees.form.education.nisn') }} (SD): <strong>{{ employee.education?.nisn || '-' }}</strong>
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            {{ t('employees.detail.fields.juniorHighSchool') }}: <strong>{{ employee.education?.junior_high_school_name || '-' }}</strong>
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            {{ t('employees.form.education.nisn') }} (SMP): <strong>{{ employee.education?.junior_high_school_nisn || '-' }}</strong>
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            {{ t('employees.detail.fields.seniorHighSchool') }}: <strong>{{ employee.education?.senior_high_school_name || '-' }}</strong>
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            {{ t('employees.detail.fields.seniorHighMajor') }}: <strong>{{ employee.education?.senior_high_school_major || '-' }}</strong>
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
                             {{ t('employees.detail.fields.bachelor') }}: <strong>{{ employee.education?.bachelor_campus_name || '-' }}</strong>
                         </div>
                         <div class="col-span-12 md:col-span-6">
@@ -145,14 +175,36 @@ const accountLabel = computed(() => {
                         </div>
                     </div>
                 </div>
+
+                <div>
+                    <h3 class="font-semibold mb-2">{{ t('employees.detail.fields.vervalSection') }}</h3>
+                    <div class="grid grid-cols-12 gap-3 text-sm">
+                        <div class="col-span-12 md:col-span-6">
+                            {{ t('employees.detail.fields.vervalElementarySchool') }}: <strong>{{ value('verval_elementary_school') }}</strong>
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            {{ t('employees.detail.fields.vervalJuniorHighSchool') }}: <strong>{{ value('verval_junior_high_school') }}</strong>
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            {{ t('employees.detail.fields.vervalSeniorHighSchool') }}: <strong>{{ value('verval_senior_high_school') }}</strong>
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            {{ t('employees.detail.fields.vervalBachelorDegree') }}: <strong>{{ value('verval_bachelor_degree') }}</strong>
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            {{ t('employees.detail.fields.vervalDiploma') }}: <strong>{{ value('verval_diploma') }}</strong>
+                        </div>
+                    </div>
+                </div>
             </template>
         </div>
 
         <template #footer>
             <Button :label="t('common.action.close')" severity="secondary" variant="outlined" @click="emit('update:visible', false)" />
             <template v-if="canManage">
-                <Button v-if="!isArchived && employee?.account?.linked" :label="t('employees.detail.actions.unlink')" icon="pi pi-user-minus" severity="warn" variant="outlined" @click="emit('unlink', employee)" />
-                <Button v-if="!isArchived && !employee?.account?.linked" :label="t('employees.detail.actions.link')" icon="pi pi-user-plus" severity="info" variant="outlined" @click="emit('link', employee)" />
+                <Button v-if="!isArchived && employee?.account?.linked && !employee?.account?.is_admin" label="Hapus Akun" icon="pi pi-user-minus" severity="danger" variant="outlined" @click="emit('delete-account', employee)" />
+                <Button v-if="!isArchived && employee?.account?.is_admin" label="Akun Admin" icon="pi pi-lock" severity="secondary" variant="outlined" disabled />
+                <Button v-if="!isArchived && !employee?.account?.linked" label="Generate Akun" icon="pi pi-user-plus" severity="success" variant="outlined" @click="emit('generate-account', employee)" />
                 <Button v-if="!isArchived" :label="t('employees.detail.actions.archive')" icon="pi pi-inbox" severity="danger" variant="outlined" @click="emit('archive', employee)" />
                 <Button v-if="isArchived" :label="t('employees.detail.actions.restore')" icon="pi pi-replay" severity="success" variant="outlined" @click="emit('restore', employee)" />
                 <Button v-if="!isArchived" :label="t('common.action.edit')" icon="pi pi-pencil" @click="emit('edit', employee)" />

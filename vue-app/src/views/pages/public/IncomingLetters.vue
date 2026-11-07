@@ -239,6 +239,7 @@ const onPerPageChange = () => {
 };
 
 const resetFilters = () => {
+    selectedLetters.value = [];
     filters.search = '';
     filters.category = null;
     filters.status = 'active';
@@ -430,6 +431,69 @@ const voidTarget = ref(null);
 const voidReason = ref('');
 const voidErrors = ref({});
 const voidError = ref('');
+
+const selectedLetters = ref([]);
+const batchVoidVisible = ref(false);
+const batchVoidReason = ref('');
+const batchVoidErrors = ref({});
+const batchVoidError = ref('');
+const isSubmittingBatchVoid = ref(false);
+
+const activeSelectedLetters = computed(() => (selectedLetters.value || []).filter((item) => item.status === 'active'));
+
+const openBatchVoid = () => {
+    if (activeSelectedLetters.value.length === 0) return;
+    batchVoidReason.value = '';
+    batchVoidErrors.value = {};
+    batchVoidError.value = '';
+    batchVoidVisible.value = true;
+};
+
+const submitBatchVoid = async () => {
+    if (isSubmittingBatchVoid.value || activeSelectedLetters.value.length === 0) return;
+
+    const reason = batchVoidReason.value.trim();
+    if (reason.length < 10 || reason.length > 255) {
+        batchVoidErrors.value = {
+            reason: [reason.length < 10 ? 'The reason must be at least 10 characters.' : 'The reason may not exceed 255 characters.']
+        };
+        return;
+    }
+
+    isSubmittingBatchVoid.value = true;
+    batchVoidErrors.value = {};
+    batchVoidError.value = '';
+
+    try {
+        const payload = {
+            items: activeSelectedLetters.value.map((item) => ({
+                id: item.id,
+                expected_version: item.version
+            })),
+            reason
+        };
+        const response = await apiLogin.post('/api/letters/incoming/batch-void', payload);
+        batchVoidVisible.value = false;
+        notify('success', response.data?.message ?? `${payload.items.length} surat berhasil dibatalkan.`);
+        selectedLetters.value = [];
+        await loadLetters();
+    } catch (error) {
+        const status = error.response?.status;
+        if (status === 409) {
+            batchVoidVisible.value = false;
+            openConflict(error, null);
+        } else if (status === 422) {
+            batchVoidErrors.value = validationErrors(error);
+            if (Object.keys(batchVoidErrors.value).length === 0) {
+                batchVoidError.value = errorMessage(error, 'Surat tidak dapat dibatalkan.');
+            }
+        } else {
+            batchVoidError.value = errorMessage(error, 'Gagal membatalkan surat terpilih.');
+        }
+    } finally {
+        isSubmittingBatchVoid.value = false;
+    }
+};
 
 const openVoid = (source) => {
     if (!canManage.value || source.status !== 'active') return;
@@ -839,7 +903,33 @@ onMounted(async () => {
                     </div>
                 </div>
 
+                                <div v-if="selectedLetters.length > 0" class="flex flex-wrap items-center justify-between gap-3 p-3 bg-primary-50 dark:bg-primary-950/40 border border-primary-200 dark:border-primary-800 rounded-lg">
+                    <div class="flex items-center gap-2">
+                        <i class="pi pi-check-circle text-primary text-lg"></i>
+                        <span class="font-medium text-sm text-surface-900 dark:text-surface-100">{{ selectedLetters.length }} surat dipilih</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <Button
+                            v-if="canManage && activeSelectedLetters.length > 0"
+                            :label="`Batalkan / Void (${activeSelectedLetters.length})`"
+                            icon="pi pi-ban"
+                            severity="danger"
+                            size="small"
+                            @click="openBatchVoid"
+                        />
+                        <Button
+                            label="Batal Pilih"
+                            icon="pi pi-times"
+                            severity="secondary"
+                            variant="text"
+                            size="small"
+                            @click="selectedLetters = []"
+                        />
+                    </div>
+                </div>
+
                 <DataTable
+                    v-model:selection="selectedLetters"
                     :value="items"
                     :lazy="true"
                     paginator
@@ -864,6 +954,7 @@ onMounted(async () => {
                             <Button v-if="listError" icon="pi pi-refresh" :label="t('letters.common.retry')" @click="loadLetters" />
                         </div>
                     </template>
+                    <Column selectionMode="multiple" headerStyle="width: 3rem" :exportable="false" />
                     <Column :header="t('letters.incoming.columns.agenda')" style="min-width: 6rem">
                         <template #body="{ data }">
                             <span class="font-medium">{{ data.reference }}</span>
@@ -1256,6 +1347,30 @@ onMounted(async () => {
         <template #footer>
             <Button label="Close" severity="secondary" variant="text" @click="conflictVisible = false" />
             <Button label="Reload Latest" icon="pi pi-refresh" :loading="reloadingConflict" @click="reloadLatest" />
+        </template>
+    </Dialog>
+    <Dialog v-model:visible="batchVoidVisible" modal :draggable="false" :style="{ width: 'min(94vw, 36rem)' }" header="Batalkan / Void Surat Terpilih">
+        <div class="flex flex-col gap-4">
+            <Message v-if="batchVoidError" severity="error" :closable="false">{{ batchVoidError }}</Message>
+            <div class="text-sm text-surface-600 dark:text-surface-300">
+                Anda akan membatalkan (void) <strong>{{ activeSelectedLetters.length }}</strong> surat terpilih:
+                <ul class="list-disc pl-5 mt-2 max-h-36 overflow-y-auto space-y-1 text-xs">
+                    <li v-for="item in activeSelectedLetters" :key="item.id">
+                        <span class="font-medium">{{ item.reference }}</span>: {{ item.subject }}
+                    </li>
+                </ul>
+            </div>
+            <Message severity="warn" :closable="false">{{ t('letters.incoming.dialogs.voidWarning') }}</Message>
+            <div class="flex flex-col gap-2">
+                <label for="batchVoidReason" class="font-medium">{{ t('letters.incoming.fields.reason') }} <span class="text-red-500">*</span></label>
+                <Textarea id="batchVoidReason" v-model="batchVoidReason" rows="3" maxlength="255" autoResize :placeholder="t('letters.incoming.fields.reasonPlaceholder')" />
+                <small class="text-surface-500">{{ batchVoidReason.length }}/255 ({{ t('letters.incoming.fields.reasonMin') }})</small>
+                <small v-if="fieldError(batchVoidErrors, 'reason')" class="text-red-500">{{ fieldError(batchVoidErrors, 'reason') }}</small>
+            </div>
+        </div>
+        <template #footer>
+            <Button :label="t('letters.common.cancel')" severity="secondary" variant="text" :disabled="isSubmittingBatchVoid" @click="batchVoidVisible = false" />
+            <Button :label="`Batalkan / Void (${activeSelectedLetters.length})`" icon="pi pi-ban" severity="danger" :loading="isSubmittingBatchVoid" @click="submitBatchVoid" />
         </template>
     </Dialog>
 </template>

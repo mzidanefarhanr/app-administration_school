@@ -9,6 +9,7 @@ use App\Models\ImportBatch;
 use App\Services\EmployeeImportService;
 use App\Services\StudentImportService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -27,11 +28,27 @@ class ImportController extends Controller
         private readonly EmployeeImportService $employees,
     ) {}
 
-    public function studentsTemplate(): StreamedResponse
+    public function studentsTemplate(Request $request): StreamedResponse
     {
+        $lang = strtolower((string) $request->query('lang', 'en')) === 'id' ? 'id' : 'en';
+        $format = strtolower((string) $request->query('format', 'csv'));
+        $isXlsx = $format === 'xlsx' || $format === 'excel';
+        $baseName = 'students-import-template';
+
+        if ($isXlsx) {
+            return response()->streamDownload(
+                fn () => print $this->students->templateXlsx(null, $lang),
+                "{$baseName}.xlsx",
+                [
+                    'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'Cache-Control' => 'no-cache, private',
+                ]
+            );
+        }
+
         return response()->streamDownload(
-            fn () => print $this->students->templateCsv(),
-            'students-import-template.csv',
+            fn () => print $this->students->templateCsv(null, $lang),
+            "{$baseName}.csv",
             ['Content-Type' => 'text/csv; charset=UTF-8']
         );
     }
@@ -59,11 +76,33 @@ class ImportController extends Controller
         ], 201);
     }
 
-    public function employeesTemplate(): StreamedResponse
+    public function employeesTemplate(Request $request): StreamedResponse
     {
+        $type = $request->query('type');
+        $lang = strtolower((string) $request->query('lang', 'en')) === 'id' ? 'id' : 'en';
+        $format = strtolower((string) $request->query('format', 'csv'));
+        $isXlsx = $format === 'xlsx' || $format === 'excel';
+
+        $baseName = ($type === 'Pendidik' || strcasecmp((string) $type, 'teacher') === 0 || strcasecmp((string) $type, 'teachers') === 0 || strcasecmp((string) $type, 'guru') === 0)
+            ? 'teachers-import-template'
+            : (($type === 'Tenaga Kependidikan' || strcasecmp((string) $type, 'staff') === 0 || strcasecmp((string) $type, 'employees') === 0 || strcasecmp((string) $type, 'karyawan') === 0)
+                ? 'employees-import-template'
+                : 'employee-import-template');
+
+        if ($isXlsx) {
+            return response()->streamDownload(
+                fn () => print $this->employees->templateXlsx($type, $lang),
+                "{$baseName}.xlsx",
+                [
+                    'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'Cache-Control' => 'no-cache, private',
+                ]
+            );
+        }
+
         return response()->streamDownload(
-            fn () => print $this->employees->templateCsv(),
-            'employee-import-template.csv',
+            fn () => print $this->employees->templateCsv($type, $lang),
+            "{$baseName}.csv",
             ['Content-Type' => 'text/csv; charset=UTF-8']
         );
     }

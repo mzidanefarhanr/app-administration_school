@@ -13,6 +13,7 @@ use App\Services\Archives\ArchiveDocumentService;
 use App\Services\Archives\ArchiveRetentionService;
 use App\Services\Archives\ArchiveTaskService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -204,6 +205,83 @@ class ArchiveController extends Controller
         );
 
         return new StatusResource(true, 'Archive document restored successfully.', $data);
+    }
+
+    public function batchArchive(Request $request): StatusResource
+    {
+        $this->authorize('create', ArchiveDocument::class);
+
+        $validated = $request->validate([
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.id' => ['required', 'integer'],
+            'items.*.expected_version' => ['required', 'integer'],
+            'archive_reason' => [
+                'required',
+                'string',
+                'min:'.(int) config('archives.archive_reason.min'),
+                'max:'.(int) config('archives.archive_reason.max'),
+            ],
+        ], [
+            'items.required' => 'Select at least one archive document.',
+            'items.min' => 'Select at least one archive document.',
+            'archive_reason.required' => 'The archive reason is required.',
+            'archive_reason.min' => 'The archive reason must be at least '.(int) config('archives.archive_reason.min').' characters.',
+            'archive_reason.max' => 'The archive reason may not exceed '.(int) config('archives.archive_reason.max').' characters.',
+        ]);
+
+        $actor = $request->user();
+        $reason = (string) $validated['archive_reason'];
+        $items = $validated['items'];
+
+        $count = DB::transaction(function () use ($items, $reason, $actor) {
+            $processed = 0;
+            foreach ($items as $item) {
+                $this->archives->archive(
+                    (int) $item['id'],
+                    $reason,
+                    (int) $item['expected_version'],
+                    $actor
+                );
+                $processed++;
+            }
+
+            return $processed;
+        });
+
+        return new StatusResource(true, "Successfully archived {$count} archive document(s).", ['archived_count' => $count]);
+    }
+
+    public function batchRestore(Request $request): StatusResource
+    {
+        $this->authorize('create', ArchiveDocument::class);
+
+        $validated = $request->validate([
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.id' => ['required', 'integer'],
+            'items.*.expected_version' => ['required', 'integer'],
+        ], [
+            'items.required' => 'Select at least one archive document.',
+            'items.min' => 'Select at least one archive document.',
+        ]);
+
+        $actor = $request->user();
+        $items = $validated['items'];
+
+        $count = DB::transaction(function () use ($items, $actor) {
+            $processed = 0;
+            foreach ($items as $item) {
+                $this->archives->restore(
+                    (int) $item['id'],
+                    (int) $item['expected_version'],
+                    $actor
+                );
+                $processed++;
+            }
+
+            return $processed;
+        });
+
+        return new StatusResource(true, "Successfully restored {$count} archive document(s).", ['restored_count' => $count]);
     }
 
     /**

@@ -93,10 +93,13 @@ class Employee extends Model
         'junior_high_school_entry',
         'junior_high_school_graduation',
         'junior_high_school_passing_grade',
+        'junior_high_school_nisn',
         'senior_high_school_name',
+        'senior_high_school_major',
         'senior_high_school_entry',
         'senior_high_school_graduation',
         'senior_high_school_passing_grade',
+        'senior_high_school_nisn',
         'bachelor_campus_name',
         'bachelor_major',
         'bachelor_faculty',
@@ -113,7 +116,14 @@ class Employee extends Model
         'master_passing_grade',
         'exit_date',
         'check_dapodik',
+        'dapodik_status',
+        'verval_elementary_school',
+        'verval_junior_high_school',
+        'verval_senior_high_school',
+        'verval_bachelor_degree',
+        'verval_diploma',
         'government_certificate',
+        'certification_status',
     ];
 
     /**

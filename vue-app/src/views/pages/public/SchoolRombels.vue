@@ -190,6 +190,7 @@ const onYearFilterChange = () => {
 };
 
 const resetFilters = () => {
+    selectedRombels.value = [];
     search.value = '';
     teacherSearch.value = '';
     levelFilter.value = null;
@@ -401,6 +402,49 @@ const reloadAfterConflict = async () => {
     }
 };
 
+const selectedRombels = ref([]);
+const batchDeleteDialog = ref(false);
+const isDeletingBatch = ref(false);
+
+const deletableSelectedRombels = computed(() => (selectedRombels.value || []).filter((row) => !deleteBlockReason(row)));
+const blockedSelectedRombels = computed(() => (selectedRombels.value || []).filter((row) => !!deleteBlockReason(row)));
+
+const openBatchDelete = () => {
+    if (deletableSelectedRombels.value.length === 0) return;
+    batchDeleteDialog.value = true;
+};
+
+const confirmBatchDelete = async () => {
+    if (isDeletingBatch.value || deletableSelectedRombels.value.length === 0) return;
+
+    isDeletingBatch.value = true;
+    try {
+        const payload = {
+            items: deletableSelectedRombels.value.map((row) => ({
+                id: row.id,
+                expected_version: row.version
+            }))
+        };
+        const response = await apiLogin.post('/api/school-rombels/batch-delete', payload);
+        notify('success', response.data?.message ?? `${payload.items.length} kelas/rombel berhasil dihapus.`);
+        batchDeleteDialog.value = false;
+        selectedRombels.value = [];
+        await fetchClasses();
+    } catch (error) {
+        const status = error.response?.status;
+        if (status === 409) {
+            batchDeleteDialog.value = false;
+            conflictMessage.value = errorMessage(error, 'Conflict: salah satu kelas telah diubah oleh operator lain.');
+            conflictReloadAction.value = fetchClasses;
+            conflictDialog.value = true;
+        } else {
+            notify('error', errorMessage(error, 'Gagal menghapus rombel terpilih.'));
+        }
+    } finally {
+        isDeletingBatch.value = false;
+    }
+};
+
 const openDelete = (row) => {
     if (deleteBlockReason(row)) return;
     deleteTarget.value = row;
@@ -480,7 +524,33 @@ onMounted(async () => {
 
                 <small v-if="optionsError" class="text-orange-600 dark:text-orange-400">{{ optionsError }}</small>
 
+                                <div v-if="selectedRombels.length > 0" class="flex flex-wrap items-center justify-between gap-3 p-3 bg-primary-50 dark:bg-primary-950/40 border border-primary-200 dark:border-primary-800 rounded-lg">
+                    <div class="flex items-center gap-2">
+                        <i class="pi pi-check-circle text-primary text-lg"></i>
+                        <span class="font-medium text-sm text-surface-900 dark:text-surface-100">{{ selectedRombels.length }} rombel dipilih</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <Button
+                            v-if="canManage && deletableSelectedRombels.length > 0"
+                            :label="`Hapus Terpilih (${deletableSelectedRombels.length})`"
+                            icon="pi pi-trash"
+                            severity="danger"
+                            size="small"
+                            @click="openBatchDelete"
+                        />
+                        <Button
+                            label="Batal Pilih"
+                            icon="pi pi-times"
+                            severity="secondary"
+                            variant="text"
+                            size="small"
+                            @click="selectedRombels = []"
+                        />
+                    </div>
+                </div>
+
                 <DataTable
+                    v-model:selection="selectedRombels"
                     :value="filteredRows"
                     paginator
                     showGridlines
@@ -500,6 +570,7 @@ onMounted(async () => {
                         </div>
                     </template>
                     <template #loading>{{ t('master.dialog.loading', { entity: t('master.schoolRombels.title') }) }}</template>
+                    <Column selectionMode="multiple" headerStyle="width: 3rem" :exportable="false" />
                     <Column :header="t('master.common.no')" style="width: 3rem">
                         <template #body="{ index }">{{ index + 1 }}</template>
                     </Column>
@@ -658,6 +729,25 @@ onMounted(async () => {
         <template #footer>
             <Button :label="t('common.action.cancel')" icon="pi pi-times" text severity="secondary" :disabled="deleteSaving" @click="deleteDialog = false" />
             <Button :label="t('master.common.delete')" icon="pi pi-trash" severity="danger" :loading="deleteSaving" :disabled="deleteSaving" @click="confirmDelete" />
+        </template>
+    </Dialog>
+    <Dialog v-model:visible="batchDeleteDialog" modal :style="{ width: '500px', maxWidth: '95vw' }" header="Konfirmasi Hapus Rombel Terpilih" :draggable="false">
+        <div class="flex flex-col gap-3">
+            <p class="text-surface-700 dark:text-surface-300">
+                Anda akan menghapus <strong>{{ deletableSelectedRombels.length }}</strong> kelas/rombel kosong terpilih:
+            </p>
+            <ul class="list-disc pl-5 max-h-36 overflow-y-auto space-y-1 text-xs">
+                <li v-for="item in deletableSelectedRombels" :key="item.id">
+                    <span class="font-medium">{{ item.name }}</span> ({{ item.school_year?.name || '-' }})
+                </li>
+            </ul>
+            <Message v-if="blockedSelectedRombels.length > 0" severity="warn" :closable="false">
+                {{ blockedSelectedRombels.length }} rombel lainnya tidak dapat dihapus karena memiliki riwayat siswa atau berada di tahun ajaran terkunci.
+            </Message>
+        </div>
+        <template #footer>
+            <Button label="Batal" severity="secondary" variant="text" :disabled="isDeletingBatch" @click="batchDeleteDialog = false" />
+            <Button :label="`Hapus (${deletableSelectedRombels.length})`" icon="pi pi-trash" severity="danger" :loading="isDeletingBatch" @click="confirmBatchDelete" />
         </template>
     </Dialog>
 </template>

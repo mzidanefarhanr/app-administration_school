@@ -24,7 +24,7 @@ class UserController extends Controller
     {
         $this->authorize('users.view');
 
-        $users = User::with(['status_user', 'type_user', 'roles:id,name,slug'])
+        $users = User::with(['status_user', 'type_user', 'roles:id,name,slug', 'employee.employeeType'])
             ->orderBy('name')
             ->get();
 
@@ -164,6 +164,24 @@ class UserController extends Controller
             ]);
         });
 
+        if ($users && (int) $users->type_user_id !== 1) {
+            $matchingEmployee = null;
+            if ($request->filled('employee_id')) {
+                $matchingEmployee = \App\Models\Employee::where('id', $request->employee_id)->whereNull('user_id')->first();
+            }
+            if (! $matchingEmployee && ! empty($users->nik)) {
+                $matchingEmployee = \App\Models\Employee::where('nik', $users->nik)->whereNull('user_id')->first();
+            }
+            if ($matchingEmployee) {
+                $matchingEmployee->update([
+                    'user_id' => $users->id,
+                    'user_id_resolved_at' => now(),
+                    'account_unlinked_at' => null,
+                    'version' => $matchingEmployee->version + 1,
+                ]);
+            }
+        }
+
         return new UserResource(true, 'New Users successfully added!', $users);
     }
 
@@ -171,7 +189,7 @@ class UserController extends Controller
     {
         $this->authorize('users.view');
 
-        $users = User::with(['status_user', 'type_user', 'roles:id,name,slug'])->find($id);
+        $users = User::with(['status_user', 'type_user', 'roles:id,name,slug', 'employee.employeeType'])->find($id);
 
         return new UserResource(true, 'Users detail found!', $users);
     }

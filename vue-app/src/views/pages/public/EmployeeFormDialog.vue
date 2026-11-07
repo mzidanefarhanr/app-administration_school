@@ -44,7 +44,14 @@ const emptyForm = () => ({
     biological_mothers_name: '',
     partners_name: '',
     check_dapodik: false,
+    dapodik_status: '',
     government_certificate: false,
+    certification_status: '',
+    verval_elementary_school: '',
+    verval_junior_high_school: '',
+    verval_senior_high_school: '',
+    verval_bachelor_degree: '',
+    verval_diploma: '',
     exit_date: '',
     elementary_school_name: '',
     elementary_school_entry: '',
@@ -112,6 +119,7 @@ const educationSections = computed(() => [
             { key: 'junior_high_school_name', label: t('employees.form.education.schoolName') },
             { key: 'junior_high_school_entry', label: t('employees.form.education.entryDate'), type: 'date' },
             { key: 'junior_high_school_graduation', label: t('employees.form.education.graduationDate'), type: 'date' },
+            { key: 'junior_high_school_nisn', label: t('employees.form.education.nisn') },
             { key: 'junior_high_school_passing_grade', label: t('employees.form.education.passingGrade') }
         ]
     },
@@ -119,8 +127,10 @@ const educationSections = computed(() => [
         title: t('employees.form.education.seniorHigh'),
         fields: [
             { key: 'senior_high_school_name', label: t('employees.form.education.schoolName') },
+            { key: 'senior_high_school_major', label: t('employees.form.education.seniorHighMajor') },
             { key: 'senior_high_school_entry', label: t('employees.form.education.entryDate'), type: 'date' },
             { key: 'senior_high_school_graduation', label: t('employees.form.education.graduationDate'), type: 'date' },
+            { key: 'senior_high_school_nisn', label: t('employees.form.education.nisn') },
             { key: 'senior_high_school_passing_grade', label: t('employees.form.education.passingGrade') }
         ]
     },
@@ -366,6 +376,14 @@ const reloadLatest = async () => {
                         <label class="block mb-2">{{ t('employees.form.fields.teachingHoursCertificate') }}</label>
                         <InputText v-model="form.certificate_of_teaching_hours" class="w-full" maxlength="255" />
                     </div>
+                    <div class="col-span-12 md:col-span-4">
+                        <label class="block mb-2">{{ t('employees.form.fields.dapodikStatus') }}</label>
+                        <InputText v-model="form.dapodik_status" class="w-full" maxlength="100" />
+                    </div>
+                    <div class="col-span-12 md:col-span-4">
+                        <label class="block mb-2">{{ t('employees.form.fields.certificationStatus') }}</label>
+                        <InputText v-model="form.certification_status" class="w-full" maxlength="50" />
+                    </div>
                     <div class="col-span-12 md:col-span-4 flex items-center gap-4 pt-6">
                         <div class="flex items-center gap-2">
                             <Checkbox v-model="form.check_dapodik" :binary="true" inputId="checkDapodik" />
@@ -374,6 +392,31 @@ const reloadLatest = async () => {
                         <div class="flex items-center gap-2">
                             <Checkbox v-model="form.government_certificate" :binary="true" inputId="governmentCertificate" />
                             <label for="governmentCertificate">{{ t('employees.form.fields.governmentCertificate') }}</label>
+                        </div>
+                    </div>
+                    <div class="col-span-12">
+                        <h4 class="font-medium mt-2 mb-2">{{ t('employees.detail.fields.vervalSection') }}</h4>
+                        <div class="grid grid-cols-12 gap-4">
+                            <div class="col-span-12 md:col-span-4">
+                                <label class="block mb-2">{{ t('employees.form.fields.vervalElementarySchool') }}</label>
+                                <InputText v-model="form.verval_elementary_school" class="w-full" maxlength="50" />
+                            </div>
+                            <div class="col-span-12 md:col-span-4">
+                                <label class="block mb-2">{{ t('employees.form.fields.vervalJuniorHighSchool') }}</label>
+                                <InputText v-model="form.verval_junior_high_school" class="w-full" maxlength="50" />
+                            </div>
+                            <div class="col-span-12 md:col-span-4">
+                                <label class="block mb-2">{{ t('employees.form.fields.vervalSeniorHighSchool') }}</label>
+                                <InputText v-model="form.verval_senior_high_school" class="w-full" maxlength="50" />
+                            </div>
+                            <div class="col-span-12 md:col-span-4">
+                                <label class="block mb-2">{{ t('employees.form.fields.vervalBachelorDegree') }}</label>
+                                <InputText v-model="form.verval_bachelor_degree" class="w-full" maxlength="50" />
+                            </div>
+                            <div class="col-span-12 md:col-span-4">
+                                <label class="block mb-2">{{ t('employees.form.fields.vervalDiploma') }}</label>
+                                <InputText v-model="form.verval_diploma" class="w-full" maxlength="50" />
+                            </div>
                         </div>
                     </div>
                 </div>

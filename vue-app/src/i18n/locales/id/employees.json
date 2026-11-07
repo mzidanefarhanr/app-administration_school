@@ -22,7 +22,7 @@
         },
         "actions": {
             "exportCsv": "Ekspor CSV",
-            "importCsv": "Impor CSV",
+            "importCsv": "Impor",
             "newTeacher": "Guru Baru",
             "newEmployee": "Pegawai Baru",
             "activeRecords": "Data Aktif",
@@ -42,10 +42,14 @@
         },
         "account": {
             "linked": "Terhubung",
-            "notLinked": "Belum terhubung"
+            "notLinked": "Belum Ada Akun",
+            "admin": "Admin"
         },
         "tooltips": {
             "view": "Lihat Detail",
+            "generateAccount": "Generate Akun Pengguna",
+            "deleteAccount": "Hapus Akun Pengguna",
+            "adminAccountLocked": "Akun Administrator dilindungi dan tidak dapat dihapus",
             "linkAccount": "Hubungkan Akun",
             "unlinkAccount": "Putuskan Akun",
             "archive": "Arsipkan",
@@ -118,7 +122,14 @@
             "familyCard": "Nomor Kartu Keluarga",
             "npwp": "Nomor Pokok Wajib Pajak (NPWP)",
             "mothersName": "Nama Ibu Kandung",
-            "partnersName": "Nama Pasangan"
+            "partnersName": "Nama Pasangan",
+            "dapodikStatus": "Status Dapodik",
+            "certificationStatus": "Status Sertifikasi (Serti)",
+            "vervalElementarySchool": "Verval Pendidikan SD",
+            "vervalJuniorHighSchool": "Verval Pendidikan SMP",
+            "vervalSeniorHighSchool": "Verval Pendidikan SMA",
+            "vervalBachelorDegree": "Verval Pendidikan S1",
+            "vervalDiploma": "Verval Ijazah"
         },
         "education": {
             "elementary": "Sekolah Dasar",
@@ -134,7 +145,8 @@
             "campus": "Perguruan Tinggi",
             "major": "Jurusan",
             "faculty": "Fakultas",
-            "nim": "NIM"
+            "nim": "NIM",
+            "seniorHighMajor": "Jurusan SMA"
         },
         "errors": {
             "conflict": "Data ini telah diubah oleh pengguna lain.",
@@ -182,10 +194,23 @@
             "bachelor": "Sarjana (S1)",
             "bachelorMajor": "Jurusan S1",
             "master": "Magister (S2)",
-            "masterMajor": "Jurusan S2"
+            "masterMajor": "Jurusan S2",
+            "dapodikStatus": "Status Dapodik",
+            "certificationStatus": "Status Sertifikasi (Serti)",
+            "vervalElementarySchool": "Verval SD",
+            "vervalJuniorHighSchool": "Verval SMP",
+            "vervalSeniorHighSchool": "Verval SMA",
+            "vervalBachelorDegree": "Verval S1",
+            "vervalDiploma": "Verval Ijazah",
+            "elementarySchool": "Sekolah Dasar (SD)",
+            "juniorHighSchool": "Sekolah Menengah Pertama (SMP)",
+            "seniorHighSchool": "Sekolah Menengah Atas (SMA)",
+            "seniorHighMajor": "Jurusan SMA",
+            "vervalSection": "Status Verval & Dapodik"
         },
         "account": {
-            "notLinked": "Belum terhubung",
+            "notLinked": "Belum Ada Akun",
+            "admin": "Admin",
             "numbered": "Akun #{id}"
         },
         "actions": {
@@ -245,9 +270,10 @@
             "update": "Perbarui pegawai yang ada"
         },
         "modeNotice": "Mode perbarui mencocokkan pegawai hanya berdasarkan NIK. NIK tidak dapat diubah dan sel kosong membiarkan nilai tersimpan tidak berubah.",
-        "fileLabel": "Berkas CSV",
+        "fileLabel": "Berkas CSV atau Excel",
         "fileNotice": "CSV UTF-8, maksimal 5 MB dan 2.000 baris. Kabupaten/Kota dan Kecamatan harus diisi bersamaan. Gunakan hanya header templat berbahasa Inggris.",
-        "downloadTemplate": "Unduh Templat",
+        "downloadTemplate": "Unduh Templat CSV",
+        "downloadTemplateXlsx": "Unduh Templat Excel (.xlsx)",
         "status": "Status:",
         "statuses": {
             "committed": "Sudah disimpan",
@@ -283,8 +309,8 @@
         "uploadPreview": "Unggah dan Pratinjau",
         "commit": "Simpan Impor",
         "errors": {
-            "chooseFile": "Pilih berkas CSV untuk diimpor.",
-            "fileFormat": "Berkas harus berformat CSV (UTF-8). Format lain belum didukung.",
+            "chooseFile": "Pilih berkas CSV atau Excel untuk diimpor.",
+            "fileFormat": "Berkas harus berformat CSV (UTF-8) atau Excel (.xlsx).",
             "fileEmpty": "Berkas kosong.",
             "fileTooLarge": "Ukuran berkas melebihi {size} MB.",
             "noPreview": "Server tidak mengembalikan pratinjau impor.",
@@ -292,6 +318,14 @@
             "commit": "Impor tidak dapat disimpan. Unggah berkas kembali.",
             "template": "Gagal mengunduh templat.",
             "errorReport": "Gagal mengunduh laporan kesalahan."
+        }
+    },
+    "employees": {
+        "import": {
+            "templateLanguage": "Bahasa Judul Kolom",
+            "langEn": "Bahasa Inggris (English)",
+            "langId": "Bahasa Indonesia",
+            "fileNotice": "CSV UTF-8 atau Excel (.xlsx), maksimal 5 MB dan 2.000 baris. Mendukung judul kolom Bahasa Inggris atau Bahasa Indonesia."
         }
     }
 }

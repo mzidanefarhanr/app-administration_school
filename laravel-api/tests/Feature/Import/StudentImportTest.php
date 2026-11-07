@@ -1,11 +1,15 @@
 <?php
 
 use App\Models\BloodType;
+use App\Models\District;
 use App\Models\EducationLevel;
+use App\Models\EducationSchool;
 use App\Models\FamilyStatus;
 use App\Models\Gender;
 use App\Models\ImportBatch;
 use App\Models\Profession;
+use App\Models\Province;
+use App\Models\Regency;
 use App\Models\Religion;
 use App\Models\Student;
 use App\Services\StudentImportService;
@@ -29,8 +33,27 @@ beforeEach(function () {
     Religion::firstOrCreate(['name' => 'Islam']);
     FamilyStatus::firstOrCreate(['name' => 'Lengkap']);
     EducationLevel::firstOrCreate(['name' => 'SD/Sederajat']);
+    $smpLevel = EducationLevel::firstOrCreate(['name' => 'SMP/SLTP/Sederajat']);
+    EducationLevel::firstOrCreate(['name' => 'SMA/SLTA/Sederajat']);
+    EducationLevel::firstOrCreate(['name' => 'Diploma IV/Strata I']);
     Profession::firstOrCreate(['name' => 'Swasta']);
+    Profession::firstOrCreate(['name' => 'Pelajar/Mahasiswa']);
+    Profession::firstOrCreate(['name' => 'Karyawan Swasta']);
+    Profession::firstOrCreate(['name' => 'Mengurus Rumah Tangga']);
+    Profession::firstOrCreate(['name' => 'Wiraswasta']);
     BloodType::firstOrCreate(['name' => 'O']);
+
+    $province = Province::firstOrCreate(['name' => 'DKI Jakarta']);
+    $regency = Regency::firstOrCreate(['province_id' => $province->id, 'name' => 'Jakarta Pusat']);
+    $district = District::firstOrCreate(['regency_id' => $regency->id, 'name' => 'Gambir']);
+
+    EducationSchool::firstOrCreate(['npsn' => '20106343'], [
+        'version' => 1,
+        'name' => 'SMP Negeri 1 Jakarta',
+        'education_level_id' => $smpLevel->id,
+        'status_education' => 'Negeri',
+        'district_id' => $district->id,
+    ]);
 
     Storage::fake('local');
     config(['imports.disk' => 'local']);
@@ -114,7 +137,7 @@ test('preview validates the file without mutating students', function () {
         ->and($response->json('data.preview.0.action'))->toBe('insert');
 });
 
-test('template download exposes the English headers', function () {
+test('template download exposes the English headers and a sample dummy row', function () {
     Sanctum::actingAs($this->principal);
 
     $response = $this->get('/api/imports/students/template');
@@ -123,12 +146,130 @@ test('template download exposes the English headers', function () {
     $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
 
     $csv = $response->streamedContent();
-    $headers = str_getcsv(strtok($csv, "\n"));
+    $lines = explode("\n", trim($csv));
+    $headers = str_getcsv($lines[0]);
+    $sampleRow = str_getcsv($lines[1]);
 
     expect($headers)->toBe(StudentImportService::templateHeaders())
+        ->and(count($headers))->toBe(56)
+        ->and(count($sampleRow))->toBe(56)
+        ->and($sampleRow[0])->toBe('Ahmad Fauzi')
         ->and($csv)->toContain('Name')
         ->and($csv)->toContain('NIK')
-        ->and($csv)->toContain('Family Status');
+        ->and($csv)->toContain('Father Name')
+        ->and($csv)->toContain('Mother Name')
+        ->and($csv)->toContain('Guardian Name')
+        ->and($csv)->toContain('PPDB Bersama')
+        ->and($csv)->toContain('Family Status')
+        ->and($csv)->toContain('Ahmad Fauzi')
+        ->and($csv)->toContain('3171012345670001')
+        ->and($csv)->toContain('Budi Santoso')
+        ->and($csv)->toContain('Siti Aminah');
+});
+
+test('downloaded template containing dummy row is valid for preview and commit', function () {
+    Sanctum::actingAs($this->principal);
+    $templateCsv = $this->get('/api/imports/students/template')->streamedContent();
+
+    $response = ($this->upload)($templateCsv);
+    $response->assertCreated()
+        ->assertJsonPath('success', true)
+        ->assertJsonPath('data.status', ImportBatch::STATUS_READY)
+        ->assertJsonPath('data.total_rows', 1)
+        ->assertJsonPath('data.valid_rows', 1)
+        ->assertJsonPath('data.invalid_rows', 0);
+
+    Sanctum::actingAs($this->operator);
+    $this->postJson('/api/imports/'.$response->json('data.token').'/commit')
+        ->assertStatus(200)
+        ->assertJsonPath('data.committed_rows', 1);
+
+    $student = Student::where('nik', '3171012345670001')->firstOrFail();
+    expect($student->name)->toBe('Ahmad Fauzi')
+        ->and($student->nis)->toBe('2425001')
+        ->and($student->father_name)->toBe('Budi Santoso')
+        ->and($student->mother_name)->toBe('Siti Aminah')
+        ->and($student->guardian_name)->toBe('Ahmad Dahlan');
+});
+
+test('import supports complete fillable student attributes including parents, guardian, documents, and assistance', function () {
+    $fullRow = s05aRow([
+        'KK' => '3171010000000001',
+        'Akta' => '12345/DIS/2010',
+        'Child Order' => '2',
+        'Total Siblings' => '3',
+        'History Illness' => 'Asma',
+        'Height' => '165',
+        'Weight' => '55',
+        'Certificate Year' => '2024',
+        'Certificate Number' => 'DN-01/D-SMP/24/00001',
+        'Father Name' => 'Budi Santoso',
+        'Father NIK' => '3171010000000002',
+        'Father Birthplace' => 'Jakarta',
+        'Father Birthdate' => '1980-05-10',
+        'Father Education Level' => 'Primary School or Equivalent',
+        'Father Profession' => 'Private Sector',
+        'Father Income' => '5000000',
+        'Father Phone' => '081234567890',
+        'Mother Name' => 'Siti Aminah',
+        'Mother NIK' => '3171010000000003',
+        'Mother Birthplace' => 'Bandung',
+        'Mother Birthdate' => '1982-08-15',
+        'Mother Education Level' => 'Primary School or Equivalent',
+        'Mother Profession' => 'Private Sector',
+        'Mother Income' => '4000000',
+        'Mother Phone' => '081234567891',
+        'Guardian Name' => 'Ahmad Dahlan',
+        'Guardian NIK' => '3171010000000004',
+        'Guardian Birthplace' => 'Surabaya',
+        'Guardian Birthdate' => '1975-01-20',
+        'Guardian Education Level' => 'Primary School or Equivalent',
+        'Guardian Profession' => 'Private Sector',
+        'Guardian Income' => '6000000',
+        'Guardian Phone' => '081234567892',
+        'PPDB Bersama' => 'Yes',
+        'KJP' => '1',
+        'BPMS' => 'No',
+        'PIP' => '0',
+    ]);
+
+    $response = ($this->upload)(s05aCsv([$fullRow]));
+    $response->assertCreated();
+
+    Sanctum::actingAs($this->operator);
+    $this->postJson('/api/imports/'.$response->json('data.token').'/commit')
+        ->assertStatus(200)
+        ->assertJsonPath('data.committed_rows', 1);
+
+    $student = Student::firstOrFail();
+
+    expect($student->kk)->toBe('3171010000000001')
+        ->and($student->akta)->toBe('12345/DIS/2010')
+        ->and($student->child_order_to)->toBe(2)
+        ->and($student->child_order_total)->toBe(3)
+        ->and($student->history_illness)->toBe('Asma')
+        ->and($student->body_height)->toBe(165)
+        ->and($student->body_weight)->toBe(55)
+        ->and($student->certificate_year)->toBe(2024)
+        ->and($student->certificate_num)->toBe('DN-01/D-SMP/24/00001')
+        ->and($student->father_name)->toBe('Budi Santoso')
+        ->and($student->father_nik)->toBe('3171010000000002')
+        ->and($student->father_birthplace)->toBe('Jakarta')
+        ->and($student->father_birthdate)->toBe('1980-05-10')
+        ->and($student->father_education_level_id)->not->toBeNull()
+        ->and($student->father_profession_id)->not->toBeNull()
+        ->and($student->father_income)->toBe('5000000')
+        ->and($student->father_hp_num)->toBe('081234567890')
+        ->and($student->mother_name)->toBe('Siti Aminah')
+        ->and($student->mother_nik)->toBe('3171010000000003')
+        ->and($student->mother_birthdate)->toBe('1982-08-15')
+        ->and($student->guardian_name)->toBe('Ahmad Dahlan')
+        ->and($student->guardian_nik)->toBe('3171010000000004')
+        ->and($student->guardian_birthdate)->toBe('1975-01-20')
+        ->and((bool) $student->check_ppdbbersama)->toBeTrue()
+        ->and((bool) $student->check_kjp)->toBeTrue()
+        ->and((bool) $student->check_bpms)->toBeFalse()
+        ->and((bool) $student->check_pip)->toBeFalse();
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -457,4 +598,33 @@ test('expired batches and changed source files are rejected at commit', function
         ->assertJsonPath('message', 'The stored source file no longer matches this batch. Upload the file again.');
 
     expect(Student::count())->toBe(0);
+});
+
+test('student import parses dates in Excel M/D/YYYY format', function () {
+    $response = ($this->upload)(s05aCsv([
+        s05aRow([
+            'NIS' => '001099',
+            'NIK' => '0012345678909999',
+            'NISN' => '0012349999',
+            'Birthdate' => '5/15/2010',
+            'Father Birthdate' => '8/12/1978',
+            'Mother Birthdate' => '11/20/1982',
+            'Guardian Birthdate' => '3/10/1975',
+        ]),
+    ]));
+
+    $response->assertCreated()
+        ->assertJsonPath('data.status', ImportBatch::STATUS_READY)
+        ->assertJsonPath('data.valid_rows', 1)
+        ->assertJsonPath('data.invalid_rows', 0);
+
+    $token = $response->json('data.token');
+    Sanctum::actingAs($this->operator);
+    $this->postJson("/api/imports/{$token}/commit")->assertStatus(200);
+
+    $student = Student::where('nis', '001099')->firstOrFail();
+    expect($student->birthdate)->toBe('2010-05-15')
+        ->and($student->father_birthdate)->toBe('1978-08-12')
+        ->and($student->mother_birthdate)->toBe('1982-11-20')
+        ->and($student->guardian_birthdate)->toBe('1975-03-10');
 });

@@ -303,3 +303,86 @@ test('export neutralises spreadsheet formula cells', function () {
     expect($csv)->toContain("'=SUM(1,2)")
         ->and($csv)->not->toContain(',=SUM(1,2)');
 });
+
+test('generateAccount creates a new User with proper role, unique username, and links it to employee', function () {
+    $employee = makeAccountEmployee([
+        'name' => 'Budi Santoso',
+        'nik' => '3201020202020088',
+        'employee_type_id' => $this->typeTeacher->id,
+    ]);
+
+    Sanctum::actingAs($this->operator);
+
+    $response = $this->postJson('/api/employees/'.$employee->id.'/generate-account')
+        ->assertStatus(201)
+        ->assertJsonPath('success', true)
+        ->assertJsonPath('data.name', 'Budi Santoso');
+
+    $generatedUserId = $response->json('data.user_id');
+    $initialPassword = $response->json('data.initial_password');
+
+    expect($initialPassword)->not->toBeEmpty();
+    expect(strlen($initialPassword))->toBeGreaterThanOrEqual(12);
+
+    $linked = $employee->fresh();
+    expect($linked->user_id)->toBe($generatedUserId)
+        ->and($linked->user_id_resolved_at)->not->toBeNull();
+
+    $user = User::find($generatedUserId);
+    expect($user)->not->toBeNull()
+        ->and($user->hasRole('guru'))->toBeTrue();
+
+    // Re-generate on same employee must fail
+    $this->postJson('/api/employees/'.$employee->id.'/generate-account')
+        ->assertStatus(422);
+});
+
+test('deleteAccount unlinks and deletes user for non-admin accounts', function () {
+    $employee = makeAccountEmployee(['nik' => '3201020202020089']);
+    $user = User::factory()->create(['type_user_id' => 2]);
+    $employee->user_id = $user->id;
+    $employee->save();
+
+    Sanctum::actingAs($this->operator);
+
+    $this->deleteJson('/api/employees/'.$employee->id.'/delete-account')
+        ->assertStatus(200)
+        ->assertJsonPath('success', true);
+
+    $linked = $employee->fresh();
+    expect($linked->user_id)->toBeNull()
+        ->and($linked->account_unlinked_at)->not->toBeNull();
+
+    expect(User::find($user->id))->toBeNull();
+    expect(User::withTrashed()->find($user->id))->not->toBeNull();
+});
+
+test('deleteAccount refuses to delete administrator account', function () {
+    $employee = makeAccountEmployee(['nik' => '3201020202020090']);
+    $adminUser = $this->makeUserWithRole('admin-sistem');
+    $employee->user_id = $adminUser->id;
+    $employee->save();
+
+    Sanctum::actingAs($this->operator);
+
+    $this->deleteJson('/api/employees/'.$employee->id.'/delete-account')
+        ->assertStatus(403);
+
+    $linked = $employee->fresh();
+    expect($linked->user_id)->toBe($adminUser->id);
+    expect(User::find($adminUser->id))->not->toBeNull();
+});
+
+test('self profile endpoint /api/user loads employee relation', function () {
+    $employee = makeAccountEmployee(['nik' => '3201020202020091']);
+    $user = User::factory()->create(['type_user_id' => 2]);
+    $employee->user_id = $user->id;
+    $employee->save();
+
+    Sanctum::actingAs($user);
+
+    $response = $this->getJson('/api/user')
+        ->assertStatus(200);
+
+    expect($response->json('employee.id'))->toBe($employee->id);
+});

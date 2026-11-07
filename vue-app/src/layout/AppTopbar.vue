@@ -4,6 +4,7 @@ import AppUsers from './AppUsers.vue';
 import AppLogoDefault from '@/layout/AppLogoDefault.vue';
 import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useLocale } from '@/i18n/useLocale';
 
 const buttonHighlight_1 = ref(false);
 const inputClassButton_1 = ref('');
@@ -14,6 +15,11 @@ const inputClassButton_3 = ref('');
 
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
 const { t } = useI18n();
+const { locale: currentLocale, locales, setLocale } = useLocale();
+
+const switchLocale = (value) => {
+    setLocale(value);
+};
 
 //function togglebuttonHighlight_1
 function togglebuttonHighlight_1() {
@@ -87,7 +93,44 @@ onMounted(() => {
 
         <div class="layout-topbar-actions">
             <div class="layout-config-menu">
-                <button type="button" class="layout-topbar-action" @click="toggleDarkMode">
+                <!-- Language Selector -->
+                <div class="relative">
+                    <button
+                        type="button"
+                        class="layout-topbar-action"
+                        v-styleclass="{ selector: '@next', enterFromClass: 'hidden', enterActiveClass: 'animate-scalein', leaveToClass: 'hidden', leaveActiveClass: 'animate-fadeout', hideOnOutsideClick: true }"
+                        :title="currentLocale === 'id' ? 'Bahasa: Indonesia' : 'Language: English'"
+                    >
+                        <i class="pi pi-globe"></i>
+                        <span>{{ t('common.language.label') }}</span>
+                    </button>
+
+                    <div
+                        class="config-panel hidden absolute top-[3.25rem] right-0 w-48 p-2 bg-surface-0 dark:bg-surface-900 border border-surface rounded-border origin-top shadow-[0px_3px_5px_rgba(0,0,0,0.02),0px_0px_2px_rgba(0,0,0,0.05),0px_1px_4px_rgba(0,0,0,0.08)] z-50"
+                    >
+                        <div class="px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-surface-400 border-b border-surface-100 dark:border-surface-800 mb-1">
+                            {{ t('common.language.label') }}
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <button
+                                v-for="item in locales"
+                                :key="item.value"
+                                type="button"
+                                class="flex items-center justify-between px-3 py-2 text-sm rounded-md transition-colors w-full text-left border-0 bg-transparent cursor-pointer"
+                                :class="currentLocale === item.value ? 'bg-primary-50 dark:bg-primary-950/50 text-primary-700 dark:text-primary-300 font-semibold' : 'text-surface-700 dark:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800'"
+                                @click="switchLocale(item.value)"
+                            >
+                                <span class="flex items-center gap-2.5">
+                                    <span class="text-base">{{ item.value === 'id' ? '🇮🇩' : '🇬🇧' }}</span>
+                                    <span>{{ item.label }}</span>
+                                </span>
+                                <i v-if="currentLocale === item.value" class="pi pi-check text-xs text-primary font-bold"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="layout-topbar-action" @click="toggleDarkMode" :title="isDarkTheme ? 'Mode Terang' : 'Mode Gelap'">
                     <i :class="['pi', { 'pi-moon': isDarkTheme, 'pi-sun': !isDarkTheme }]"></i>
                 </button>
                 <!-- <div class="relative">

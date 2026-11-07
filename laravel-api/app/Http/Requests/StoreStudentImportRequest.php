@@ -19,7 +19,7 @@ class StoreStudentImportRequest extends FormRequest
         $maxKb = (int) config('imports.students.max_size_kb', 5120);
 
         return [
-            'file' => ['required', 'file', 'mimes:csv,txt', 'max:'.$maxKb],
+            'file' => ['required', 'file', 'mimes:csv,txt,xlsx', 'max:'.$maxKb],
             'mode' => ['required', 'string', 'in:insert,update'],
         ];
     }
@@ -30,8 +30,8 @@ class StoreStudentImportRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'file.required' => 'Choose a CSV file to import.',
-            'file.mimes' => 'The file must be a CSV (UTF-8). Other formats are not supported yet.',
+            'file.required' => 'Choose a CSV or Excel file to import.',
+            'file.mimes' => 'The file must be a CSV (UTF-8) or Excel (.xlsx) file.',
             'file.max' => 'The file is larger than the allowed limit.',
             'mode.in' => 'Import mode must be either insert or update.',
         ];

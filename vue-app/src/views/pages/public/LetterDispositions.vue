@@ -170,6 +170,7 @@ const onFilterChange = () => {
 };
 
 const resetFilters = () => {
+    selectedDispositions.value = [];
     filters.search = '';
     filters.status = 'open';
     filters.overdue = false;
@@ -335,6 +336,70 @@ const cancelErrors = ref({});
 const cancelError = ref('');
 const cancelReason = ref('');
 
+const selectedDispositions = ref([]);
+const batchCancelVisible = ref(false);
+const batchCancelReason = ref('');
+const batchCancelErrors = ref({});
+const batchCancelError = ref('');
+const isSubmittingBatchCancel = ref(false);
+
+const cancellableSelected = computed(() => (selectedDispositions.value || []).filter((item) => ['pending', 'in_progress'].includes(item.status)));
+
+const openBatchCancel = () => {
+    if (cancellableSelected.value.length === 0) return;
+    batchCancelReason.value = '';
+    batchCancelErrors.value = {};
+    batchCancelError.value = '';
+    batchCancelVisible.value = true;
+};
+
+const submitBatchCancel = async () => {
+    if (isSubmittingBatchCancel.value || cancellableSelected.value.length === 0) return;
+
+    const reason = batchCancelReason.value.trim();
+    if (reason.length < cancelMin.value || reason.length > cancelMax.value) {
+        batchCancelErrors.value = {
+            reason: [reason.length < cancelMin.value ? `The reason must be at least ${cancelMin.value} characters.` : `The reason may not exceed ${cancelMax.value} characters.`]
+        };
+        return;
+    }
+
+    isSubmittingBatchCancel.value = true;
+    batchCancelErrors.value = {};
+    batchCancelError.value = '';
+
+    try {
+        let count = 0;
+        for (const item of cancellableSelected.value) {
+            await apiLogin.post(`/api/letters/incoming/${item.letter.id}/dispositions/${item.id}/cancel`, {
+                reason,
+                expected_version: item.version
+            });
+            count++;
+        }
+        batchCancelVisible.value = false;
+        notify('success', `${count} disposisi berhasil dibatalkan.`);
+        selectedDispositions.value = [];
+        await loadDispositions();
+    } catch (error) {
+        const status = error.response?.status;
+        if (status === 409) {
+            batchCancelVisible.value = false;
+            openConflict(error);
+        } else if (status === 422) {
+            batchCancelErrors.value = validationErrors(error);
+            if (Object.keys(batchCancelErrors.value).length === 0) {
+                batchCancelError.value = errorMessage(error, 'Disposisi tidak dapat dibatalkan.');
+            }
+        } else {
+            batchCancelError.value = errorMessage(error, 'Gagal membatalkan disposisi terpilih.');
+        }
+        await loadDispositions();
+    } finally {
+        isSubmittingBatchCancel.value = false;
+    }
+};
+
 const openCancel = (row) => {
     if (!canManage.value) return;
     cancelTarget.value = row;
@@ -455,7 +520,33 @@ onMounted(async () => {
                     </div>
                 </div>
 
+                                <div v-if="selectedDispositions.length > 0" class="flex flex-wrap items-center justify-between gap-3 p-3 bg-primary-50 dark:bg-primary-950/40 border border-primary-200 dark:border-primary-800 rounded-lg">
+                    <div class="flex items-center gap-2">
+                        <i class="pi pi-check-circle text-primary text-lg"></i>
+                        <span class="font-medium text-sm text-surface-900 dark:text-surface-100">{{ selectedDispositions.length }} disposisi dipilih</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <Button
+                            v-if="canManage && cancellableSelected.length > 0"
+                            :label="`Batalkan Terpilih (${cancellableSelected.length})`"
+                            icon="pi pi-ban"
+                            severity="danger"
+                            size="small"
+                            @click="openBatchCancel"
+                        />
+                        <Button
+                            label="Batal Pilih"
+                            icon="pi pi-times"
+                            severity="secondary"
+                            variant="text"
+                            size="small"
+                            @click="selectedDispositions = []"
+                        />
+                    </div>
+                </div>
+
                 <DataTable
+                    v-model:selection="selectedDispositions"
                     :value="items"
                     :lazy="true"
                     paginator
@@ -630,6 +721,30 @@ onMounted(async () => {
         <template #footer>
             <Button :label="t('letters.common.close')" severity="secondary" variant="text" @click="conflictVisible = false" />
             <Button :label="t('letters.common.reloadLatest')" icon="pi pi-refresh" :loading="reloadingConflict" @click="reloadLatest" />
+        </template>
+    </Dialog>
+    <Dialog v-model:visible="batchCancelVisible" modal :draggable="false" :style="{ width: 'min(94vw, 36rem)' }" header="Batalkan Disposisi Terpilih">
+        <div class="flex flex-col gap-4">
+            <Message v-if="batchCancelError" severity="error" :closable="false">{{ batchCancelError }}</Message>
+            <div class="text-sm text-surface-600 dark:text-surface-300">
+                Anda akan membatalkan <strong>{{ cancellableSelected.length }}</strong> disposisi terpilih:
+                <ul class="list-disc pl-5 mt-2 max-h-36 overflow-y-auto space-y-1 text-xs">
+                    <li v-for="item in cancellableSelected" :key="item.id">
+                        <span class="font-medium">{{ item.recipient?.name }}</span>: {{ item.letter?.reference }} ({{ item.letter?.subject }})
+                    </li>
+                </ul>
+            </div>
+            <Message severity="warn" :closable="false">{{ t('letters.dispositions.dialogs.cancelWarning') }}</Message>
+            <div class="flex flex-col gap-2">
+                <label for="batchCancelReason" class="font-medium">{{ t('letters.dispositions.fields.cancellationReason') }} <span class="text-red-500">*</span></label>
+                <Textarea id="batchCancelReason" v-model="batchCancelReason" rows="3" :maxlength="cancelMax" autoResize :placeholder="t('letters.dispositions.fields.cancellationReasonPlaceholder')" />
+                <small class="text-surface-500">{{ batchCancelReason.length }}/{{ cancelMax }} ({{ t('letters.dispositions.fields.cancellationReasonMin', { min: cancelMin }) }})</small>
+                <small v-if="fieldError(batchCancelErrors, 'reason')" class="text-red-500">{{ fieldError(batchCancelErrors, 'reason') }}</small>
+            </div>
+        </div>
+        <template #footer>
+            <Button :label="t('letters.common.cancel')" severity="secondary" variant="text" :disabled="isSubmittingBatchCancel" @click="batchCancelVisible = false" />
+            <Button :label="`Batalkan (${cancellableSelected.length})`" icon="pi pi-ban" severity="danger" :loading="isSubmittingBatchCancel" @click="submitBatchCancel" />
         </template>
     </Dialog>
 </template>

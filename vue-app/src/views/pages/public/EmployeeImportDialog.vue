@@ -9,13 +9,20 @@ import { getEmployeeImportModes, buildEmployeeImportFormData, validateEmployeeIm
 const { t } = useI18n();
 
 const props = defineProps({
-    visible: { type: Boolean, default: false }
+    visible: { type: Boolean, default: false },
+    employeeTypeName: { type: String, default: null }
 });
 
 const emit = defineEmits(['update:visible', 'imported']);
 
 const importModes = computed(() => getEmployeeImportModes(t));
+const templateLanguages = computed(() => [
+    { label: t('employees.import.langEn'), value: 'en' },
+    { label: t('employees.import.langId'), value: 'id' }
+]);
+
 const mode = ref('insert');
+const templateLang = ref('en');
 const file = ref(null);
 const batch = ref(null);
 const generalMessage = ref('');
@@ -34,6 +41,7 @@ const stage = computed(() => {
 
 const reset = () => {
     mode.value = 'insert';
+    templateLang.value = 'en';
     file.value = null;
     batch.value = null;
     generalMessage.value = '';
@@ -114,10 +122,23 @@ const downloadBlob = (data, filename) => {
     URL.revokeObjectURL(url);
 };
 
-const downloadTemplate = async () => {
+const downloadTemplate = async (format = 'xlsx') => {
     try {
-        const response = await apiLogin.get('/api/imports/employees/template', { responseType: 'blob' });
-        downloadBlob(new Blob([response.data], { type: 'text/csv;charset=utf-8;' }), 'employee-import-template.csv');
+        const isXlsx = format === 'xlsx';
+        const params = {
+            ...(props.employeeTypeName ? { type: props.employeeTypeName } : {}),
+            format: isXlsx ? 'xlsx' : 'csv',
+            lang: templateLang.value
+        };
+        const ext = isXlsx ? 'xlsx' : 'csv';
+        const response = await apiLogin.get('/api/imports/employees/template', { params, responseType: 'blob' });
+        const filename = props.employeeTypeName === 'Pendidik'
+            ? `teachers-import-template.${ext}`
+            : props.employeeTypeName === 'Tenaga Kependidikan'
+            ? `employees-import-template.${ext}`
+            : `employee-import-template.${ext}`;
+        const mimeType = isXlsx ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 'text/csv;charset=utf-8;';
+        downloadBlob(new Blob([response.data], { type: mimeType }), filename);
     } catch (error) {
         generalMessage.value = firstValidationMessage(error.response) ?? t('employees.import.errors.template');
     }
@@ -153,11 +174,19 @@ const downloadErrors = async () => {
 
                 <div class="flex flex-col gap-2">
                     <label class="text-sm font-medium" for="employee-import-file">{{ t('employees.import.fileLabel') }}</label>
-                    <input id="employee-import-file" type="file" accept=".csv,text/csv" class="block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-surface-100 dark:file:bg-surface-800 file:px-3 file:py-2" @change="onFileChange" />
+                    <input id="employee-import-file" type="file" accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" class="block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-surface-100 dark:file:bg-surface-800 file:px-3 file:py-2" @change="onFileChange" />
                     <small v-if="fileError" class="text-red-500">{{ fileError }}</small>
                     <small class="text-surface-500">{{ t('employees.import.fileNotice') }}</small>
-                    <div>
-                        <Button :label="t('employees.import.downloadTemplate')" icon="pi pi-download" text size="small" @click="downloadTemplate" />
+
+                    <div class="mt-2 flex flex-col gap-2 rounded-lg border border-surface-200 bg-surface-50 p-3 dark:border-surface-700 dark:bg-surface-800/50">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <label class="text-xs font-semibold text-surface-700 dark:text-surface-300" for="employee-template-lang">{{ t('employees.import.templateLanguage') }}</label>
+                            <Select id="employee-template-lang" v-model="templateLang" :options="templateLanguages" optionLabel="label" optionValue="value" class="w-56 text-xs" size="small" />
+                        </div>
+                        <div class="flex flex-wrap gap-2 pt-1">
+                            <Button :label="t('employees.import.downloadTemplateXlsx')" icon="pi pi-file-excel" severity="success" text size="small" @click="() => downloadTemplate('xlsx')" />
+                            <Button :label="t('employees.import.downloadTemplate')" icon="pi pi-download" severity="secondary" text size="small" @click="() => downloadTemplate('csv')" />
+                        </div>
                     </div>
                 </div>
             </template>

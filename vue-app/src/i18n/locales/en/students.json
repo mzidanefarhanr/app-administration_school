@@ -538,5 +538,19 @@
             "target_membership_exists": "Already has a membership in the target year",
             "notEligible": "Not eligible"
         }
+    },
+    "students": {
+        "import": {
+            "csvFile": "CSV or Excel file",
+            "fileNotice": "UTF-8 CSV or Excel (.xlsx), up to 5 MB and 2,000 rows. Supports English or Indonesian column headers.",
+            "templateLanguage": "Column Header Language",
+            "langEn": "English",
+            "langId": "Indonesian (Bahasa Indonesia)",
+            "btnDownloadTemplateXlsx": "Download Excel (.xlsx) Template",
+            "errors": {
+                "chooseFile": "Choose a CSV or Excel file to import.",
+                "fileFormat": "The file must be a CSV (UTF-8) or Excel (.xlsx) file."
+            }
+        }
     }
 }

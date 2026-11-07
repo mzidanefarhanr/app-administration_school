@@ -316,6 +316,7 @@ const onDateFilterChange = () => {
 };
 
 const resetFilters = () => {
+    selectedLeaves.value = [];
     filters.search = '';
     filters.status = 'all';
     filters.type = 'all';
@@ -975,6 +976,61 @@ const decisionRequiresReason = computed(() => decisionMode.value === 'reject');
 const decisionErrorList = computed(() => errorList(decisionErrors.value));
 const decisionTitle = computed(() => (decisionIsApprove.value ? t('leaves.dialogs.approveTitle') : t('leaves.dialogs.rejectTitle')));
 
+const selectedLeaves = ref([]);
+const batchDecisionVisible = ref(false);
+const batchDecisionMode = ref('approve');
+const batchDecisionReason = ref('');
+const batchDecisionError = ref('');
+const isSubmittingBatchDecision = ref(false);
+
+const approvableSelectedLeaves = computed(() => (selectedLeaves.value || []).filter((item) => item.can?.approve));
+const rejectableSelectedLeaves = computed(() => (selectedLeaves.value || []).filter((item) => item.can?.reject));
+
+const openBatchDecision = (mode) => {
+    batchDecisionMode.value = mode;
+    batchDecisionReason.value = '';
+    batchDecisionError.value = '';
+    batchDecisionVisible.value = true;
+};
+
+const submitBatchDecision = async () => {
+    const list = batchDecisionMode.value === 'approve' ? approvableSelectedLeaves.value : rejectableSelectedLeaves.value;
+    if (isSubmittingBatchDecision.value || list.length === 0) return;
+
+    const reason = batchDecisionReason.value.trim();
+    if (batchDecisionMode.value === 'reject' && reason.length < 5) {
+        batchDecisionError.value = 'Alasan penolakan minimal 5 karakter.';
+        return;
+    }
+
+    isSubmittingBatchDecision.value = true;
+    batchDecisionError.value = '';
+
+    try {
+        let successCount = 0;
+        for (const item of list) {
+            const payload = { expected_version: item.version };
+            if (reason !== '') payload.reason = reason;
+            await apiLogin.post(`/api/leaves/${item.id}/${batchDecisionMode.value}`, payload);
+            successCount++;
+        }
+        batchDecisionVisible.value = false;
+        notify('success', `${successCount} pengajuan cuti berhasil ${batchDecisionMode.value === 'approve' ? 'disetujui' : 'ditolak'}.`);
+        selectedLeaves.value = [];
+        await loadList();
+    } catch (error) {
+        if (error.response?.status === 409) {
+            batchDecisionVisible.value = false;
+            openConflict(error, null);
+        } else {
+            batchDecisionError.value = errorMessage(error, 'Gagal memproses beberapa pengajuan cuti.');
+        }
+        await loadList();
+    } finally {
+        isSubmittingBatchDecision.value = false;
+    }
+};
+
 const openDecision = (source, mode) => {
     if (!source || !['approve', 'reject'].includes(mode)) return;
 
@@ -1299,8 +1355,42 @@ onMounted(async () => {
                             </div>
                         </div>
 
-                        <DataTable
-                            :value="items"
+                                        <div v-if="selectedLeaves.length > 0" class="flex flex-wrap items-center justify-between gap-3 p-3 bg-primary-50 dark:bg-primary-950/40 border border-primary-200 dark:border-primary-800 rounded-lg">
+                    <div class="flex items-center gap-2">
+                        <i class="pi pi-check-circle text-primary text-lg"></i>
+                        <span class="font-medium text-sm text-surface-900 dark:text-surface-100">{{ selectedLeaves.length }} pengajuan cuti dipilih</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <Button
+                            v-if="canManage && approvableSelectedLeaves.length > 0"
+                            :label="`Setujui (${approvableSelectedLeaves.length})`"
+                            icon="pi pi-check"
+                            severity="success"
+                            size="small"
+                            @click="openBatchDecision('approve')"
+                        />
+                        <Button
+                            v-if="canManage && rejectableSelectedLeaves.length > 0"
+                            :label="`Tolak (${rejectableSelectedLeaves.length})`"
+                            icon="pi pi-times"
+                            severity="danger"
+                            size="small"
+                            @click="openBatchDecision('reject')"
+                        />
+                        <Button
+                            label="Batal Pilih"
+                            icon="pi pi-times"
+                            severity="secondary"
+                            variant="text"
+                            size="small"
+                            @click="selectedLeaves = []"
+                        />
+                    </div>
+                </div>
+
+                <DataTable
+                    v-model:selection="selectedLeaves"
+                    :value="items"
                             :lazy="true"
                             paginator
                             showGridlines
@@ -1324,6 +1414,7 @@ onMounted(async () => {
                                     <Button v-if="listError" icon="pi pi-refresh" :label="t('leaves.common.retry')" @click="loadList" />
                                 </div>
                             </template>
+                            <Column selectionMode="multiple" headerStyle="width: 3rem" :exportable="false" />
                             <Column :header="t('leaves.columns.subject')" style="min-width: 16rem">
                                 <template #body="{ data }">
                                     <div class="font-medium truncate" :title="data.subject?.name ?? ''">{{ data.subject?.name ?? t('leaves.unknownSubject') }}</div>
@@ -1866,6 +1957,27 @@ onMounted(async () => {
         <template #footer>
             <Button label="Close" severity="secondary" variant="text" @click="conflictVisible = false" />
             <Button label="Reload Latest" icon="pi pi-refresh" :loading="reloadingConflict" @click="reloadLatest" />
+        </template>
+    </Dialog>
+    <Dialog v-model:visible="batchDecisionVisible" modal :draggable="false" :style="{ width: 'min(94vw, 36rem)' }" :header="batchDecisionMode === 'approve' ? 'Persetujuan Cuti Massal' : 'Penolakan Cuti Massal'">
+        <div class="flex flex-col gap-4">
+            <Message v-if="batchDecisionError" severity="error" :closable="false">{{ batchDecisionError }}</Message>
+            <div class="text-sm text-surface-600 dark:text-surface-300">
+                Anda akan <strong>{{ batchDecisionMode === 'approve' ? 'menyetujui' : 'menolak' }}</strong> {{ batchDecisionMode === 'approve' ? approvableSelectedLeaves.length : rejectableSelectedLeaves.length }} pengajuan cuti terpilih:
+                <ul class="list-disc pl-5 mt-2 max-h-36 overflow-y-auto space-y-1 text-xs">
+                    <li v-for="item in (batchDecisionMode === 'approve' ? approvableSelectedLeaves : rejectableSelectedLeaves)" :key="item.id">
+                        <span class="font-medium">{{ item.subject?.name }}</span>: {{ item.type_label }} ({{ item.start_date }} s/d {{ item.end_date }})
+                    </li>
+                </ul>
+            </div>
+            <div class="flex flex-col gap-2">
+                <label for="batchDecisionReason" class="font-medium">Catatan / Alasan {{ batchDecisionMode === 'reject' ? '*' : '(Opsional)' }}</label>
+                <Textarea id="batchDecisionReason" v-model="batchDecisionReason" rows="3" maxlength="500" autoResize :placeholder="batchDecisionMode === 'approve' ? 'Catatan persetujuan (opsional)...' : 'Alasan penolakan (minimal 5 karakter)...'" />
+            </div>
+        </div>
+        <template #footer>
+            <Button label="Batal" severity="secondary" variant="text" :disabled="isSubmittingBatchDecision" @click="batchDecisionVisible = false" />
+            <Button :label="batchDecisionMode === 'approve' ? `Setujui (${approvableSelectedLeaves.length})` : `Tolak (${rejectableSelectedLeaves.length})`" :icon="batchDecisionMode === 'approve' ? 'pi pi-check' : 'pi pi-times'" :severity="batchDecisionMode === 'approve' ? 'success' : 'danger'" :loading="isSubmittingBatchDecision" @click="submitBatchDecision" />
         </template>
     </Dialog>
 </template>

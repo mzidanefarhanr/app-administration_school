@@ -270,6 +270,7 @@ const onDateFilterChange = () => {
 };
 
 const resetFilters = () => {
+    selectedArchives.value = [];
     filters.q = '';
     filters.category = '';
     filters.subjectType = '';
@@ -819,6 +820,97 @@ const submitRestore = async (row) => {
     }
 };
 
+const selectedArchives = ref([]);
+const batchArchiveVisible = ref(false);
+const batchArchiveReason = ref('');
+const batchArchiveErrors = ref({});
+const batchArchiveError = ref('');
+const isSubmittingBatchArchive = ref(false);
+const isSubmittingBatchRestore = ref(false);
+
+const activeSelectedArchives = computed(() => (selectedArchives.value || []).filter((item) => item.status === 'active' && item.can?.archive));
+const archivedSelectedArchives = computed(() => (selectedArchives.value || []).filter((item) => item.status === 'archived' && item.can?.restore));
+
+const openBatchArchive = () => {
+    if (activeSelectedArchives.value.length === 0) return;
+    batchArchiveReason.value = '';
+    batchArchiveErrors.value = {};
+    batchArchiveError.value = '';
+    batchArchiveVisible.value = true;
+};
+
+const submitBatchArchive = async () => {
+    if (isSubmittingBatchArchive.value || activeSelectedArchives.value.length === 0) return;
+
+    const reason = batchArchiveReason.value.trim();
+    if (reason.length < archiveReasonMin.value || reason.length > archiveReasonMax.value) {
+        batchArchiveErrors.value = {
+            archive_reason: [`The archive reason must be between ${archiveReasonMin.value} and ${archiveReasonMax.value} characters.`]
+        };
+        return;
+    }
+
+    isSubmittingBatchArchive.value = true;
+    batchArchiveErrors.value = {};
+    batchArchiveError.value = '';
+
+    try {
+        const payload = {
+            items: activeSelectedArchives.value.map((item) => ({
+                id: item.id,
+                expected_version: item.version
+            })),
+            archive_reason: reason
+        };
+        const response = await apiLogin.post('/api/archives/batch-archive', payload);
+        batchArchiveVisible.value = false;
+        notify('success', response.data?.message ?? `${payload.items.length} dokumen arsip berhasil diarsipkan.`);
+        selectedArchives.value = [];
+        await loadList();
+    } catch (error) {
+        const status = error.response?.status;
+        if (status === 409) {
+            batchArchiveVisible.value = false;
+            openConflict(error, null);
+        } else if (status === 422) {
+            batchArchiveErrors.value = validationErrors(error);
+            if (Object.keys(batchArchiveErrors.value).length === 0) {
+                batchArchiveError.value = errorMessage(error, 'Dokumen arsip tidak dapat diarsipkan.');
+            }
+        } else {
+            batchArchiveError.value = errorMessage(error, 'Gagal mengarsipkan dokumen terpilih.');
+        }
+    } finally {
+        isSubmittingBatchArchive.value = false;
+    }
+};
+
+const confirmBatchRestore = async () => {
+    if (isSubmittingBatchRestore.value || archivedSelectedArchives.value.length === 0) return;
+
+    isSubmittingBatchRestore.value = true;
+    try {
+        const payload = {
+            items: archivedSelectedArchives.value.map((item) => ({
+                id: item.id,
+                expected_version: item.version
+            }))
+        };
+        const response = await apiLogin.post('/api/archives/batch-restore', payload);
+        notify('success', response.data?.message ?? `${payload.items.length} dokumen arsip berhasil dipulihkan.`);
+        selectedArchives.value = [];
+        await loadList();
+    } catch (error) {
+        if (error.response?.status === 409) {
+            openConflict(error, null);
+        } else {
+            notify('error', errorMessage(error, 'Gagal memulihkan dokumen arsip terpilih.'));
+        }
+    } finally {
+        isSubmittingBatchRestore.value = false;
+    }
+};
+
 const openDetail = (row) => {
     if (!row?.can?.view) return;
     detailDocumentId.value = row.id;
@@ -1066,7 +1158,42 @@ onBeforeUnmount(() => {
                     </div>
                 </div>
 
+                                <div v-if="selectedArchives.length > 0" class="flex flex-wrap items-center justify-between gap-3 p-3 bg-primary-50 dark:bg-primary-950/40 border border-primary-200 dark:border-primary-800 rounded-lg">
+                    <div class="flex items-center gap-2">
+                        <i class="pi pi-check-circle text-primary text-lg"></i>
+                        <span class="font-medium text-sm text-surface-900 dark:text-surface-100">{{ selectedArchives.length }} dokumen arsip dipilih</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <Button
+                            v-if="canManage && activeSelectedArchives.length > 0"
+                            :label="`Arsipkan (${activeSelectedArchives.length})`"
+                            icon="pi pi-box"
+                            severity="warn"
+                            size="small"
+                            @click="openBatchArchive"
+                        />
+                        <Button
+                            v-if="canManage && archivedSelectedArchives.length > 0"
+                            :label="`Pulihkan (${archivedSelectedArchives.length})`"
+                            icon="pi pi-undo"
+                            severity="success"
+                            size="small"
+                            :loading="isSubmittingBatchRestore"
+                            @click="confirmBatchRestore"
+                        />
+                        <Button
+                            label="Batal Pilih"
+                            icon="pi pi-times"
+                            severity="secondary"
+                            variant="text"
+                            size="small"
+                            @click="selectedArchives = []"
+                        />
+                    </div>
+                </div>
+
                 <DataTable
+                    v-model:selection="selectedArchives"
                     :value="items"
                     :lazy="true"
                     paginator
@@ -1091,6 +1218,7 @@ onBeforeUnmount(() => {
                             <Button v-if="listError" icon="pi pi-refresh" :label="t('archives.common.retry')" @click="loadList" />
                         </div>
                     </template>
+                    <Column selectionMode="multiple" headerStyle="width: 3rem" :exportable="false" />
                     <Column :header="t('archives.columns.title')" style="min-width: 18rem">
                         <template #body="{ data }">
                             <div class="flex flex-wrap items-center gap-2">
@@ -1674,6 +1802,32 @@ onBeforeUnmount(() => {
         <template #footer>
             <Button label="Close" severity="secondary" variant="text" @click="conflictVisible = false" />
             <Button label="Reload Latest" icon="pi pi-refresh" :loading="reloadingConflict" @click="reloadLatest" />
+        </template>
+    </Dialog>
+    <Dialog v-model:visible="batchArchiveVisible" modal :draggable="false" :style="{ width: 'min(94vw, 38rem)' }" header="Arsipkan Dokumen Terpilih">
+        <div class="flex flex-col gap-4 max-h-[70vh] overflow-y-auto pr-1">
+            <Message v-if="batchArchiveError" severity="error" :closable="false">{{ batchArchiveError }}</Message>
+            <div class="text-sm text-surface-600 dark:text-surface-300">
+                Anda akan mengarsipkan <strong>{{ activeSelectedArchives.length }}</strong> dokumen terpilih:
+                <ul class="list-disc pl-5 mt-2 max-h-36 overflow-y-auto space-y-1 text-xs">
+                    <li v-for="item in activeSelectedArchives" :key="item.id">
+                        <span class="font-medium">{{ item.title }}</span>
+                        <span class="text-surface-500"> (No: {{ item.document_number || '-' }})</span>
+                    </li>
+                </ul>
+            </div>
+            <Message severity="warn" :closable="false">Pengarsipan akan mengunci metadata dokumen. Dokumen tetap tersimpan dalam sistem dan dapat dipulihkan kembali sewaktu-waktu.</Message>
+            <div class="flex flex-col gap-2">
+                <label for="batchArchiveReason" class="font-medium">Alasan Pengarsipan <span class="text-red-500">*</span></label>
+                <Textarea id="batchArchiveReason" v-model="batchArchiveReason" rows="3" :maxlength="archiveReasonMax" autoResize placeholder="Masukkan alasan administratif pengarsipan dokumen..." />
+                <small class="text-surface-500">Minimal {{ archiveReasonMin }} dan maksimal {{ archiveReasonMax }} karakter.</small>
+                <small class="text-surface-500">{{ batchArchiveReason.trim().length }}/{{ archiveReasonMax }}</small>
+                <small v-if="fieldError(batchArchiveErrors, 'archive_reason')" class="text-red-500">{{ fieldError(batchArchiveErrors, 'archive_reason') }}</small>
+            </div>
+        </div>
+        <template #footer>
+            <Button label="Batal" severity="secondary" variant="text" :disabled="isSubmittingBatchArchive" @click="batchArchiveVisible = false" />
+            <Button :label="`Arsipkan (${activeSelectedArchives.length})`" icon="pi pi-box" severity="warn" :loading="isSubmittingBatchArchive" @click="submitBatchArchive" />
         </template>
     </Dialog>
 </template>

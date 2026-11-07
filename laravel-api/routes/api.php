@@ -113,7 +113,18 @@ Route::get('/check-auth', function (Request $request) {
 // `active` menegakkan status akun pada request berikutnya, termasuk sesi aktif.
 Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::middleware(['auth:sanctum', 'active'])->get('/user', function (Request $request) {
-        return $request->user();
+        $user = $request->user();
+        $user->loadMissing([
+            'type_user',
+            'status_user',
+            'roles',
+            'employee.employeeType',
+            'employee.employeeStatus',
+            'employee.employment',
+            'employee.subject',
+        ]);
+
+        return $user;
     });
 
     // Fase 01a — pengelolaan peran, kemampuan, dan penetapan peran.
@@ -208,6 +219,8 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
             ->middleware('can:letters.view');
         Route::get('/', [IncomingLetterController::class, 'index'])
             ->middleware('can:letters.view');
+        Route::post('/batch-void', [IncomingLetterController::class, 'batchVoid'])
+            ->middleware('can:letters.manage');
         Route::get('/{letter}', [IncomingLetterController::class, 'show'])
             ->whereNumber('letter')->middleware('can:letters.view');
         Route::post('/', [IncomingLetterController::class, 'store'])
@@ -340,6 +353,10 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::get('/tasks/expiring', [ArchiveController::class, 'expiringTasks'])
             ->middleware('can:archives.view');
         Route::get('/retention/report', [ArchiveController::class, 'retentionReport'])
+            ->middleware('can:archives.manage');
+        Route::post('/batch-archive', [ArchiveController::class, 'batchArchive'])
+            ->middleware('can:archives.manage');
+        Route::post('/batch-restore', [ArchiveController::class, 'batchRestore'])
             ->middleware('can:archives.manage');
         Route::get('/', [ArchiveController::class, 'index'])
             ->middleware('can:archives.view');
@@ -524,6 +541,10 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
 
     Route::post('/students/{id}/restore', [StudentController::class, 'restore'])
         ->middleware('can:students.manage');
+    Route::post('/students/batch-archive', [StudentController::class, 'batchArchive'])
+        ->middleware('can:students.manage');
+    Route::post('/students/batch-restore', [StudentController::class, 'batchRestore'])
+        ->middleware('can:students.manage');
 
     // Subfase 03d (DEC-23) - Penempatan dan perpindahan rombel siswa
     Route::post('/students/{id}/assign-rombel', [StudentRombelController::class, 'assignRombel'])
@@ -539,6 +560,8 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         ->only(['index', 'show'])->middleware('can:master.view');
     Route::apiResource('/school-levels', SchoolLevelController::class)
         ->except(['index', 'show'])->middleware('can:master.manage');
+    Route::post('/school-rombels/batch-delete', [SchoolRombelController::class, 'batchDelete'])
+        ->middleware('can:students.manage');
     Route::apiResource('/school-rombels', SchoolRombelController::class)
         ->only(['index', 'show'])->middleware('can:students.view');
     Route::apiResource('/school-rombels', SchoolRombelController::class)
@@ -558,9 +581,17 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         ->middleware('can:employees.view');
     Route::post('/employees/{id}/restore', [EmployeeController::class, 'restore'])
         ->middleware('can:employees.manage');
+    Route::post('/employees/batch-archive', [EmployeeController::class, 'batchArchive'])
+        ->middleware('can:employees.manage');
+    Route::post('/employees/batch-restore', [EmployeeController::class, 'batchRestore'])
+        ->middleware('can:employees.manage');
     Route::post('/employees/{id}/link-account', [EmployeeController::class, 'linkAccount'])
         ->middleware('can:employees.manage');
     Route::post('/employees/{id}/unlink-account', [EmployeeController::class, 'unlinkAccount'])
+        ->middleware('can:employees.manage');
+    Route::post('/employees/{id}/generate-account', [EmployeeController::class, 'generateAccount'])
+        ->middleware('can:employees.manage');
+    Route::delete('/employees/{id}/delete-account', [EmployeeController::class, 'deleteAccount'])
         ->middleware('can:employees.manage');
 
     Route::apiResource('/employees', EmployeeController::class)

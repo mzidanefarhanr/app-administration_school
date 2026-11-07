@@ -10,6 +10,7 @@ use App\Http\Resources\StatusResource;
 use App\Services\Letters\LetterAttachmentService;
 use App\Services\Letters\LetterService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -99,6 +100,45 @@ class IncomingLetterController extends Controller
         );
 
         return new StatusResource(true, 'Letter voided successfully.', $data);
+    }
+
+    public function batchVoid(Request $request): StatusResource
+    {
+        $this->authorize('letters.manage');
+
+        $validated = $request->validate([
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.id' => ['required', 'integer'],
+            'items.*.expected_version' => ['required', 'integer'],
+            'reason' => ['required', 'string', 'min:10', 'max:255'],
+        ], [
+            'items.required' => 'Select at least one letter.',
+            'items.min' => 'Select at least one letter.',
+            'reason.required' => 'The void reason is required.',
+            'reason.min' => 'The void reason must be at least 10 characters.',
+            'reason.max' => 'The void reason may not exceed 255 characters.',
+        ]);
+
+        $actor = $request->user();
+        $reason = $validated['reason'];
+        $items = $validated['items'];
+
+        $count = DB::transaction(function () use ($items, $reason, $actor) {
+            $processed = 0;
+            foreach ($items as $item) {
+                $this->letters->void(
+                    (int) $item['id'],
+                    $reason,
+                    (int) $item['expected_version'],
+                    $actor
+                );
+                $processed++;
+            }
+
+            return $processed;
+        });
+
+        return new StatusResource(true, "Successfully voided {$count} letter(s).", ['voided_count' => $count]);
     }
 
     public function storeAttachment(StoreLetterAttachmentRequest $request, int $letter): StatusResource

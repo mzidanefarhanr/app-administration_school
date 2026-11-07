@@ -6,6 +6,10 @@ use App\Http\Requests\StoreEmployeeRequest;
 use App\Http\Requests\UpdateEmployeeRequest;
 use App\Http\Resources\EmployeeResource;
 use App\Models\Employee;
+use App\Models\EmployeeType;
+use App\Models\Role;
+use App\Models\StatusUser;
+use App\Models\TypeUser;
 use App\Models\User;
 use App\Support\EmployeeDirectory;
 use Illuminate\Database\QueryException;
@@ -25,7 +29,7 @@ class EmployeeController extends Controller
         'religion:id,name',
         'district:id,name',
         'maritalStatus:id,name',
-        'user:id,name,username,email,status_active,deleted_at',
+        'user:id,name,username,email,type_user_id,status_active,deleted_at',
     ];
 
     private const LIST_RELATIONS = [
@@ -34,6 +38,7 @@ class EmployeeController extends Controller
         'employment:id,name',
         'subject:id,name',
         'gender:id,name',
+        'user:id,name,username,email,type_user_id,status_active,deleted_at',
     ];
 
     public function index(Request $request): JsonResponse
@@ -270,6 +275,131 @@ class EmployeeController extends Controller
     }
 
     /**
+     * Batch soft-delete (archive) employees.
+     */
+    public function batchArchive(Request $request): JsonResponse
+    {
+        $this->authorize('employees.manage');
+
+        $request->validate([
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.id' => ['required', 'integer'],
+            'items.*.version' => ['nullable', 'integer'],
+            'archive_reason' => ['required', 'string', 'max:255'],
+        ], [
+            'items.required' => 'No employees selected for archiving.',
+            'items.min' => 'Select at least one employee.',
+            'archive_reason.required' => 'An administrative archiving reason is required.',
+        ]);
+
+        $items = $request->input('items');
+        $archiveReason = (string) $request->input('archive_reason');
+
+        $archivedCount = DB::transaction(function () use ($items, $archiveReason) {
+            $count = 0;
+            foreach ($items as $item) {
+                $id = (int) $item['id'];
+                $expectedVersion = isset($item['version']) && $item['version'] !== null ? (int) $item['version'] : null;
+
+                $employee = Employee::where('id', $id)->lockForUpdate()->first();
+                if (! $employee) {
+                    continue;
+                }
+
+                $this->authorize('delete', $employee);
+
+                if ($expectedVersion !== null && (int) $employee->version !== $expectedVersion) {
+                    abort(response()->json([
+                        'message' => "Conflict: Employee {$employee->name} was modified by another user. Please reload before archiving.",
+                        'current_version' => (int) $employee->version,
+                    ], 409));
+                }
+
+                $employee->archive_reason = $archiveReason;
+                $employee->version = $employee->version + 1;
+                $employee->save();
+                $employee->delete();
+
+                $count++;
+            }
+
+            return $count;
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => "Successfully archived {$archivedCount} employee(s).",
+            'count' => $archivedCount,
+        ], 200);
+    }
+
+    /**
+     * Batch restore soft-deleted employees.
+     */
+    public function batchRestore(Request $request): JsonResponse
+    {
+        $this->authorize('employees.manage');
+
+        $request->validate([
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.id' => ['required', 'integer'],
+            'items.*.version' => ['nullable', 'integer'],
+        ], [
+            'items.required' => 'No employees selected for restoring.',
+            'items.min' => 'Select at least one employee.',
+        ]);
+
+        $items = $request->input('items');
+
+        try {
+            $restoredCount = DB::transaction(function () use ($items) {
+                $count = 0;
+                foreach ($items as $item) {
+                    $id = (int) $item['id'];
+                    $expectedVersion = isset($item['version']) && $item['version'] !== null ? (int) $item['version'] : null;
+
+                    $employee = Employee::onlyTrashed()->where('id', $id)->lockForUpdate()->first();
+                    if (! $employee) {
+                        continue;
+                    }
+
+                    $this->authorize('restore', $employee);
+
+                    if ($expectedVersion !== null && (int) $employee->version !== $expectedVersion) {
+                        abort(response()->json([
+                            'message' => "Conflict: Employee {$employee->name} was modified by another process. Please reload.",
+                            'current_version' => (int) $employee->version,
+                        ], 409));
+                    }
+
+                    if ($employee->nik && Employee::where('nik', $employee->nik)->whereNull('deleted_at')->where('id', '!=', $employee->id)->exists()) {
+                        throw ValidationException::withMessages([
+                            'nik' => ["Cannot restore {$employee->name}: NIK has already been used by another active employee."],
+                        ]);
+                    }
+
+                    $employee->restore();
+                    $employee->archive_reason = null;
+                    $employee->version = $employee->version + 1;
+                    $employee->save();
+
+                    $count++;
+                }
+
+                return $count;
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully restored {$restoredCount} employee(s).",
+                'count' => $restoredCount,
+            ], 200);
+        } catch (QueryException $e) {
+            return $this->handleUniqueConstraintViolation($e);
+        }
+    }
+
+    /**
      * Active accounts that are not linked to any employee profile, archived
      * profiles included (DEC-24 D5).
      */
@@ -444,6 +574,180 @@ class EmployeeController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Account unlinked successfully. The legacy NIK fallback stays disabled.',
+            'data' => (new EmployeeResource($employee, true))->resolve($request),
+        ], 200);
+    }
+
+    /**
+     * Generate akun User otomatis untuk guru atau karyawan (DEC-24).
+     */
+    public function generateAccount(Request $request, $id): JsonResponse
+    {
+        $this->authorize('employees.manage');
+
+        $result = DB::transaction(function () use ($id, $request) {
+            $employee = Employee::where('id', $id)->lockForUpdate()->firstOrFail();
+
+            if ($employee->user_id !== null) {
+                throw ValidationException::withMessages([
+                    'account' => ['Pegawai ini sudah memiliki akun yang terhubung.'],
+                ]);
+            }
+
+            // Bersihkan nama untuk generate username
+            $cleanName = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', str_replace([' ', '.', ','], '', $employee->name ?? 'user')));
+            if (empty($cleanName)) {
+                $cleanName = 'pegawai';
+            }
+
+            // Cari username yang unik
+            $username = $cleanName;
+            $counter = 1;
+            while (User::withTrashed()->where('username', $username)->exists()) {
+                $username = $cleanName . $counter;
+                $counter++;
+            }
+
+            // Cek email unik
+            $email = $employee->email;
+            if (empty($email) || User::withTrashed()->where('email', $email)->exists()) {
+                $email = $username . '@sekolah.id';
+                $counter = 1;
+                while (User::withTrashed()->where('email', $email)->exists()) {
+                    $email = $username . $counter . '@sekolah.id';
+                    $counter++;
+                }
+            }
+
+            // Cek NIK
+            $nik = $employee->nik;
+            if (empty($nik) || strlen($nik) !== 16 || User::withTrashed()->where('nik', $nik)->exists()) {
+                if (empty($nik) || strlen($nik) !== 16) {
+                    $nik = str_pad(substr(preg_replace('/[^0-9]/', '', (string)$employee->id . time()), 0, 16), 16, '0', STR_PAD_RIGHT);
+                } else {
+                    throw ValidationException::withMessages([
+                        'nik' => ['NIK pegawai sudah digunakan oleh akun lain.'],
+                    ]);
+                }
+            }
+
+            // Password awal aman dan memenuhi kebijakan (minimal 12 karakter)
+            $randomDigits = str_pad((string) random_int(1000, 9999), 4, '0', STR_PAD_LEFT);
+            $plainPassword = 'Akun#' . ucfirst($username) . $randomDigits;
+            if (strlen($plainPassword) < 12) {
+                $plainPassword = 'Sekolah#' . $randomDigits . '!' . substr($username, 0, 4);
+            }
+
+            // Tipe user = 2 (User biasa)
+            $typeUserId = TypeUser::where('name', '!=', 'Admin')->value('id') ?? 2;
+            $statusUserId = StatusUser::where('name', 'like', '%aktif%')->value('id') ?? 1;
+
+            $user = User::create([
+                'name' => $employee->name,
+                'email' => $email,
+                'email_verified_at' => now(),
+                'username' => $username,
+                'nik' => $nik,
+                'password' => bcrypt($plainPassword),
+                'type_user_id' => $typeUserId,
+                'status_user_id' => $statusUserId,
+                'status_active' => true,
+                'first_login_at' => 0,
+                'version' => 1,
+            ]);
+
+            // Assign role: Jika Pendidik -> role 'guru'
+            $teacherTypeId = EmployeeType::where('name', 'Pendidik')->value('id') ?? 2;
+            if ((int) $employee->employee_type_id === (int) $teacherTypeId) {
+                $teacherRole = Role::where('slug', 'guru')->first();
+                if ($teacherRole) {
+                    $user->roles()->syncWithoutDetaching([$teacherRole->id => ['assigned_by' => $request->user()?->id]]);
+                }
+            }
+
+            // Tautkan user ke data pegawai
+            $employee->user_id = $user->id;
+            $employee->user_id_resolved_at = now();
+            $employee->account_unlinked_at = null;
+            $employee->version = $employee->version + 1;
+            $employee->save();
+
+            return [
+                'user' => $user,
+                'plainPassword' => $plainPassword,
+                'employee' => $employee,
+            ];
+        });
+
+        $employee = Employee::with(self::DETAIL_RELATIONS)->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Akun berhasil dibuat dan dihubungkan ke data pegawai.',
+            'data' => [
+                'user_id' => $result['user']->id,
+                'name' => $result['user']->name,
+                'username' => $result['user']->username,
+                'email' => $result['user']->email,
+                'initial_password' => $result['plainPassword'],
+                'employee' => (new EmployeeResource($employee, true))->resolve($request),
+            ],
+        ], 201);
+    }
+
+    /**
+     * Hapus akun pengguna yang terhubung ke data pegawai, kecuali akun admin.
+     */
+    public function deleteAccount(Request $request, $id): JsonResponse
+    {
+        $this->authorize('employees.manage');
+
+        DB::transaction(function () use ($id) {
+            $employee = Employee::where('id', $id)->lockForUpdate()->firstOrFail();
+
+            if ($employee->user_id === null) {
+                throw ValidationException::withMessages([
+                    'account' => ['Pegawai ini tidak memiliki akun yang terhubung.'],
+                ]);
+            }
+
+            $user = User::withTrashed()->find($employee->user_id);
+
+            if ($user) {
+                // Proteksi Akun Admin:
+                $isAdmin = (int) $user->type_user_id === 1
+                    || $user->hasRole('admin-sistem')
+                    || $user->canManageAccess();
+
+                if ($isAdmin) {
+                    abort(response()->json([
+                        'message' => 'Aksi ditolak: Akun Administrator tidak dapat dihapus melalui direktori pegawai demi keamanan sistem.',
+                        'errors' => ['account' => ['Akun Administrator dilindungi dan tidak dapat dihapus melalui data pegawai.']],
+                    ], 403));
+                }
+
+                // Lepas kaitan di pegawai
+                $employee->user_id = null;
+                $employee->account_unlinked_at = now();
+                $employee->version = $employee->version + 1;
+                $employee->save();
+
+                // Hapus roles & hapus user
+                $user->roles()->detach();
+                $user->delete();
+            } else {
+                $employee->user_id = null;
+                $employee->account_unlinked_at = now();
+                $employee->version = $employee->version + 1;
+                $employee->save();
+            }
+        });
+
+        $employee = Employee::with(self::DETAIL_RELATIONS)->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Akun pengguna berhasil dihapus dan dilepaskan dari data pegawai.',
             'data' => (new EmployeeResource($employee, true))->resolve($request),
         ], 200);
     }

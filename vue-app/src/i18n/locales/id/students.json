@@ -538,5 +538,19 @@
             "target_membership_exists": "Sudah memiliki keanggotaan kelas pada tahun tujuan",
             "notEligible": "Tidak memenuhi syarat"
         }
+    },
+    "students": {
+        "import": {
+            "csvFile": "Berkas CSV atau Excel",
+            "fileNotice": "CSV berformat UTF-8 atau Excel (.xlsx), ukuran maksimal 5 MB dan hingga 2.000 baris. Mendukung judul kolom Bahasa Inggris atau Bahasa Indonesia.",
+            "templateLanguage": "Bahasa Judul Kolom",
+            "langEn": "Bahasa Inggris (English)",
+            "langId": "Bahasa Indonesia",
+            "btnDownloadTemplateXlsx": "Unduh Templat Excel (.xlsx)",
+            "errors": {
+                "chooseFile": "Pilih berkas CSV atau Excel untuk diimpor.",
+                "fileFormat": "Berkas harus berformat CSV (UTF-8) atau Excel (.xlsx)."
+            }
+        }
     }
 }

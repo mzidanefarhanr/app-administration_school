@@ -44,6 +44,10 @@ class EmployeeResource extends JsonResource
             'account' => [
                 'linked' => $employee->user_id !== null,
                 'user_id' => $employee->user_id,
+                'is_admin' => ($employee->user_id !== null && $employee->relationLoaded('user') && $employee->user)
+                    ? ((int) $employee->user->type_user_id === 1 || $employee->user->canManageAccess() || $employee->user->hasRole('admin-sistem'))
+                    : false,
+                'username' => ($employee->relationLoaded('user') && $employee->user) ? $employee->user->username : null,
             ],
         ];
 
@@ -77,7 +81,14 @@ class EmployeeResource extends JsonResource
             'biological_mothers_name' => $employee->biological_mothers_name,
             'partners_name' => $employee->partners_name,
             'check_dapodik' => (bool) $employee->check_dapodik,
+            'dapodik_status' => $employee->dapodik_status,
+            'verval_elementary_school' => $employee->verval_elementary_school,
+            'verval_junior_high_school' => $employee->verval_junior_high_school,
+            'verval_senior_high_school' => $employee->verval_senior_high_school,
+            'verval_bachelor_degree' => $employee->verval_bachelor_degree,
+            'verval_diploma' => $employee->verval_diploma,
             'government_certificate' => (bool) $employee->government_certificate,
+            'certification_status' => $employee->certification_status,
             'education' => $this->education($employee),
         ];
     }
@@ -108,10 +119,13 @@ class EmployeeResource extends JsonResource
             'junior_high_school_name' => $employee->junior_high_school_name,
             'junior_high_school_entry' => $employee->junior_high_school_entry,
             'junior_high_school_graduation' => $employee->junior_high_school_graduation,
+            'junior_high_school_nisn' => $employee->junior_high_school_nisn,
             'junior_high_school_passing_grade' => $employee->junior_high_school_passing_grade,
             'senior_high_school_name' => $employee->senior_high_school_name,
+            'senior_high_school_major' => $employee->senior_high_school_major,
             'senior_high_school_entry' => $employee->senior_high_school_entry,
             'senior_high_school_graduation' => $employee->senior_high_school_graduation,
+            'senior_high_school_nisn' => $employee->senior_high_school_nisn,
             'senior_high_school_passing_grade' => $employee->senior_high_school_passing_grade,
             'bachelor_campus_name' => $employee->bachelor_campus_name,
             'bachelor_major' => $employee->bachelor_major,

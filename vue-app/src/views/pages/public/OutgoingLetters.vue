@@ -253,6 +253,7 @@ const onDateFilterChange = () => {
 };
 
 const resetFilters = () => {
+    selectedOutgoing.value = [];
     filters.search = '';
     filters.workflowStatus = 'all';
     filters.letterType = 'all';
@@ -656,6 +657,70 @@ const actionMessage = computed(() => {
     return 'Cancelling keeps the letter, attachments, approval ledger, and history. The letter becomes read-only.';
 });
 
+const selectedOutgoing = ref([]);
+const batchCancelVisible = ref(false);
+const batchCancelReason = ref('');
+const batchCancelErrors = ref({});
+const batchCancelError = ref('');
+const isSubmittingBatchCancel = ref(false);
+
+const cancellableSelected = computed(() => (selectedOutgoing.value || []).filter((item) => canCancelLetter(item)));
+
+const openBatchCancel = () => {
+    if (cancellableSelected.value.length === 0) return;
+    batchCancelReason.value = '';
+    batchCancelErrors.value = {};
+    batchCancelError.value = '';
+    batchCancelVisible.value = true;
+};
+
+const submitBatchCancel = async () => {
+    if (isSubmittingBatchCancel.value || cancellableSelected.value.length === 0) return;
+
+    const reason = batchCancelReason.value.trim();
+    if (reason.length < cancelMin.value || reason.length > cancelMax.value) {
+        batchCancelErrors.value = {
+            reason: [reason.length < cancelMin.value ? `The reason must be at least ${cancelMin.value} characters.` : `The reason may not exceed ${cancelMax.value} characters.`]
+        };
+        return;
+    }
+
+    isSubmittingBatchCancel.value = true;
+    batchCancelErrors.value = {};
+    batchCancelError.value = '';
+
+    try {
+        let count = 0;
+        for (const item of cancellableSelected.value) {
+            await apiLogin.post(`/api/letters/outgoing/${item.id}/cancel`, {
+                reason,
+                expected_version: item.version
+            });
+            count++;
+        }
+        batchCancelVisible.value = false;
+        notify('success', `${count} surat keluar berhasil dibatalkan.`);
+        selectedOutgoing.value = [];
+        await loadLetters();
+    } catch (error) {
+        const status = error.response?.status;
+        if (status === 409) {
+            batchCancelVisible.value = false;
+            openConflict(error);
+        } else if (status === 422) {
+            batchCancelErrors.value = validationErrors(error);
+            if (Object.keys(batchCancelErrors.value).length === 0) {
+                batchCancelError.value = errorMessage(error, 'Surat tidak dapat dibatalkan.');
+            }
+        } else {
+            batchCancelError.value = errorMessage(error, 'Gagal membatalkan surat keluar terpilih.');
+        }
+        await loadLetters();
+    } finally {
+        isSubmittingBatchCancel.value = false;
+    }
+};
+
 const openAction = (kind, source) => {
     if (!source) return;
     actionKind.value = kind;
@@ -1028,7 +1093,33 @@ onMounted(async () => {
                     </div>
                 </div>
 
+                                <div v-if="selectedOutgoing.length > 0" class="flex flex-wrap items-center justify-between gap-3 p-3 bg-primary-50 dark:bg-primary-950/40 border border-primary-200 dark:border-primary-800 rounded-lg">
+                    <div class="flex items-center gap-2">
+                        <i class="pi pi-check-circle text-primary text-lg"></i>
+                        <span class="font-medium text-sm text-surface-900 dark:text-surface-100">{{ selectedOutgoing.length }} surat keluar dipilih</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <Button
+                            v-if="cancellableSelected.length > 0"
+                            :label="`Batalkan Terpilih (${cancellableSelected.length})`"
+                            icon="pi pi-ban"
+                            severity="danger"
+                            size="small"
+                            @click="openBatchCancel"
+                        />
+                        <Button
+                            label="Batal Pilih"
+                            icon="pi pi-times"
+                            severity="secondary"
+                            variant="text"
+                            size="small"
+                            @click="selectedOutgoing = []"
+                        />
+                    </div>
+                </div>
+
                 <DataTable
+                    v-model:selection="selectedOutgoing"
                     :value="items"
                     :lazy="true"
                     paginator
@@ -1053,6 +1144,7 @@ onMounted(async () => {
                             <Button v-if="listError" icon="pi pi-refresh" :label="t('letters.common.retry')" @click="loadLetters" />
                         </div>
                     </template>
+                    <Column selectionMode="multiple" headerStyle="width: 3rem" :exportable="false" />
                     <Column :header="t('letters.outgoing.columns.reference')" style="min-width: 7rem">
                         <template #body="{ data }">
                             <span class="font-medium">{{ data.reference }}</span>
@@ -1534,6 +1626,30 @@ onMounted(async () => {
         <template #footer>
             <Button label="Close" severity="secondary" variant="text" @click="conflictVisible = false" />
             <Button label="Reload Latest" icon="pi pi-refresh" :loading="reloadingConflict" @click="reloadLatest" />
+        </template>
+    </Dialog>
+    <Dialog v-model:visible="batchCancelVisible" modal :draggable="false" :style="{ width: 'min(94vw, 36rem)' }" header="Batalkan Surat Keluar Terpilih">
+        <div class="flex flex-col gap-4">
+            <Message v-if="batchCancelError" severity="error" :closable="false">{{ batchCancelError }}</Message>
+            <div class="text-sm text-surface-600 dark:text-surface-300">
+                Anda akan membatalkan <strong>{{ cancellableSelected.length }}</strong> surat keluar terpilih:
+                <ul class="list-disc pl-5 mt-2 max-h-36 overflow-y-auto space-y-1 text-xs">
+                    <li v-for="item in cancellableSelected" :key="item.id">
+                        <span class="font-medium">{{ item.reference }}</span>: {{ item.subject }}
+                    </li>
+                </ul>
+            </div>
+            <Message severity="warn" :closable="false">Pembatalan akan mengunci surat menjadi read-only, mempertahankan lampiran, dan mencatat riwayat.</Message>
+            <div class="flex flex-col gap-2">
+                <label for="batchOutCancelReason" class="font-medium">Alasan Pembatalan <span class="text-red-500">*</span></label>
+                <Textarea id="batchOutCancelReason" v-model="batchCancelReason" rows="3" :maxlength="cancelMax" autoResize placeholder="Masukkan alasan pembatalan surat..." />
+                <small class="text-surface-500">{{ batchCancelReason.length }}/{{ cancelMax }} (Minimal {{ cancelMin }} karakter)</small>
+                <small v-if="fieldError(batchCancelErrors, 'reason')" class="text-red-500">{{ fieldError(batchCancelErrors, 'reason') }}</small>
+            </div>
+        </div>
+        <template #footer>
+            <Button :label="t('letters.common.cancel')" severity="secondary" variant="text" :disabled="isSubmittingBatchCancel" @click="batchCancelVisible = false" />
+            <Button :label="`Batalkan (${cancellableSelected.length})`" icon="pi pi-ban" severity="danger" :loading="isSubmittingBatchCancel" @click="submitBatchCancel" />
         </template>
     </Dialog>
 </template>

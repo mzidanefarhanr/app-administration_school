@@ -2,10 +2,16 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import { useLocale } from '@/i18n/useLocale';
 import apiLogin from '@/apiLogin';
 import { authStore } from '@/stores/authStore.js';
 
 const { t } = useI18n();
+const { locale: currentLocale, setLocale } = useLocale();
+
+const toggleLoginLocale = () => {
+    setLocale(currentLocale.value === 'id' ? 'en' : 'id');
+};
 const router = useRouter();
 const useAuthStore = authStore();
 
@@ -247,6 +253,19 @@ onMounted(async () => {
         <!-- Form Panel -->
         <div class="form-panel">
             <div class="login-card">
+                <!-- Language Switcher -->
+                <div class="flex justify-end mb-3">
+                    <button
+                        type="button"
+                        class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800 text-surface-700 dark:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors shadow-sm cursor-pointer"
+                        :title="currentLocale === 'id' ? 'Switch to English' : 'Ubah ke Bahasa Indonesia'"
+                        @click="toggleLoginLocale"
+                    >
+                        <span>{{ currentLocale === 'id' ? '🇮🇩 ID' : '🇬🇧 EN' }}</span>
+                        <span class="text-surface-300 dark:text-surface-600">|</span>
+                        <span class="text-primary font-bold uppercase text-[11px]">{{ currentLocale === 'id' ? 'EN' : 'ID' }}</span>
+                    </button>
+                </div>
                 <!-- Mobile Brand Header (Tampil hanya di layar kecil) -->
                 <div class="mobile-brand">
                     <svg width="40" height="40" viewBox="0 0 48 48" role="img" aria-label="Sekolario">

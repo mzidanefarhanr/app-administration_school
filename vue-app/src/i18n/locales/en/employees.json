@@ -22,7 +22,7 @@
         },
         "actions": {
             "exportCsv": "Export CSV",
-            "importCsv": "Import CSV",
+            "importCsv": "Import",
             "newTeacher": "New Teacher",
             "newEmployee": "New Employee",
             "activeRecords": "Active Records",
@@ -42,10 +42,14 @@
         },
         "account": {
             "linked": "Linked",
-            "notLinked": "Not linked"
+            "notLinked": "No Account",
+            "admin": "Admin"
         },
         "tooltips": {
             "view": "View Detail",
+            "generateAccount": "Generate User Account",
+            "deleteAccount": "Delete User Account",
+            "adminAccountLocked": "Administrator account is protected and cannot be deleted",
             "linkAccount": "Link Account",
             "unlinkAccount": "Unlink Account",
             "archive": "Archive",
@@ -118,7 +122,14 @@
             "familyCard": "Family Card Number",
             "npwp": "Tax Identification Number (NPWP)",
             "mothersName": "Biological Mother's Name",
-            "partnersName": "Partner's Name"
+            "partnersName": "Partner's Name",
+            "dapodikStatus": "Dapodik Status",
+            "certificationStatus": "Certification Status",
+            "vervalElementarySchool": "Elementary School Verval",
+            "vervalJuniorHighSchool": "Junior High School Verval",
+            "vervalSeniorHighSchool": "Senior High School Verval",
+            "vervalBachelorDegree": "Bachelor Degree Verval",
+            "vervalDiploma": "Diploma Verval"
         },
         "education": {
             "elementary": "Elementary School",
@@ -134,7 +145,8 @@
             "campus": "Campus",
             "major": "Major",
             "faculty": "Faculty",
-            "nim": "NIM"
+            "nim": "NIM",
+            "seniorHighMajor": "Senior High Major"
         },
         "errors": {
             "conflict": "This record was updated by another user.",
@@ -182,10 +194,23 @@
             "bachelor": "Bachelor",
             "bachelorMajor": "Bachelor Major",
             "master": "Master",
-            "masterMajor": "Master Major"
+            "masterMajor": "Master Major",
+            "dapodikStatus": "Dapodik Status",
+            "certificationStatus": "Certification Status",
+            "vervalElementarySchool": "Elementary School Verval",
+            "vervalJuniorHighSchool": "Junior High School Verval",
+            "vervalSeniorHighSchool": "Senior High School Verval",
+            "vervalBachelorDegree": "Bachelor Degree Verval",
+            "vervalDiploma": "Diploma Verval",
+            "elementarySchool": "Elementary School",
+            "juniorHighSchool": "Junior High School",
+            "seniorHighSchool": "Senior High School",
+            "seniorHighMajor": "Senior High Major",
+            "vervalSection": "Verval & Dapodik Status"
         },
         "account": {
-            "notLinked": "Not linked",
+            "notLinked": "No Account",
+            "admin": "Admin",
             "numbered": "Account #{id}"
         },
         "actions": {
@@ -245,9 +270,10 @@
             "update": "Update existing employees"
         },
         "modeNotice": "Update mode matches employees by NIK only. NIK cannot be changed and blank cells leave the stored values unchanged.",
-        "fileLabel": "CSV file",
+        "fileLabel": "CSV or Excel file",
         "fileNotice": "UTF-8 CSV, up to 5 MB and 2,000 rows. Regency and District must be provided together. Use the English template headers only.",
-        "downloadTemplate": "Download Template",
+        "downloadTemplate": "Download CSV Template",
+        "downloadTemplateXlsx": "Download Excel (.xlsx) Template",
         "status": "Status:",
         "statuses": {
             "committed": "Committed",
@@ -283,8 +309,8 @@
         "uploadPreview": "Upload and Preview",
         "commit": "Commit Import",
         "errors": {
-            "chooseFile": "Choose a CSV file to import.",
-            "fileFormat": "The file must be a CSV (UTF-8). Other formats are not supported yet.",
+            "chooseFile": "Choose a CSV or Excel file to import.",
+            "fileFormat": "The file must be a CSV (UTF-8) or Excel (.xlsx) file.",
             "fileEmpty": "The file is empty.",
             "fileTooLarge": "The file is larger than {size} MB.",
             "noPreview": "The server did not return an import preview.",
@@ -292,6 +318,14 @@
             "commit": "The import could not be committed. Upload the file again.",
             "template": "Failed to download the template.",
             "errorReport": "Failed to download the error report."
+        }
+    },
+    "employees": {
+        "import": {
+            "templateLanguage": "Column Header Language",
+            "langEn": "English",
+            "langId": "Indonesian (Bahasa Indonesia)",
+            "fileNotice": "UTF-8 CSV or Excel (.xlsx), up to 5 MB and 2,000 rows. Supports English or Indonesian column headers."
         }
     }
 }

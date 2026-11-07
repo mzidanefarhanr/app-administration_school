@@ -334,6 +334,86 @@ class SchoolRombelController extends Controller
         return new StatusResource(true, 'Class successfully deleted!', null);
     }
 
+    public function batchDelete(Request $request): StatusResource
+    {
+        $validated = $request->validate([
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.id' => ['required', 'integer'],
+            'items.*.expected_version' => ['required', 'integer', 'min:1'],
+        ], [
+            'items.required' => 'Select at least one class.',
+            'items.min' => 'Select at least one class.',
+            'items.*.expected_version.required' => 'Expected version is required for concurrency control.',
+        ]);
+
+        $items = $validated['items'];
+
+        $count = DB::transaction(function () use ($items) {
+            $processed = 0;
+            foreach ($items as $item) {
+                $id = (int) $item['id'];
+                $expectedVersion = (int) $item['expected_version'];
+
+                $snapshot = SchoolRombel::find($id);
+                if (! $snapshot) {
+                    continue;
+                }
+
+                $year = SchoolYear::withTrashed()
+                    ->whereKey($snapshot->school_year_id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $year || $year->trashed()) {
+                    throw ValidationException::withMessages([
+                        'school_year_id' => ["The academic year for class {$snapshot->name} is not available."],
+                    ]);
+                }
+
+                if ($year->locked_at !== null) {
+                    throw ValidationException::withMessages([
+                        'school_year_id' => ["The academic year for class {$snapshot->name} is locked. Unlock it before deleting classes."],
+                    ]);
+                }
+
+                $rombel = SchoolRombel::whereKey($snapshot->id)->lockForUpdate()->firstOrFail();
+
+                if ((int) $rombel->version !== $expectedVersion) {
+                    $this->abortConflict($rombel, "Conflict: Class {$rombel->name} record has been updated by another operator. Please reload.");
+                }
+
+                $hasHistory = StudentRombel::withTrashed()
+                    ->where('school_rombel', $rombel->id)
+                    ->exists();
+
+                if ($hasHistory) {
+                    throw ValidationException::withMessages([
+                        'id' => ["Class {$rombel->name} already has membership history and cannot be deleted."],
+                    ]);
+                }
+
+                $hasTeachingUsage = TeachingAssignment::where('school_rombel_id', $rombel->id)->exists()
+                    || TeachingScheduleException::where('school_rombel_id', $rombel->id)->exists();
+
+                if ($hasTeachingUsage) {
+                    throw ValidationException::withMessages([
+                        'id' => ["Class {$rombel->name} already has teaching assignments or schedule exceptions and cannot be deleted."],
+                    ]);
+                }
+
+                $rombel->version = (int) $rombel->version + 1;
+                $rombel->save();
+                $rombel->delete();
+
+                $processed++;
+            }
+
+            return $processed;
+        });
+
+        return new StatusResource(true, "Successfully deleted {$count} class(es).", ['deleted_count' => $count]);
+    }
+
     private function baseQuery(): Builder
     {
         return SchoolRombel::query()

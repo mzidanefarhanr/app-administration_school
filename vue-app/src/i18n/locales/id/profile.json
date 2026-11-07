@@ -1,37 +1,45 @@
 {
-    "stats": {
-        "followers": "Pengikut",
-        "projects": "Proyek",
-        "collections": "Koleksi",
-        "shots": "Karya"
+    "header": {
+        "title": "Profil Pengguna",
+        "subtitle": "Kelola informasi profil akun dan keamanan kata sandi Anda."
     },
-    "verticalForm": {
-        "title": "Formulir Vertikal",
-        "name": "Nama",
-        "email": "Email",
-        "age": "Usia"
+    "accountInfo": {
+        "title": "Informasi Akun",
+        "subtitle": "Detail identitas dan hak akses akun yang terdaftar pada sistem.",
+        "name": "Nama Lengkap",
+        "username": "Nama Pengguna",
+        "email": "Alamat Email",
+        "nik": "Nomor Induk Kependudukan (NIK)",
+        "role": "Peran Akun",
+        "typeUser": "Tipe Pengguna",
+        "status": "Status Akun",
+        "active": "Aktif",
+        "inactive": "Tidak Aktif"
+    },
+    "employeeInfo": {
+        "title": "Data Kepegawaian Terhubung",
+        "subtitle": "Informasi data guru atau tenaga kependidikan yang terkait dengan akun ini.",
+        "linked": "Terhubung",
+        "notLinked": "Tidak Terhubung (Akun Administratif Sistem)",
+        "type": "Jenis Pegawai",
+        "nuptk": "NUPTK",
+        "employment": "Status Kepegawaian",
+        "subject": "Mata Pelajaran Diampu",
+        "adminNotice": "Akun ini merupakan Administrator Sistem mandiri dan tidak ditautkan ke profil pegawai."
     },
     "changePassword": {
         "title": "Ubah Kata Sandi",
+        "subtitle": "Amankan akun Anda dengan memperbarui kata sandi secara berkala (minimal 12 karakter).",
         "currentPassword": "Kata Sandi Saat Ini",
         "newPassword": "Kata Sandi Baru (min 12 karakter)",
         "confirmNewPassword": "Konfirmasi Kata Sandi Baru",
         "passwordMismatch": "Konfirmasi kata sandi tidak cocok!"
     },
-    "advancedForm": {
-        "title": "Formulir Lanjutan",
-        "firstName": "Nama Depan",
-        "lastName": "Nama Belakang",
-        "address": "Alamat",
-        "state": "Provinsi / Wilayah",
-        "selectOne": "Pilih Salah Satu",
-        "zip": "Kode Pos"
-    },
     "dialog": {
         "warningHeader": "Peringatan!",
         "warningMessage": "Apakah informasi yang Anda masukkan sudah benar?",
         "confirmHeader": "Apakah Anda yakin ingin mengubah kata sandi?",
-        "confirmMessage": "Klik Simpan untuk melanjutkan.",
+        "confirmMessage": "Klik Simpan untuk melanjutkan perubahan kata sandi.",
         "cancelledSummary": "Dibatalkan",
         "cancelledDetail": "Perubahan kata sandi dibatalkan.",
         "successTitle": "Berhasil",

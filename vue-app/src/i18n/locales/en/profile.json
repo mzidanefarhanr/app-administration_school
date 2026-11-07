@@ -1,37 +1,45 @@
 {
-    "stats": {
-        "followers": "Followers",
-        "projects": "Projects",
-        "collections": "Collections",
-        "shots": "Shots"
+    "header": {
+        "title": "User Profile",
+        "subtitle": "Manage your profile information and password security."
     },
-    "verticalForm": {
-        "title": "Vertical",
-        "name": "Name",
-        "email": "Email",
-        "age": "Age"
+    "accountInfo": {
+        "title": "Account Information",
+        "subtitle": "Identity details and access rights registered on the system.",
+        "name": "Full Name",
+        "username": "Username",
+        "email": "Email Address",
+        "nik": "National Identity Number (NIK)",
+        "role": "Account Role",
+        "typeUser": "User Type",
+        "status": "Account Status",
+        "active": "Active",
+        "inactive": "Inactive"
+    },
+    "employeeInfo": {
+        "title": "Linked Employee Data",
+        "subtitle": "Teacher or education personnel data associated with this account.",
+        "linked": "Linked",
+        "notLinked": "Not Linked (System Administrative Account)",
+        "type": "Employee Type",
+        "nuptk": "NUPTK",
+        "employment": "Employment Status",
+        "subject": "Subject Taught",
+        "adminNotice": "This account is a standalone System Administrator and is not linked to employee profiles."
     },
     "changePassword": {
         "title": "Change Password",
+        "subtitle": "Secure your account by updating your password regularly (minimum 12 characters).",
         "currentPassword": "Current Password",
         "newPassword": "New Password (min 12 chars)",
         "confirmNewPassword": "Confirm New Password",
         "passwordMismatch": "New passwords do not match!"
     },
-    "advancedForm": {
-        "title": "Advanced",
-        "firstName": "Firstname",
-        "lastName": "Lastname",
-        "address": "Address",
-        "state": "State",
-        "selectOne": "Select One",
-        "zip": "Zip"
-    },
     "dialog": {
         "warningHeader": "Warning!",
         "warningMessage": "Is the information you entered correct?",
         "confirmHeader": "Are you sure you want to change your password?",
-        "confirmMessage": "Click Save to proceed.",
+        "confirmMessage": "Click Save to proceed with the password change.",
         "cancelledSummary": "Cancelled",
         "cancelledDetail": "Password change cancelled.",
         "successTitle": "Success",

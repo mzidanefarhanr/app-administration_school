@@ -11,6 +11,7 @@ import { buildStudentExportParams } from './studentExportParams.mjs';
 import StudentImportDialog from './StudentImportDialog.vue';
 import StudentMutations from './StudentMutations.vue';
 import StudentMutationTimelineDialog from './StudentMutationTimelineDialog.vue';
+import StudentF8355Table from './StudentF8355Table.vue';
 import { referenceLabel, displayReferenceOptions } from '@/utils/referenceLabels.mjs';
 
 const toast = useToast();
@@ -865,6 +866,13 @@ const archiveReason = ref('');
 const archiveErrors = ref({});
 const archivedStudents = ref([]);
 const archivedLoading = ref(false);
+const selectedStudents = ref([]);
+const selectedArchivedStudents = ref([]);
+const batchArchiveDialog = ref(false);
+const batchArchiveReason = ref('');
+const batchArchiveErrors = ref({});
+const isSubmittingBatchArchive = ref(false);
+const isSubmittingBatchRestore = ref(false);
 const formOptions = ref({ genders: [], religions: [], education_levels: [], blood_types: [], professions: [], family_statuses: [] });
 const formOptionsLoaded = ref(false);
 
@@ -1155,6 +1163,93 @@ const restoreStudent = async (student) => {
     }
 };
 
+const openBatchArchive = () => {
+    if (!selectedStudents.value || selectedStudents.value.length === 0) return;
+    batchArchiveReason.value = '';
+    batchArchiveErrors.value = {};
+    batchArchiveDialog.value = true;
+};
+
+const confirmBatchArchive = async () => {
+    if (isSubmittingBatchArchive.value) return;
+    batchArchiveErrors.value = {};
+    if (!batchArchiveReason.value || !batchArchiveReason.value.trim()) {
+        batchArchiveErrors.value = { archive_reason: ['An administrative archiving reason is required.'] };
+        return;
+    }
+    isSubmittingBatchArchive.value = true;
+    try {
+        const items = selectedStudents.value
+            .map((s) => ({
+                id: rowStudentId(s),
+                version: s.version
+            }))
+            .filter((item) => !!item.id);
+
+        const res = await apiLogin.post('/api/students/batch-archive', {
+            items,
+            archive_reason: batchArchiveReason.value.trim()
+        });
+
+        toast.add({
+            severity: 'success',
+            summary: 'Batch Archive',
+            detail: res.data?.message || `Successfully archived ${items.length} student(s).`,
+            life: 4000
+        });
+
+        batchArchiveDialog.value = false;
+        selectedStudents.value = [];
+        if (school_years_now.value) fetchDataStudentRombels();
+    } catch (error) {
+        if (error.response?.status === 422) {
+            batchArchiveErrors.value = error.response.data.errors ?? {};
+        } else {
+            toast.add({
+                severity: 'error',
+                summary: 'Batch Archive Failed',
+                detail: error.response?.data?.message || 'Failed to archive selected students.',
+                life: 5000
+            });
+        }
+    } finally {
+        isSubmittingBatchArchive.value = false;
+    }
+};
+
+const batchRestoreStudents = async () => {
+    if (isSubmittingBatchRestore.value || !selectedArchivedStudents.value || selectedArchivedStudents.value.length === 0) return;
+    isSubmittingBatchRestore.value = true;
+    try {
+        const items = selectedArchivedStudents.value.map((s) => ({
+            id: s.id,
+            version: s.version
+        }));
+
+        const res = await apiLogin.post('/api/students/batch-restore', { items });
+
+        toast.add({
+            severity: 'success',
+            summary: 'Batch Restore',
+            detail: res.data?.message || `Successfully restored ${items.length} student(s).`,
+            life: 4000
+        });
+
+        selectedArchivedStudents.value = [];
+        await fetchArchivedStudents();
+        if (school_years_now.value) fetchDataStudentRombels();
+    } catch (error) {
+        toast.add({
+            severity: 'error',
+            summary: 'Batch Restore Failed',
+            detail: error.response?.data?.message || 'Failed to restore selected students.',
+            life: 5000
+        });
+    } finally {
+        isSubmittingBatchRestore.value = false;
+    }
+};
+
 const placementBlockedMessage = () => {
     if (!school_years_now.value?.id) return 'Select a school year first.';
     if (selectedYearLocked.value) return t('students.placement.lockedNotice');
@@ -1295,7 +1390,7 @@ onMounted(async () => {
 });
 </script>
 <template>
-    <Fluid>
+    <div>
         <div class="bg-surface-0 dark:bg-surface-900 px-6 py-8 md:px-12 lg:px-20">
             <div class="flex items-start flex-col md:justify-between md:flex-row">
                 <div>
@@ -1343,7 +1438,7 @@ onMounted(async () => {
                     <!-- <Button label="Add" class="mr-3" outlined icon="pi pi-user-plus" />
                     <Button label="Save Changes" icon="pi pi-check" class="whitespace-nowrap" /> -->
                     <span class="me-2">{{ t('students.schoolYears') }}</span>
-                    <Select v-model="school_years_now" showClear :options="school_years" optionLabel="name" placeholder="Select Year" class="w-full" @change="handleSchoolYearsChange"> </Select>
+                    <Select v-model="school_years_now" showClear :options="school_years" optionLabel="name" placeholder="Select Year" class="w-48 sm:w-56" @change="handleSchoolYearsChange"> </Select>
                 </div>
             </div>
         </div>
@@ -1447,7 +1542,95 @@ onMounted(async () => {
 
         <div class="flex mt-8" v-show="activeGroup === 'demographics' && activeSub === 'section-students'">
             <div class="card flex flex-col gap-4 w-full">
+                <!-- ── Baris 1: Ringkasan Status & Tombol Aksi Utama ──────────────── -->
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <div class="flex flex-wrap items-center gap-3 text-sm">
+                        <span class="font-medium text-surface-700 dark:text-surface-200">
+                            Total: <strong class="text-surface-900 dark:text-surface-0">{{ listRecap.total_matches }}</strong>
+                        </span>
+                        <span class="text-green-600 dark:text-green-400">
+                            Placed: <strong>{{ listRecap.placed_count }}</strong>
+                        </span>
+                        <span class="text-orange-500 dark:text-orange-400">
+                            Unplaced: <strong>{{ listRecap.unplaced_count }}</strong>
+                        </span>
+                        <span v-for="group in listRecap.by_gender" :key="group.label" class="text-surface-600 dark:text-surface-300">
+                            {{ referenceLabel('genders', group.label) }}: <strong>{{ group.total }}</strong>
+                        </span>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2">
+                        <Button v-if="useAuthStore.can('students.export')" icon="pi pi-external-link" :label="t('common.action.export')" @click="exportCSV($event)" />
+                        <Button v-if="useAuthStore.can('students.import')" icon="pi pi-upload" :label="t('common.action.import')" severity="secondary" variant="outlined" @click="importDialog = true" />
+                        <Button v-if="canManage" icon="pi pi-user-plus" :label="t('students.list.newStudent')" @click="openCreateStudent" />
+                        <Button v-if="canManage" icon="pi pi-inbox" :label="t('students.list.archived')" severity="secondary" variant="outlined" @click="openArchivedList" />
+                    </div>
+                </div>
+
+                <!-- ── Baris 2: Filter Pencarian, Penempatan, Kelas, dan Bersihkan ── -->
+                <div class="flex flex-col md:flex-row md:items-center gap-3">
+                    <IconField class="w-full md:w-80 lg:w-96">
+                        <InputIcon><i class="pi pi-search" /></InputIcon>
+                        <InputText v-model="listSearch" :placeholder="t('students.list.searchPlaceholder')" class="w-full" @input="onListSearchInput" />
+                    </IconField>
+                    <Select
+                        v-model="listPlacement"
+                        :options="placementOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                        :placeholder="t('students.list.filterPlacement')"
+                        class="w-full sm:w-44 flex-shrink-0"
+                        @change="onListFilterChange"
+                    />
+                    <Select
+                        v-model="listRombelId"
+                        :options="rombelOptions"
+                        optionLabel="name"
+                        optionValue="id"
+                        :placeholder="t('students.list.filterClass')"
+                        showClear
+                        class="w-full sm:w-40 flex-shrink-0"
+                        :disabled="listPlacement === 'unplaced'"
+                        @change="onListFilterChange"
+                    />
+                    <Button
+                        type="button"
+                        icon="pi pi-filter-slash"
+                        :label="t('common.action.clear')"
+                        severity="secondary"
+                        variant="outlined"
+                        class="flex-shrink-0"
+                        @click="clearFilter()"
+                    />
+                </div>
+
+                <!-- ── Baris 3: Tabel Data Siswa ─────────────────────────────────── -->
+                <div v-if="selectedStudents.length > 0" class="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg bg-primary-50 dark:bg-primary-950/40 border border-primary-200 dark:border-primary-800 transition-all">
+                    <div class="flex items-center gap-2 text-sm font-semibold text-primary-900 dark:text-primary-100">
+                        <i class="pi pi-check-square text-base text-primary-600 dark:text-primary-400" />
+                        <span>{{ selectedStudents.length }} siswa dipilih</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <Button
+                            v-if="canManage"
+                            icon="pi pi-box"
+                            :label="`Arsipkan (${selectedStudents.length})`"
+                            severity="warn"
+                            size="small"
+                            @click="openBatchArchive"
+                        />
+                        <Button
+                            icon="pi pi-times"
+                            label="Batal Pilih"
+                            severity="secondary"
+                            variant="text"
+                            size="small"
+                            @click="selectedStudents = []"
+                        />
+                    </div>
+                </div>
                 <DataTable
+                    v-model:selection="selectedStudents"
                     :value="listRows"
                     :lazy="true"
                     paginator
@@ -1466,47 +1649,6 @@ onMounted(async () => {
                     @page="onListPage"
                     @sort="onListSort"
                 >
-                    <template #header>
-                        <div class="mb-3 flex flex-wrap gap-4 items-center text-sm">
-                            <span
-                                >Total: <strong>{{ listRecap.total_matches }}</strong></span
-                            >
-                            <span class="text-green-600"
-                                >Placed: <strong>{{ listRecap.placed_count }}</strong></span
-                            >
-                            <span class="text-orange-500"
-                                >Unplaced: <strong>{{ listRecap.unplaced_count }}</strong></span
-                            >
-                            <span v-for="group in listRecap.by_gender" :key="group.label"
-                                >{{ referenceLabel('genders', group.label) }}: <strong>{{ group.total }}</strong></span
-                            >
-                        </div>
-                        <div class="flex flex-col xl:flex-row gap-4 xl:items-center">
-                            <IconField class="w-full xl:w-64">
-                                <InputIcon><i class="pi pi-search" /></InputIcon>
-                                <InputText v-model="listSearch" :placeholder="t('students.list.searchPlaceholder')" class="w-full" @input="onListSearchInput" />
-                            </IconField>
-                            <Select v-model="listPlacement" :options="placementOptions" optionLabel="label" optionValue="value" :placeholder="t('students.list.filterPlacement')" class="w-full xl:w-40" @change="onListFilterChange" />
-                            <Select
-                                v-model="listRombelId"
-                                :options="rombelOptions"
-                                optionLabel="name"
-                                optionValue="id"
-                                :placeholder="t('students.list.filterClass')"
-                                showClear
-                                class="w-full xl:w-48"
-                                :disabled="listPlacement === 'unplaced'"
-                                @change="onListFilterChange"
-                            />
-                            <div class="flex flex-wrap gap-2">
-                                <Button v-if="useAuthStore.can('students.export')" icon="pi pi-external-link" :label="t('common.action.export')" @click="exportCSV($event)" />
-                                <Button v-if="useAuthStore.can('students.import')" icon="pi pi-upload" :label="t('common.action.import')" severity="secondary" variant="outlined" @click="importDialog = true" />
-                                <Button v-if="canManage" icon="pi pi-user-plus" :label="t('students.list.newStudent')" @click="openCreateStudent" />
-                                <Button v-if="canManage" icon="pi pi-inbox" :label="t('students.list.archived')" severity="secondary" variant="outlined" @click="openArchivedList" />
-                                <Button type="button" icon="pi pi-filter-slash" :label="t('common.action.clear')" variant="outlined" @click="clearFilter()" />
-                            </div>
-                        </div>
-                    </template>
                     <template #loading> {{ t('students.list.loading') }} </template>
                     <template #empty>
                         <div class="flex flex-col items-center gap-3 py-6">
@@ -1515,6 +1657,7 @@ onMounted(async () => {
                             <Button v-if="listError" icon="pi pi-refresh" :label="t('common.action.retry')" @click="fetchStudentList()" />
                         </div>
                     </template>
+                    <Column selectionMode="multiple" headerStyle="width: 3rem" :exportable="false" />
                     <Column :header="t('students.list.columns.no')" style="width: 3rem">
                         <template #body="{ index }">{{ rowDisplayNumber(index) }}</template>
                     </Column>
@@ -2066,17 +2209,12 @@ onMounted(async () => {
         <!-- ── ADMINISTRATION ────────────────────────────────────────────────────── -->
         <div class="grid grid-cols-12 mt-8 gap-8" v-show="activeGroup === 'administration' && activeSub === 'section-f8355'">
             <div id="section-f8355" class="col-span-12">
-                <div v-if="loading == true" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.f8355') }}</div>
-                    <Skeleton width="100%" height="150px"></Skeleton>
-                </div>
-                <div v-else-if="school_years_pick.length == 0" class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.f8355') }}</div>
-                    <span>{{ t('students.charts.noData') }}</span>
-                </div>
-                <div v-else class="card flex flex-col items-center">
-                    <div class="font-semibold text-xl mb-4">{{ t('students.charts.f8355') }}</div>
-                </div>
+                <StudentF8355Table
+                    :schoolYear="school_years_now"
+                    :schoolYearsPick="school_years_pick"
+                    :rombelOptions="rombelOptions"
+                    :loading="loading"
+                />
             </div>
         </div>
 
@@ -2220,7 +2358,7 @@ onMounted(async () => {
                 </div>
             </div>
         </div>
-    </Fluid>
+    </div>
 
     <!-- <Button label="Danger" @click="visibleStaticBackdropWarnings" /> -->
     <Dialog v-model:visible="visibleStaticBackdropWarning" modal header="Warning!!" :style="{ width: '25rem' }">
@@ -2835,9 +2973,84 @@ onMounted(async () => {
         </template>
     </Dialog>
 
+    <!-- ── Dialog Arsip Massal Siswa ─────────────────────────────────── -->
+    <Dialog v-model:visible="batchArchiveDialog" modal :style="{ width: '560px', maxWidth: '95vw' }" :draggable="false" header="Arsipkan Siswa Terpilih">
+        <div class="flex flex-col gap-4">
+            <div class="bg-surface-50 dark:bg-surface-800 p-3 rounded-border flex flex-col gap-2 text-sm border border-surface-200 dark:border-surface-700">
+                <div class="flex items-center justify-between font-medium">
+                    <span>Jumlah siswa yang akan diarsipkan:</span>
+                    <Tag :value="`${selectedStudents.length} Siswa`" severity="warn" />
+                </div>
+                <div class="max-h-36 overflow-y-auto text-xs text-surface-600 dark:text-surface-300 divide-y divide-surface-100 dark:divide-surface-700">
+                    <div v-for="student in selectedStudents" :key="student.id" class="py-1 flex justify-between">
+                        <span class="font-medium">{{ student.name }}</span>
+                        <span class="text-surface-400">NIS: {{ student.nis || '-' }} · NIK: {{ student.nik || '-' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <label for="batch_archive_reason" class="font-medium text-sm">
+                    Alasan Pengarsipan Administratif <span class="text-red-500">*</span>
+                </label>
+                <Textarea
+                    id="batch_archive_reason"
+                    v-model="batchArchiveReason"
+                    rows="3"
+                    class="w-full"
+                    placeholder="Contoh: Kelulusan siswa tahun ajaran 2025/2026 atau mutasi massal"
+                    :invalid="!!batchArchiveErrors.archive_reason"
+                />
+                <small v-if="batchArchiveErrors.archive_reason" class="text-red-500">
+                    {{ batchArchiveErrors.archive_reason[0] }}
+                </small>
+            </div>
+
+            <Message severity="warn" :closable="false" class="text-xs">
+                Perhatian: Mengarsipkan siswa akan menonaktifkan keanggotaan rombel aktif mereka secara administratif. Data dapat dipulihkan kembali sewaktu-waktu melalui dialog Arsip.
+            </Message>
+        </div>
+
+        <template #footer>
+            <Button label="Batal" icon="pi pi-times" severity="secondary" variant="text" :disabled="isSubmittingBatchArchive" @click="batchArchiveDialog = false" />
+            <Button
+                label="Ya, Arsipkan Siswa"
+                icon="pi pi-box"
+                severity="warn"
+                :loading="isSubmittingBatchArchive"
+                @click="confirmBatchArchive"
+            />
+        </template>
+    </Dialog>
+
     <!-- ── 03b: Archived Students Dialog ──────────────────────────────────────── -->
     <Dialog v-model:visible="archivedListDialog" modal :style="{ width: '820px', maxWidth: '95vw' }" :draggable="false" :header="t('students.archive.listTitle')">
+        <div v-if="selectedArchivedStudents.length > 0" class="flex flex-wrap items-center justify-between gap-3 p-3 mb-3 rounded-lg bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 transition-all">
+            <div class="flex items-center gap-2 text-sm font-semibold text-green-900 dark:text-green-100">
+                <i class="pi pi-check-square text-base text-green-600 dark:text-green-400" />
+                <span>{{ selectedArchivedStudents.length }} siswa terarsip dipilih</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <Button
+                    icon="pi pi-refresh"
+                    :label="`Pulihkan (${selectedArchivedStudents.length})`"
+                    severity="success"
+                    size="small"
+                    :loading="isSubmittingBatchRestore"
+                    @click="batchRestoreStudents"
+                />
+                <Button
+                    icon="pi pi-times"
+                    label="Batal Pilih"
+                    severity="secondary"
+                    variant="text"
+                    size="small"
+                    @click="selectedArchivedStudents = []"
+                />
+            </div>
+        </div>
         <DataTable
+            v-model:selection="selectedArchivedStudents"
             :value="archivedStudents"
             :loading="archivedLoading"
             dataKey="id"
@@ -2849,6 +3062,7 @@ onMounted(async () => {
         >
             <template #empty> {{ t('students.archive.empty') }} </template>
             <template #loading> {{ t('students.archive.loading') }} </template>
+            <Column selectionMode="multiple" headerStyle="width: 3rem" :exportable="false" />
             <Column :header="t('students.list.columns.no')" style="width: 3rem">
                 <template #body="slotProps">{{ slotProps.index + 1 }}</template>
             </Column>

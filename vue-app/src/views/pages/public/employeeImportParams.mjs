@@ -30,10 +30,10 @@ const MB = 1024 * 1024;
  * @returns {string | null} pesan kesalahan atau null bila file lolos pemeriksaan awal.
  */
 export function validateEmployeeImportFile(file, t = null) {
-    if (!file) return t ? t('employees.import.errors.chooseFile') : 'Choose a CSV file to import.';
+    if (!file) return t ? t('employees.import.errors.chooseFile') : 'Choose a CSV or Excel file to import.';
 
-    if (!/\.csv$/i.test(file.name ?? '')) {
-        return t ? t('employees.import.errors.fileFormat') : 'The file must be a CSV (UTF-8). Other formats are not supported yet.';
+    if (!/\.(csv|xlsx)$/i.test(file.name ?? '')) {
+        return t ? t('employees.import.errors.fileFormat') : 'The file must be a CSV (UTF-8) or Excel (.xlsx) file.';
     }
 
     if (!file.size) return t ? t('employees.import.errors.fileEmpty') : 'The file is empty.';
