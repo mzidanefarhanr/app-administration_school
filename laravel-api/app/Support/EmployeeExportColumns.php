@@ -53,35 +53,37 @@ final class EmployeeExportColumns
     /**
      * @return array<string, array{header: string, sensitive: bool, resolver: callable, select: array<int, string>}>
      */
-    public static function definitions(): array
+    public static function definitions(?string $lang = 'en'): array
     {
+        $isId = strtolower((string) $lang) === 'id';
+
         return [
-            'name' => self::def('Name', fn (Employee $e) => $e->name),
-            'employee_type' => self::def('Employee Type', fn (Employee $e) => ReferenceLabels::display('employee-types', $e->employeeType?->name)),
-            'employee_status' => self::def('Employee Status', fn (Employee $e) => ReferenceLabels::display('employee-statuses', $e->employeeStatus?->name)),
-            'employment' => self::def('Employment', fn (Employee $e) => ReferenceLabels::display('employments', $e->employment?->name)),
-            'subject' => self::def('Subject', fn (Employee $e) => ReferenceLabels::display('subjects', $e->subject?->name)),
+            'name' => self::def($isId ? 'Nama' : 'Name', fn (Employee $e) => $e->name),
+            'employee_type' => self::def($isId ? 'Jenis Pegawai' : 'Employee Type', fn (Employee $e) => ReferenceLabels::display('employee-types', $e->employeeType?->name)),
+            'employee_status' => self::def($isId ? 'Status Pegawai' : 'Employee Status', fn (Employee $e) => ReferenceLabels::display('employee-statuses', $e->employeeStatus?->name)),
+            'employment' => self::def($isId ? 'Kepegawaian' : 'Employment', fn (Employee $e) => ReferenceLabels::display('employments', $e->employment?->name)),
+            'subject' => self::def($isId ? 'Mata Pelajaran' : 'Subject', fn (Employee $e) => ReferenceLabels::display('subjects', $e->subject?->name)),
             'nuptk' => self::def('NUPTK', fn (Employee $e) => $e->nuptk),
-            'gender' => self::def('Gender', fn (Employee $e) => ReferenceLabels::display('genders', $e->gender?->name)),
-            'tmt_employee' => self::def('Employment Start Date (TMT)', fn (Employee $e) => $e->tmt_employee),
-            'exit_date' => self::def('Exit Date', fn (Employee $e) => $e->exit_date),
-            'archived_at' => self::def('Archived At', fn (Employee $e) => $e->deleted_at),
+            'gender' => self::def($isId ? 'Jenis Kelamin' : 'Gender', fn (Employee $e) => ReferenceLabels::display('genders', $e->gender?->name)),
+            'tmt_employee' => self::def($isId ? 'Tanggal Mulai Tugas (TMT)' : 'Employment Start Date (TMT)', fn (Employee $e) => $e->tmt_employee),
+            'exit_date' => self::def($isId ? 'Tanggal Keluar' : 'Exit Date', fn (Employee $e) => $e->exit_date),
+            'archived_at' => self::def($isId ? 'Diarsipkan Pada' : 'Archived At', fn (Employee $e) => $e->deleted_at),
 
             'nik' => self::def('NIK', fn (Employee $e) => $e->nik, true, ['employees.nik']),
             'npwp' => self::def('NPWP', fn (Employee $e) => $e->npwp, true, ['employees.npwp']),
-            'no_kk' => self::def('Family Card Number', fn (Employee $e) => $e->no_kk, true, ['employees.no_kk']),
-            'place_of_birth' => self::def('Place of Birth', fn (Employee $e) => $e->place_of_birth, true, ['employees.place_of_birth']),
-            'date_of_birth' => self::def('Date of Birth', fn (Employee $e) => $e->date_of_birth, true, ['employees.date_of_birth']),
-            'address' => self::def('Address', fn (Employee $e) => $e->address, true, ['employees.address']),
+            'no_kk' => self::def($isId ? 'Nomor Kartu Keluarga' : 'Family Card Number', fn (Employee $e) => $e->no_kk, true, ['employees.no_kk']),
+            'place_of_birth' => self::def($isId ? 'Tempat Lahir' : 'Place of Birth', fn (Employee $e) => $e->place_of_birth, true, ['employees.place_of_birth']),
+            'date_of_birth' => self::def($isId ? 'Tanggal Lahir' : 'Date of Birth', fn (Employee $e) => $e->date_of_birth, true, ['employees.date_of_birth']),
+            'address' => self::def($isId ? 'Alamat' : 'Address', fn (Employee $e) => $e->address, true, ['employees.address']),
             'rt' => self::def('RT', fn (Employee $e) => $e->rt, true, ['employees.rt']),
             'rw' => self::def('RW', fn (Employee $e) => $e->rw, true, ['employees.rw']),
-            'zip_code' => self::def('Zip Code', fn (Employee $e) => $e->zip_code, true, ['employees.zip_code']),
-            'wa_number' => self::def('Phone', fn (Employee $e) => $e->wa_number, true, ['employees.wa_number']),
+            'zip_code' => self::def($isId ? 'Kode Pos' : 'Zip Code', fn (Employee $e) => $e->zip_code, true, ['employees.zip_code']),
+            'wa_number' => self::def($isId ? 'Nomor Telepon' : 'Phone', fn (Employee $e) => $e->wa_number, true, ['employees.wa_number']),
             'email' => self::def('Email', fn (Employee $e) => $e->email, true, ['employees.email']),
-            'religion' => self::def('Religion', fn (Employee $e) => ReferenceLabels::display('religions', $e->religion?->name), true, ['employees.religion_id']),
-            'regency' => self::def('Regency', fn (Employee $e) => $e->district?->regency?->name, true, ['employees.district_id']),
-            'district' => self::def('District', fn (Employee $e) => $e->district?->name, true, ['employees.district_id']),
-            'marital_status' => self::def('Marital Status', fn (Employee $e) => ReferenceLabels::display('marital-statuses', $e->maritalStatus?->name), true, ['employees.marital_status_id']),
+            'religion' => self::def($isId ? 'Agama' : 'Religion', fn (Employee $e) => ReferenceLabels::display('religions', $e->religion?->name), true, ['employees.religion_id']),
+            'regency' => self::def($isId ? 'Kabupaten/Kota' : 'Regency', fn (Employee $e) => $e->district?->regency?->name, true, ['employees.district_id']),
+            'district' => self::def($isId ? 'Kecamatan' : 'District', fn (Employee $e) => $e->district?->name, true, ['employees.district_id']),
+            'marital_status' => self::def($isId ? 'Status Perkawinan' : 'Marital Status', fn (Employee $e) => ReferenceLabels::display('marital-statuses', $e->maritalStatus?->name), true, ['employees.marital_status_id']),
         ];
     }
 
@@ -160,9 +162,9 @@ final class EmployeeExportColumns
      * @param  array<int, string>  $keys
      * @return array<int, string>
      */
-    public static function headers(array $keys): array
+    public static function headers(array $keys, ?string $lang = 'en'): array
     {
-        $definitions = self::definitions();
+        $definitions = self::definitions($lang);
 
         return array_map(fn (string $key) => $definitions[$key]['header'], $keys);
     }

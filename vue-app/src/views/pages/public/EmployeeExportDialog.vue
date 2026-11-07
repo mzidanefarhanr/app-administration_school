@@ -5,7 +5,7 @@ import Button from 'primevue/button';
 import apiLogin from '@/apiLogin';
 import { buildEmployeeExportParams, firstValidationMessage } from './employeeDirectoryParams.mjs';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const props = defineProps({
     visible: { type: Boolean, default: false },
@@ -44,7 +44,10 @@ const loadOptions = async () => {
     optionsError.value = '';
 
     try {
-        const response = await apiLogin.get('/api/employees/export/options');
+        const currentLang = locale.value === 'id' ? 'id' : 'en';
+        const response = await apiLogin.get('/api/employees/export/options', {
+            params: { lang: currentLang }
+        });
         const data = response.data?.data ?? {};
 
         columns.value = Array.isArray(data.columns) ? data.columns : [];
@@ -112,10 +115,18 @@ const download = async () => {
     downloadError.value = '';
 
     try {
-        const params = buildEmployeeExportParams(props.filters, selected.value);
+        const currentLang = locale.value === 'id' ? 'id' : 'en';
+        const params = {
+            ...buildEmployeeExportParams(props.filters, selected.value),
+            lang: currentLang
+        };
         const response = await apiLogin.get('/api/employees/export', { params, responseType: 'blob' });
 
-        downloadBlob(new Blob([response.data], { type: 'text/csv;charset=utf-8;' }), `${props.entityLabel.toLowerCase()}.csv`);
+        const filename = currentLang === 'id'
+            ? (props.entityLabel.toLowerCase().includes('teach') ? 'guru.csv' : 'pegawai.csv')
+            : `${props.entityLabel.toLowerCase()}.csv`;
+
+        downloadBlob(new Blob([response.data], { type: 'text/csv;charset=utf-8;' }), filename);
         emit('downloaded', { columns: selected.value.length });
         close();
     } catch (error) {

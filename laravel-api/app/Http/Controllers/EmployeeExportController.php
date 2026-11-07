@@ -31,10 +31,11 @@ class EmployeeExportController extends Controller
         $this->authorize('employees.view');
         $this->authorize('employees.export');
 
+        $lang = strtolower((string) $request->query('lang', 'en')) === 'id' ? 'id' : 'en';
         $canSensitive = $request->user()?->can('employees.manage') ?? false;
         $columns = [];
 
-        foreach (EmployeeExportColumns::definitions() as $key => $definition) {
+        foreach (EmployeeExportColumns::definitions($lang) as $key => $definition) {
             if ($definition['sensitive'] && ! $canSensitive) {
                 continue;
             }
@@ -96,12 +97,14 @@ class EmployeeExportController extends Controller
 
         $filename = 'employees_'.now()->format('Ymd_His').'.csv';
 
-        return response()->streamDownload(function () use ($query, $keys) {
+        $lang = strtolower((string) $request->query('lang', 'en')) === 'id' ? 'id' : 'en';
+
+        return response()->streamDownload(function () use ($query, $keys, $lang) {
             $out = fopen('php://output', 'w');
 
             fwrite($out, "\xEF\xBB\xBF");
 
-            $this->writeCsvRow($out, EmployeeExportColumns::headers($keys));
+            $this->writeCsvRow($out, EmployeeExportColumns::headers($keys, $lang));
 
             $query->chunk(500, function ($employees) use ($out, $keys) {
                 foreach ($employees as $employee) {

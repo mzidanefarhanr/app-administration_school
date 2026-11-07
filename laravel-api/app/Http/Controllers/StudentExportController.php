@@ -109,12 +109,33 @@ class StudentExportController extends Controller
 
         $filename = 'students_'.$yearId.'_'.now()->format('Ymd_His').'.csv';
 
-        return response()->streamDownload(function () use ($query, $yearId) {
+        $lang = strtolower((string) $request->query('lang', 'en')) === 'id' ? 'id' : 'en';
+
+        return response()->streamDownload(function () use ($query, $yearId, $lang) {
             $out = fopen('php://output', 'w');
 
             fwrite($out, "\xEF\xBB\xBF");
 
-            $this->writeCsvRow($out, array_map(fn ($c) => $c[0], $this->columns));
+            $headersId = [
+                'name' => 'Nama',
+                'gender' => 'Jenis Kelamin',
+                'birthplace' => 'Tempat Lahir',
+                'birthdate' => 'Tanggal Lahir',
+                'nik' => 'NIK',
+                'nis' => 'NIS',
+                'nisn' => 'NISN',
+                'school_rombel' => 'Kelas',
+                'student_entry' => 'Jalur Masuk',
+                'student_status' => 'Status Siswa',
+            ];
+
+            $headers = array_map(
+                fn ($key, $c) => $lang === 'id' ? ($headersId[$key] ?? $c[0]) : $c[0],
+                array_keys($this->columns),
+                $this->columns
+            );
+
+            $this->writeCsvRow($out, $headers);
 
             $query->chunk(500, function ($students) use ($out, $yearId) {
                 $memberships = StudentDirectory::membershipsFor($students, $yearId);

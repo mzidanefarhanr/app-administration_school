@@ -332,11 +332,13 @@ const exportCSV = async () => {
         return;
     }
     try {
+        const currentLang = locale.value === 'id' ? 'id' : 'en';
         const params = buildStudentExportParams({
             schoolYearId: school_years_now.value.id,
             placement: listPlacement.value,
             search: listSearch.value,
-            rombelId: listRombelId.value
+            rombelId: listRombelId.value,
+            lang: currentLang
         });
         const response = await apiLogin.get('/api/students/export', {
             params,

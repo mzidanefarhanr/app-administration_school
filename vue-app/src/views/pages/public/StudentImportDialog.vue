@@ -12,10 +12,9 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible', 'imported']);
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const mode = ref('insert');
-const templateLang = ref('en');
 const file = ref(null);
 const batch = ref(null);
 const generalMessage = ref('');
@@ -29,11 +28,6 @@ const importModes = computed(() => [
     { label: t('students.import.modeUpdate'), value: 'update' }
 ]);
 
-const templateLanguages = computed(() => [
-    { label: t('students.import.langEn'), value: 'en' },
-    { label: t('students.import.langId'), value: 'id' }
-]);
-
 const stage = computed(() => {
     if (!batch.value) return 'upload';
     if (batch.value.status === 'committed') return 'done';
@@ -44,7 +38,6 @@ const stage = computed(() => {
 
 const reset = () => {
     mode.value = 'insert';
-    templateLang.value = 'en';
     file.value = null;
     batch.value = null;
     generalMessage.value = '';
@@ -128,9 +121,10 @@ const downloadBlob = (data, filename) => {
 const downloadTemplate = async (format = 'xlsx') => {
     try {
         const isXlsx = format === 'xlsx';
+        const currentLang = locale.value === 'id' ? 'id' : 'en';
         const params = {
             format: isXlsx ? 'xlsx' : 'csv',
-            lang: templateLang.value
+            lang: currentLang
         };
         const ext = isXlsx ? 'xlsx' : 'csv';
         const response = await apiLogin.get('/api/imports/students/template', { params, responseType: 'blob' });
@@ -176,15 +170,9 @@ const downloadErrors = async () => {
                     <small v-if="fileError" class="text-red-500">{{ fileError }}</small>
                     <small class="text-surface-500">{{ t('students.import.fileNotice') }}</small>
 
-                    <div class="mt-2 flex flex-col gap-2 rounded-lg border border-surface-200 bg-surface-50 p-3 dark:border-surface-700 dark:bg-surface-800/50">
-                        <div class="flex flex-wrap items-center justify-between gap-2">
-                            <label class="text-xs font-semibold text-surface-700 dark:text-surface-300" for="student-template-lang">{{ t('students.import.templateLanguage') }}</label>
-                            <Select id="student-template-lang" v-model="templateLang" :options="templateLanguages" optionLabel="label" optionValue="value" class="w-56 text-xs" size="small" />
-                        </div>
-                        <div class="flex flex-wrap gap-2 pt-1">
-                            <Button :label="t('students.import.btnDownloadTemplateXlsx')" icon="pi pi-file-excel" severity="success" text size="small" @click="() => downloadTemplate('xlsx')" />
-                            <Button :label="t('students.import.btnDownloadTemplate')" icon="pi pi-download" severity="secondary" text size="small" @click="() => downloadTemplate('csv')" />
-                        </div>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                        <Button :label="t('students.import.btnDownloadTemplateXlsx')" icon="pi pi-file-excel" severity="success" text size="small" @click="() => downloadTemplate('xlsx')" />
+                        <Button :label="t('students.import.btnDownloadTemplate')" icon="pi pi-download" severity="secondary" text size="small" @click="() => downloadTemplate('csv')" />
                     </div>
                 </div>
             </template>
