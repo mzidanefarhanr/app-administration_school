@@ -17,14 +17,16 @@ class ResetStudentsEmployeesCommand extends Command
      */
     protected $signature = 'school:reset-students-employees 
                             {--force : Jalankan penghapusan tanpa prompt konfirmasi}
-                            {--no-backup : Lewati pembuatan arsip backup sebelum menghapus}';
+                            {--no-backup : Lewati pembuatan arsip backup sebelum menghapus}
+                            {--keep-rombels : Jangan kosongkan data rombongan belajar (school_rombels)}
+                            {--seed-default-rombels : Isi kembali 26 rombel bawaan dari SchoolRombelSeeder setelah dikosongkan}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Kosongkan data siswa, guru, dan pegawai secara aman dan bersih untuk persiapan impor baru.';
+    protected $description = 'Kosongkan data siswa, guru, pegawai, dan rombel secara aman dan bersih untuk persiapan impor baru.';
 
     /**
      * Execute the console command.
@@ -32,7 +34,7 @@ class ResetStudentsEmployeesCommand extends Command
     public function handle(): int
     {
         $this->info('================================================================');
-        $this->info('  PERINTAH PENGOSONGAN DATA SISWA, GURU & PEGAWAI (SEKOLARIO)   ');
+        $this->info(' PERINTAH PENGOSONGAN DATA SISWA, PEGAWAI & ROMBEL (SEKOLARIO)  ');
         $this->info('================================================================');
 
         $driver = DB::getDriverName();
@@ -43,6 +45,7 @@ class ResetStudentsEmployeesCommand extends Command
             'student_rombels' => DB::table('student_rombels')->count(),
             'student_mutations' => Schema::hasTable('student_mutations') ? DB::table('student_mutations')->count() : 0,
             'employees' => DB::table('employees')->count(),
+            'school_rombels' => DB::table('school_rombels')->count(),
             'school_rombels_wali_kelas' => DB::table('school_rombels')->whereNotNull('class_teach_employee_id')->count(),
         ];
 
@@ -53,6 +56,7 @@ class ResetStudentsEmployeesCommand extends Command
                 ['Keanggotaan Rombel Siswa (student_rombels)', $counts['student_rombels']],
                 ['Log Mutasi Siswa (student_mutations)', $counts['student_mutations']],
                 ['Data Guru & Pegawai (employees)', $counts['employees']],
+                ['Data Rombongan Belajar (school_rombels)', $counts['school_rombels']],
                 ['Relasi Wali Kelas Rombel Terisi', $counts['school_rombels_wali_kelas']],
             ]
         );
@@ -86,6 +90,7 @@ class ResetStudentsEmployeesCommand extends Command
                 'student_rombels' => DB::table('student_rombels')->get(),
                 'student_mutations' => Schema::hasTable('student_mutations') ? DB::table('student_mutations')->get() : [],
                 'employees' => DB::table('employees')->get(),
+                'school_rombels' => DB::table('school_rombels')->get(),
                 'school_rombels_wali_kelas' => DB::table('school_rombels')
                     ->whereNotNull('class_teach_employee_id')
                     ->select('id', 'name', 'class_teach_employee_id')
@@ -156,6 +161,19 @@ class ResetStudentsEmployeesCommand extends Command
             $this->line('  - Menghapus data siswa (students)...');
             DB::table('students')->delete();
 
+            // E. Tabel Rombongan Belajar (school_rombels)
+            if (! $this->option('keep-rombels')) {
+                $this->line('  - Menghapus data rombongan belajar (school_rombels)...');
+                DB::table('school_rombels')->delete();
+
+                if ($this->option('seed-default-rombels')) {
+                    $this->line('  - Mengisi kembali data rombel default dari SchoolRombelSeeder...');
+                    $this->call('db:seed', ['--class' => 'Database\\Seeders\\SchoolRombelSeeder']);
+                }
+            } else {
+                $this->line('  - Opsi --keep-rombels aktif: data school_rombels dipertahankan.');
+            }
+
             // 3. RESET AUTO-INCREMENT
             $this->info("\n[3/3] Mereset nilai Auto-Increment...");
             if ($driver === 'mysql') {
@@ -168,11 +186,14 @@ class ResetStudentsEmployeesCommand extends Command
                 if (Schema::hasTable('teaching_assignments')) {
                     DB::statement('ALTER TABLE teaching_assignments AUTO_INCREMENT = 1');
                 }
+                if (! $this->option('keep-rombels') && ! $this->option('seed-default-rombels')) {
+                    DB::statement('ALTER TABLE school_rombels AUTO_INCREMENT = 1');
+                }
                 DB::statement('SET FOREIGN_KEY_CHECKS = 1');
             }
 
-            $this->info("\n✓ SEMUA DATA SISWA, GURU, DAN PEGAWAI BERHASIL DIKOSONGKAN SECARA BERSIH.");
-            $this->info("✓ Database sekarang bersih dan siap untuk proses impor data baru.");
+            $this->info("\n✓ SEMUA DATA SISWA, GURU, PEGAWAI, DAN ROMBEL BERHASIL DIKOSONGKAN SECARA BERSIH.");
+            $this->info("✓ Database sekarang bersih dan siap untuk proses impor data baru (tersisa data default master sistem).");
             return 0;
 
         } catch (\Throwable $e) {
