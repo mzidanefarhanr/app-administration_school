@@ -33,6 +33,7 @@ const reportData = ref(null);
 const showConfigDialog = ref(false);
 
 const months = [
+    { label: 'Semua Bulan (Tahun Penuh)', value: 0 },
     { label: 'Januari', value: 1 },
     { label: 'Februari', value: 2 },
     { label: 'Maret', value: 3 },
@@ -55,7 +56,7 @@ const years = [
     { label: String(currentYear + 1), value: currentYear + 1 }
 ];
 
-const selectedMonth = ref(11);
+const selectedMonth = ref(0);
 const selectedYear = ref(currentYear);
 
 // Metadata Kop & TTD

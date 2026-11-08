@@ -176,7 +176,7 @@ class StudentMutationController extends Controller
 
         $validated = $request->validate([
             'school_year_id' => ['required', 'integer', 'min:1'],
-            'month' => ['nullable', 'integer', 'between:1,12'],
+            'month' => ['nullable', 'integer', 'between:0,12'],
             'year' => ['nullable', 'integer', 'min:2000', 'max:2100'],
         ]);
 
@@ -202,7 +202,7 @@ class StudentMutationController extends Controller
 
         $validated = $request->validate([
             'school_year_id' => ['required', 'integer', 'min:1'],
-            'month' => ['nullable', 'integer', 'between:1,12'],
+            'month' => ['nullable', 'integer', 'between:0,12'],
             'year' => ['nullable', 'integer', 'min:2000', 'max:2100'],
         ]);
 

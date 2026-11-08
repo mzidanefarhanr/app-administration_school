@@ -2325,7 +2325,7 @@ onMounted(async () => {
 
         <div class="grid grid-cols-12 mt-8 gap-8" v-show="activeGroup === 'administration' && activeSub === 'section-mutation'">
             <div id="section-mutation" class="col-span-12">
-                <StudentMutations v-if="activeSub === 'section-mutation'" @mutated="fetchDataSelected" />
+                <StudentMutations v-if="activeSub === 'section-mutation'" :schoolYear="school_years_now" @mutated="fetchDataSelected" />
             </div>
         </div>
 

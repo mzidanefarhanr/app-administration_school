@@ -10,6 +10,13 @@ import StudentMutationTimelineDialog from './StudentMutationTimelineDialog.vue';
 import StudentMutationReportDialog from './StudentMutationReportDialog.vue';
 import StudentMutationImportDialog from './StudentMutationImportDialog.vue';
 
+const props = defineProps({
+    schoolYear: {
+        type: Object,
+        default: () => null
+    }
+});
+
 const emit = defineEmits(['mutated']);
 
 const store = authStore();
@@ -197,10 +204,11 @@ const loadOptions = async (selectedYearId = null) => {
     optionsLoading.value = true;
     optionsError.value = '';
     try {
-        const params = selectedYearId ? { school_year_id: selectedYearId } : {};
+        const targetYearId = selectedYearId ?? props.schoolYear?.id ?? null;
+        const params = targetYearId ? { school_year_id: targetYearId } : {};
         const response = await apiLogin.get('/api/academic/mutations/options', { params });
         options.value = response.data?.data ?? null;
-        yearId.value = options.value?.selected_year_id ?? null;
+        yearId.value = targetYearId ?? options.value?.selected_year_id ?? null;
         await loadYearData();
     } catch (error) {
         optionsError.value = errorMessage(error, 'Failed to load mutation options. Please try again.');
@@ -836,7 +844,16 @@ const openTimeline = (row) => {
     timelineVisible.value = true;
 };
 
-onMounted(() => loadOptions());
+watch(
+    () => props.schoolYear?.id,
+    (newId) => {
+        if (newId && newId !== yearId.value) {
+            loadOptions(newId);
+        }
+    }
+);
+
+onMounted(() => loadOptions(props.schoolYear?.id));
 </script>
 
 <template>
@@ -849,6 +866,7 @@ onMounted(() => loadOptions());
                 </div>
                 <div class="flex flex-wrap gap-2 xl:ml-auto items-center">
                     <Select
+                        v-if="!schoolYear?.id"
                         v-model="yearId"
                         :options="years"
                         optionLabel="name"

@@ -46,13 +46,16 @@ class StudentMutationReportService
     {
         $schoolYear = SchoolYear::findOrFail($schoolYearId);
 
-        // Jika bulan/tahun tidak dispesifikasi, default ke bulan/tahun saat ini
-        $now = Carbon::now();
-        $targetMonth = $month ?: (int) $now->format('n');
-        $targetYear = $year ?: (int) $now->format('Y');
+        $targetMonth = $month !== null ? (int) $month : 0;
+        $targetYear = $year !== null ? (int) $year : (int) Carbon::now()->format('Y');
 
-        $monthName = self::INDONESIAN_MONTHS[$targetMonth] ?? 'November';
-        $periodLabel = "{$monthName} {$targetYear}";
+        if ($targetMonth > 0) {
+            $monthName = self::INDONESIAN_MONTHS[$targetMonth] ?? 'November';
+            $periodLabel = "{$monthName} {$targetYear}";
+        } else {
+            $monthName = 'Semua Bulan';
+            $periodLabel = "Tahun Pelajaran {$schoolYear->name}";
+        }
 
         // Profil Sekolah
         $profileData = $this->getSchoolProfileData();
