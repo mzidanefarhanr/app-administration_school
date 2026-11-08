@@ -2,6 +2,7 @@
 import ArchiveExpiryWidget from '@/components/dashboard/ArchiveExpiryWidget.vue';
 import DataQualityOverviewWidget from '@/components/dashboard/DataQualityOverviewWidget.vue';
 import ListUsersOnlineWidget from '@/components/dashboard/ListUsersOnlineWidget.vue';
+import OnboardingTimelineWidget from '@/components/dashboard/OnboardingTimelineWidget.vue';
 import OperationalStatsWidget from '@/components/dashboard/OperationalStatsWidget.vue';
 import PendingTasksWidget from '@/components/dashboard/PendingTasksWidget.vue';
 import StudentDistributionChartWidget from '@/components/dashboard/StudentDistributionChartWidget.vue';
@@ -11,6 +12,9 @@ import TeachingComplianceChartWidget from '@/components/dashboard/TeachingCompli
 
 <template>
     <div class="grid grid-cols-12 gap-6">
+        <!-- 0. Panduan Memulai & Kesiapan Data Sekolah (Onboarding Timeline) -->
+        <OnboardingTimelineWidget />
+
         <!-- 1. Statistik Operasional Utama (4 Kartu Metrik Inti) -->
         <OperationalStatsWidget />
 

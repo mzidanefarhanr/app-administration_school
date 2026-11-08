@@ -25,7 +25,7 @@
         "active": "Active",
         "complianceRate": "Compliance: {percent}%",
         "needEntry": "({count} need entry)",
-        "journalsFilled": "{recorded}/{expected} journals logged",
+        "journalsFilled": "{recorded}\/{expected} journals logged",
         "defaultSemester": "First Semester"
     },
     "archiveExpiry": {
@@ -132,5 +132,22 @@
         "empty": "No teaching journal records found for this period.",
         "complianceLabel": "Compliance (%)",
         "recordedLabel": "Journals Logged"
+    },
+    "onboarding": {
+        "title": "Getting Started & School Data Readiness",
+        "subtitle": "Follow the key data entry steps below to ensure all academic and administrative features are ready for use.",
+        "progress": "System Readiness: {percent}% ({completed}\/{total} Steps Completed)",
+        "allCompleted": "All Initial Data Completed!",
+        "allCompletedDesc": "Congratulations! School foundation, staff, classes, students, and schedules are complete. Sekolario is ready for full operation.",
+        "nextStepTitle": "Recommended Next Step:",
+        "collapse": "Collapse Guide",
+        "expand": "Expand Guide",
+        "hide": "Hide Guide",
+        "showGuide": "Show Getting Started Guide",
+        "stepCompleted": "Completed",
+        "stepInProgress": "In Progress",
+        "stepPending": "Pending",
+        "refresh": "Refresh Data Readiness",
+        "stepLabel": "Step {order}"
     }
 }

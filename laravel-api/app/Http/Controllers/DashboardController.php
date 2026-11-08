@@ -74,4 +74,24 @@ class DashboardController extends Controller
             'data' => $charts,
         ]);
     }
+
+    /**
+     * Mengambil data timeline progres onboarding / kesiapan data sekolah.
+     */
+    public function onboarding(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $onboarding = $this->dashboardService->getOnboardingProgress($user);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Onboarding progress retrieved successfully.',
+            'data' => $onboarding,
+        ]);
+    }
 }

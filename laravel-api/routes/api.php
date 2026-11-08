@@ -464,6 +464,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::get('/overview', [DashboardController::class, 'overview']);
         Route::get('/pending-tasks', [DashboardController::class, 'pendingTasks']);
         Route::get('/charts', [DashboardController::class, 'charts']);
+        Route::get('/onboarding', [DashboardController::class, 'onboarding']);
     });
 
     // Fase 01a — penegakan kemampuan pada endpoint master/referensi.

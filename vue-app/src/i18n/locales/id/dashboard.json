@@ -25,7 +25,7 @@
         "active": "Aktif",
         "complianceRate": "Kepatuhan: {percent}%",
         "needEntry": "({count} perlu isi)",
-        "journalsFilled": "{recorded}/{expected} jurnal terisi",
+        "journalsFilled": "{recorded}\/{expected} jurnal terisi",
         "defaultSemester": "Semester I"
     },
     "archiveExpiry": {
@@ -132,5 +132,22 @@
         "empty": "Belum ada data rekaman jurnal mengajar pada rentang periode ini.",
         "complianceLabel": "Kepatuhan (%)",
         "recordedLabel": "Jurnal Terisi"
+    },
+    "onboarding": {
+        "title": "Panduan Memulai & Kesiapan Data Sekolah",
+        "subtitle": "Ikuti alur pengisian data penting di bawah ini agar seluruh fitur akademik dan administrasi siap digunakan.",
+        "progress": "Kesiapan Sistem: {percent}% ({completed}\/{total} Tahap Selesai)",
+        "allCompleted": "Semua Data Awal Lengkap!",
+        "allCompletedDesc": "Selamat! Data fondasi sekolah, PTK, rombel, siswa, dan jadwal telah terisi lengkap. Sistem Sekolario siap beroperasi secara optimal.",
+        "nextStepTitle": "Langkah Selanjutnya yang Disarankan:",
+        "collapse": "Ciutkan Panduan",
+        "expand": "Buka Panduan",
+        "hide": "Sembunyikan Panduan",
+        "showGuide": "Tampilkan Panduan Memulai",
+        "stepCompleted": "Selesai",
+        "stepInProgress": "Sedang Diisi",
+        "stepPending": "Belum Dimulai",
+        "refresh": "Segarkan Kesiapan Data",
+        "stepLabel": "Tahap {order}"
     }
 }

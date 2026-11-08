@@ -161,6 +161,7 @@ test('T1: unauthenticated requests are rejected with 401', function () {
     $this->getJson('/api/dashboard/overview')->assertStatus(401);
     $this->getJson('/api/dashboard/pending-tasks')->assertStatus(401);
     $this->getJson('/api/dashboard/charts')->assertStatus(401);
+    $this->getJson('/api/dashboard/onboarding')->assertStatus(401);
 });
 
 test('T2: deactivated accounts are rejected with 403', function () {
@@ -172,6 +173,7 @@ test('T2: deactivated accounts are rejected with 403', function () {
     $this->getJson('/api/dashboard/overview')->assertStatus(403);
     $this->getJson('/api/dashboard/pending-tasks')->assertStatus(403);
     $this->getJson('/api/dashboard/charts')->assertStatus(403);
+    $this->getJson('/api/dashboard/onboarding')->assertStatus(403);
 });
 
 test('T3: admin-sistem receives comprehensive overview with actual counts', function () {
@@ -331,4 +333,36 @@ test('T10: charts returns distribution and trend structure for authorized user',
     expect($data['students_by_level'])->not->toBeNull();
     expect($data['students_by_level']['labels'])->toContain('X-TKJ-1');
     expect($data['teaching_compliance_trend'])->not->toBeNull();
+});
+
+test('T11: onboarding returns structured 5-step timeline with completion percentages', function () {
+    Sanctum::actingAs($this->admin);
+
+    $response = $this->getJson('/api/dashboard/onboarding');
+    $response->assertOk()
+        ->assertJson([
+            'success' => true,
+        ])
+        ->assertJsonStructure([
+            'data' => [
+                'overall_percent',
+                'completed_steps',
+                'total_steps',
+                'is_all_completed',
+                'steps' => [
+                    '*' => [
+                        'id',
+                        'order',
+                        'title',
+                        'description',
+                        'status',
+                        'percent',
+                        'badge',
+                        'action_label',
+                        'action_route',
+                        'metrics',
+                    ],
+                ],
+            ],
+        ]);
 });
