@@ -226,22 +226,22 @@ onMounted(async () => {
         <ConfirmDialog />
 
         <!-- Page Header -->
-        <div class="card p-5 mb-0 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div class="flex items-start gap-3.5">
+        <div class="card p-5 mb-0 flex flex-col lg:flex-row lg:items-center justify-between gap-4 overflow-hidden">
+            <div class="flex items-start gap-3.5 min-w-0 flex-1">
                 <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-primary/10 text-primary">
                     <i class="pi pi-server text-2xl" aria-hidden="true"></i>
                 </div>
-                <div>
-                    <h1 class="text-xl font-bold text-surface-900 dark:text-surface-0 m-0">
+                <div class="min-w-0 flex-1">
+                    <h1 class="text-xl font-bold text-surface-900 dark:text-surface-0 m-0 break-words">
                         {{ t('system.status.title') }}
                     </h1>
-                    <p class="text-xs text-surface-500 dark:text-surface-400 mt-1 mb-0">
+                    <p class="text-xs text-surface-500 dark:text-surface-400 mt-1 mb-0 leading-relaxed break-words">
                         {{ t('system.status.subtitle') }}
                     </p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-2 flex-wrap self-end md:self-center">
+            <div class="flex items-center gap-2 flex-wrap shrink-0 self-start lg:self-center">
                 <Button
                     :label="t('system.status.pruneBtn')"
                     icon="pi pi-filter-slash"
@@ -286,10 +286,10 @@ onMounted(async () => {
             <!-- Row 1: 4 Summary KPI Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                 <!-- Card 1: Backup Health -->
-                <div class="card mb-0 p-4 flex flex-col justify-between border-l-4" :class="health?.status === 'HEALTHY' ? 'border-l-green-500' : 'border-l-amber-500'">
-                    <div class="flex items-start justify-between gap-2">
-                        <div>
-                            <span class="text-xs font-medium text-surface-500 dark:text-surface-400 block mb-1">
+                <div class="card mb-0 p-4 flex flex-col justify-between border-l-4 overflow-hidden min-w-0" :class="health?.status === 'HEALTHY' ? 'border-l-green-500' : 'border-l-amber-500'">
+                    <div class="flex items-start justify-between gap-2.5 min-w-0">
+                        <div class="min-w-0 flex-1">
+                            <span class="text-xs font-medium text-surface-500 dark:text-surface-400 block mb-1.5 truncate">
                                 {{ t('system.status.kpi.backupHealth') }}
                             </span>
                             <Tag
@@ -302,25 +302,28 @@ onMounted(async () => {
                             <i class="pi pi-shield text-xl" aria-hidden="true"></i>
                         </div>
                     </div>
-                    <div class="mt-3 pt-2 border-t border-surface-100 dark:border-surface-800 text-xs text-surface-500 dark:text-surface-400 truncate" :title="health?.message">
+                    <div class="mt-3 pt-2 border-t border-surface-100 dark:border-surface-800 text-xs text-surface-500 dark:text-surface-400 leading-snug break-words" :title="health?.message">
                         {{ health?.last_success?.timestamp ? t('system.status.kpi.lastSuccess', { date: formatDateTime(health.last_success.timestamp) }) : t('system.status.kpi.noSuccessYet') }}
                     </div>
                 </div>
 
                 <!-- Card 2: Database Connection -->
-                <div class="card mb-0 p-4 flex flex-col justify-between border-l-4" :class="dbService?.connected ? 'border-l-blue-500' : 'border-l-red-500'">
-                    <div class="flex items-start justify-between gap-2">
-                        <div>
-                            <span class="text-xs font-medium text-surface-500 dark:text-surface-400 block mb-1">
+                <div class="card mb-0 p-4 flex flex-col justify-between border-l-4 overflow-hidden min-w-0" :class="dbService?.connected ? 'border-l-blue-500' : 'border-l-red-500'">
+                    <div class="flex items-start justify-between gap-2.5 min-w-0">
+                        <div class="min-w-0 flex-1">
+                            <span class="text-xs font-medium text-surface-500 dark:text-surface-400 block mb-1.5 truncate">
                                 {{ t('system.status.kpi.dbConnection') }}
                             </span>
-                            <div class="flex items-center gap-2">
+                            <div class="flex flex-col items-start gap-1 min-w-0">
                                 <Tag
                                     :value="dbService?.connected ? t('system.status.kpi.connected') : t('system.status.kpi.disconnected')"
                                     :severity="dbService?.connected ? 'info' : 'danger'"
-                                    class="font-bold"
+                                    class="font-bold shrink-0"
                                 />
-                                <span class="text-xs font-mono text-surface-600 dark:text-surface-300">
+                                <span
+                                    class="text-xs font-mono text-surface-700 dark:text-surface-200 truncate w-full block"
+                                    :title="dbService?.database_name"
+                                >
                                     {{ dbService?.database_name }}
                                 </span>
                             </div>
@@ -329,17 +332,17 @@ onMounted(async () => {
                             <i class="pi pi-database text-xl" aria-hidden="true"></i>
                         </div>
                     </div>
-                    <div class="mt-3 pt-2 border-t border-surface-100 dark:border-surface-800 text-xs text-surface-500 dark:text-surface-400 flex items-center justify-between">
-                        <span>{{ dbService?.version }}</span>
-                        <span class="font-semibold text-blue-600 dark:text-blue-400">{{ t('system.status.kpi.latency', { ms: dbService?.latency_ms ?? 0 }) }}</span>
+                    <div class="mt-3 pt-2 border-t border-surface-100 dark:border-surface-800 text-xs text-surface-500 dark:text-surface-400 flex items-center justify-between gap-2 flex-wrap">
+                        <span class="truncate" :title="dbService?.version">{{ dbService?.version }}</span>
+                        <span class="font-semibold text-blue-600 dark:text-blue-400 shrink-0">{{ t('system.status.kpi.latency', { ms: dbService?.latency_ms ?? 0 }) }}</span>
                     </div>
                 </div>
 
                 <!-- Card 3: Archives Stored -->
-                <div class="card mb-0 p-4 flex flex-col justify-between border-l-4 border-l-purple-500">
-                    <div class="flex items-start justify-between gap-2">
-                        <div>
-                            <span class="text-xs font-medium text-surface-500 dark:text-surface-400 block mb-1">
+                <div class="card mb-0 p-4 flex flex-col justify-between border-l-4 border-l-purple-500 overflow-hidden min-w-0">
+                    <div class="flex items-start justify-between gap-2.5 min-w-0">
+                        <div class="min-w-0 flex-1">
+                            <span class="text-xs font-medium text-surface-500 dark:text-surface-400 block mb-1 truncate">
                                 {{ t('system.status.kpi.archivesStored') }}
                             </span>
                             <span class="text-2xl font-bold text-surface-900 dark:text-surface-0">
@@ -350,16 +353,16 @@ onMounted(async () => {
                             <i class="pi pi-box text-xl" aria-hidden="true"></i>
                         </div>
                     </div>
-                    <div class="mt-3 pt-2 border-t border-surface-100 dark:border-surface-800 text-xs text-surface-500 dark:text-surface-400">
+                    <div class="mt-3 pt-2 border-t border-surface-100 dark:border-surface-800 text-xs text-surface-500 dark:text-surface-400 leading-snug break-words">
                         {{ t('system.status.kpi.totalSize', { size: formatBytes(backup?.total_archives_bytes ?? 0) }) }}
                     </div>
                 </div>
 
                 <!-- Card 4: Automated Schedule -->
-                <div class="card mb-0 p-4 flex flex-col justify-between border-l-4" :class="scheduleConfig?.schedule_enabled ? 'border-l-teal-500' : 'border-l-surface-400'">
-                    <div class="flex items-start justify-between gap-2">
-                        <div>
-                            <span class="text-xs font-medium text-surface-500 dark:text-surface-400 block mb-1">
+                <div class="card mb-0 p-4 flex flex-col justify-between border-l-4 overflow-hidden min-w-0" :class="scheduleConfig?.schedule_enabled ? 'border-l-teal-500' : 'border-l-surface-400'">
+                    <div class="flex items-start justify-between gap-2.5 min-w-0">
+                        <div class="min-w-0 flex-1">
+                            <span class="text-xs font-medium text-surface-500 dark:text-surface-400 block mb-1.5 truncate">
                                 {{ t('system.status.kpi.autoSchedule') }}
                             </span>
                             <Tag
@@ -372,20 +375,20 @@ onMounted(async () => {
                             <i class="pi pi-clock text-xl" aria-hidden="true"></i>
                         </div>
                     </div>
-                    <div class="mt-3 pt-2 border-t border-surface-100 dark:border-surface-800 text-xs text-surface-500 dark:text-surface-400">
+                    <div class="mt-3 pt-2 border-t border-surface-100 dark:border-surface-800 text-xs text-surface-500 dark:text-surface-400 leading-snug break-words">
                         {{ t('system.status.kpi.scheduleTime', { time: scheduleConfig?.backup_time ?? '02:00', days: scheduleConfig?.retention_days ?? 7, weeks: scheduleConfig?.retention_weeks ?? 4 }) }}
                     </div>
                 </div>
             </div>
 
             <!-- Row 2: Encrypted Backup Archives Table -->
-            <div class="card p-5 mb-0">
+            <div class="card p-5 mb-0 overflow-hidden">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-                    <div>
-                        <h2 class="text-base font-bold text-surface-900 dark:text-surface-0 m-0">
+                    <div class="min-w-0">
+                        <h2 class="text-base font-bold text-surface-900 dark:text-surface-0 m-0 break-words">
                             {{ t('system.status.archives.title') }}
                         </h2>
-                        <p class="text-xs text-surface-500 dark:text-surface-400 mt-0.5 mb-0">
+                        <p class="text-xs text-surface-500 dark:text-surface-400 mt-0.5 mb-0 break-words">
                             {{ t('system.status.archives.subtitle') }}
                         </p>
                     </div>
@@ -415,15 +418,15 @@ onMounted(async () => {
                     <Column field="filename" :header="t('system.status.archives.colFilename')">
                         <template #body="{ data }">
                             <div class="flex items-center gap-2 font-mono text-xs font-semibold text-surface-900 dark:text-surface-100">
-                                <i class="pi pi-file-export text-primary" aria-hidden="true"></i>
-                                <span>{{ data.filename }}</span>
+                                <i class="pi pi-file-export text-primary shrink-0" aria-hidden="true"></i>
+                                <span class="break-all">{{ data.filename }}</span>
                             </div>
                         </template>
                     </Column>
 
                     <Column field="created_at" :header="t('system.status.archives.colCreatedAt')">
                         <template #body="{ data }">
-                            <span class="text-xs text-surface-600 dark:text-surface-300">
+                            <span class="text-xs text-surface-600 dark:text-surface-300 whitespace-nowrap">
                                 {{ formatDateTime(data.created_at) }}
                             </span>
                         </template>
@@ -431,7 +434,7 @@ onMounted(async () => {
 
                     <Column field="size_bytes" :header="t('system.status.archives.colSize')">
                         <template #body="{ data }">
-                            <span class="text-xs font-medium">
+                            <span class="text-xs font-medium whitespace-nowrap">
                                 {{ formatBytes(data.size_bytes) }}
                             </span>
                         </template>
@@ -440,7 +443,7 @@ onMounted(async () => {
                     <Column field="sha256" :header="t('system.status.archives.colChecksum')">
                         <template #body="{ data }">
                             <div class="flex items-center gap-1.5">
-                                <code class="text-[11px] bg-surface-100 dark:bg-surface-800 px-2 py-0.5 rounded text-surface-600 dark:text-surface-300">
+                                <code class="text-[11px] bg-surface-100 dark:bg-surface-800 px-2 py-0.5 rounded text-surface-600 dark:text-surface-300 whitespace-nowrap">
                                     {{ data.sha256 ? `${data.sha256.slice(0, 12)}...${data.sha256.slice(-6)}` : '-' }}
                                 </code>
                                 <Button
@@ -449,7 +452,7 @@ onMounted(async () => {
                                     size="small"
                                     variant="text"
                                     severity="secondary"
-                                    class="!p-1 !w-6 !h-6"
+                                    class="!p-1 !w-6 !h-6 shrink-0"
                                     :tooltip="t('system.status.archives.copySha')"
                                     @click="copyToClipboard(data.sha256, 'system.status.archives.copied')"
                                 />
@@ -459,7 +462,7 @@ onMounted(async () => {
 
                     <Column :header="t('system.status.archives.colSecurity')">
                         <template #body>
-                            <Tag value="AES-256 ZIP" severity="success" icon="pi pi-lock" class="!text-[10px]" />
+                            <Tag value="AES-256 ZIP" severity="success" icon="pi pi-lock" class="!text-[10px] whitespace-nowrap" />
                         </template>
                     </Column>
 
@@ -501,13 +504,13 @@ onMounted(async () => {
                         <div
                             v-for="snap in jsonSnapshots"
                             :key="snap.filename"
-                            class="p-2.5 rounded-lg border border-surface-200 dark:border-surface-700 bg-surface-50/60 dark:bg-surface-800/40 flex items-center justify-between gap-2 text-xs"
+                            class="p-2.5 rounded-lg border border-surface-200 dark:border-surface-700 bg-surface-50/60 dark:bg-surface-800/40 flex items-center justify-between gap-2 text-xs overflow-hidden min-w-0"
                         >
-                            <div class="min-w-0">
+                            <div class="min-w-0 flex-1">
                                 <div class="font-mono font-medium text-surface-800 dark:text-surface-100 truncate" :title="snap.filename">
                                     {{ snap.filename }}
                                 </div>
-                                <div class="text-[11px] text-surface-400">
+                                <div class="text-[11px] text-surface-400 truncate">
                                     {{ formatDateTime(snap.created_at) }}
                                 </div>
                             </div>
@@ -520,23 +523,23 @@ onMounted(async () => {
             <!-- Row 3: Runtime Health & Storage Directories -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Col 1: PHP Runtime & Extensions -->
-                <div class="card p-5 mb-0 flex flex-col justify-between">
+                <div class="card p-5 mb-0 flex flex-col justify-between overflow-hidden min-w-0">
                     <div>
                         <h3 class="text-base font-bold text-surface-900 dark:text-surface-0 m-0 mb-4 flex items-center gap-2">
-                            <i class="pi pi-cog text-primary" aria-hidden="true"></i>
-                            <span>{{ t('system.status.services.runtimeTitle') }}</span>
+                            <i class="pi pi-cog text-primary shrink-0" aria-hidden="true"></i>
+                            <span class="break-words">{{ t('system.status.services.runtimeTitle') }}</span>
                         </h3>
 
-                        <div class="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-surface-50 dark:bg-surface-800/40 border border-surface-200 dark:border-surface-700 text-xs mb-4">
-                            <div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-xl bg-surface-50 dark:bg-surface-800/40 border border-surface-200 dark:border-surface-700 text-xs mb-4">
+                            <div class="min-w-0">
                                 <span class="text-surface-500 block mb-0.5">{{ t('system.status.services.phpVersion') }}</span>
-                                <span class="font-bold text-surface-900 dark:text-surface-0">PHP {{ phpRuntime?.php_version }} ({{ phpRuntime?.os_family }})</span>
+                                <span class="font-bold text-surface-900 dark:text-surface-0 break-words">PHP {{ phpRuntime?.php_version }} ({{ phpRuntime?.os_family }})</span>
                             </div>
-                            <div>
+                            <div class="min-w-0">
                                 <span class="text-surface-500 block mb-0.5">{{ t('system.status.services.serverTime') }}</span>
-                                <span class="font-mono font-semibold text-surface-900 dark:text-surface-0">{{ phpRuntime?.server_time_wib }}</span>
+                                <span class="font-mono font-semibold text-surface-900 dark:text-surface-0 break-words">{{ phpRuntime?.server_time_wib }}</span>
                             </div>
-                            <div>
+                            <div class="min-w-0">
                                 <span class="text-surface-500 block mb-0.5">{{ t('system.status.services.zipAes256') }}</span>
                                 <Tag
                                     :value="phpRuntime?.zip_aes256_supported ? t('system.status.services.supported') : t('system.status.services.notSupported')"
@@ -544,7 +547,7 @@ onMounted(async () => {
                                     class="!text-[10px]"
                                 />
                             </div>
-                            <div>
+                            <div class="min-w-0">
                                 <span class="text-surface-500 block mb-0.5">{{ t('system.status.services.mysqldump') }}</span>
                                 <Tag
                                     :value="binaries?.mysqldump_available ? t('system.status.services.available') : t('system.status.services.missing')"
@@ -558,16 +561,16 @@ onMounted(async () => {
                             <div
                                 v-for="ext in phpRuntime?.extensions || []"
                                 :key="ext.name"
-                                class="p-2.5 rounded-lg border border-surface-200 dark:border-surface-700 flex items-center justify-between text-xs"
+                                class="p-2.5 rounded-lg border border-surface-200 dark:border-surface-700 flex items-center justify-between gap-3 text-xs overflow-hidden"
                             >
-                                <div>
+                                <div class="min-w-0 flex-1 break-words">
                                     <span class="font-mono font-bold text-surface-900 dark:text-surface-100">{{ ext.name }}</span>
-                                    <span class="text-surface-500 dark:text-surface-400 ml-2">— {{ ext.description }}</span>
+                                    <span class="text-surface-500 dark:text-surface-400 ml-1.5">— {{ ext.description }}</span>
                                 </div>
                                 <Tag
                                     :value="ext.loaded ? t('system.status.services.extLoaded') : t('system.status.services.extMissing')"
                                     :severity="ext.loaded ? 'success' : 'danger'"
-                                    class="!text-[10px]"
+                                    class="shrink-0 !text-[10px]"
                                 />
                             </div>
                         </div>
@@ -575,22 +578,22 @@ onMounted(async () => {
                 </div>
 
                 <!-- Col 2: Storage Directories & Automation Guide -->
-                <div class="card p-5 mb-0 flex flex-col justify-between space-y-4">
+                <div class="card p-5 mb-0 flex flex-col justify-between space-y-4 overflow-hidden min-w-0">
                     <div>
                         <h3 class="text-base font-bold text-surface-900 dark:text-surface-0 m-0 mb-4 flex items-center gap-2">
-                            <i class="pi pi-folder-open text-primary" aria-hidden="true"></i>
-                            <span>{{ t('system.status.services.storageTitle') }}</span>
+                            <i class="pi pi-folder-open text-primary shrink-0" aria-hidden="true"></i>
+                            <span class="break-words">{{ t('system.status.services.storageTitle') }}</span>
                         </h3>
 
                         <div class="space-y-2.5">
                             <div
                                 v-for="dir in storageDirs"
                                 :key="dir.key"
-                                class="p-3 rounded-xl border border-surface-200 dark:border-surface-700 flex items-center justify-between gap-3 text-xs"
+                                class="p-3 rounded-xl border border-surface-200 dark:border-surface-700 flex items-center justify-between gap-3 text-xs overflow-hidden"
                             >
-                                <div class="min-w-0">
-                                    <div class="font-semibold text-surface-900 dark:text-surface-100">{{ dir.label }}</div>
-                                    <div class="font-mono text-[11px] text-surface-500 mt-0.5">
+                                <div class="min-w-0 flex-1">
+                                    <div class="font-semibold text-surface-900 dark:text-surface-100 break-words">{{ dir.label }}</div>
+                                    <div class="font-mono text-[11px] text-surface-500 mt-0.5 break-all sm:break-words">
                                         {{ dir.relative_path }} • {{ t('system.status.services.filesCount', { count: dir.files_count }) }} ({{ formatBytes(dir.size_bytes) }})
                                     </div>
                                 </div>
@@ -604,14 +607,14 @@ onMounted(async () => {
                     </div>
 
                     <!-- Automation Info Box -->
-                    <div class="p-4 rounded-xl border border-blue-200 dark:border-blue-900/50 bg-blue-50/60 dark:bg-blue-950/20 text-xs">
-                        <div class="flex items-start gap-2.5">
-                            <i class="pi pi-info-circle text-blue-600 dark:text-blue-400 text-base mt-0.5" aria-hidden="true"></i>
-                            <div>
-                                <div class="font-bold text-blue-900 dark:text-blue-200 mb-1">
+                    <div class="p-4 rounded-xl border border-blue-200 dark:border-blue-900/50 bg-blue-50/60 dark:bg-blue-950/20 text-xs overflow-hidden">
+                        <div class="flex items-start gap-2.5 min-w-0">
+                            <i class="pi pi-info-circle text-blue-600 dark:text-blue-400 text-base mt-0.5 shrink-0" aria-hidden="true"></i>
+                            <div class="min-w-0 flex-1">
+                                <div class="font-bold text-blue-900 dark:text-blue-200 mb-1 break-words">
                                     {{ t('system.status.services.automationGuideTitle') }}
                                 </div>
-                                <p class="text-blue-800 dark:text-blue-300 leading-relaxed m-0">
+                                <p class="text-blue-800 dark:text-blue-300 leading-relaxed m-0 break-words">
                                     {{ t('system.status.services.automationGuideDesc', { time: scheduleConfig?.backup_time ?? '02:00' }) }}
                                 </p>
                             </div>
@@ -626,7 +629,7 @@ onMounted(async () => {
             v-model:visible="createDialogVisible"
             :header="t('system.status.dialog.createTitle')"
             modal
-            :style="{ width: '32rem' }"
+            :style="{ width: '32rem', maxWidth: '95vw' }"
             :closable="!creatingBackup"
         >
             <div class="space-y-4">
@@ -638,8 +641,8 @@ onMounted(async () => {
                     <label class="block text-xs font-semibold text-surface-700 dark:text-surface-200 mb-1.5">
                         {{ t('system.status.dialog.passphraseLabel') }}
                     </label>
-                    <div class="flex items-center gap-2">
-                        <div class="relative flex-1">
+                    <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                        <div class="relative flex-1 min-w-[200px]">
                             <InputText
                                 v-model="passphrase"
                                 :type="showPassphrase ? 'text' : 'password'"
@@ -676,7 +679,7 @@ onMounted(async () => {
                             @click="copyToClipboard(passphrase)"
                         />
                     </div>
-                    <small class="block text-[11px] text-amber-600 dark:text-amber-400 mt-1.5">
+                    <small class="block text-[11px] text-amber-600 dark:text-amber-400 mt-1.5 leading-snug break-words">
                         {{ hasConfiguredKey ? t('system.status.dialog.passphraseOptionalHint') : t('system.status.dialog.passphraseRequiredHint') }}
                     </small>
                 </div>

@@ -218,6 +218,13 @@ class SystemDiagnosticsService
         $result = [];
         foreach ($dirs as $item) {
             $path = $item['path'];
+            if (! File::isDirectory($path)) {
+                try {
+                    File::ensureDirectoryExists($path, 0755, true);
+                } catch (\Throwable) {
+                    // Biarkan tetap terdeteksi tidak ada jika gagal dibuat
+                }
+            }
             $exists = File::isDirectory($path);
             $writable = $exists && is_writable($path);
             $stats = $exists ? $this->calculateDirectoryStats($path) : ['files_count' => 0, 'size_bytes' => 0];

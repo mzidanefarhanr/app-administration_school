@@ -103,23 +103,23 @@ onMounted(async () => {
 <template>
     <div class="space-y-6">
         <!-- Header Card -->
-        <div class="card mb-0 border border-surface-200 dark:border-surface-700">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div class="flex items-start gap-3.5">
+        <div class="card mb-0 border border-surface-200 dark:border-surface-700 overflow-hidden">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="flex items-start gap-3.5 min-w-0 flex-1">
                     <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-primary/10 text-primary">
                         <i class="pi pi-gauge text-xl"></i>
                     </div>
-                    <div>
-                        <h1 class="text-xl font-bold text-surface-900 dark:text-surface-0 m-0">
+                    <div class="min-w-0 flex-1">
+                        <h1 class="text-xl font-bold text-surface-900 dark:text-surface-0 m-0 break-words">
                             {{ t('system.performance.title') }}
                         </h1>
-                        <p class="text-sm text-muted-color mt-1 mb-0">
+                        <p class="text-sm text-muted-color mt-1 mb-0 leading-relaxed break-words">
                             {{ t('system.performance.subtitle') }}
                         </p>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2 shrink-0">
+                <div class="flex items-center gap-2 shrink-0 self-start lg:self-center">
                     <Button
                         :label="t('system.performance.refreshBtn')"
                         icon="pi pi-refresh"
@@ -149,20 +149,20 @@ onMounted(async () => {
             <!-- 4 KPI Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                 <!-- KPI 1: Disk Usage -->
-                <div class="card mb-0 p-4 border border-surface-200 dark:border-surface-700 flex flex-col justify-between">
+                <div class="card mb-0 p-4 border border-surface-200 dark:border-surface-700 flex flex-col justify-between overflow-hidden min-w-0">
                     <div>
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-semibold uppercase tracking-wider text-muted-color">
+                        <div class="flex items-center justify-between gap-2 mb-2 min-w-0">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-muted-color truncate">
                                 {{ t('system.performance.kpi.diskUsage') }}
                             </span>
                             <div
-                                class="w-8 h-8 rounded-lg flex items-center justify-center"
+                                class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                                 :class="(diskUsage?.used_percent || 0) > 85 ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'"
                             >
                                 <i class="pi pi-hdd"></i>
                             </div>
                         </div>
-                        <div class="flex items-baseline gap-2 mb-2">
+                        <div class="flex items-baseline gap-2 flex-wrap mb-2">
                             <span class="text-2xl font-bold text-surface-900 dark:text-surface-0">
                                 {{ diskUsage?.used_percent ?? 0 }}%
                             </span>
@@ -172,23 +172,23 @@ onMounted(async () => {
                         </div>
                         <ProgressBar :value="diskUsage?.used_percent || 0" :showValue="false" style="height: 6px" class="mb-2" />
                     </div>
-                    <div class="text-xs text-muted-color">
+                    <div class="text-xs text-muted-color leading-snug break-words">
                         {{ t('system.performance.kpi.freeSpace', { free: formatBytes(diskUsage?.free_bytes), total: formatBytes(diskUsage?.total_bytes) }) }}
                     </div>
                 </div>
 
                 <!-- KPI 2: PHP Memory Usage -->
-                <div class="card mb-0 p-4 border border-surface-200 dark:border-surface-700 flex flex-col justify-between">
+                <div class="card mb-0 p-4 border border-surface-200 dark:border-surface-700 flex flex-col justify-between overflow-hidden min-w-0">
                     <div>
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-semibold uppercase tracking-wider text-muted-color">
+                        <div class="flex items-center justify-between gap-2 mb-2 min-w-0">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-muted-color truncate">
                                 {{ t('system.performance.kpi.memoryUsage') }}
                             </span>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400">
                                 <i class="pi pi-microchip"></i>
                             </div>
                         </div>
-                        <div class="flex items-baseline gap-2 mb-2">
+                        <div class="flex items-baseline gap-2 flex-wrap mb-2">
                             <span class="text-2xl font-bold text-surface-900 dark:text-surface-0">
                                 {{ formatBytes(memoryRuntime?.memory_usage_bytes) }}
                             </span>
@@ -198,52 +198,52 @@ onMounted(async () => {
                         </div>
                         <ProgressBar :value="memoryRuntime?.memory_usage_percent || 0" :showValue="false" style="height: 6px" class="mb-2" />
                     </div>
-                    <div class="text-xs text-muted-color">
+                    <div class="text-xs text-muted-color leading-snug break-words">
                         {{ t('system.performance.kpi.peakMemory', { peak: formatBytes(memoryRuntime?.memory_peak_bytes), limit: memoryRuntime?.memory_limit || '-' }) }}
                     </div>
                 </div>
 
                 <!-- KPI 3: Database Load & Ping -->
-                <div class="card mb-0 p-4 border border-surface-200 dark:border-surface-700 flex flex-col justify-between">
+                <div class="card mb-0 p-4 border border-surface-200 dark:border-surface-700 flex flex-col justify-between overflow-hidden min-w-0">
                     <div>
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-semibold uppercase tracking-wider text-muted-color">
+                        <div class="flex items-center justify-between gap-2 mb-2 min-w-0">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-muted-color truncate">
                                 {{ t('system.performance.kpi.dbLatency') }}
                             </span>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
                                 <i class="pi pi-bolt"></i>
                             </div>
                         </div>
-                        <div class="flex items-baseline gap-2 mb-1">
+                        <div class="flex items-baseline gap-2 flex-wrap mb-1">
                             <span class="text-2xl font-bold text-surface-900 dark:text-surface-0">
                                 {{ memoryRuntime?.db_ping_ms ?? 0 }} ms
                             </span>
                             <Tag :value="formatBytes(dbTables?.total_db_size_bytes)" severity="success" size="small" />
                         </div>
                     </div>
-                    <div class="text-xs text-muted-color">
+                    <div class="text-xs text-muted-color leading-snug break-words">
                         {{ t('system.performance.kpi.tablesSummary', { tables: formatNumber(dbTables?.total_tables_count), rows: formatNumber(dbTables?.total_rows_count) }) }}
                     </div>
                 </div>
 
                 <!-- KPI 4: Concurrency & Activity -->
-                <div class="card mb-0 p-4 border border-surface-200 dark:border-surface-700 flex flex-col justify-between">
+                <div class="card mb-0 p-4 border border-surface-200 dark:border-surface-700 flex flex-col justify-between overflow-hidden min-w-0">
                     <div>
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-semibold uppercase tracking-wider text-muted-color">
+                        <div class="flex items-center justify-between gap-2 mb-2 min-w-0">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-muted-color truncate">
                                 {{ t('system.performance.kpi.activity') }}
                             </span>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400">
                                 <i class="pi pi-users"></i>
                             </div>
                         </div>
-                        <div class="flex items-baseline gap-2 mb-1">
+                        <div class="flex items-baseline gap-2 flex-wrap mb-1">
                             <span class="text-xl font-bold text-surface-900 dark:text-surface-0">
                                 {{ t('system.performance.kpi.onlineUsers', { online: formatNumber(activity?.online_users_count) }) }}
                             </span>
                         </div>
                     </div>
-                    <div class="text-xs text-muted-color">
+                    <div class="text-xs text-muted-color leading-snug break-words">
                         {{ t('system.performance.kpi.tokensAndLogs', { tokens: formatNumber(activity?.active_tokens_count), logs: formatNumber(activity?.activities_last_24h) }) }}
                     </div>
                 </div>
@@ -252,12 +252,12 @@ onMounted(async () => {
             <!-- Storage Breakdown & PHP Runtime Limits -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <!-- Storage Breakdown (7 cols) -->
-                <div class="lg:col-span-7 card mb-0 border border-surface-200 dark:border-surface-700">
+                <div class="lg:col-span-7 card mb-0 border border-surface-200 dark:border-surface-700 overflow-hidden min-w-0">
                     <div class="mb-4">
-                        <h2 class="text-base font-bold text-surface-900 dark:text-surface-0 m-0">
+                        <h2 class="text-base font-bold text-surface-900 dark:text-surface-0 m-0 break-words">
                             {{ t('system.performance.storage.title') }}
                         </h2>
-                        <p class="text-xs text-muted-color mt-0.5 mb-0">
+                        <p class="text-xs text-muted-color mt-0.5 mb-0 break-words">
                             {{ t('system.performance.storage.subtitle') }}
                         </p>
                     </div>
@@ -266,18 +266,18 @@ onMounted(async () => {
                         <div
                             v-for="item in storageItems"
                             :key="item.key"
-                            class="p-3 rounded-lg border border-surface-200 dark:border-surface-700 bg-surface-50/40 dark:bg-surface-800/20"
+                            class="p-3 rounded-lg border border-surface-200 dark:border-surface-700 bg-surface-50/40 dark:bg-surface-800/20 overflow-hidden"
                         >
-                            <div class="flex items-center justify-between mb-2">
-                                <div class="flex items-center gap-2.5">
+                            <div class="flex items-center justify-between gap-2 mb-2 min-w-0">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
                                     <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" :class="item.badgeBg">
                                         <i :class="item.icon"></i>
                                     </div>
-                                    <span class="text-sm font-medium text-surface-900 dark:text-surface-0">
+                                    <span class="text-sm font-medium text-surface-900 dark:text-surface-0 break-words min-w-0">
                                         {{ item.label }}
                                     </span>
                                 </div>
-                                <div class="text-right">
+                                <div class="text-right shrink-0">
                                     <span class="text-sm font-bold text-surface-900 dark:text-surface-0">
                                         {{ formatBytes(item.bytes) }}
                                     </span>
@@ -292,37 +292,37 @@ onMounted(async () => {
                 </div>
 
                 <!-- PHP Runtime Limits (5 cols) -->
-                <div class="lg:col-span-5 card mb-0 border border-surface-200 dark:border-surface-700 flex flex-col justify-between">
+                <div class="lg:col-span-5 card mb-0 border border-surface-200 dark:border-surface-700 flex flex-col justify-between overflow-hidden min-w-0">
                     <div>
-                        <h2 class="text-base font-bold text-surface-900 dark:text-surface-0 m-0 mb-4">
+                        <h2 class="text-base font-bold text-surface-900 dark:text-surface-0 m-0 mb-4 break-words">
                             {{ t('system.performance.storage.runtimeLimitsTitle') }}
                         </h2>
 
                         <div class="space-y-3 text-xs">
-                            <div class="flex items-center justify-between py-2 border-b border-surface-100 dark:border-surface-800">
-                                <span class="text-muted-color">{{ t('system.performance.storage.memoryLimit') }}</span>
-                                <span class="font-mono font-semibold text-surface-900 dark:text-surface-0">{{ memoryRuntime?.memory_limit || '-' }}</span>
+                            <div class="flex items-center justify-between gap-2 py-2 border-b border-surface-100 dark:border-surface-800">
+                                <span class="text-muted-color break-words min-w-0">{{ t('system.performance.storage.memoryLimit') }}</span>
+                                <span class="font-mono font-semibold text-surface-900 dark:text-surface-0 shrink-0">{{ memoryRuntime?.memory_limit || '-' }}</span>
                             </div>
-                            <div class="flex items-center justify-between py-2 border-b border-surface-100 dark:border-surface-800">
-                                <span class="text-muted-color">{{ t('system.performance.storage.maxExecutionTime') }}</span>
-                                <span class="font-mono font-semibold text-surface-900 dark:text-surface-0">{{ memoryRuntime?.max_execution_time ?? 0 }} s</span>
+                            <div class="flex items-center justify-between gap-2 py-2 border-b border-surface-100 dark:border-surface-800">
+                                <span class="text-muted-color break-words min-w-0">{{ t('system.performance.storage.maxExecutionTime') }}</span>
+                                <span class="font-mono font-semibold text-surface-900 dark:text-surface-0 shrink-0">{{ memoryRuntime?.max_execution_time ?? 0 }} s</span>
                             </div>
-                            <div class="flex items-center justify-between py-2 border-b border-surface-100 dark:border-surface-800">
-                                <span class="text-muted-color">{{ t('system.performance.storage.uploadMaxFilesize') }}</span>
-                                <span class="font-mono font-semibold text-surface-900 dark:text-surface-0">{{ memoryRuntime?.upload_max_filesize || '-' }}</span>
+                            <div class="flex items-center justify-between gap-2 py-2 border-b border-surface-100 dark:border-surface-800">
+                                <span class="text-muted-color break-words min-w-0">{{ t('system.performance.storage.uploadMaxFilesize') }}</span>
+                                <span class="font-mono font-semibold text-surface-900 dark:text-surface-0 shrink-0">{{ memoryRuntime?.upload_max_filesize || '-' }}</span>
                             </div>
-                            <div class="flex items-center justify-between py-2 border-b border-surface-100 dark:border-surface-800">
-                                <span class="text-muted-color">{{ t('system.performance.storage.postMaxSize') }}</span>
-                                <span class="font-mono font-semibold text-surface-900 dark:text-surface-0">{{ memoryRuntime?.post_max_size || '-' }}</span>
+                            <div class="flex items-center justify-between gap-2 py-2 border-b border-surface-100 dark:border-surface-800">
+                                <span class="text-muted-color break-words min-w-0">{{ t('system.performance.storage.postMaxSize') }}</span>
+                                <span class="font-mono font-semibold text-surface-900 dark:text-surface-0 shrink-0">{{ memoryRuntime?.post_max_size || '-' }}</span>
                             </div>
-                            <div class="flex items-center justify-between py-2">
-                                <span class="text-muted-color">{{ t('system.performance.storage.dbPing') }}</span>
-                                <Tag :value="`${memoryRuntime?.db_ping_ms ?? 0} ms`" severity="info" size="small" />
+                            <div class="flex items-center justify-between gap-2 py-2">
+                                <span class="text-muted-color break-words min-w-0">{{ t('system.performance.storage.dbPing') }}</span>
+                                <Tag :value="`${memoryRuntime?.db_ping_ms ?? 0} ms`" severity="info" size="small" class="shrink-0" />
                             </div>
                         </div>
                     </div>
 
-                    <div class="mt-4 pt-3 border-t border-surface-200 dark:border-surface-700 flex items-center justify-between text-xs text-muted-color">
+                    <div class="mt-4 pt-3 border-t border-surface-200 dark:border-surface-700 flex items-center justify-between gap-2 text-xs text-muted-color flex-wrap">
                         <span>Diperbarui pada:</span>
                         <span class="font-mono">{{ perfData?.generated_at || '-' }} WIB</span>
                     </div>
@@ -330,24 +330,24 @@ onMounted(async () => {
             </div>
 
             <!-- Top 15 Database Tables Load -->
-            <div class="card mb-0 border border-surface-200 dark:border-surface-700">
+            <div class="card mb-0 border border-surface-200 dark:border-surface-700 overflow-hidden">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-                    <div>
-                        <h2 class="text-base font-bold text-surface-900 dark:text-surface-0 m-0">
+                    <div class="min-w-0">
+                        <h2 class="text-base font-bold text-surface-900 dark:text-surface-0 m-0 break-words">
                             {{ t('system.performance.tables.title') }}
                         </h2>
-                        <p class="text-xs text-muted-color mt-0.5 mb-0">
+                        <p class="text-xs text-muted-color mt-0.5 mb-0 break-words">
                             {{ t('system.performance.tables.subtitle') }}
                         </p>
                     </div>
-                    <Tag :value="`${formatNumber(dbTables?.total_tables_count)} Tabel • ${formatBytes(dbTables?.total_db_size_bytes)}`" severity="secondary" />
+                    <Tag :value="`${formatNumber(dbTables?.total_tables_count)} Tabel • ${formatBytes(dbTables?.total_db_size_bytes)}`" severity="secondary" class="shrink-0 self-start sm:self-center" />
                 </div>
 
                 <DataTable :value="topTables" size="small" stripedRows responsiveLayout="scroll" class="text-xs">
                     <Column field="table_name" :header="t('system.performance.tables.colTable')">
                         <template #body="{ data }">
                             <div class="flex items-center gap-2 font-mono font-semibold text-surface-900 dark:text-surface-0">
-                                <i class="pi pi-table text-primary text-xs"></i>
+                                <i class="pi pi-table text-primary text-xs shrink-0"></i>
                                 <span>{{ data.table_name }}</span>
                             </div>
                         </template>
@@ -375,36 +375,36 @@ onMounted(async () => {
 
                     <Column field="data_bytes" :header="t('system.performance.tables.colDataSize')">
                         <template #body="{ data }">
-                            <span class="font-mono">{{ formatBytes(data.data_bytes) }}</span>
+                            <span class="font-mono whitespace-nowrap">{{ formatBytes(data.data_bytes) }}</span>
                         </template>
                     </Column>
 
                     <Column field="index_bytes" :header="t('system.performance.tables.colIndexSize')">
                         <template #body="{ data }">
-                            <span class="font-mono text-muted-color">{{ formatBytes(data.index_bytes) }}</span>
+                            <span class="font-mono text-muted-color whitespace-nowrap">{{ formatBytes(data.index_bytes) }}</span>
                         </template>
                     </Column>
 
                     <Column field="total_bytes" :header="t('system.performance.tables.colTotalSize')">
                         <template #body="{ data }">
-                            <span class="font-mono font-semibold text-surface-900 dark:text-surface-0">{{ formatBytes(data.total_bytes) }}</span>
+                            <span class="font-mono font-semibold text-surface-900 dark:text-surface-0 whitespace-nowrap">{{ formatBytes(data.total_bytes) }}</span>
                         </template>
                     </Column>
                 </DataTable>
             </div>
 
             <!-- Error & Warning Logs Summary -->
-            <div class="card mb-0 border border-surface-200 dark:border-surface-700">
+            <div class="card mb-0 border border-surface-200 dark:border-surface-700 overflow-hidden">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-                    <div>
-                        <h2 class="text-base font-bold text-surface-900 dark:text-surface-0 m-0">
+                    <div class="min-w-0">
+                        <h2 class="text-base font-bold text-surface-900 dark:text-surface-0 m-0 break-words">
                             {{ t('system.performance.logs.title') }}
                         </h2>
-                        <p class="text-xs text-muted-color mt-0.5 mb-0">
+                        <p class="text-xs text-muted-color mt-0.5 mb-0 break-words">
                             {{ t('system.performance.logs.subtitle') }}
                         </p>
                     </div>
-                    <div class="flex items-center gap-2 flex-wrap">
+                    <div class="flex items-center gap-2 flex-wrap shrink-0">
                         <span class="text-xs text-muted-color">
                             {{ t('system.performance.logs.logFileSize', { size: formatBytes(errorLogs?.log_size_bytes) }) }}
                         </span>
@@ -421,7 +421,7 @@ onMounted(async () => {
                 <DataTable v-else :value="errorLogs.recent_entries" size="small" stripedRows responsiveLayout="scroll" class="text-xs">
                     <Column field="timestamp" :header="t('system.performance.logs.colTime')" style="width: 170px">
                         <template #body="{ data }">
-                            <span class="font-mono text-muted-color">{{ data.timestamp }}</span>
+                            <span class="font-mono text-muted-color whitespace-nowrap">{{ data.timestamp }}</span>
                         </template>
                     </Column>
 
