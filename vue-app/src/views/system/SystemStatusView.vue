@@ -23,6 +23,25 @@ const pruningBackups = ref(false);
 const downloadingFile = ref('');
 const deletingFile = ref('');
 
+// Dialog Unggah Arsip Eksternal (.ZIP)
+const uploadDialogVisible = ref(false);
+const fileInputRef = ref(null);
+const selectedUploadFile = ref(null);
+const uploadingArchive = ref(false);
+
+// Dialog Wizard Pulihkan (Restore) 2-Langkah
+const restoreDialogVisible = ref(false);
+const restoreStep = ref(1);
+const restoreTargetArchive = ref(null);
+const restorePassphrase = ref('');
+const showRestorePassphrase = ref(false);
+const inspectingArchive = ref(false);
+const inspectError = ref('');
+const inspectedManifest = ref(null);
+const createSafetyBackup = ref(true);
+const confirmRestoreWord = ref('');
+const executingRestore = ref(false);
+
 const backup = computed(() => statusData.value?.backup ?? null);
 const health = computed(() => backup.value?.health ?? null);
 const archives = computed(() => backup.value?.archives ?? []);
@@ -36,12 +55,21 @@ const binaries = computed(() => services.value?.binaries ?? null);
 
 const hasConfiguredKey = computed(() => !!scheduleConfig.value?.has_configured_encryption_key);
 
+const isConfirmWordValid = computed(() => {
+    const word = confirmRestoreWord.value.trim().toUpperCase();
+    return word === 'PULIHKAN' || word === 'RESTORE';
+});
+
 const formatBytes = (bytes) => {
     const val = Number(bytes || 0);
     if (val === 0) return '0 B';
     const units = ['B', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(val) / Math.log(1024));
     return `${(val / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 2)} ${units[i]}`;
+};
+
+const formatNumber = (num) => {
+    return new Intl.NumberFormat('id-ID').format(Number(num || 0));
 };
 
 const load = async () => {
@@ -216,6 +244,150 @@ const confirmDeleteArchive = (filename) => {
     });
 };
 
+// --- Fitur Unggah Arsip (.ZIP) ---
+const openUploadDialog = () => {
+    selectedUploadFile.value = null;
+    if (fileInputRef.value) {
+        fileInputRef.value.value = '';
+    }
+    uploadDialogVisible.value = true;
+};
+
+const triggerFileSelect = () => {
+    fileInputRef.value?.click();
+};
+
+const onFileSelected = (event) => {
+    const file = event.target?.files?.[0] ?? null;
+    selectedUploadFile.value = file;
+};
+
+const submitUploadArchive = async (proceedToRestore = false) => {
+    if (!selectedUploadFile.value) return;
+    uploadingArchive.value = true;
+    try {
+        const formData = new FormData();
+        formData.append('file', selectedUploadFile.value);
+
+        const response = await apiLogin.post('/api/backups/upload', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+
+        const uploadedData = response.data?.data ?? {};
+        toast.add({
+            severity: 'success',
+            summary: 'Sukses',
+            detail: t('system.status.upload.successUpload', { filename: uploadedData.filename || '' }),
+            life: 4000
+        });
+
+        uploadDialogVisible.value = false;
+        await load();
+
+        if (proceedToRestore && uploadedData.filename) {
+            openRestoreDialog({
+                filename: uploadedData.filename,
+                size_bytes: uploadedData.size_bytes,
+                sha256: uploadedData.sha256
+            });
+        }
+    } catch (err) {
+        const msg = err.response?.data?.errors?.file?.[0]
+            || err.response?.data?.message
+            || 'Gagal mengunggah berkas arsip cadangan.';
+        toast.add({
+            severity: 'error',
+            summary: 'Gagal',
+            detail: msg,
+            life: 5000
+        });
+    } finally {
+        uploadingArchive.value = false;
+    }
+};
+
+// --- Fitur Pulihkan (Restore) 2-Langkah ---
+const openRestoreDialog = (archiveItem) => {
+    restoreTargetArchive.value = archiveItem;
+    restoreStep.value = 1;
+    restorePassphrase.value = '';
+    showRestorePassphrase.value = false;
+    inspectError.value = '';
+    inspectedManifest.value = null;
+    createSafetyBackup.value = true;
+    confirmRestoreWord.value = '';
+    restoreDialogVisible.value = true;
+};
+
+const inspectSelectedArchive = async () => {
+    if (!restoreTargetArchive.value?.filename) return;
+    inspectingArchive.value = true;
+    inspectError.value = '';
+    try {
+        const payload = {};
+        if (restorePassphrase.value.trim() !== '') {
+            payload.passphrase = restorePassphrase.value.trim();
+        }
+
+        const response = await apiLogin.post(
+            `/api/backups/${encodeURIComponent(restoreTargetArchive.value.filename)}/inspect`,
+            payload
+        );
+
+        inspectedManifest.value = response.data?.data ?? null;
+        restoreStep.value = 2;
+    } catch (err) {
+        inspectError.value = err.response?.data?.errors?.passphrase?.[0]
+            || err.response?.data?.message
+            || 'Gagal memverifikasi arsip cadangan. Pastikan kunci enkripsi benar.';
+    } finally {
+        inspectingArchive.value = false;
+    }
+};
+
+const executeLiveRestore = async () => {
+    if (!restoreTargetArchive.value?.filename || !isConfirmWordValid.value) return;
+    executingRestore.value = true;
+    try {
+        const payload = {
+            confirmation_word: confirmRestoreWord.value.trim(),
+            create_safety_backup: createSafetyBackup.value
+        };
+        if (restorePassphrase.value.trim() !== '') {
+            payload.passphrase = restorePassphrase.value.trim();
+        }
+
+        const response = await apiLogin.post(
+            `/api/backups/${encodeURIComponent(restoreTargetArchive.value.filename)}/restore`,
+            payload
+        );
+
+        const report = response.data?.data ?? {};
+        toast.add({
+            severity: 'success',
+            summary: 'Pemulihan Berhasil',
+            detail: t('system.status.restore.successRestore', {
+                filename: report.archive_file || restoreTargetArchive.value.filename,
+                duration: report.duration_seconds ?? 0
+            }),
+            life: 6000
+        });
+
+        restoreDialogVisible.value = false;
+        await load();
+    } catch (err) {
+        const msg = err.response?.data?.message || 'Gagal menjalankan pemulihan database.';
+        toast.add({
+            severity: 'error',
+            summary: 'Pemulihan Gagal',
+            detail: msg,
+            life: 6000
+        });
+    } finally {
+        executingRestore.value = false;
+    }
+};
+
 onMounted(async () => {
     await load();
 });
@@ -259,6 +431,14 @@ onMounted(async () => {
                     variant="outlined"
                     :loading="loading"
                     @click="load"
+                />
+                <Button
+                    :label="t('system.status.uploadBackupBtn')"
+                    icon="pi pi-upload"
+                    size="small"
+                    severity="secondary"
+                    variant="outlined"
+                    @click="openUploadDialog"
                 />
                 <Button
                     :label="t('system.status.createBackupBtn')"
@@ -405,12 +585,22 @@ onMounted(async () => {
                     <p class="text-xs text-surface-500 dark:text-surface-400 max-w-md mx-auto mb-4">
                         {{ t('system.status.archives.emptySubtitle') }}
                     </p>
-                    <Button
-                        :label="t('system.status.createBackupBtn')"
-                        icon="pi pi-plus"
-                        size="small"
-                        @click="openCreateDialog"
-                    />
+                    <div class="flex items-center justify-center gap-2 flex-wrap">
+                        <Button
+                            :label="t('system.status.uploadBackupBtn')"
+                            icon="pi pi-upload"
+                            size="small"
+                            severity="secondary"
+                            variant="outlined"
+                            @click="openUploadDialog"
+                        />
+                        <Button
+                            :label="t('system.status.createBackupBtn')"
+                            icon="pi pi-plus"
+                            size="small"
+                            @click="openCreateDialog"
+                        />
+                    </div>
                 </div>
 
                 <!-- DataTable Archives -->
@@ -469,6 +659,14 @@ onMounted(async () => {
                     <Column :header="t('system.status.archives.colActions')" class="text-right">
                         <template #body="{ data }">
                             <div class="flex items-center justify-end gap-1.5">
+                                <Button
+                                    :label="t('system.status.archives.restore')"
+                                    icon="pi pi-history"
+                                    size="small"
+                                    severity="warn"
+                                    variant="outlined"
+                                    @click="openRestoreDialog(data)"
+                                />
                                 <Button
                                     :label="t('system.status.archives.download')"
                                     icon="pi pi-download"
@@ -703,6 +901,318 @@ onMounted(async () => {
                         :disabled="!hasConfiguredKey && passphrase.trim().length < 12"
                         @click="runBackupNow"
                     />
+                </div>
+            </template>
+        </Dialog>
+
+        <!-- Dialog Unggah Arsip Eksternal (.ZIP) -->
+        <Dialog
+            v-model:visible="uploadDialogVisible"
+            :header="t('system.status.upload.title')"
+            modal
+            :style="{ width: '32rem', maxWidth: '95vw' }"
+            :closable="!uploadingArchive"
+        >
+            <div class="space-y-4">
+                <p class="text-xs text-surface-600 dark:text-surface-300 leading-relaxed m-0">
+                    {{ t('system.status.upload.desc') }}
+                </p>
+
+                <input
+                    ref="fileInputRef"
+                    type="file"
+                    accept=".zip,application/zip"
+                    class="hidden"
+                    @change="onFileSelected"
+                />
+
+                <div
+                    class="p-5 border-2 border-dashed border-surface-300 dark:border-surface-700 rounded-xl bg-surface-50/50 dark:bg-surface-800/30 text-center cursor-pointer hover:border-primary transition-colors"
+                    @click="triggerFileSelect"
+                >
+                    <i class="pi pi-cloud-upload text-3xl text-primary mb-2"></i>
+                    <div v-if="selectedUploadFile" class="text-xs font-mono font-semibold text-surface-900 dark:text-surface-0 break-all">
+                        {{ selectedUploadFile.name }} ({{ formatBytes(selectedUploadFile.size) }})
+                    </div>
+                    <div v-else class="text-xs text-surface-500">
+                        {{ t('system.status.upload.noFileSelected') }}
+                    </div>
+                    <Button
+                        :label="t('system.status.upload.selectFileBtn')"
+                        icon="pi pi-folder-open"
+                        size="small"
+                        severity="secondary"
+                        variant="outlined"
+                        class="mt-3"
+                        :disabled="uploadingArchive"
+                        @click.stop="triggerFileSelect"
+                    />
+                </div>
+            </div>
+
+            <template #footer>
+                <div class="flex justify-end gap-2 flex-wrap">
+                    <Button
+                        :label="t('system.status.dialog.cancelBtn')"
+                        severity="secondary"
+                        variant="outlined"
+                        size="small"
+                        :disabled="uploadingArchive"
+                        @click="uploadDialogVisible = false"
+                    />
+                    <Button
+                        :label="uploadingArchive ? t('system.status.upload.uploadingBtn') : t('system.status.upload.uploadBtn')"
+                        icon="pi pi-upload"
+                        severity="secondary"
+                        size="small"
+                        :loading="uploadingArchive"
+                        :disabled="!selectedUploadFile"
+                        @click="submitUploadArchive(false)"
+                    />
+                    <Button
+                        :label="t('system.status.upload.uploadAndRestoreBtn')"
+                        icon="pi pi-history"
+                        severity="warn"
+                        size="small"
+                        :loading="uploadingArchive"
+                        :disabled="!selectedUploadFile"
+                        @click="submitUploadArchive(true)"
+                    />
+                </div>
+            </template>
+        </Dialog>
+
+        <!-- Dialog Wizard Pulihkan (Restore) Database 2-Langkah -->
+        <Dialog
+            v-model:visible="restoreDialogVisible"
+            :header="t('system.status.restore.title')"
+            modal
+            :style="{ width: '38rem', maxWidth: '95vw' }"
+            :closable="!inspectingArchive && !executingRestore"
+        >
+            <div v-if="restoreTargetArchive" class="space-y-4">
+                <!-- Step Indicator Badge -->
+                <div class="flex items-center justify-between gap-2 flex-wrap">
+                    <Tag
+                        :value="restoreStep === 1 ? t('system.status.restore.step1Badge') : t('system.status.restore.step2Badge')"
+                        :severity="restoreStep === 1 ? 'info' : 'warn'"
+                    />
+                    <span class="text-xs font-mono text-surface-500">
+                        {{ formatBytes(restoreTargetArchive.size_bytes) }}
+                    </span>
+                </div>
+
+                <!-- Selected Archive Box -->
+                <div class="p-3 rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800/40 flex items-center gap-3 overflow-hidden">
+                    <div class="w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-600 flex items-center justify-center shrink-0">
+                        <i class="pi pi-file-export text-lg"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <span class="text-[11px] text-surface-500 block">{{ t('system.status.restore.selectedArchive') }}</span>
+                        <span class="text-xs font-mono font-bold text-surface-900 dark:text-surface-0 break-all">
+                            {{ restoreTargetArchive.filename }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- STEP 1: Input Passphrase & Verify Manifest -->
+                <div v-if="restoreStep === 1" class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-surface-700 dark:text-surface-200 mb-1.5">
+                            {{ t('system.status.restore.passphraseLabel') }}
+                        </label>
+                        <div class="relative">
+                            <InputText
+                                v-model="restorePassphrase"
+                                :type="showRestorePassphrase ? 'text' : 'password'"
+                                :placeholder="t('system.status.restore.passphrasePlaceholder')"
+                                class="w-full text-sm font-mono pr-9"
+                                :disabled="inspectingArchive"
+                                @keyup.enter="inspectSelectedArchive"
+                            />
+                            <button
+                                type="button"
+                                class="absolute right-2.5 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600"
+                                @click="showRestorePassphrase = !showRestorePassphrase"
+                            >
+                                <i :class="showRestorePassphrase ? 'pi pi-eye-slash' : 'pi pi-eye'" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <small class="block text-[11px] text-surface-500 mt-1.5 leading-snug">
+                            {{ t('system.status.restore.passphraseHint') }}
+                        </small>
+                    </div>
+
+                    <div v-if="inspectError" class="p-3 rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20 text-xs text-red-600 dark:text-red-400 flex items-start gap-2">
+                        <i class="pi pi-times-circle mt-0.5 shrink-0"></i>
+                        <span class="break-words">{{ inspectError }}</span>
+                    </div>
+                </div>
+
+                <!-- STEP 2: Preview Verified Manifest & Confirm Restore -->
+                <div v-else-if="restoreStep === 2 && inspectedManifest" class="space-y-4">
+                    <!-- Verified Manifest Card -->
+                    <div class="p-3.5 rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/40 dark:bg-emerald-950/20 space-y-3">
+                        <div class="flex items-center justify-between gap-2 flex-wrap">
+                            <div class="flex items-center gap-2 text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                                <i class="pi pi-verified text-emerald-600"></i>
+                                <span>{{ t('system.status.restore.manifestTitle') }}</span>
+                            </div>
+                            <Tag :value="t('system.status.restore.checksumValid')" severity="success" class="!text-[10px]" />
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                            <div class="p-2 rounded-lg bg-white/80 dark:bg-surface-900/60 border border-surface-200/70 dark:border-surface-700">
+                                <span class="text-[11px] text-surface-500 block">{{ t('system.status.restore.createdAt') }}</span>
+                                <span class="font-semibold text-surface-900 dark:text-surface-0">
+                                    {{ formatDateTime(inspectedManifest.created_at_wib) }}
+                                </span>
+                            </div>
+                            <div class="p-2 rounded-lg bg-white/80 dark:bg-surface-900/60 border border-surface-200/70 dark:border-surface-700">
+                                <span class="text-[11px] text-surface-500 block">{{ t('system.status.restore.sourceDb') }}</span>
+                                <span class="font-mono font-semibold text-surface-900 dark:text-surface-0 break-all">
+                                    {{ inspectedManifest.database?.database_name }} ({{ inspectedManifest.database?.driver }})
+                                </span>
+                            </div>
+                            <div class="p-2 rounded-lg bg-white/80 dark:bg-surface-900/60 border border-surface-200/70 dark:border-surface-700">
+                                <span class="text-[11px] text-surface-500 block">{{ t('system.status.restore.totalTablesRows') }}</span>
+                                <span class="font-semibold text-surface-900 dark:text-surface-0">
+                                    {{ t('system.status.restore.tablesRowsValue', {
+                                        tables: formatNumber(inspectedManifest.database?.total_tables),
+                                        rows: formatNumber(inspectedManifest.database?.total_rows)
+                                    }) }}
+                                </span>
+                            </div>
+                            <div class="p-2 rounded-lg bg-white/80 dark:bg-surface-900/60 border border-surface-200/70 dark:border-surface-700">
+                                <span class="text-[11px] text-surface-500 block">{{ t('system.status.restore.attachmentsCount') }}</span>
+                                <span class="font-semibold text-surface-900 dark:text-surface-0">
+                                    {{ t('system.status.restore.attachmentsValue', {
+                                        count: formatNumber(inspectedManifest.attachments?.files_count),
+                                        size: formatBytes(inspectedManifest.attachments?.total_size_bytes)
+                                    }) }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Key Record Counts Grid -->
+                        <div>
+                            <span class="text-[11px] font-semibold text-surface-600 dark:text-surface-300 block mb-1.5">
+                                {{ t('system.status.restore.countsTitle') }}
+                            </span>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                                <div class="px-2.5 py-1.5 rounded bg-white/80 dark:bg-surface-900/60 border border-surface-200/60 dark:border-surface-700 flex items-center justify-between">
+                                    <span class="text-surface-500">{{ t('system.status.restore.countUsers') }}</span>
+                                    <span class="font-mono font-bold">{{ formatNumber(inspectedManifest.database?.key_counts?.users) }}</span>
+                                </div>
+                                <div class="px-2.5 py-1.5 rounded bg-white/80 dark:bg-surface-900/60 border border-surface-200/60 dark:border-surface-700 flex items-center justify-between">
+                                    <span class="text-surface-500">{{ t('system.status.restore.countStudents') }}</span>
+                                    <span class="font-mono font-bold">{{ formatNumber(inspectedManifest.database?.key_counts?.students) }}</span>
+                                </div>
+                                <div class="px-2.5 py-1.5 rounded bg-white/80 dark:bg-surface-900/60 border border-surface-200/60 dark:border-surface-700 flex items-center justify-between">
+                                    <span class="text-surface-500">{{ t('system.status.restore.countEmployees') }}</span>
+                                    <span class="font-mono font-bold">{{ formatNumber(inspectedManifest.database?.key_counts?.employees) }}</span>
+                                </div>
+                                <div class="px-2.5 py-1.5 rounded bg-white/80 dark:bg-surface-900/60 border border-surface-200/60 dark:border-surface-700 flex items-center justify-between">
+                                    <span class="text-surface-500">{{ t('system.status.restore.countRombels') }}</span>
+                                    <span class="font-mono font-bold">{{ formatNumber(inspectedManifest.database?.key_counts?.school_rombels) }}</span>
+                                </div>
+                                <div class="px-2.5 py-1.5 rounded bg-white/80 dark:bg-surface-900/60 border border-surface-200/60 dark:border-surface-700 flex items-center justify-between">
+                                    <span class="text-surface-500">{{ t('system.status.restore.countIncomingLetters') }}</span>
+                                    <span class="font-mono font-bold">{{ formatNumber(inspectedManifest.database?.key_counts?.incoming_letters) }}</span>
+                                </div>
+                                <div class="px-2.5 py-1.5 rounded bg-white/80 dark:bg-surface-900/60 border border-surface-200/60 dark:border-surface-700 flex items-center justify-between">
+                                    <span class="text-surface-500">{{ t('system.status.restore.countOutgoingLetters') }}</span>
+                                    <span class="font-mono font-bold">{{ formatNumber(inspectedManifest.database?.key_counts?.outgoing_letters) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Auto Safety Backup Checkbox -->
+                    <div class="p-3 rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50/60 dark:bg-surface-800/30 flex items-start gap-2.5">
+                        <Checkbox v-model="createSafetyBackup" :binary="true" inputId="safetyBackupChk" class="mt-0.5" :disabled="executingRestore" />
+                        <label for="safetyBackupChk" class="text-xs cursor-pointer">
+                            <span class="font-semibold text-surface-900 dark:text-surface-0 block">
+                                {{ t('system.status.restore.safetyBackupLabel') }}
+                            </span>
+                            <span class="text-[11px] text-surface-500 block mt-0.5">
+                                {{ t('system.status.restore.safetyBackupHint') }}
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- Session Preserved Info -->
+                    <div class="p-2.5 rounded-lg border border-blue-200 dark:border-blue-900/50 bg-blue-50/60 dark:bg-blue-950/20 text-[11px] text-blue-800 dark:text-blue-300 flex items-center gap-2">
+                        <i class="pi pi-shield text-blue-600 shrink-0"></i>
+                        <span>{{ t('system.status.restore.sessionPreservedNotice') }}</span>
+                    </div>
+
+                    <!-- Destructive Warning & Confirmation Word Input -->
+                    <div class="p-3.5 rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50/70 dark:bg-amber-950/20 space-y-2.5">
+                        <div class="flex items-start gap-2 text-xs font-semibold text-amber-900 dark:text-amber-300">
+                            <i class="pi pi-exclamation-triangle text-amber-600 mt-0.5 shrink-0"></i>
+                            <span>{{ t('system.status.restore.warningText') }}</span>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-surface-700 dark:text-surface-200 mb-1">
+                                {{ t('system.status.restore.confirmInputLabel') }}
+                            </label>
+                            <InputText
+                                v-model="confirmRestoreWord"
+                                :placeholder="t('system.status.restore.confirmInputPlaceholder')"
+                                class="w-full text-sm font-mono uppercase"
+                                :disabled="executingRestore"
+                                @keyup.enter="executeLiveRestore"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <template #footer>
+                <div class="flex items-center justify-between w-full gap-2">
+                    <div>
+                        <Button
+                            v-if="restoreStep === 2"
+                            :label="t('system.status.restore.backStepBtn')"
+                            icon="pi pi-arrow-left"
+                            severity="secondary"
+                            variant="text"
+                            size="small"
+                            :disabled="executingRestore"
+                            @click="restoreStep = 1"
+                        />
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <Button
+                            :label="t('system.status.dialog.cancelBtn')"
+                            severity="secondary"
+                            variant="outlined"
+                            size="small"
+                            :disabled="inspectingArchive || executingRestore"
+                            @click="restoreDialogVisible = false"
+                        />
+                        <Button
+                            v-if="restoreStep === 1"
+                            :label="inspectingArchive ? t('system.status.restore.inspectingBtn') : t('system.status.restore.inspectBtn')"
+                            icon="pi pi-search"
+                            severity="primary"
+                            size="small"
+                            :loading="inspectingArchive"
+                            :disabled="!hasConfiguredKey && restorePassphrase.trim().length < 1"
+                            @click="inspectSelectedArchive"
+                        />
+                        <Button
+                            v-else
+                            :label="executingRestore ? t('system.status.restore.executingBtn') : t('system.status.restore.executeBtn')"
+                            icon="pi pi-history"
+                            severity="danger"
+                            size="small"
+                            :loading="executingRestore"
+                            :disabled="!isConfirmWordValid"
+                            @click="executeLiveRestore"
+                        />
+                    </div>
                 </div>
             </template>
         </Dialog>

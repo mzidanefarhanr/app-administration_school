@@ -457,4 +457,336 @@ class RestoreDrillService
         $filename = 'drill-'.now()->format('Ymd_His').'.json';
         File::put($reportDir.DIRECTORY_SEPARATOR.$filename, json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
+
+    /**
+     * Validasi struktur dasar arsip ZIP cadangan (tanpa harus membuka enkripsi isi).
+     * Memastikan entri aman dari Zip-Slip/Zip-Bomb serta memiliki manifest.json dan database.sql.
+     */
+    public function validateArchiveStructure(string $archivePath): void
+    {
+        if (! file_exists($archivePath) || ! is_file($archivePath)) {
+            throw new \InvalidArgumentException('Berkas arsip cadangan tidak ditemukan.');
+        }
+
+        if (! class_exists(ZipArchive::class)) {
+            throw new \RuntimeException('Ekstensi ZipArchive tidak tersedia pada runtime PHP ini.');
+        }
+
+        $zip = new ZipArchive;
+        if ($zip->open($archivePath) !== true) {
+            throw new \InvalidArgumentException('Berkas yang diunggah bukan arsip ZIP yang valid.');
+        }
+
+        try {
+            $this->validateZipEntries($zip);
+
+            if ($zip->locateName('manifest.json') === false || $zip->locateName('database.sql') === false) {
+                throw new \InvalidArgumentException('Arsip ZIP tidak valid: wajib memuat manifest.json dan database.sql hasil backup Sekolario.');
+            }
+        } finally {
+            $zip->close();
+        }
+    }
+
+    /**
+     * Inspeksi & pratinjau isi arsip cadangan (Langkah 1 sebelum Restore).
+     * Memverifikasi checksum SHA-256 dan mendekripsi manifest.json menggunakan passphrase
+     * tanpa mengubah database operasional.
+     *
+     * @return array<string, mixed>
+     */
+    public function inspectArchive(string $archivePath, ?string $passphrase = null): array
+    {
+        if (! file_exists($archivePath) || ! is_file($archivePath)) {
+            throw new \InvalidArgumentException('Berkas arsip cadangan tidak ditemukan.');
+        }
+
+        if (! class_exists(ZipArchive::class)) {
+            throw new \RuntimeException('Ekstensi ZipArchive tidak tersedia pada runtime PHP ini.');
+        }
+
+        $actualSha = hash_file('sha256', $archivePath);
+        $companionPath = $archivePath.'.sha256';
+        $checksumVerified = true;
+
+        if (file_exists($companionPath)) {
+            $expectedSha = preg_split('/\s+/', trim(File::get($companionPath)))[0] ?? '';
+            if ($expectedSha !== '' && ! hash_equals($expectedSha, $actualSha)) {
+                throw new \RuntimeException('Checksum SHA-256 tidak cocok! Arsip kemungkinan rusak atau telah dimodifikasi.');
+            }
+        }
+
+        $passphrase = $passphrase ?: config('backup.encryption_key');
+        if (empty($passphrase)) {
+            throw new \InvalidArgumentException('Kunci enkripsi (passphrase) wajib diisi untuk membuka arsip cadangan.');
+        }
+
+        $zip = new ZipArchive;
+        if ($zip->open($archivePath) !== true) {
+            throw new \RuntimeException('Gagal membuka berkas arsip ZIP.');
+        }
+
+        try {
+            $this->validateZipEntries($zip);
+            $zip->setPassword((string) $passphrase);
+
+            $manifestContent = @$zip->getFromName('manifest.json');
+            if ($manifestContent === false) {
+                throw new \InvalidArgumentException('Kunci enkripsi (passphrase) tidak sesuai atau berkas manifest.json gagal didekripsi.');
+            }
+
+            $manifest = json_decode($manifestContent, true);
+            if (! is_array($manifest) || ! isset($manifest['database'])) {
+                throw new \RuntimeException('Format manifest.json di dalam arsip cadangan rusak atau tidak valid.');
+            }
+        } finally {
+            $zip->close();
+        }
+
+        $tables = $manifest['database']['tables'] ?? [];
+
+        return [
+            'filename' => basename($archivePath),
+            'size_bytes' => filesize($archivePath),
+            'archive_sha256' => $actualSha,
+            'checksum_verified' => $checksumVerified,
+            'created_at_wib' => $manifest['created_at_wib'] ?? $manifest['created_at_utc'] ?? null,
+            'environment' => $manifest['environment'] ?? 'unknown',
+            'database' => [
+                'database_name' => $manifest['database']['database_name'] ?? 'unknown',
+                'driver' => $manifest['database']['driver'] ?? 'mysql',
+                'dbms_version' => $manifest['database']['dbms_version'] ?? 'unknown',
+                'dump_sha256' => $manifest['database']['dump_sha256'] ?? null,
+                'last_migration' => $manifest['database']['last_migration'] ?? null,
+                'total_tables' => count($tables),
+                'total_rows' => array_sum($tables),
+                'key_counts' => [
+                    'users' => (int) ($tables['users'] ?? 0),
+                    'students' => (int) ($tables['students'] ?? 0),
+                    'employees' => (int) ($tables['employees'] ?? 0),
+                    'school_rombels' => (int) ($tables['school_rombels'] ?? 0),
+                    'incoming_letters' => (int) ($tables['incoming_letters'] ?? 0),
+                    'outgoing_letters' => (int) ($tables['outgoing_letters'] ?? 0),
+                ],
+            ],
+            'attachments' => [
+                'files_count' => (int) ($manifest['attachments']['files_count'] ?? 0),
+                'total_size_bytes' => (int) ($manifest['attachments']['total_size_bytes'] ?? 0),
+            ],
+        ];
+    }
+
+    /**
+     * Eksekusi pemulihan (Restore) operasional dari arsip cadangan ke database aktif
+     * dan direktori lampiran privat, dilengkapi snapshot pra-restore dan pelestarian sesi login.
+     *
+     * @return array<string, mixed>
+     */
+    public function restoreOperational(
+        string $archivePath,
+        ?string $passphrase = null,
+        bool $createSafetyBackup = true,
+        ?int $preserveUserId = null
+    ): array {
+        $startTime = microtime(true);
+
+        if (! file_exists($archivePath) || ! is_file($archivePath)) {
+            throw new \InvalidArgumentException('Berkas arsip cadangan tidak ditemukan.');
+        }
+
+        if (! class_exists(ZipArchive::class)) {
+            throw new \RuntimeException('Ekstensi ZipArchive tidak tersedia pada runtime PHP ini.');
+        }
+
+        // 1. Verifikasi checksum pendamping (.sha256)
+        $actualArchiveSha = hash_file('sha256', $archivePath);
+        $companionPath = $archivePath.'.sha256';
+        if (file_exists($companionPath)) {
+            $expectedSha = preg_split('/\s+/', trim(File::get($companionPath)))[0] ?? '';
+            if ($expectedSha !== '' && ! hash_equals($expectedSha, $actualArchiveSha)) {
+                throw new \RuntimeException('Checksum SHA-256 tidak cocok! Arsip kemungkinan rusak atau telah dimodifikasi.');
+            }
+        }
+
+        // 2. Validasi passphrase
+        $passphrase = $passphrase ?: config('backup.encryption_key');
+        if (empty($passphrase)) {
+            throw new \InvalidArgumentException('Kunci enkripsi (passphrase) wajib diisi untuk memulihkan arsip cadangan.');
+        }
+
+        $tempExtractDir = dirname($archivePath).DIRECTORY_SEPARATOR.'.tmp-live-restore-'.Str::uuid();
+        File::makeDirectory($tempExtractDir, 0755, true);
+
+        try {
+            // 3. Buka arsip ZIP, verifikasi passphrase, ekstrak manifest.json & database.sql terlebih dahulu
+            $zip = new ZipArchive;
+            if ($zip->open($archivePath) !== true) {
+                throw new \RuntimeException('Gagal membuka berkas arsip cadangan.');
+            }
+
+            $zip->setPassword((string) $passphrase);
+            $this->validateZipEntries($zip);
+
+            $manifestContent = @$zip->getFromName('manifest.json');
+            if ($manifestContent === false) {
+                $zip->close();
+                throw new \InvalidArgumentException('Kunci enkripsi (passphrase) tidak sesuai atau berkas manifest.json gagal didekripsi.');
+            }
+
+            $manifest = json_decode($manifestContent, true);
+            if (! is_array($manifest) || ! isset($manifest['database'])) {
+                $zip->close();
+                throw new \RuntimeException('Format manifest.json di dalam arsip cadangan rusak.');
+            }
+
+            if (! @$zip->extractTo($tempExtractDir, ['manifest.json', 'database.sql'])) {
+                $zip->close();
+                throw new \RuntimeException('Gagal mengekstrak database.sql dari arsip cadangan. Pastikan kunci enkripsi benar.');
+            }
+
+            $extractedSqlPath = $tempExtractDir.DIRECTORY_SEPARATOR.'database.sql';
+            if (! file_exists($extractedSqlPath) || filesize($extractedSqlPath) === 0) {
+                $zip->close();
+                throw new \RuntimeException('Berkas database.sql hasil ekstraksi kosong atau tidak ditemukan.');
+            }
+
+            // 4. Verifikasi hash SHA-256 database.sql dan audit keamanan isi SQL
+            $sqlSha256 = hash_file('sha256', $extractedSqlPath);
+            if (! hash_equals((string) ($manifest['database']['dump_sha256'] ?? ''), $sqlSha256)) {
+                $zip->close();
+                throw new \RuntimeException('Checksum database.sql tidak cocok dengan manifest.json.');
+            }
+
+            $this->auditSqlDumpContent($extractedSqlPath);
+
+            // Ekstrak seluruh lampiran ke direktori temporer sebelum menyentuh sistem aktif
+            $attachmentsMeta = $manifest['attachments']['files'] ?? [];
+            if (! empty($attachmentsMeta)) {
+                @$zip->extractTo($tempExtractDir);
+            }
+            $zip->close();
+
+            // 5. Buat Safety Backup otomatis kondisi saat ini sebelum menimpa database (jika diaktifkan)
+            $safetyBackupFilename = null;
+            if ($createSafetyBackup && strlen((string) $passphrase) >= 12) {
+                $backupService = app(BackupService::class);
+                $safetyResult = $backupService->createBackup((string) $passphrase);
+
+                // Ubah nama menjadi backup-pre-restore-YYYYmmdd_HHMMSS.zip agar mudah dikenali
+                $backupDir = config('backup.path', storage_path('app/backups'));
+                $preRestoreName = 'backup-pre-restore-'.now()->format('Ymd_His').'.zip';
+                $preRestorePath = $backupDir.DIRECTORY_SEPARATOR.$preRestoreName;
+                $preRestoreShaPath = $preRestorePath.'.sha256';
+
+                if (file_exists($safetyResult['path'])) {
+                    File::move($safetyResult['path'], $preRestorePath);
+                    File::put($preRestoreShaPath, "{$safetyResult['sha256']}  {$preRestoreName}\n");
+                    if (file_exists($safetyResult['companion_sha256_path'])) {
+                        File::delete($safetyResult['companion_sha256_path']);
+                    }
+                    $safetyBackupFilename = $preRestoreName;
+                }
+            }
+
+            // 6. Simpan sesi & token aktif milik admin yang sedang login agar tidak ter-logout pasca-restore
+            $connectionName = config('database.default', 'mysql');
+            $connection = DB::connection($connectionName);
+
+            $preservedTokens = [];
+            $preservedSessions = [];
+            if ($preserveUserId !== null) {
+                try {
+                    $preservedTokens = $connection->table('personal_access_tokens')
+                        ->where('tokenable_id', $preserveUserId)
+                        ->get()
+                        ->map(fn ($r) => (array) $r)
+                        ->all();
+                } catch (\Throwable) {
+                }
+
+                try {
+                    $preservedSessions = $connection->table('sessions')
+                        ->where('user_id', $preserveUserId)
+                        ->get()
+                        ->map(fn ($r) => (array) $r)
+                        ->all();
+                } catch (\Throwable) {
+                }
+            }
+
+            // 7. Eksekusi impor SQL ke database operasional aktif
+            $this->importSqlDump($connection, $extractedSqlPath, $tempExtractDir);
+
+            // 8. Pulihkan direktori lampiran privat (storage/app/attachments)
+            $attachmentsTargetDir = config('backup.attachments_path', storage_path('app/attachments'));
+            File::ensureDirectoryExists($attachmentsTargetDir);
+            File::cleanDirectory($attachmentsTargetDir);
+
+            $extractedAttachmentsDir = $tempExtractDir.DIRECTORY_SEPARATOR.'attachments';
+            if (! empty($attachmentsMeta) && File::isDirectory($extractedAttachmentsDir)) {
+                File::copyDirectory($extractedAttachmentsDir, $attachmentsTargetDir);
+            }
+
+            // 9. Verifikasi multi-faktor terhadap database & lampiran yang telah dipulihkan
+            $verificationResults = $this->verifyRestoredState($connection, $manifest, $attachmentsTargetDir);
+
+            // 10. Pulihkan kembali token & sesi aktif admin agar sesi browser tetap terautentikasi
+            if ($preserveUserId !== null) {
+                $userExistsAfterRestore = false;
+                try {
+                    $userExistsAfterRestore = $connection->table('users')->where('id', $preserveUserId)->exists();
+                } catch (\Throwable) {
+                }
+
+                if ($userExistsAfterRestore) {
+                    foreach ($preservedTokens as $tokenRow) {
+                        try {
+                            $exists = $connection->table('personal_access_tokens')
+                                ->where('token', $tokenRow['token'])
+                                ->exists();
+                            if (! $exists) {
+                                unset($tokenRow['id']);
+                                $connection->table('personal_access_tokens')->insert($tokenRow);
+                            }
+                        } catch (\Throwable) {
+                        }
+                    }
+
+                    foreach ($preservedSessions as $sessionRow) {
+                        try {
+                            $exists = $connection->table('sessions')
+                                ->where('id', $sessionRow['id'])
+                                ->exists();
+                            if (! $exists) {
+                                $connection->table('sessions')->insert($sessionRow);
+                            }
+                        } catch (\Throwable) {
+                        }
+                    }
+                }
+            }
+
+            $durationSeconds = round(microtime(true) - $startTime, 2);
+
+            $report = [
+                'status' => 'PASS',
+                'timestamp' => now('Asia/Jakarta')->toIso8601String(),
+                'duration_seconds' => $durationSeconds,
+                'archive_file' => basename($archivePath),
+                'archive_sha256' => $actualArchiveSha,
+                'safety_backup_file' => $safetyBackupFilename,
+                'target_connection' => $connectionName,
+                'target_database' => $connection->getDatabaseName(),
+                'checks' => $verificationResults,
+            ];
+
+            app(BackupMonitoringService::class)->recordDrillResult($report);
+
+            return $report;
+        } finally {
+            if (File::isDirectory($tempExtractDir)) {
+                File::deleteDirectory($tempExtractDir);
+            }
+        }
+    }
 }

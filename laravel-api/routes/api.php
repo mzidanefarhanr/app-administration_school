@@ -629,6 +629,13 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/backups/status', [BackupController::class, 'status'])->middleware('can:backup.manage');
     Route::post('/backups/run', [BackupController::class, 'run'])->middleware('can:backup.manage');
     Route::post('/backups/prune', [BackupController::class, 'prune'])->middleware('can:backup.manage');
+    Route::post('/backups/upload', [BackupController::class, 'upload'])->middleware('can:backup.manage');
+    Route::post('/backups/{filename}/inspect', [BackupController::class, 'inspect'])
+        ->where('filename', '.*')
+        ->middleware('can:backup.manage');
+    Route::post('/backups/{filename}/restore', [BackupController::class, 'restore'])
+        ->where('filename', '.*')
+        ->middleware('can:backup.manage');
     Route::get('/backups/{filename}/download', [BackupController::class, 'download'])
         ->where('filename', '.*')
         ->middleware('can:backup.manage');
