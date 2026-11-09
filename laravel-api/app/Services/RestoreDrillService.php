@@ -287,7 +287,24 @@ class RestoreDrillService
                     $dbName,
                 ];
 
-                $process = new Process($cmd);
+                $rawEnv = getenv();
+                $env = is_array($rawEnv) ? $rawEnv : [];
+                if (PHP_OS_FAMILY === 'Windows') {
+                    $systemRoot = $_SERVER['SystemRoot'] ?? $_SERVER['SYSTEMROOT'] ?? $_SERVER['WINDIR'] ?? 'C:\\Windows';
+                    foreach ($env as $k => $v) {
+                        if (strcasecmp((string) $k, 'SystemRoot') === 0 && is_string($v) && trim($v) !== '') {
+                            $systemRoot = $v;
+                            unset($env[$k]);
+                        }
+                        if (strcasecmp((string) $k, 'WINDIR') === 0) {
+                            unset($env[$k]);
+                        }
+                    }
+                    $env['SystemRoot'] = (string) $systemRoot;
+                    $env['WINDIR'] = (string) $systemRoot;
+                }
+
+                $process = new Process($cmd, null, $env);
                 $process->setInput(file_get_contents($sqlFilePath));
                 $process->setTimeout(300);
                 $process->run();

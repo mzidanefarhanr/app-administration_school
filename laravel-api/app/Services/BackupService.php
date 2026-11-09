@@ -355,7 +355,7 @@ class BackupService
                 $dbName,
             ];
 
-            $process = new Process($cmd);
+            $process = new Process($cmd, null, $this->buildSubprocessEnv());
             $process->setTimeout(300);
 
             $dumpFileHandle = fopen($destinationPath, 'wb');
@@ -517,5 +517,36 @@ class BackupService
         } catch (\Throwable $e) {
             return 'unknown';
         }
+    }
+
+    /**
+     * Bangun variabel lingkungan (environment) untuk subprocess mysqldump.
+     * Di Windows (khususnya saat dijalankan via Apache/Web Server), variabel SystemRoot
+     * sering tidak terwariskan ke proc_open sehingga Winsock gagal membuat socket TCP/IP (Error 10106).
+     *
+     * @return array<string, string>
+     */
+    protected function buildSubprocessEnv(): array
+    {
+        $rawEnv = getenv();
+        $env = is_array($rawEnv) ? $rawEnv : [];
+
+        if (PHP_OS_FAMILY === 'Windows') {
+            $systemRoot = $_SERVER['SystemRoot'] ?? $_SERVER['SYSTEMROOT'] ?? $_SERVER['WINDIR'] ?? 'C:\\Windows';
+            foreach ($env as $k => $v) {
+                if (strcasecmp((string) $k, 'SystemRoot') === 0 && is_string($v) && trim($v) !== '') {
+                    $systemRoot = $v;
+                    unset($env[$k]);
+                }
+                if (strcasecmp((string) $k, 'WINDIR') === 0) {
+                    unset($env[$k]);
+                }
+            }
+
+            $env['SystemRoot'] = (string) $systemRoot;
+            $env['WINDIR'] = (string) $systemRoot;
+        }
+
+        return $env;
     }
 }
