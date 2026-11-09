@@ -86,13 +86,20 @@ defineExpose({ load });
             </div>
 
             <!-- Backup Health (Admin / Backup Managers only) -->
-            <div v-if="canManageBackup && system" class="p-3 rounded-lg border border-surface flex items-center justify-between text-xs">
+            <div
+                v-if="canManageBackup && system"
+                class="p-3 rounded-lg border border-surface flex items-center justify-between text-xs cursor-pointer hover:bg-surface-50 dark:hover:bg-surface-800/40 transition-colors"
+                @click="navigateTo('/system/status')"
+            >
                 <div class="flex items-center gap-2.5">
                     <div class="w-7 h-7 rounded-full flex items-center justify-center shrink-0" :class="system.backup_status === 'healthy' ? 'bg-green-100 dark:bg-green-400/10 text-green-600' : 'bg-amber-100 dark:bg-amber-400/10 text-amber-600'">
                         <i class="pi pi-database" aria-hidden="true"></i>
                     </div>
                     <div>
-                        <div class="font-medium text-surface-900 dark:text-surface-0">{{ t('dashboard.system.backupStatus') }}</div>
+                        <div class="font-medium text-surface-900 dark:text-surface-0 flex items-center gap-1.5">
+                            <span>{{ t('dashboard.system.backupStatus') }}</span>
+                            <i class="pi pi-arrow-up-right text-[10px] text-muted-color"></i>
+                        </div>
                         <div class="text-muted-color">{{ system.last_backup_at ? t('dashboard.system.lastBackup', { date: system.last_backup_at }) : t('dashboard.system.noBackupYet') }}</div>
                     </div>
                 </div>

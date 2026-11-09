@@ -9,7 +9,8 @@
         "archives": "Arsip Dokumen",
         "teaching": "Administrasi Pembelajaran",
         "myAccount": "Akun Saya",
-        "access": "Pengaturan Akses"
+        "access": "Pengaturan Akses",
+        "system": "Sistem & Pemeliharaan"
     },
     "item": {
         "dashboard": "Dasbor",
@@ -40,6 +41,8 @@
         "profileUser": "Profil Pengguna",
         "masterAccounts": "Manajemen Pengguna",
         "masterTypeUsers": "Tipe Pengguna",
-        "masterRoles": "Peran & Hak Akses"
+        "masterRoles": "Peran & Hak Akses",
+        "systemStatus": "Status Sistem",
+        "systemPerformance": "Performa Sistem"
     }
 }

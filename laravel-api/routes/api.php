@@ -54,6 +54,7 @@ use App\Http\Controllers\StudentProgressionController;
 use App\Http\Controllers\StudentRombelController;
 use App\Http\Controllers\StudentStatusController;
 use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\SystemDiagnosticsController;
 use App\Http\Controllers\Tasks\OperationalTaskController;
 use App\Http\Controllers\TeachingAssignmentController;
 use App\Http\Controllers\TeachingJournalController;
@@ -626,9 +627,19 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::delete('/activities/{activity}', [ActivityController::class, 'destroy']);
     Route::get('/backups', [BackupController::class, 'index'])->middleware('can:backup.manage');
     Route::get('/backups/status', [BackupController::class, 'status'])->middleware('can:backup.manage');
+    Route::post('/backups/run', [BackupController::class, 'run'])->middleware('can:backup.manage');
+    Route::post('/backups/prune', [BackupController::class, 'prune'])->middleware('can:backup.manage');
     Route::get('/backups/{filename}/download', [BackupController::class, 'download'])
         ->where('filename', '.*')
         ->middleware('can:backup.manage');
+    Route::delete('/backups/{filename}', [BackupController::class, 'destroy'])
+        ->where('filename', '.*')
+        ->middleware('can:backup.manage');
+
+    Route::prefix('system')->middleware('can:backup.manage')->group(function () {
+        Route::get('/status', [SystemDiagnosticsController::class, 'status']);
+        Route::get('/performance', [SystemDiagnosticsController::class, 'performance']);
+    });
 
     // Subfase 11b: Laporan Rekapitulasi Sekolah, Statistik Multi-Tahun & Rekonsiliasi Dapodik (DEC-43)
     Route::prefix('reports')->group(function () {

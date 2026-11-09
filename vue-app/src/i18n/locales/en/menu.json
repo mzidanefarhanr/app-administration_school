@@ -9,7 +9,8 @@
         "archives": "Document Archives",
         "teaching": "Teaching Administration",
         "myAccount": "My Account",
-        "access": "Access Management"
+        "access": "Access Management",
+        "system": "System & Maintenance"
     },
     "item": {
         "dashboard": "Dashboard",
@@ -40,6 +41,8 @@
         "profileUser": "User Profile",
         "masterAccounts": "User Management",
         "masterTypeUsers": "User Types",
-        "masterRoles": "Roles & Permissions"
+        "masterRoles": "Roles & Permissions",
+        "systemStatus": "System Status",
+        "systemPerformance": "System Performance"
     }
 }

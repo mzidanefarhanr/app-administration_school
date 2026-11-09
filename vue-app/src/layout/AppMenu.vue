@@ -94,6 +94,14 @@ const model = computed(() => [
             { label: t('menu.item.masterTypeUsers'), icon: 'pi pi-fw pi-user-edit', to: '/master/typeusers', requires: 'master.manage' },
             { label: t('menu.item.masterRoles'), icon: 'pi pi-fw pi-shield', to: '/master/roles', requires: 'roles.view' }
         ]
+    },
+    {
+        label: t('menu.group.system'),
+        requires: ['backup.manage', 'users.manage'],
+        items: [
+            { label: t('menu.item.systemStatus'), icon: 'pi pi-fw pi-server', to: '/system/status', requires: ['backup.manage', 'users.manage'] },
+            { label: t('menu.item.systemPerformance'), icon: 'pi pi-fw pi-gauge', to: '/system/performance', requires: ['backup.manage', 'users.manage'] }
+        ]
     }
 ]);
 

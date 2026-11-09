@@ -189,6 +189,18 @@ const router = createRouter({
                     name: 'masterroles',
                     meta: { breadcrumbKey: 'menu.item.masterRoles', breadcrumb: 'Peran & Hak Akses', requiresAbility: 'roles.view' },
                     component: () => import('@/views/pages/master/Roles.vue')
+                },
+                {
+                    path: '/system/status',
+                    name: 'systemStatus',
+                    meta: { breadcrumbKey: 'menu.item.systemStatus', breadcrumb: 'Status Sistem', requiresAbility: ['backup.manage', 'users.manage'] },
+                    component: () => import('@/views/system/SystemStatusView.vue')
+                },
+                {
+                    path: '/system/performance',
+                    name: 'systemPerformance',
+                    meta: { breadcrumbKey: 'menu.item.systemPerformance', breadcrumb: 'Performa Sistem', requiresAbility: ['backup.manage', 'users.manage'] },
+                    component: () => import('@/views/system/SystemPerformanceView.vue')
                 }
             ]
         },
