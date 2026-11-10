@@ -343,7 +343,25 @@ onMounted(async () => {
                     <Tag :value="`${formatNumber(dbTables?.total_tables_count)} Tabel • ${formatBytes(dbTables?.total_db_size_bytes)}`" severity="secondary" class="shrink-0 self-start sm:self-center" />
                 </div>
 
-                <DataTable :value="topTables" size="small" stripedRows responsiveLayout="scroll" class="text-xs">
+                <DataTable
+                    :value="topTables"
+                    dataKey="table_name"
+                    paginator
+                    :rows="10"
+                    :rowsPerPageOptions="[5, 10]"
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                    :currentPageReportTemplate="t('master.common.showing')"
+                    size="small"
+                    stripedRows
+                    responsiveLayout="scroll"
+                    class="text-xs"
+                >
+                    <Column :header="t('master.common.no')" style="width: 3.5rem">
+                        <template #body="{ index }">
+                            <span class="font-mono text-muted-color">{{ index + 1 }}</span>
+                        </template>
+                    </Column>
+
                     <Column field="table_name" :header="t('system.performance.tables.colTable')">
                         <template #body="{ data }">
                             <div class="flex items-center gap-2 font-mono font-semibold text-surface-900 dark:text-surface-0">
@@ -418,7 +436,25 @@ onMounted(async () => {
                     <p class="text-xs text-muted-color m-0">{{ t('system.performance.logs.empty') }}</p>
                 </div>
 
-                <DataTable v-else :value="errorLogs.recent_entries" size="small" stripedRows responsiveLayout="scroll" class="text-xs">
+                <DataTable
+                    v-else
+                    :value="errorLogs.recent_entries"
+                    paginator
+                    :rows="10"
+                    :rowsPerPageOptions="[5, 10]"
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                    :currentPageReportTemplate="t('master.common.showing')"
+                    size="small"
+                    stripedRows
+                    responsiveLayout="scroll"
+                    class="text-xs"
+                >
+                    <Column :header="t('master.common.no')" style="width: 3.5rem">
+                        <template #body="{ index }">
+                            <span class="font-mono text-muted-color">{{ index + 1 }}</span>
+                        </template>
+                    </Column>
+
                     <Column field="timestamp" :header="t('system.performance.logs.colTime')" style="width: 170px">
                         <template #body="{ data }">
                             <span class="font-mono text-muted-color whitespace-nowrap">{{ data.timestamp }}</span>

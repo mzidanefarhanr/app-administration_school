@@ -604,7 +604,25 @@ onMounted(async () => {
                 </div>
 
                 <!-- DataTable Archives -->
-                <DataTable v-else :value="archives" responsiveLayout="scroll" class="text-sm" stripedRows>
+                <DataTable
+                    v-else
+                    :value="archives"
+                    dataKey="filename"
+                    paginator
+                    :rows="10"
+                    :rowsPerPageOptions="[5, 10]"
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                    :currentPageReportTemplate="t('master.common.showing')"
+                    responsiveLayout="scroll"
+                    class="text-sm"
+                    stripedRows
+                >
+                    <Column :header="t('master.common.no')" style="width: 3.5rem">
+                        <template #body="{ index }">
+                            <span class="text-xs font-medium text-surface-500 dark:text-surface-400">{{ index + 1 }}</span>
+                        </template>
+                    </Column>
+
                     <Column field="filename" :header="t('system.status.archives.colFilename')">
                         <template #body="{ data }">
                             <div class="flex items-center gap-2 font-mono text-xs font-semibold text-surface-900 dark:text-surface-100">
