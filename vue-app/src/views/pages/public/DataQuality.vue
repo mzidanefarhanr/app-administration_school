@@ -47,7 +47,7 @@ const createListState = () =>
         summaryLoading: false,
         summaryError: '',
         rows: [],
-        meta: { current_page: 1, per_page: 20, total: 0, last_page: 1 },
+        meta: { current_page: 1, per_page: 10, total: 0, last_page: 1 },
         loading: false,
         error: '',
         type: null,
@@ -55,7 +55,7 @@ const createListState = () =>
         status: 'open',
         search: '',
         page: 1,
-        perPage: 20,
+        perPage: 10,
         requestId: 0,
         debounceTimer: null
     });
@@ -433,7 +433,7 @@ onMounted(async () => {
 
                                 <div class="flex flex-col gap-2">
                                     <h3 class="text-lg font-semibold">{{ t('dataQuality.completeness.title') }}</h3>
-                                    <DataTable :value="studentList.summary.fields" dataKey="field" size="small" showGridlines scrollable>
+                                    <DataTable :value="studentList.summary.fields" dataKey="field" size="small" showGridlines scrollable paginator :rows="10" :rowsPerPageOptions="[10, 20, 50]" paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown" :currentPageReportTemplate="t('master.common.showing')">
                                         <Column :header="t('dataQuality.columns.field')" style="min-width: 10rem">
                                             <template #body="{ data }">{{ summaryFieldLabel(data) }}</template>
                                         </Column>
@@ -661,7 +661,7 @@ onMounted(async () => {
 
                                 <div class="flex flex-col gap-2">
                                     <h3 class="text-lg font-semibold">{{ t('dataQuality.completeness.title') }}</h3>
-                                    <DataTable :value="employeeList.summary.fields" dataKey="field" size="small" showGridlines scrollable>
+                                    <DataTable :value="employeeList.summary.fields" dataKey="field" size="small" showGridlines scrollable paginator :rows="10" :rowsPerPageOptions="[10, 20, 50]" paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown" :currentPageReportTemplate="t('master.common.showing')">
                                         <Column :header="t('dataQuality.columns.field')" style="min-width: 12rem">
                                             <template #body="{ data }">{{ summaryFieldLabel(data) }}</template>
                                         </Column>

@@ -72,11 +72,11 @@ const optionsLoading = ref(false);
 const optionsError = ref('');
 
 const items = ref([]);
-const meta = ref({ current_page: 1, per_page: 20, total: 0, last_page: 1 });
+const meta = ref({ current_page: 1, per_page: 10, total: 0, last_page: 1 });
 const listLoading = ref(false);
 const listError = ref('');
 const page = ref(1);
-const perPage = ref(20);
+const perPage = ref(10);
 const filters = reactive({ search: '', category: null, status: 'active', receivedFrom: null, receivedTo: null });
 let searchTimer = null;
 let listRequestId = 0;

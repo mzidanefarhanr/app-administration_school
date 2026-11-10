@@ -310,7 +310,7 @@ onMounted(() => {
         <!-- Tabular Summary DataTable -->
         <div class="card p-5 rounded-xl border border-surface-200 dark:border-surface-700 mb-0 shadow-none">
             <h4 class="font-semibold text-lg text-surface-900 dark:text-surface-0 mb-4">{{ t('reports.multiYear.table.title') }}</h4>
-            <DataTable :value="trends?.years || []" :loading="loading" stripedRows responsiveLayout="scroll" class="p-datatable-sm">
+            <DataTable :value="trends?.years || []" :loading="loading" stripedRows responsiveLayout="scroll" class="p-datatable-sm" paginator :rows="10" :rowsPerPageOptions="[10, 25, 50]" paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown" :currentPageReportTemplate="t('master.common.showing')">
                 <Column field="school_year_name" :header="t('reports.multiYear.table.schoolYear')" class="font-medium">
                     <template #body="{ data }">
                         <div class="flex items-center gap-2">

@@ -76,7 +76,7 @@ const filters = reactive({
     employee_id: null,
     status: 'all',
     scope: 'all',
-    per_page: 20,
+    per_page: 10,
     page: 1
 });
 
@@ -110,11 +110,18 @@ const summaryData = reactive({
 });
 
 const teachersReportList = ref([]);
+const summaryPage = ref(1);
+const summaryPerPage = ref(10);
+const summaryLastPage = computed(() => Math.max(1, Math.ceil((teachersReportList.value?.length || 0) / summaryPerPage.value)));
+const paginatedTeachersReportList = computed(() => {
+    const start = (summaryPage.value - 1) * summaryPerPage.value;
+    return (teachersReportList.value || []).slice(start, start + summaryPerPage.value);
+});
 const drilldownList = ref([]);
 const drilldownMeta = reactive({
     current_page: 1,
     last_page: 1,
-    per_page: 20,
+    per_page: 10,
     total: 0
 });
 const reportMeta = reactive({
@@ -237,6 +244,7 @@ async function fetchReport() {
 
         // Teacher list
         teachersReportList.value = data.by_teacher || [];
+        summaryPage.value = 1;
 
         // Drilldown
         drilldownList.value = data.drilldown?.data || [];
@@ -696,7 +704,7 @@ onMounted(() => {
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="teacher in teachersReportList" :key="teacher.employee_id" class="border-bottom-1 surface-border hover:surface-50 transition-colors">
+                                <tr v-for="teacher in paginatedTeachersReportList" :key="teacher.employee_id" class="border-bottom-1 surface-border hover:surface-50 transition-colors">
                                     <td class="p-3">
                                         <div class="font-semibold">{{ teacher.employee_name }}</div>
                                         <div class="text-xs text-color-secondary font-mono">NUPTK: {{ teacher.employee_nuptk || '-' }}</div>
@@ -731,6 +739,16 @@ onMounted(() => {
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                    <div class="flex flex-column sm:flex-row align-items-center justify-content-between gap-3 mt-3">
+                        <div class="text-sm text-color-secondary">
+                            Showing <strong>{{ paginatedTeachersReportList.length }}</strong> of <strong>{{ teachersReportList.length }}</strong> teachers (Page {{ summaryPage }} of {{ summaryLastPage }})
+                        </div>
+                        <div class="flex align-items-center gap-2">
+                            <Select v-model="summaryPerPage" :options="perPageOptions" optionLabel="label" optionValue="value" class="p-select-sm w-9rem" @change="summaryPage = 1" />
+                            <Button icon="pi pi-chevron-left" size="small" severity="secondary" outlined :disabled="summaryPage <= 1" @click="summaryPage -= 1" />
+                            <Button icon="pi pi-chevron-right" size="small" severity="secondary" outlined :disabled="summaryPage >= summaryLastPage" @click="summaryPage += 1" />
+                        </div>
                     </div>
                 </div>
 

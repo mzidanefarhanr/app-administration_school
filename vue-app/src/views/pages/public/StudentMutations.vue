@@ -61,7 +61,9 @@ const recapError = ref('');
 const recapLoading = ref(false);
 
 const items = ref([]);
-const meta = ref({ current_page: 1, per_page: 20, total: 0, last_page: 1 });
+const perPage = ref(10);
+const perPageOptions = [10, 20, 50, 100];
+const meta = ref({ current_page: 1, per_page: 10, total: 0, last_page: 1 });
 const listLoading = ref(false);
 const listError = ref('');
 const filters = reactive({ type: '', status: '', search: '' });
@@ -170,7 +172,7 @@ const loadHistory = async () => {
     listError.value = '';
 
     try {
-        const params = { school_year_id: yearId.value, page: page.value };
+        const params = { school_year_id: yearId.value, page: page.value, per_page: perPage.value };
         if (filters.type) params.type = filters.type;
         if (filters.status) params.status = filters.status;
         if (filters.search.trim()) params.search = filters.search.trim();
@@ -180,7 +182,7 @@ const loadHistory = async () => {
 
         const data = response.data?.data ?? {};
         items.value = data.items ?? [];
-        meta.value = data.meta ?? { current_page: 1, per_page: 20, total: 0, last_page: 1 };
+        meta.value = data.meta ?? { current_page: 1, per_page: perPage.value, total: 0, last_page: 1 };
 
         if (items.value.length === 0 && page.value > 1 && page.value > meta.value.last_page) {
             page.value = Math.max(1, meta.value.last_page);
@@ -247,7 +249,12 @@ const clearFilters = () => {
 };
 
 const onPage = (event) => {
-    page.value = event.page + 1;
+    if (event.rows && event.rows !== perPage.value) {
+        perPage.value = event.rows;
+        page.value = 1;
+    } else {
+        page.value = event.page + 1;
+    }
     loadHistory();
 };
 
@@ -937,13 +944,13 @@ onMounted(() => loadOptions(props.schoolYear?.id));
                 :lazy="true"
                 paginator
                 showGridlines
-                :rows="meta.per_page"
+                :rows="perPage"
                 :totalRecords="meta.total"
                 :first="(meta.current_page - 1) * meta.per_page"
-                :rowsPerPageOptions="[meta.per_page]"
+                :rowsPerPageOptions="perPageOptions"
                 dataKey="id"
                 :loading="listLoading"
-                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
+                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 currentPageReportTemplate="Showing {first} to {last} of {totalRecords} mutations"
                 @page="onPage"
             >

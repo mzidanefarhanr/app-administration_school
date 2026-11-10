@@ -94,7 +94,7 @@ const filters = reactive({
     hasDocument: 'all',
     letterFrom: null,
     letterTo: null,
-    perPage: 20
+    perPage: 10
 });
 let searchTimer = null;
 let listRequestId = 0;

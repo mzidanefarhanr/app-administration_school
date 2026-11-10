@@ -348,7 +348,7 @@ onMounted(async () => {
                     dataKey="table_name"
                     paginator
                     :rows="10"
-                    :rowsPerPageOptions="[5, 10]"
+                    :rowsPerPageOptions="[10, 25, 50, 100]"
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                     :currentPageReportTemplate="t('master.common.showing')"
                     size="small"
@@ -441,7 +441,7 @@ onMounted(async () => {
                     :value="errorLogs.recent_entries"
                     paginator
                     :rows="10"
-                    :rowsPerPageOptions="[5, 10]"
+                    :rowsPerPageOptions="[10, 25, 50, 100]"
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                     :currentPageReportTemplate="t('master.common.showing')"
                     size="small"

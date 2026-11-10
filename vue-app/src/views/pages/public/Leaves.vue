@@ -54,7 +54,7 @@ const options = ref(null);
 const optionsError = ref('');
 const activeTab = ref('requests');
 const items = ref([]);
-const meta = ref({ current_page: 1, per_page: 20, total: 0, last_page: 1 });
+const meta = ref({ current_page: 1, per_page: 10, total: 0, last_page: 1 });
 const listLoading = ref(false);
 const listError = ref('');
 const page = ref(1);
@@ -66,7 +66,7 @@ const filters = reactive({
     subjectType: 'all',
     dateFrom: null,
     dateTo: null,
-    perPage: 20
+    perPage: 10
 });
 
 let searchTimer = null;
@@ -1582,7 +1582,7 @@ onMounted(async () => {
                             <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
                                 <div class="border border-surface-200 dark:border-surface-700 rounded p-4 flex flex-col gap-3">
                                     <div class="font-semibold">{{ t('leaves.tabs.byStatus') }}</div>
-                                    <DataTable :value="recap.by_status" size="small" scrollable tableStyle="min-width: 18rem">
+                                    <DataTable :value="recap.by_status" size="small" scrollable tableStyle="min-width: 18rem" paginator :rows="10" :rowsPerPageOptions="[10, 25, 50]" paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown" :currentPageReportTemplate="t('master.common.showing')">
                                         <Column header="Status">
                                             <template #body="{ data }">{{ data.label }}</template>
                                         </Column>
@@ -1593,7 +1593,7 @@ onMounted(async () => {
 
                                 <div class="border border-surface-200 dark:border-surface-700 rounded p-4 flex flex-col gap-3">
                                     <div class="font-semibold">{{ t('leaves.tabs.byType') }}</div>
-                                    <DataTable :value="recap.by_type" size="small" scrollable tableStyle="min-width: 22rem">
+                                    <DataTable :value="recap.by_type" size="small" scrollable tableStyle="min-width: 22rem" paginator :rows="10" :rowsPerPageOptions="[10, 25, 50]" paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown" :currentPageReportTemplate="t('master.common.showing')">
                                         <Column header="Subject">
                                             <template #body="{ data }">{{ subjectTypeLabel(data.subject_type) }}</template>
                                         </Column>
@@ -1605,7 +1605,7 @@ onMounted(async () => {
 
                                 <div class="border border-surface-200 dark:border-surface-700 rounded p-4 flex flex-col gap-3">
                                     <div class="font-semibold">{{ t('leaves.tabs.byClass') }}</div>
-                                    <DataTable :value="recap.by_class" size="small" scrollable tableStyle="min-width: 18rem">
+                                    <DataTable :value="recap.by_class" size="small" scrollable tableStyle="min-width: 18rem" paginator :rows="10" :rowsPerPageOptions="[10, 25, 50]" paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown" :currentPageReportTemplate="t('master.common.showing')">
                                         <template #empty>No student leave in this period.</template>
                                         <Column field="class" header="Class" />
                                         <Column field="requests" :header="t('leaves.columns.requests')" />
@@ -1615,7 +1615,7 @@ onMounted(async () => {
 
                                 <div class="border border-surface-200 dark:border-surface-700 rounded p-4 flex flex-col gap-3">
                                     <div class="font-semibold">{{ t('leaves.tabs.byEmployee') }}</div>
-                                    <DataTable :value="recap.by_employee" size="small" scrollable tableStyle="min-width: 28rem">
+                                    <DataTable :value="recap.by_employee" size="small" scrollable tableStyle="min-width: 28rem" paginator :rows="10" :rowsPerPageOptions="[10, 25, 50]" paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown" :currentPageReportTemplate="t('master.common.showing')">
                                         <template #empty>No employee leave in this period.</template>
                                         <Column :header="t('leaves.columns.employee')">
                                             <template #body="{ data }">{{ data.name ?? '-' }}</template>

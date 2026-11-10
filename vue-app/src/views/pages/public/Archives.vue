@@ -142,7 +142,7 @@ const subjectTypeLabel = (value) => subjectTypes.value.find((type) => type.value
 
 // Daftar dan filter
 const items = ref([]);
-const meta = ref({ current_page: 1, per_page: 20, total: 0, last_page: 1 });
+const meta = ref({ current_page: 1, per_page: 10, total: 0, last_page: 1 });
 const listLoading = ref(false);
 const listError = ref('');
 const page = ref(1);
@@ -155,7 +155,7 @@ const filters = reactive({
     status: 'active',
     dateFrom: null,
     dateTo: null,
-    perPage: 20
+    perPage: 10
 });
 const filterSubjects = ref([]);
 const filterSubjectsLoading = ref(false);
@@ -730,6 +730,7 @@ const loadAccessHistory = async (id, targetPage = 1) => {
 
 const onHistoryPage = (event) => {
     if (!detail.value) return;
+    if (event.rows) historyMeta.value.per_page = event.rows;
     loadAccessHistory(detail.value.id, event.page + 1);
 };
 
@@ -935,6 +936,7 @@ const onDetailTabChange = (event) => {
 
 const onVersionsPage = (event) => {
     if (!detail.value) return;
+    if (event.rows) versionsMeta.value.per_page = event.rows;
     loadVersions(detail.value.id, event.page + 1);
 };
 
@@ -1584,12 +1586,13 @@ onBeforeUnmount(() => {
                                 showGridlines
                                 scrollable
                                 :rows="versionsMeta.per_page"
+                                :rowsPerPageOptions="perPageOptions"
                                 :totalRecords="versionsMeta.total"
                                 :first="(versionsMeta.current_page - 1) * versionsMeta.per_page"
                                 dataKey="id"
                                 :loading="versionsLoading"
                                 tableStyle="min-width: 56rem"
-                                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
+                                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                                 currentPageReportTemplate="Showing {first} to {last} of {totalRecords} versions"
                                 @page="onVersionsPage"
                             >
@@ -1664,12 +1667,13 @@ onBeforeUnmount(() => {
                             showGridlines
                             scrollable
                             :rows="historyMeta.per_page"
+                            :rowsPerPageOptions="perPageOptions"
                             :totalRecords="historyMeta.total"
                             :first="(historyMeta.current_page - 1) * historyMeta.per_page"
                             dataKey="id"
                             :loading="historyLoading"
                             tableStyle="min-width: 44rem"
-                            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
+                            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} events"
                             @page="onHistoryPage"
                         >

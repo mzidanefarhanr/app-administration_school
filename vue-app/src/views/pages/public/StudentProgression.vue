@@ -594,8 +594,8 @@ onMounted(() => {
                         size="small"
                         :loading="rosterLoading"
                         paginator
-                        :rows="25"
-                        :rowsPerPageOptions="[25, 50, 100]"
+                        :rows="10"
+                        :rowsPerPageOptions="[10, 25, 50, 100]"
                         currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
                         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                     >
@@ -725,7 +725,7 @@ onMounted(() => {
                         </ul>
                     </Message>
 
-                    <DataTable v-if="preview?.items?.length" :value="preview.items" dataKey="student_id" showGridlines scrollable scrollHeight="24rem" size="small">
+                    <DataTable v-if="preview?.items?.length" :value="preview.items" dataKey="student_id" showGridlines scrollable scrollHeight="24rem" size="small" paginator :rows="10" :rowsPerPageOptions="[10, 25, 50, 100]" paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown" :currentPageReportTemplate="t('master.common.showing')">
                         <Column :header="t('students.progression.step3.columns.student')" style="min-width: 13rem">
                             <template #body="{ data }">
                                 <span class="font-medium">{{ data.student_name ?? `Student #${data.student_id}` }}</span>
@@ -780,7 +780,7 @@ onMounted(() => {
 
                     <Message v-if="commitError" severity="error" :closable="false">{{ commitError }}</Message>
 
-                    <DataTable :value="commitResult?.items ?? []" dataKey="student_id" showGridlines scrollable scrollHeight="24rem" size="small">
+                    <DataTable :value="commitResult?.items ?? []" dataKey="student_id" showGridlines scrollable scrollHeight="24rem" size="small" paginator :rows="10" :rowsPerPageOptions="[10, 25, 50, 100]" paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown" :currentPageReportTemplate="t('master.common.showing')">
                         <Column :header="t('students.progression.step3.columns.student')" style="min-width: 13rem">
                             <template #body="{ data }">{{ data.student_name ?? `Student #${data.student_id}` }}</template>
                         </Column>
@@ -816,7 +816,7 @@ onMounted(() => {
 
                 <Message v-if="batchesError" severity="error" :closable="false" class="mt-3">{{ batchesError }}</Message>
 
-                <DataTable :value="batches" dataKey="id" showGridlines size="small" :loading="batchesLoading" scrollable class="mt-3">
+                <DataTable :value="batches" dataKey="id" showGridlines size="small" :loading="batchesLoading" scrollable class="mt-3" paginator :rows="10" :rowsPerPageOptions="[10, 25, 50, 100]" paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown" :currentPageReportTemplate="t('master.common.showing')">
                     <template #empty>{{ t('students.progression.history.empty') }}</template>
                     <Column header="#" style="width: 4rem">
                         <template #body="{ data }">#{{ data.id }}</template>
@@ -877,7 +877,7 @@ onMounted(() => {
                 <i class="pi pi-exclamation-triangle !text-3xl text-orange-500" />
                 <p>{{ conflictMessage }}</p>
             </div>
-            <DataTable :value="conflictItems" dataKey="student_id" showGridlines size="small" scrollable scrollHeight="18rem">
+            <DataTable :value="conflictItems" dataKey="student_id" showGridlines size="small" scrollable scrollHeight="18rem" paginator :rows="10" :rowsPerPageOptions="[10, 25, 50, 100]" paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown" :currentPageReportTemplate="t('master.common.showing')">
                 <Column header="Student" style="min-width: 12rem">
                     <template #body="{ data }">{{ data.student_name ?? `Student #${data.student_id}` }}</template>
                 </Column>
@@ -910,7 +910,7 @@ onMounted(() => {
                 <span class="text-sm text-surface-500">Created by {{ batchDetail.created_by?.name ?? '-' }}</span>
                 <span v-if="batchDetail.committed_by" class="text-sm text-surface-500"> · Committed by {{ batchDetail.committed_by.name }} </span>
             </div>
-            <DataTable :value="batchDetail.items ?? []" dataKey="student_id" showGridlines size="small" scrollable scrollHeight="20rem">
+            <DataTable :value="batchDetail.items ?? []" dataKey="student_id" showGridlines size="small" scrollable scrollHeight="20rem" paginator :rows="10" :rowsPerPageOptions="[10, 25, 50, 100]" paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown" :currentPageReportTemplate="t('master.common.showing')">
                 <template #empty>{{ t('students.progression.dialogBatch.noDetails') }}</template>
                 <Column :header="t('students.progression.step3.columns.student')" style="min-width: 13rem">
                     <template #body="{ data }">{{ data.student_name ?? `Student #${data.student_id}` }}</template>

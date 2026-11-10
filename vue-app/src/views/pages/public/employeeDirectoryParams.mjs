@@ -25,7 +25,7 @@ export function buildEmployeeListParams(filters = {}) {
     assignFilter(params, 'subject_id', filters.subjectId);
 
     params.page = filters.page && filters.page > 0 ? filters.page : 1;
-    params.per_page = EMPLOYEE_PER_PAGE_OPTIONS.includes(filters.perPage) ? filters.perPage : 20;
+    params.per_page = EMPLOYEE_PER_PAGE_OPTIONS.includes(filters.perPage) ? filters.perPage : 10;
     params.sort = EMPLOYEE_SORT_FIELDS.includes(filters.sort) ? filters.sort : 'name';
     params.direction = filters.direction === 'desc' ? 'desc' : 'asc';
 

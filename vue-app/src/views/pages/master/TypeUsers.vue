@@ -110,7 +110,8 @@ onMounted(() => {
                     :value="manyDatas"
                     paginator
                     showGridlines
-                    :rows="length_rows_pick"
+                    v-model:rows="length_rows_pick"
+                    :rowsPerPageOptions="length_rows"
                     dataKey="id"
                     filterDisplay="menu"
                     :loading="loading"

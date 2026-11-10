@@ -19,7 +19,7 @@ return [
     'statuses' => ['active', 'void'],
     'search_max_length' => 100,
     'per_page_options' => [10, 20, 50, 100],
-    'default_per_page' => 20,
+    'default_per_page' => 10,
     'events_limit' => 100,
 
     // Fase 07b (DEC-33): surat keluar, approval/sign, disposisi, dan nomor resmi.
@@ -37,7 +37,7 @@ return [
     'disposition_cancel_reason_min_length' => 10,
     'disposition_cancel_reason_max_length' => 255,
     'disposition_per_page_options' => [10, 20, 50, 100],
-    'disposition_default_per_page' => 20,
+    'disposition_default_per_page' => 10,
     'numbering' => [
         'scope' => 'outgoing',
         'period' => 'calendar_year',
@@ -89,7 +89,7 @@ return [
     'subject_picker' => [
         'search_max_length' => 100,
         'per_page_options' => [10, 20, 50],
-        'default_per_page' => 20,
+        'default_per_page' => 10,
         'max_per_page' => 50,
     ],
 ];

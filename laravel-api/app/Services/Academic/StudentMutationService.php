@@ -37,7 +37,7 @@ class StudentMutationService
 
     public const MAX_SEARCH_RESULTS = 20;
 
-    public const PER_PAGE = 20;
+    public const PER_PAGE = 10;
 
     public const CANCEL_IN_ARCHIVE_REASON = 'Cancelled mutation-in';
 
@@ -156,10 +156,15 @@ class StudentMutationService
             });
         }
 
+        $perPage = (int) ($filters['per_page'] ?? self::PER_PAGE);
+        if (! in_array($perPage, [10, 20, 25, 50, 100], true)) {
+            $perPage = self::PER_PAGE;
+        }
+
         $paginator = $query
             ->orderByDesc('effective_date')
             ->orderByDesc('id')
-            ->paginate(self::PER_PAGE);
+            ->paginate($perPage);
 
         return [
             'year' => $this->serializeYear($year, $activeYearId),

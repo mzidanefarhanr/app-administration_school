@@ -292,7 +292,7 @@ onMounted(async () => {
             <!-- Kelompok Usia -->
             <div class="card p-5 rounded-xl border border-surface-200 dark:border-surface-700 mb-0 shadow-none lg:col-span-1">
                 <h4 class="font-semibold text-lg text-surface-900 dark:text-surface-0 mb-4">{{ t('reports.demographics.tables.ageTitle') }}</h4>
-                <DataTable :value="ageGroupList" stripedRows responsiveLayout="scroll" class="p-datatable-sm">
+                <DataTable :value="ageGroupList" stripedRows responsiveLayout="scroll" class="p-datatable-sm" paginator :rows="10" :rowsPerPageOptions="[10, 25, 50]" paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown" :currentPageReportTemplate="t('master.common.showing')">
                     <Column field="age" :header="t('reports.demographics.tables.ageCol')" />
                     <Column field="count" :header="t('reports.demographics.tables.countCol')" />
                     <Column field="percent" :header="t('reports.demographics.tables.percentCol')">
@@ -306,7 +306,7 @@ onMounted(async () => {
             <!-- Rekap per Rombongan Belajar -->
             <div class="card p-5 rounded-xl border border-surface-200 dark:border-surface-700 mb-0 shadow-none lg:col-span-2">
                 <h4 class="font-semibold text-lg text-surface-900 dark:text-surface-0 mb-4">{{ t('reports.demographics.tables.rombelTitle') }}</h4>
-                <DataTable :value="demographics?.rombels || []" stripedRows responsiveLayout="scroll" class="p-datatable-sm" paginator :rows="8">
+                <DataTable :value="demographics?.rombels || []" stripedRows responsiveLayout="scroll" class="p-datatable-sm" paginator :rows="10" :rowsPerPageOptions="[10, 25, 50]" paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown" :currentPageReportTemplate="t('master.common.showing')">
                     <Column field="name" :header="t('reports.demographics.tables.rombelCol')" class="font-medium" />
                     <Column field="level" :header="t('reports.demographics.tables.levelCol')" />
                     <Column field="male" :header="t('reports.demographics.tables.maleCol')" />

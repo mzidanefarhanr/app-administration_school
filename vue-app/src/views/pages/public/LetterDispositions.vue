@@ -38,11 +38,11 @@ const statusOptions = computed(() => [
 
 const options = ref(null);
 const items = ref([]);
-const meta = ref({ current_page: 1, per_page: 20, total: 0, last_page: 1 });
+const meta = ref({ current_page: 1, per_page: 10, total: 0, last_page: 1 });
 const listLoading = ref(false);
 const listError = ref('');
 const page = ref(1);
-const filters = reactive({ search: '', status: 'open', overdue: false, recipient: null, perPage: 20 });
+const filters = reactive({ search: '', status: 'open', overdue: false, recipient: null, perPage: 10 });
 const recipientOptions = ref([]);
 let searchTimer = null;
 let listRequestId = 0;

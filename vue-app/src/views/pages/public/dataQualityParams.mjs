@@ -138,7 +138,7 @@ export function buildStudentSummaryParams(schoolYearId) {
 export function buildIssueParams(filters = {}) {
     const params = {
         page: positiveInteger(filters.page, 1),
-        per_page: DATA_QUALITY_PER_PAGE_OPTIONS.includes(filters.perPage) ? filters.perPage : 20,
+        per_page: DATA_QUALITY_PER_PAGE_OPTIONS.includes(filters.perPage) ? filters.perPage : 10,
         status: ISSUE_STATUS_OPTIONS.some((option) => option.value === filters.status) ? filters.status : 'open'
     };
 

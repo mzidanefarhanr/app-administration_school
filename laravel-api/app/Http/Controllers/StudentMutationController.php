@@ -71,6 +71,7 @@ class StudentMutationController extends Controller
             'status' => ['nullable', 'in:active,cancelled'],
             'search' => ['nullable', 'string', 'max:100'],
             'page' => ['nullable', 'integer', 'min:1'],
+            'per_page' => ['nullable', 'integer', 'in:10,20,25,50,100'],
         ], [
             'school_year_id.required' => 'The academic year is required.',
             'type.in' => 'The mutation type must be in or out.',
@@ -85,6 +86,7 @@ class StudentMutationController extends Controller
             'status' => $validated['status'] ?? null,
             'search' => $validated['search'] ?? null,
             'page' => isset($validated['page']) ? (int) $validated['page'] : 1,
+            'per_page' => isset($validated['per_page']) ? (int) $validated['per_page'] : StudentMutationService::PER_PAGE,
         ]);
 
         return new StatusResource(true, 'Mutation history retrieved successfully.', $data);

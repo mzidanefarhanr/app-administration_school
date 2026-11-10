@@ -119,7 +119,7 @@ return [
     ],
 
     'per_page_options' => [10, 20, 50, 100],
-    'default_per_page' => 20,
+    'default_per_page' => 10,
     'search_max_length' => 100,
     'subject_picker_limit' => 20,
 ];

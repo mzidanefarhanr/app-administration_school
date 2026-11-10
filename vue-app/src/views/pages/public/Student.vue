@@ -278,7 +278,7 @@ function handleSchoolYearsChange() {
 }
 
 const loading = ref(true);
-const length_rows_pick = ref(20);
+const length_rows_pick = ref(10);
 const length_rows = ref([10, 20, 50, 100]);
 
 const getSeverity = (status) => {
@@ -3058,6 +3058,7 @@ onMounted(async () => {
             dataKey="id"
             paginator
             :rows="10"
+            :rowsPerPageOptions="[10, 25, 50, 100]"
             showGridlines
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} archived students"

@@ -84,6 +84,13 @@ const sessionFilters = reactive({
 const sessionsLoading = ref(false);
 const sessionsError = ref('');
 const sessionList = ref([]);
+const sessionPage = ref(1);
+const sessionPerPage = ref(10);
+const sessionLastPage = computed(() => Math.max(1, Math.ceil((sessionList.value?.length || 0) / sessionPerPage.value)));
+const paginatedSessionList = computed(() => {
+    const start = (sessionPage.value - 1) * sessionPerPage.value;
+    return (sessionList.value || []).slice(start, start + sessionPerPage.value);
+});
 const sessionSummary = reactive({
     total_slots: 0,
     effective_sessions: 0,
@@ -111,7 +118,7 @@ const journalFilters = reactive({
     date_to: '',
     search: '',
     page: 1,
-    per_page: 20
+    per_page: 10
 });
 
 const journalsLoading = ref(false);
@@ -120,7 +127,7 @@ const journalList = ref([]);
 const journalMeta = reactive({
     current_page: 1,
     last_page: 1,
-    per_page: 20,
+    per_page: 10,
     total: 0
 });
 
@@ -338,6 +345,7 @@ async function refreshCurrentTab() {
 }
 
 async function fetchSessions() {
+    sessionPage.value = 1;
     if (!context.school_year_id || !context.semester_id) {
         return;
     }
@@ -894,7 +902,7 @@ onMounted(() => {
                                 <tr v-else-if="sessionList.length === 0">
                                     <td colspan="6" class="p-4 text-center text-color-secondary">No teaching sessions found for the selected date and filter criteria.</td>
                                 </tr>
-                                <tr v-for="session in sessionList" :key="session.session_key" class="border-bottom-1 surface-border" :class="{ 'surface-50 opacity-80': !session.is_effective }">
+                                <tr v-for="session in paginatedSessionList" :key="session.session_key" class="border-bottom-1 surface-border" :class="{ 'surface-50 opacity-80': !session.is_effective }">
                                     <td class="p-3 vertical-align-top">
                                         <div class="font-semibold">{{ session.session_date }}</div>
                                         <div class="text-xs text-color-secondary">{{ session.day_label }}</div>
@@ -951,6 +959,16 @@ onMounted(() => {
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                    <div class="flex flex-wrap align-items-center justify-content-between gap-3 mt-3">
+                        <div class="text-sm text-color-secondary">
+                            Total sessions: <strong>{{ sessionList.length }}</strong> (Page {{ sessionPage }} of {{ sessionLastPage }})
+                        </div>
+                        <div class="flex align-items-center gap-2">
+                            <Select v-model="sessionPerPage" :options="perPageOptions" optionLabel="label" optionValue="value" class="w-9rem" @change="sessionPage = 1" />
+                            <Button icon="pi pi-chevron-left" size="small" severity="secondary" outlined :disabled="sessionPage <= 1" @click="sessionPage -= 1" />
+                            <Button icon="pi pi-chevron-right" size="small" severity="secondary" outlined :disabled="sessionPage >= sessionLastPage" @click="sessionPage += 1" />
+                        </div>
                     </div>
                 </div>
 

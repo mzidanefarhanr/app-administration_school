@@ -160,7 +160,17 @@ onMounted(() => {
             <Message v-if="errorMessage" severity="error" :closable="false" class="my-4">{{ errorMessage }}</Message>
 
             <div class="card flex flex-col gap-4 mt-4">
-                <DataTable :value="roles" dataKey="id" :loading="loading" showGridlines paginator :rows="10">
+                <DataTable
+                    :value="roles"
+                    dataKey="id"
+                    :loading="loading"
+                    showGridlines
+                    paginator
+                    :rows="10"
+                    :rowsPerPageOptions="[10, 25, 50, 100]"
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                    :currentPageReportTemplate="t('master.common.showing')"
+                >
                     <template #header>
                         <div class="flex flex-wrap gap-2 w-full">{{ t('master.dialog.totalCount', { entity: t('master.roles.title'), count: roles ? roles.length : t('master.common.loading') }) }}</div>
                     </template>

@@ -58,6 +58,7 @@ const rombelsForSelectedYear = computed(() => {
 });
 
 // ─── Tab 1: Timetable & Schedules State ───────────────────────────────────────
+const perPageOptions = [10, 20, 50, 100];
 const scheduleFilters = reactive({
     school_rombel_id: null,
     employee_id: null,
@@ -67,14 +68,14 @@ const scheduleFilters = reactive({
     status: 'active',
     search: '',
     page: 1,
-    per_page: 50
+    per_page: 10
 });
 
 const schedulesLoading = ref(false);
 const schedulesError = ref('');
 const scheduleList = ref([]);
 const scheduleMatrix = ref([]);
-const scheduleMeta = reactive({ current_page: 1, per_page: 50, total: 0, last_page: 1 });
+const scheduleMeta = reactive({ current_page: 1, per_page: 10, total: 0, last_page: 1 });
 
 // ─── Tab 2: Teaching Assignments State ────────────────────────────────────────
 const assignmentFilters = reactive({
@@ -84,13 +85,13 @@ const assignmentFilters = reactive({
     status: 'active',
     search: '',
     page: 1,
-    per_page: 20
+    per_page: 10
 });
 
 const assignmentsLoading = ref(false);
 const assignmentsError = ref('');
 const assignmentList = ref([]);
-const assignmentMeta = reactive({ current_page: 1, per_page: 20, total: 0, last_page: 1 });
+const assignmentMeta = reactive({ current_page: 1, per_page: 10, total: 0, last_page: 1 });
 const allPeriodAssignments = ref([]);
 
 // ─── Tab 3: Schedule Exceptions State ─────────────────────────────────────────
@@ -102,13 +103,13 @@ const exceptionFilters = reactive({
     date_to: '',
     search: '',
     page: 1,
-    per_page: 20
+    per_page: 10
 });
 
 const exceptionsLoading = ref(false);
 const exceptionsError = ref('');
 const exceptionList = ref([]);
-const exceptionMeta = reactive({ current_page: 1, per_page: 20, total: 0, last_page: 1 });
+const exceptionMeta = reactive({ current_page: 1, per_page: 10, total: 0, last_page: 1 });
 const allPeriodSchedules = ref([]);
 
 function extractErrors(error, fallbackMessage) {
@@ -177,7 +178,7 @@ async function loadAllPeriodAssignments() {
                 school_year_id: context.school_year_id,
                 semester_id: context.semester_id,
                 status: 'all',
-                per_page: 200
+                per_page: 100
             }
         });
         allPeriodAssignments.value = res?.data?.data || [];
@@ -231,7 +232,7 @@ async function loadSchedules() {
         const res = await apiLogin.get('/teaching/schedules', { params });
         scheduleList.value = res?.data?.data || [];
         scheduleMatrix.value = res?.data?.matrix || [];
-        Object.assign(scheduleMeta, res?.data?.meta || { current_page: 1, per_page: 50, total: 0, last_page: 1 });
+        Object.assign(scheduleMeta, res?.data?.meta || { current_page: 1, per_page: 10, total: 0, last_page: 1 });
     } catch (err) {
         schedulesError.value = err?.response?.data?.message || 'Failed to load teaching schedules.';
     } finally {
@@ -260,7 +261,7 @@ async function loadAssignments() {
 
         const res = await apiLogin.get('/teaching/assignments', { params });
         assignmentList.value = res?.data?.data || [];
-        Object.assign(assignmentMeta, res?.data?.meta || { current_page: 1, per_page: 20, total: 0, last_page: 1 });
+        Object.assign(assignmentMeta, res?.data?.meta || { current_page: 1, per_page: 10, total: 0, last_page: 1 });
     } catch (err) {
         assignmentsError.value = err?.response?.data?.message || 'Failed to load teaching assignments.';
     } finally {
@@ -290,7 +291,7 @@ async function loadExceptions() {
 
         const res = await apiLogin.get('/teaching/exceptions', { params });
         exceptionList.value = res?.data?.data || [];
-        Object.assign(exceptionMeta, res?.data?.meta || { current_page: 1, per_page: 20, total: 0, last_page: 1 });
+        Object.assign(exceptionMeta, res?.data?.meta || { current_page: 1, per_page: 10, total: 0, last_page: 1 });
     } catch (err) {
         exceptionsError.value = err?.response?.data?.message || 'Failed to load schedule exceptions.';
     } finally {
@@ -1052,7 +1053,8 @@ onMounted(async () => {
             </div>
 
             <!-- List View -->
-            <div v-else class="overflow-x-auto">
+            <div v-else class="flex flex-col gap-3">
+                <div class="overflow-x-auto">
                 <table class="w-full text-sm border-collapse" data-testid="timetable-list-table">
                     <thead>
                         <tr class="border-b border-surface-200 text-left bg-surface-50">
@@ -1092,6 +1094,15 @@ onMounted(async () => {
                         </tr>
                     </tbody>
                 </table>
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-surface-600">
+                    <span>Showing page {{ scheduleMeta.current_page }} of {{ scheduleMeta.last_page }} ({{ scheduleMeta.total }} total)</span>
+                    <div class="flex items-center gap-2">
+                        <Select v-model="scheduleFilters.per_page" :options="perPageOptions" class="w-24" @change="scheduleFilters.page = 1; loadSchedules();" />
+                        <Button :label="t('teaching.schedules.pagination.prev')" size="small" outlined :disabled="scheduleMeta.current_page <= 1" @click="scheduleFilters.page -= 1; loadSchedules();" />
+                        <Button :label="t('teaching.schedules.pagination.next')" size="small" outlined :disabled="scheduleMeta.current_page >= scheduleMeta.last_page" @click="scheduleFilters.page += 1; loadSchedules();" />
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1254,7 +1265,8 @@ onMounted(async () => {
             <!-- Pagination -->
             <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-surface-600">
                 <span>Showing page {{ assignmentMeta.current_page }} of {{ assignmentMeta.last_page }} ({{ assignmentMeta.total }} total)</span>
-                <div class="flex gap-1">
+                <div class="flex items-center gap-2">
+                    <Select v-model="assignmentFilters.per_page" :options="perPageOptions" class="w-24" @change="assignmentFilters.page = 1; loadAssignments();" />
                     <Button
                         :label="t('teaching.schedules.pagination.prev')"
                         size="small"
@@ -1426,6 +1438,14 @@ onMounted(async () => {
                         </tr>
                     </tbody>
                 </table>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-surface-600 mt-3">
+                <span>Showing page {{ exceptionMeta.current_page }} of {{ exceptionMeta.last_page }} ({{ exceptionMeta.total }} total)</span>
+                <div class="flex items-center gap-2">
+                    <Select v-model="exceptionFilters.per_page" :options="perPageOptions" class="w-24" @change="exceptionFilters.page = 1; loadExceptions();" />
+                    <Button :label="t('teaching.schedules.pagination.prev')" size="small" outlined :disabled="exceptionMeta.current_page <= 1" @click="exceptionFilters.page -= 1; loadExceptions();" />
+                    <Button :label="t('teaching.schedules.pagination.next')" size="small" outlined :disabled="exceptionMeta.current_page >= exceptionMeta.last_page" @click="exceptionFilters.page += 1; loadExceptions();" />
+                </div>
             </div>
         </div>
 

@@ -3,7 +3,7 @@
 return [
     'profile_version' => 1,
     'per_page' => [10, 20, 50, 100],
-    'default_per_page' => 20,
+    'default_per_page' => 10,
     'review_reasons' => [
         'pending_document',
         'source_unavailable',
