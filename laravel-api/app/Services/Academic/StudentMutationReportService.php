@@ -625,7 +625,9 @@ class StudentMutationReportService
      */
     private function getSchoolProfileData(): array
     {
-        $profile = SchoolProfile::with(['educationSchool.district.regency', 'principal'])->first();
+        $profile = SchoolProfile::with(['educationSchool.district.regency', 'principalEmployee', 'principal'])
+            ->latest('school_year_id')
+            ->first();
 
         $schoolName = 'SMA YAPPENDA';
         $npsn = '20107400';
@@ -650,7 +652,9 @@ class StudentMutationReportService
             if ($profile->educationSchool?->district?->regency?->name) {
                 $regency = preg_replace('/^KOTA ADM\.\s+/i', '', (string) $profile->educationSchool->district->regency->name);
             }
-            if ($profile->principal?->name) {
+            if ($profile->principalEmployee?->name) {
+                $principalName = (string) $profile->principalEmployee->name;
+            } elseif ($profile->principal?->name) {
                 $principalName = (string) $profile->principal->name;
             }
         }

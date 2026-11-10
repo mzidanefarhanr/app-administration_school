@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\AcademicSetting;
 use App\Models\ArchiveDocument;
+use App\Models\EducationSchool;
 use App\Models\Employee;
 use App\Models\LeaveRequest;
 use App\Models\Letter;
@@ -745,31 +746,37 @@ class DashboardService
 
         $hasConfiguredActiveYear = $setting !== null && ! empty($setting->active_school_year_id);
 
-        // 1. Profil Sekolah & Tahun Ajaran
-        $hasProfile = SchoolProfile::query()->exists();
-        $step1Completed = $hasProfile && $hasConfiguredActiveYear;
-        $step1Percent = ($hasProfile ? 50 : 0) + ($hasConfiguredActiveYear ? 50 : 0);
+        // 1. Tahun Ajaran & Data Sekolah Induk
+        $totalEducationSchools = EducationSchool::query()->count();
+        $hasEducationSchool = $totalEducationSchools > 0;
+        $step1Completed = $hasConfiguredActiveYear && $hasEducationSchool;
+        $step1Percent = ($hasConfiguredActiveYear ? 50 : 0) + ($hasEducationSchool ? 50 : 0);
 
         $step1 = [
-            'id' => 'school_foundation',
+            'id' => 'academic_foundation',
             'order' => 1,
-            'title' => 'Profil Sekolah & Tahun Ajaran',
-            'description' => 'Lengkapi identitas sekolah (NPSN, Alamat, Logo) dan pastikan Tahun Pelajaran aktif telah dipilih.',
+            'title' => 'Tahun Ajaran & Data Sekolah',
+            'description' => 'Tetapkan Tahun Pelajaran aktif dan pastikan data sekolah induk telah terdaftar di Menu Sekolah.',
             'status' => $step1Completed ? 'completed' : ($step1Percent > 0 ? 'in_progress' : 'pending'),
             'percent' => $step1Percent,
-            'badge' => $hasConfiguredActiveYear ? "Tahun Ajaran {$activeYear?->name} Aktif" : 'Belum Ada Periode Aktif',
-            'badge_severity' => $hasConfiguredActiveYear ? 'success' : 'warn',
-            'action_label' => ! $hasConfiguredActiveYear ? 'Pilih Tahun Ajaran' : 'Buka Profil Sekolah',
-            'action_route' => ! $hasConfiguredActiveYear ? '/public/schoolyears' : '/public/schoolprofile',
+            'badge' => $hasConfiguredActiveYear
+                ? "T.A. {$activeYear?->name} ({$totalEducationSchools} Sekolah)"
+                : 'Belum Ada Periode Aktif',
+            'badge_severity' => $step1Completed ? 'success' : 'warn',
+            'action_label' => ! $hasConfiguredActiveYear
+                ? 'Pilih Tahun Ajaran'
+                : (! $hasEducationSchool ? 'Tambah Data Sekolah' : 'Kelola Data Sekolah'),
+            'action_route' => ! $hasConfiguredActiveYear ? '/public/schoolyears' : '/public/educationschools',
             'metrics' => [
-                'has_profile' => $hasProfile,
                 'has_active_year' => $hasConfiguredActiveYear,
+                'has_education_school' => $hasEducationSchool,
+                'total_education_schools' => $totalEducationSchools,
                 'active_year_name' => $hasConfiguredActiveYear ? $activeYear?->name : null,
                 'active_semester_name' => $hasConfiguredActiveYear ? $activeSemester?->name : null,
             ],
         ];
 
-        // 2. Direktori Guru & Pegawai
+        // 2. Direktori Guru & Pegawai (Termasuk Kepala Sekolah)
         $totalTeachers = Employee::query()
             ->whereNull('exit_date')
             ->whereHas('employeeType', fn ($q) => $q->where('name', 'Pendidik'))
@@ -779,27 +786,66 @@ class DashboardService
             ->whereHas('employeeType', fn ($q) => $q->where('name', 'Tenaga Kependidikan'))
             ->count();
         $totalEmployees = Employee::query()->whereNull('exit_date')->count();
+        $principalEmployeeCount = Employee::query()
+            ->whereNull('exit_date')
+            ->whereHas('employment', fn ($q) => $q->where('name', 'LIKE', '%Kepala Sekolah%'))
+            ->count();
+        $hasPrincipalEmployee = $principalEmployeeCount > 0;
 
-        $step2Completed = $totalEmployees > 0;
+        $step2Percent = ($totalEmployees > 0 ? 50 : 0) + ($hasPrincipalEmployee ? 50 : 0);
+        $step2Completed = $totalEmployees > 0 && $hasPrincipalEmployee;
         $step2 = [
             'id' => 'teachers_staff',
             'order' => 2,
             'title' => 'Direktori Guru & Pegawai',
-            'description' => 'Tambahkan data guru pengampu mata pelajaran serta tenaga kependidikan / staf.',
-            'status' => $step2Completed ? 'completed' : ($step1Completed ? 'in_progress' : 'pending'),
-            'percent' => $step2Completed ? 100 : 0,
-            'badge' => $totalEmployees > 0 ? "{$totalEmployees} Guru & Pegawai" : '0 Terdaftar',
-            'badge_severity' => $totalEmployees > 0 ? 'success' : 'secondary',
-            'action_label' => 'Kelola Guru & Pegawai',
-            'action_route' => '/public/teachers',
+            'description' => 'Tambahkan data guru, tenaga kependidikan, serta pegawai berkategori Kepala Sekolah.',
+            'status' => $step2Completed ? 'completed' : ($step2Percent > 0 ? 'in_progress' : ($step1Completed ? 'in_progress' : 'pending')),
+            'percent' => $step2Percent,
+            'badge' => $totalEmployees > 0
+                ? ($hasPrincipalEmployee ? "{$totalEmployees} Pegawai (Kepsek Ada)" : "{$totalEmployees} Pegawai (Belum Ada Kepsek)")
+                : '0 Terdaftar',
+            'badge_severity' => $step2Completed ? 'success' : ($totalEmployees > 0 ? 'warn' : 'secondary'),
+            'action_label' => ! $hasPrincipalEmployee ? 'Tambah Pegawai / Kepsek' : 'Kelola Guru & Pegawai',
+            'action_route' => '/public/employees',
             'metrics' => [
                 'total_teachers' => $totalTeachers,
                 'total_staff' => $totalStaff,
                 'total_employees' => $totalEmployees,
+                'principal_employee_count' => $principalEmployeeCount,
             ],
         ];
 
-        // 3. Rombongan Belajar (Rombel)
+        // 3. Profil Sekolah Lengkap (Identitas Sekolah, Kepala Sekolah, & Komite)
+        $activeProfile = $activeYearId
+            ? SchoolProfile::query()->where('school_year_id', $activeYearId)->first()
+            : SchoolProfile::query()->latest('id')->first();
+
+        $hasSelectedSchool = $activeProfile !== null && ! empty($activeProfile->education_school_npsn);
+        $hasSelectedPrincipal = $activeProfile !== null && ! empty($activeProfile->principal_employee_id);
+        $step3Percent = ($hasSelectedSchool ? 50 : 0) + ($hasSelectedPrincipal ? 50 : 0);
+        $step3Completed = $hasSelectedSchool && $hasSelectedPrincipal;
+
+        $step3 = [
+            'id' => 'school_profile',
+            'order' => 3,
+            'title' => 'Profil Sekolah Lengkap',
+            'description' => 'Pilih Identitas Sekolah dari Menu Sekolah, Kepala Sekolah dari Menu Pegawai, serta lengkapi data Komite.',
+            'status' => $step3Completed ? 'completed' : ($step3Percent > 0 ? 'in_progress' : ($step2Completed ? 'in_progress' : 'pending')),
+            'percent' => $step3Percent,
+            'badge' => $step3Completed
+                ? 'Identitas & Kepsek Lengkap'
+                : ($hasSelectedSchool ? 'Kepsek Belum Dipilih' : ($hasSelectedPrincipal ? 'Sekolah Belum Dipilih' : 'Belum Dilengkapi')),
+            'badge_severity' => $step3Completed ? 'success' : ($step3Percent > 0 ? 'warn' : 'secondary'),
+            'action_label' => 'Lengkapi Profil Sekolah',
+            'action_route' => '/public/schoolprofile',
+            'metrics' => [
+                'has_profile' => $activeProfile !== null,
+                'has_selected_school' => $hasSelectedSchool,
+                'has_selected_principal' => $hasSelectedPrincipal,
+            ],
+        ];
+
+        // 4. Rombongan Belajar (Rombel)
         $rombelQuery = SchoolRombel::query();
         if ($activeYearId) {
             $rombelQuery->where('school_year_id', $activeYearId);
@@ -807,21 +853,21 @@ class DashboardService
         $totalRombels = $rombelQuery->count();
         $rombelsWithWali = (clone $rombelQuery)->whereNotNull('class_teach_employee_id')->count();
 
-        $step3Percent = 0;
+        $step4Percent = 0;
         if ($totalRombels > 0) {
-            $step3Percent = $rombelsWithWali === $totalRombels ? 100 : 70;
+            $step4Percent = $rombelsWithWali === $totalRombels ? 100 : 70;
         }
-        $step3Completed = $totalRombels > 0 && $rombelsWithWali === $totalRombels;
+        $step4Completed = $totalRombels > 0 && $rombelsWithWali === $totalRombels;
 
-        $step3 = [
+        $step4 = [
             'id' => 'school_rombels',
-            'order' => 3,
+            'order' => 4,
             'title' => 'Rombongan Belajar (Rombel)',
             'description' => 'Buat struktur kelas (tingkat X, XI, XII) dan tetapkan Wali Kelas untuk masing-masing rombel.',
-            'status' => $step3Completed ? 'completed' : ($totalRombels > 0 ? 'in_progress' : ($step2Completed ? 'in_progress' : 'pending')),
-            'percent' => $step3Percent,
+            'status' => $step4Completed ? 'completed' : ($totalRombels > 0 ? 'in_progress' : ($step3Completed ? 'in_progress' : 'pending')),
+            'percent' => $step4Percent,
             'badge' => $totalRombels > 0 ? "{$totalRombels} Rombel ({$rombelsWithWali} Berwali)" : '0 Rombel',
-            'badge_severity' => $step3Completed ? 'success' : ($totalRombels > 0 ? 'warn' : 'secondary'),
+            'badge_severity' => $step4Completed ? 'success' : ($totalRombels > 0 ? 'warn' : 'secondary'),
             'action_label' => $totalRombels > 0 && $rombelsWithWali < $totalRombels ? 'Lengkapi Wali Kelas' : 'Kelola Rombel',
             'action_route' => '/public/schoolrombels',
             'metrics' => [
@@ -830,7 +876,7 @@ class DashboardService
             ],
         ];
 
-        // 4. Data Siswa & Penempatan Rombel
+        // 5. Data Siswa & Penempatan Rombel
         $totalStudents = Student::query()->count();
         $placedStudentsQuery = StudentRombel::query()->whereNull('deleted_at');
         if ($activeYearId) {
@@ -840,21 +886,21 @@ class DashboardService
         }
         $placedStudents = $placedStudentsQuery->whereNotNull('student_id')->distinct('student_id')->count('student_id');
 
-        $step4Percent = 0;
+        $step5Percent = 0;
         if ($totalStudents > 0) {
-            $step4Percent = $placedStudents >= $totalStudents ? 100 : 50;
+            $step5Percent = $placedStudents >= $totalStudents ? 100 : 50;
         }
-        $step4Completed = $totalStudents > 0 && $placedStudents >= $totalStudents;
+        $step5Completed = $totalStudents > 0 && $placedStudents >= $totalStudents;
 
-        $step4 = [
+        $step5 = [
             'id' => 'students_placement',
-            'order' => 4,
+            'order' => 5,
             'title' => 'Data Siswa & Penempatan Kelas',
             'description' => 'Impor atau daftarkan peserta didik, lalu tempatkan siswa ke dalam rombel kelas yang aktif.',
-            'status' => $step4Completed ? 'completed' : ($totalStudents > 0 ? 'in_progress' : ($step3Percent > 0 ? 'in_progress' : 'pending')),
-            'percent' => $step4Percent,
+            'status' => $step5Completed ? 'completed' : ($totalStudents > 0 ? 'in_progress' : ($step4Percent > 0 ? 'in_progress' : 'pending')),
+            'percent' => $step5Percent,
             'badge' => $totalStudents > 0 ? "{$totalStudents} Siswa ({$placedStudents} Ditempatkan)" : '0 Siswa',
-            'badge_severity' => $step4Completed ? 'success' : ($totalStudents > 0 ? 'warn' : 'secondary'),
+            'badge_severity' => $step5Completed ? 'success' : ($totalStudents > 0 ? 'warn' : 'secondary'),
             'action_label' => $totalStudents > 0 && $placedStudents < $totalStudents ? 'Alokasikan ke Rombel' : 'Kelola Data Siswa',
             'action_route' => '/public/students',
             'metrics' => [
@@ -863,7 +909,7 @@ class DashboardService
             ],
         ];
 
-        // 5. Penugasan Guru & Jadwal Mengajar
+        // 6. Penugasan Guru & Jadwal Mengajar
         $teachingAssignmentCount = $activeYearId
             ? TeachingAssignment::query()->where('school_year_id', $activeYearId)->count()
             : TeachingAssignment::query()->count();
@@ -876,23 +922,23 @@ class DashboardService
         }
         $teachingScheduleCount = $teachingScheduleQuery->count();
 
-        $step5Percent = 0;
+        $step6Percent = 0;
         if ($teachingScheduleCount > 0) {
-            $step5Percent = 100;
+            $step6Percent = 100;
         } elseif ($teachingAssignmentCount > 0) {
-            $step5Percent = 50;
+            $step6Percent = 50;
         }
-        $step5Completed = $teachingScheduleCount > 0;
+        $step6Completed = $teachingScheduleCount > 0;
 
-        $step5 = [
+        $step6 = [
             'id' => 'teaching_schedules',
-            'order' => 5,
+            'order' => 6,
             'title' => 'Beban Mengajar & Jadwal Pelajaran',
             'description' => 'Petakan guru ke mata pelajaran pada rombel dan susun jadwal pelajaran mingguan.',
-            'status' => $step5Completed ? 'completed' : ($step5Percent > 0 ? 'in_progress' : ($step4Completed ? 'in_progress' : 'pending')),
-            'percent' => $step5Percent,
+            'status' => $step6Completed ? 'completed' : ($step6Percent > 0 ? 'in_progress' : ($step5Completed ? 'in_progress' : 'pending')),
+            'percent' => $step6Percent,
             'badge' => $teachingScheduleCount > 0 ? "{$teachingScheduleCount} Jadwal Sesi" : ($teachingAssignmentCount > 0 ? "{$teachingAssignmentCount} Penugasan" : '0 Jadwal'),
-            'badge_severity' => $step5Completed ? 'success' : ($teachingAssignmentCount > 0 ? 'warn' : 'secondary'),
+            'badge_severity' => $step6Completed ? 'success' : ($teachingAssignmentCount > 0 ? 'warn' : 'secondary'),
             'action_label' => 'Susun Jadwal Mengajar',
             'action_route' => '/public/teaching/schedules',
             'metrics' => [
@@ -901,7 +947,7 @@ class DashboardService
             ],
         ];
 
-        $steps = [$step1, $step2, $step3, $step4, $step5];
+        $steps = [$step1, $step2, $step3, $step4, $step5, $step6];
 
         $completedSteps = count(array_filter($steps, fn ($s) => $s['status'] === 'completed'));
         $totalSteps = count($steps);

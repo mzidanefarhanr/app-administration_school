@@ -228,8 +228,8 @@ defineExpose({ load });
                     </div>
                 </div>
 
-                <!-- 5 Steps Grid / Sequential Timeline -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 pt-1">
+                <!-- 6 Steps Grid / Sequential Timeline -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 pt-1">
                     <div
                         v-for="step in onboarding.steps"
                         :key="step.id"

@@ -618,6 +618,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::apiResource('/employee-types', EmployeeTypeController::class);
     Route::apiResource('/employments', EmploymentController::class);
     Route::apiResource('/marital-statuses', MaritalStatusController::class);
+    Route::get('/school-profile-options', [SchoolProfileController::class, 'options']);
     Route::apiResource('/school-profile', SchoolProfileController::class);
     Route::apiResource('/subjects', SubjectController::class);
     Route::get('/activities', [ActivityController::class, 'index'])->middleware('can:audit.view');

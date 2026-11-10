@@ -24,12 +24,15 @@ class SchoolProfile extends Model
     protected $fillable = [
         'education_school_npsn',
         'principal_id',
+        'principal_employee_id',
         'school_year_id',
         'status_principal_id',
         'nds',
         'nss',
         'nis',
+        'zip_code',
         'nrks',
+        'nuptk',
         'tmt_principal',
         'official_number',
         'email',
@@ -38,7 +41,7 @@ class SchoolProfile extends Model
         'school_committee_number',
     ];
 
-     /**
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var array<int, string>
@@ -51,14 +54,22 @@ class SchoolProfile extends Model
     {
         return $this->belongsTo(EducationSchool::class, 'education_school_npsn', 'npsn')->withTrashed();
     }
+
     public function principal(): BelongsTo
     {
         return $this->belongsTo(User::class, 'principal_id', 'id')->withTrashed();
     }
+
+    public function principalEmployee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'principal_employee_id', 'id')->withTrashed();
+    }
+
     public function schoolYear(): BelongsTo
     {
         return $this->belongsTo(SchoolYear::class, 'school_year_id', 'id')->withTrashed();
     }
+
     public function statusPrincipal(): BelongsTo
     {
         return $this->belongsTo(StatusUser::class, 'status_principal_id', 'id')->withTrashed();

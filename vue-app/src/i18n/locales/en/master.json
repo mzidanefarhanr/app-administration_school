@@ -184,6 +184,10 @@
         "addNewUser": "Add New User",
         "searchSchoolPlaceholder": "Type to search schools...",
         "searchUserPlaceholder": "Type to search users...",
+        "addNewPrincipalEmployee": "Manage Employees (Principal Category)",
+        "searchPrincipalPlaceholder": "Select employee with Principal category...",
+        "noPrincipalEmployeeHint": "No employee with Principal category found in Employees menu.",
+        "activePeriodBadge": "Active Year",
         "savedSuccess": "{field} updated successfully.",
         "saveFailed": "Failed to save changes."
     },

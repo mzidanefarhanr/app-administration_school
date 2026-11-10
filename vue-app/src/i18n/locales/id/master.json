@@ -184,6 +184,10 @@
         "addNewUser": "Tambah Pengguna Baru",
         "searchSchoolPlaceholder": "Ketik untuk mencari sekolah...",
         "searchUserPlaceholder": "Ketik untuk mencari pengguna...",
+        "addNewPrincipalEmployee": "Kelola Pegawai (Kategori Kepala Sekolah)",
+        "searchPrincipalPlaceholder": "Pilih pegawai berkategori Kepala Sekolah...",
+        "noPrincipalEmployeeHint": "Belum ada pegawai dengan kategori/jabatan Kepala Sekolah di Menu Pegawai.",
+        "activePeriodBadge": "Tahun Aktif",
         "savedSuccess": "Data {field} berhasil diperbarui.",
         "saveFailed": "Gagal menyimpan perubahan."
     },
