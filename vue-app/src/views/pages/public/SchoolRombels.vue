@@ -531,99 +531,108 @@ onMounted(async () => {
 </script>
 
 <template>
-    <Fluid>
-        <div class="bg-surface-0 dark:bg-surface-950 px-6 py-8 md:px-12 lg:px-20">
-            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                <div>
-                    <div class="font-bold text-3xl text-surface-900 dark:text-surface-0 mb-2">{{ t('master.schoolRombels.title') }}</div>
-                    <p class="text-surface-500 dark:text-surface-400">{{ t('master.schoolRombels.subtitle') }}</p>
-                </div>
-                <div class="flex flex-wrap items-center gap-2">
+    <div class="card flex flex-col gap-4 w-full">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+                <div class="flex items-center gap-3">
+                    <h2 class="text-2xl font-semibold">{{ t('master.schoolRombels.title') }}</h2>
                     <Tag v-if="activePeriodLabel" severity="success" :value="t('master.schoolYears.activeTag', { year: activePeriodLabel, semester: '' })" />
                     <Tag v-else :value="t('master.schoolYears.noActivePeriod')" severity="warn" />
                 </div>
+                <p class="text-sm text-surface-500">
+                    {{ t('master.schoolRombels.subtitle') }}
+                </p>
             </div>
+            <div class="flex flex-wrap gap-2 items-center">
+                <Button
+                    :label="t('master.schoolRombels.importExport.btnExportExcel')"
+                    icon="pi pi-file-excel"
+                    severity="success"
+                    variant="outlined"
+                    :loading="exportingFormat === 'xlsx'"
+                    :disabled="!!exportingFormat || filteredRows.length === 0"
+                    @click="exportClasses('xlsx')"
+                />
+                <Button
+                    :label="t('master.schoolRombels.importExport.btnExportCsv')"
+                    icon="pi pi-download"
+                    severity="secondary"
+                    variant="outlined"
+                    :loading="exportingFormat === 'csv'"
+                    :disabled="!!exportingFormat || filteredRows.length === 0"
+                    @click="exportClasses('csv')"
+                />
+                <Button
+                    v-if="canManage"
+                    :label="t('master.schoolRombels.importExport.btnImport')"
+                    icon="pi pi-upload"
+                    severity="secondary"
+                    variant="outlined"
+                    :disabled="unlockedYears.length === 0"
+                    @click="importDialogVisible = true"
+                />
+                <Button
+                    v-if="canManage"
+                    :label="t('master.schoolRombels.newClass')"
+                    icon="pi pi-plus"
+                    :disabled="unlockedYears.length === 0"
+                    @click="openCreate"
+                />
+                <Button
+                    icon="pi pi-filter-slash"
+                    :label="t('master.common.clear')"
+                    severity="secondary"
+                    variant="outlined"
+                    @click="resetFilters"
+                />
+            </div>
+        </div>
 
-            <div class="card mt-6 flex flex-col gap-4">
-                <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
-                    <div class="flex flex-wrap gap-2">
-                        <Button v-if="canManage" :label="t('master.schoolRombels.newClass')" icon="pi pi-plus" :disabled="unlockedYears.length === 0" @click="openCreate" />
-                        <Button icon="pi pi-filter-slash" :label="t('master.common.clear')" severity="secondary" variant="outlined" @click="resetFilters" />
-                    </div>
-                    <div class="flex flex-wrap items-center gap-3">
-                        <span class="text-sm text-surface-500">{{ t('master.schoolRombels.totalClasses', { count: filteredRows.length }) }}</span>
-                        <Button
-                            v-if="canManage"
-                            :label="t('master.schoolRombels.importExport.btnImport')"
-                            icon="pi pi-upload"
-                            severity="secondary"
-                            variant="outlined"
-                            size="small"
-                            :disabled="unlockedYears.length === 0"
-                            @click="importDialogVisible = true"
-                        />
-                        <Button
-                            :label="t('master.schoolRombels.importExport.btnExportExcel')"
-                            icon="pi pi-file-excel"
-                            severity="success"
-                            variant="outlined"
-                            size="small"
-                            :loading="exportingFormat === 'xlsx'"
-                            :disabled="!!exportingFormat || filteredRows.length === 0"
-                            @click="exportClasses('xlsx')"
-                        />
-                        <Button
-                            :label="t('master.schoolRombels.importExport.btnExportCsv')"
-                            icon="pi pi-download"
-                            severity="secondary"
-                            variant="outlined"
-                            size="small"
-                            :loading="exportingFormat === 'csv'"
-                            :disabled="!!exportingFormat || filteredRows.length === 0"
-                            @click="exportClasses('csv')"
-                        />
-                    </div>
-                </div>
+        <div class="flex flex-col xl:flex-row gap-3 xl:items-center">
+            <IconField class="w-full xl:w-64">
+                <InputIcon><i class="pi pi-search" /></InputIcon>
+                <InputText v-model="search" :placeholder="t('master.schoolRombels.searchClass')" class="w-full" />
+            </IconField>
+            <Select v-model="yearFilter" :options="yearOptions" optionLabel="name" optionValue="id" :placeholder="t('master.schoolRombels.allYears')" showClear class="w-full xl:w-52" @change="onYearFilterChange" />
+            <Select v-model="levelFilter" :options="levelOptions" optionLabel="name" optionValue="id" :placeholder="t('master.schoolRombels.allLevels')" showClear class="w-full xl:w-44" />
+            <Select v-model="majorFilter" :options="majorOptions" optionLabel="name" optionValue="id" :placeholder="t('master.schoolRombels.allMajors')" showClear class="w-full xl:w-48" />
+            <IconField class="w-full xl:w-56">
+                <InputIcon><i class="pi pi-user" /></InputIcon>
+                <InputText v-model="teacherSearch" :placeholder="t('master.schoolRombels.searchTeacher')" class="w-full" />
+            </IconField>
+            <div class="xl:ml-auto text-sm text-surface-500 font-medium whitespace-nowrap">
+                {{ t('master.schoolRombels.totalClasses', { count: filteredRows.length }) }}
+            </div>
+        </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
-                    <Select v-model="yearFilter" :options="yearOptions" optionLabel="name" optionValue="id" :placeholder="t('master.schoolRombels.allYears')" showClear class="w-full" @change="onYearFilterChange" />
-                    <Select v-model="levelFilter" :options="levelOptions" optionLabel="name" optionValue="id" :placeholder="t('master.schoolRombels.allLevels')" showClear class="w-full" />
-                    <Select v-model="majorFilter" :options="majorOptions" optionLabel="name" optionValue="id" :placeholder="t('master.schoolRombels.allMajors')" showClear class="w-full" />
-                    <InputText v-model="teacherSearch" :placeholder="t('master.schoolRombels.searchTeacher')" class="w-full" />
-                    <IconField class="w-full">
-                        <InputIcon><i class="pi pi-search" /></InputIcon>
-                        <InputText v-model="search" :placeholder="t('master.schoolRombels.searchClass')" class="w-full" />
-                    </IconField>
-                </div>
+        <small v-if="optionsError" class="text-orange-600 dark:text-orange-400">{{ optionsError }}</small>
 
-                <small v-if="optionsError" class="text-orange-600 dark:text-orange-400">{{ optionsError }}</small>
+        <div v-if="selectedRombels.length > 0" class="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg bg-primary-50 dark:bg-primary-950/40 border border-primary-200 dark:border-primary-800 transition-all">
+            <div class="flex items-center gap-2 text-sm font-semibold text-primary-900 dark:text-primary-100">
+                <i class="pi pi-check-circle text-primary text-base"></i>
+                <span>{{ selectedRombels.length }} rombel dipilih</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <Button
+                    v-if="canManage && deletableSelectedRombels.length > 0"
+                    :label="`Hapus Terpilih (${deletableSelectedRombels.length})`"
+                    icon="pi pi-trash"
+                    severity="danger"
+                    size="small"
+                    @click="openBatchDelete"
+                />
+                <Button
+                    label="Batal Pilih"
+                    icon="pi pi-times"
+                    severity="secondary"
+                    variant="text"
+                    size="small"
+                    @click="selectedRombels = []"
+                />
+            </div>
+        </div>
 
-                                <div v-if="selectedRombels.length > 0" class="flex flex-wrap items-center justify-between gap-3 p-3 bg-primary-50 dark:bg-primary-950/40 border border-primary-200 dark:border-primary-800 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <i class="pi pi-check-circle text-primary text-lg"></i>
-                        <span class="font-medium text-sm text-surface-900 dark:text-surface-100">{{ selectedRombels.length }} rombel dipilih</span>
-                    </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <Button
-                            v-if="canManage && deletableSelectedRombels.length > 0"
-                            :label="`Hapus Terpilih (${deletableSelectedRombels.length})`"
-                            icon="pi pi-trash"
-                            severity="danger"
-                            size="small"
-                            @click="openBatchDelete"
-                        />
-                        <Button
-                            label="Batal Pilih"
-                            icon="pi pi-times"
-                            severity="secondary"
-                            variant="text"
-                            size="small"
-                            @click="selectedRombels = []"
-                        />
-                    </div>
-                </div>
-
-                <DataTable
+        <DataTable
                     v-model:selection="selectedRombels"
                     :value="filteredRows"
                     paginator
@@ -694,9 +703,7 @@ onMounted(async () => {
                         </template>
                     </Column>
                 </DataTable>
-            </div>
-        </div>
-    </Fluid>
+    </div>
 
     <Dialog v-model:visible="classDialog" modal :style="{ width: '560px', maxWidth: '95vw' }" :header="classEditing ? t('master.schoolRombels.editClass') : t('master.schoolRombels.newClass')" :draggable="false">
         <div class="flex flex-col gap-4">
