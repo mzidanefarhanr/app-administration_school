@@ -570,6 +570,12 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         ->only(['index', 'show'])->middleware('can:master.view');
     Route::apiResource('/school-levels', SchoolLevelController::class)
         ->except(['index', 'show'])->middleware('can:master.manage');
+    Route::get('/school-rombels/export', [SchoolRombelController::class, 'export'])
+        ->middleware('can:students.view');
+    Route::get('/school-rombels/import/template', [SchoolRombelController::class, 'importTemplate'])
+        ->middleware('can:students.view');
+    Route::post('/school-rombels/import', [SchoolRombelController::class, 'import'])
+        ->middleware('can:students.manage');
     Route::post('/school-rombels/batch-delete', [SchoolRombelController::class, 'batchDelete'])
         ->middleware('can:students.manage');
     Route::apiResource('/school-rombels', SchoolRombelController::class)

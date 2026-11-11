@@ -11,11 +11,13 @@ use App\Models\SchoolYear;
 use App\Models\StudentRombel;
 use App\Models\TeachingAssignment;
 use App\Models\TeachingScheduleException;
+use App\Services\Academic\SchoolRombelImportExportService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SchoolRombelController extends Controller
 {
@@ -412,6 +414,114 @@ class SchoolRombelController extends Controller
         });
 
         return new StatusResource(true, "Successfully deleted {$count} class(es).", ['deleted_count' => $count]);
+    }
+
+    /**
+     * Ekspor daftar rombongan belajar ke Excel (.xlsx) atau CSV (.csv).
+     */
+    public function export(Request $request, SchoolRombelImportExportService $service): StreamedResponse
+    {
+        $this->authorize('viewAny', SchoolRombel::class);
+
+        $validated = $request->validate([
+            'school_year_id' => ['nullable', 'integer'],
+            'school_level_id' => ['nullable', 'integer'],
+            'student_major_id' => ['nullable', 'integer'],
+            'teacher_search' => ['nullable', 'string', 'max:100'],
+            'search' => ['nullable', 'string', 'max:100'],
+            'format' => ['nullable', 'string', 'in:xlsx,csv'],
+            'lang' => ['nullable', 'string', 'in:id,en'],
+        ]);
+
+        $format = strtolower((string) ($validated['format'] ?? 'xlsx'));
+        $lang = strtolower((string) ($validated['lang'] ?? 'id')) === 'en' ? 'en' : 'id';
+        $dateSuffix = now()->format('Ymd_His');
+
+        if ($format === 'csv') {
+            $csvContent = $service->exportCsv($validated, $lang);
+            $fileName = ($lang === 'id' ? 'Data-Rombongan-Belajar-' : 'Classes-') . "{$dateSuffix}.csv";
+
+            return response()->streamDownload(
+                fn () => print $csvContent,
+                $fileName,
+                [
+                    'Content-Type' => 'text/csv; charset=UTF-8',
+                    'Cache-Control' => 'no-cache, private',
+                ]
+            );
+        }
+
+        $xlsxContent = $service->exportXlsx($validated, $lang);
+        $fileName = ($lang === 'id' ? 'Data-Rombongan-Belajar-' : 'Classes-') . "{$dateSuffix}.xlsx";
+
+        return response()->streamDownload(
+            fn () => print $xlsxContent,
+            $fileName,
+            [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Cache-Control' => 'no-cache, private',
+            ]
+        );
+    }
+
+    /**
+     * Unduh template impor rombongan belajar (.xlsx / .csv).
+     */
+    public function importTemplate(Request $request, SchoolRombelImportExportService $service): StreamedResponse
+    {
+        $this->authorize('viewAny', SchoolRombel::class);
+
+        $lang = strtolower((string) $request->query('lang', 'id')) === 'en' ? 'en' : 'id';
+        $format = strtolower((string) $request->query('format', 'xlsx'));
+        $schoolYearId = $request->query('school_year_id') ? (int) $request->query('school_year_id') : null;
+
+        if ($format === 'csv') {
+            return response()->streamDownload(
+                fn () => print $service->templateCsv($lang, $schoolYearId),
+                'rombongan-belajar-import-template.csv',
+                [
+                    'Content-Type' => 'text/csv; charset=UTF-8',
+                    'Cache-Control' => 'no-cache, private',
+                ]
+            );
+        }
+
+        return response()->streamDownload(
+            fn () => print $service->templateXlsx($lang, $schoolYearId),
+            'rombongan-belajar-import-template.xlsx',
+            [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Cache-Control' => 'no-cache, private',
+            ]
+        );
+    }
+
+    /**
+     * Proses impor rombongan belajar dari berkas Excel / CSV.
+     */
+    public function import(Request $request, SchoolRombelImportExportService $service): JsonResponse
+    {
+        $this->authorize('create', SchoolRombel::class);
+
+        $validated = $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx,xls,csv,txt', 'max:10240'],
+            'school_year_id' => ['nullable', 'integer', 'min:1'],
+        ]);
+
+        try {
+            $result = $service->import(
+                $request->file('file'),
+                isset($validated['school_year_id']) ? (int) $validated['school_year_id'] : null
+            );
+
+            return response()->json($result, $result['success'] ? 200 : 422);
+        } catch (\RuntimeException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'errors' => [],
+            ], 422);
+        }
     }
 
     private function baseQuery(): Builder

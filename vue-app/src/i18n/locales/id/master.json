@@ -154,6 +154,23 @@
         "conflict": {
             "title": "Deteksi Konflik Pembaruan",
             "btnReload": "Muat Data Terbaru"
+        },
+        "importExport": {
+            "btnImport": "Impor Rombel",
+            "btnExportExcel": "Ekspor Excel",
+            "btnExportCsv": "Ekspor CSV",
+            "dialogTitle": "Impor Rombongan Belajar",
+            "defaultYearLabel": "Tahun Ajaran Bawaan (bila kolom Tahun Ajaran di berkas kosong)",
+            "selectYearPlaceholder": "Pilih tahun ajaran bawaan...",
+            "fileLabel": "Berkas Excel (.xlsx, .xls) atau CSV (.csv)",
+            "fileHint": "Gunakan templat resmi di bawah. Mendukung penambahan rombel baru sekaligus pembaruan wali kelas / atribut rombel yang belum memiliki riwayat siswa.",
+            "fileTypeError": "Hanya berkas Excel (.xlsx, .xls) atau CSV (.csv) yang didukung.",
+            "btnTemplateXlsx": "Unduh Templat Excel (.xlsx)",
+            "btnTemplateCsv": "Unduh Templat CSV",
+            "btnUpload": "Unggah & Proses",
+            "errorNotesTitle": "Catatan baris yang perlu diperiksa:",
+            "exportSuccess": "Data rombongan belajar berhasil diekspor ({format}).",
+            "exportFailed": "Gagal mengekspor data rombongan belajar."
         }
     },
     "schoolProfile": {

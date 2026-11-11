@@ -154,6 +154,23 @@
         "conflict": {
             "title": "Update Conflict Detected",
             "btnReload": "Reload Latest Data"
+        },
+        "importExport": {
+            "btnImport": "Import Classes",
+            "btnExportExcel": "Export Excel",
+            "btnExportCsv": "Export CSV",
+            "dialogTitle": "Import Classes (Rombel)",
+            "defaultYearLabel": "Default Academic Year (used when Academic Year column is blank)",
+            "selectYearPlaceholder": "Select default academic year...",
+            "fileLabel": "Excel (.xlsx, .xls) or CSV (.csv) File",
+            "fileHint": "Use the official template below. Supports creating new classes and updating homeroom teachers or attributes for classes without membership history.",
+            "fileTypeError": "Only Excel (.xlsx, .xls) or CSV (.csv) files are supported.",
+            "btnTemplateXlsx": "Download Excel Template (.xlsx)",
+            "btnTemplateCsv": "Download CSV Template",
+            "btnUpload": "Upload & Process",
+            "errorNotesTitle": "Row notes to review:",
+            "exportSuccess": "Classes data exported successfully ({format}).",
+            "exportFailed": "Failed to export classes data."
         }
     },
     "schoolProfile": {

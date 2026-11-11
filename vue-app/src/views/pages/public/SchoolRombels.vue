@@ -5,9 +5,10 @@ import Button from 'primevue/button';
 import { useToast } from 'primevue/usetoast';
 import { authStore } from '@/stores/authStore';
 import apiLogin from '@/apiLogin';
+import SchoolRombelImportDialog from './SchoolRombelImportDialog.vue';
 
 const toast = useToast();
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const store = authStore();
 const canManage = computed(() => store.can('students.manage'));
 
@@ -405,6 +406,49 @@ const reloadAfterConflict = async () => {
 const selectedRombels = ref([]);
 const batchDeleteDialog = ref(false);
 const isDeletingBatch = ref(false);
+const importDialogVisible = ref(false);
+const exportingFormat = ref(null);
+
+const exportClasses = async (format = 'xlsx') => {
+    if (exportingFormat.value) return;
+    exportingFormat.value = format;
+
+    try {
+        const lang = locale.value === 'en' ? 'en' : 'id';
+        const params = { format, lang };
+        if (yearFilter.value) params.school_year_id = yearFilter.value;
+        if (levelFilter.value) params.school_level_id = levelFilter.value;
+        if (majorFilter.value) params.student_major_id = majorFilter.value;
+        if (teacherSearch.value.trim()) params.teacher_search = teacherSearch.value.trim();
+        if (search.value.trim()) params.search = search.value.trim();
+
+        const response = await apiLogin.get('/api/school-rombels/export', {
+            params,
+            responseType: 'blob'
+        });
+
+        const ext = format === 'csv' ? 'csv' : 'xlsx';
+        const mimeType = format === 'csv' ? 'text/csv;charset=utf-8;' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        const url = window.URL.createObjectURL(new Blob([response.data], { type: mimeType }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `data-rombongan-belajar.${ext}`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+        notify('success', t('master.schoolRombels.importExport.exportSuccess', { format: ext.toUpperCase() }));
+    } catch (error) {
+        notify('error', errorMessage(error, t('master.schoolRombels.importExport.exportFailed')));
+    } finally {
+        exportingFormat.value = null;
+    }
+};
+
+const onImported = async () => {
+    await fetchClasses();
+};
 
 const deletableSelectedRombels = computed(() => (selectedRombels.value || []).filter((row) => !deleteBlockReason(row)));
 const blockedSelectedRombels = computed(() => (selectedRombels.value || []).filter((row) => !!deleteBlockReason(row)));
@@ -508,6 +552,36 @@ onMounted(async () => {
                     </div>
                     <div class="flex flex-wrap items-center gap-3">
                         <span class="text-sm text-surface-500">{{ t('master.schoolRombels.totalClasses', { count: filteredRows.length }) }}</span>
+                        <Button
+                            v-if="canManage"
+                            :label="t('master.schoolRombels.importExport.btnImport')"
+                            icon="pi pi-upload"
+                            severity="secondary"
+                            variant="outlined"
+                            size="small"
+                            :disabled="unlockedYears.length === 0"
+                            @click="importDialogVisible = true"
+                        />
+                        <Button
+                            :label="t('master.schoolRombels.importExport.btnExportExcel')"
+                            icon="pi pi-file-excel"
+                            severity="success"
+                            variant="outlined"
+                            size="small"
+                            :loading="exportingFormat === 'xlsx'"
+                            :disabled="!!exportingFormat || filteredRows.length === 0"
+                            @click="exportClasses('xlsx')"
+                        />
+                        <Button
+                            :label="t('master.schoolRombels.importExport.btnExportCsv')"
+                            icon="pi pi-download"
+                            severity="secondary"
+                            variant="outlined"
+                            size="small"
+                            :loading="exportingFormat === 'csv'"
+                            :disabled="!!exportingFormat || filteredRows.length === 0"
+                            @click="exportClasses('csv')"
+                        />
                     </div>
                 </div>
 
@@ -750,4 +824,11 @@ onMounted(async () => {
             <Button :label="`Hapus (${deletableSelectedRombels.length})`" icon="pi pi-trash" severity="danger" :loading="isDeletingBatch" @click="confirmBatchDelete" />
         </template>
     </Dialog>
+
+    <SchoolRombelImportDialog
+        v-model:visible="importDialogVisible"
+        :defaultSchoolYearId="yearFilter || activeSchoolYearId"
+        :unlockedYears="unlockedYears"
+        @imported="onImported"
+    />
 </template>
