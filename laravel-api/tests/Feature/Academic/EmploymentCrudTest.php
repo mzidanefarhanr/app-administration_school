@@ -28,7 +28,7 @@ it('lists, creates, shows and updates employments with description', function ()
     Sanctum::actingAs($this->operator);
 
     $created = $this->postJson('/api/employments', ['name' => 'Wakil Kepala Sarpras', 'description' => 'Mengelola sarana'])
-        ->assertOk()
+        ->assertCreated()
         ->json('data');
 
     expect($created['name'])->toBe('Wakil Kepala Sarpras')
