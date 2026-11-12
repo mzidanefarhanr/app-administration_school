@@ -61,6 +61,13 @@
         "entity": "Profession",
         "plural": "Professions"
     },
+    "employments": {
+        "title": "Positions",
+        "entity": "Position",
+        "plural": "Positions",
+        "description": "Description",
+        "descriptionPlaceholder": "Short description of the position (optional)"
+    },
     "studentMajors": {
         "title": "Student Majors",
         "entity": "Student Major",

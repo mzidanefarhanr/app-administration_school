@@ -61,6 +61,13 @@
         "entity": "Profesi",
         "plural": "Profesi"
     },
+    "employments": {
+        "title": "Jabatan",
+        "entity": "Jabatan",
+        "plural": "Jabatan",
+        "description": "Deskripsi",
+        "descriptionPlaceholder": "Deskripsi singkat jabatan (opsional)"
+    },
     "studentMajors": {
         "title": "Jurusan Siswa",
         "entity": "Jurusan Siswa",

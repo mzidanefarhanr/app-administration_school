@@ -29,6 +29,7 @@ const model = computed(() => [
             { label: t('menu.item.schools'), icon: 'pi pi-fw pi-building-columns', to: '/public/educationschools' },
             { label: t('menu.item.phaseStatuses'), icon: 'pi pi-fw pi-flag', to: '/public/phasestatuses', class: 'rotated-icon' },
             { label: t('menu.item.professions'), icon: 'pi pi-fw pi-briefcase', to: '/public/professions', class: 'rotated-icon' },
+            { label: t('menu.item.employments'), icon: 'pi pi-fw pi-id-card', to: '/public/employments' },
             { label: t('menu.item.studentMajors'), icon: 'pi pi-fw pi-compass', to: '/public/studentmajors', class: 'rotated-icon' }
         ]
     },

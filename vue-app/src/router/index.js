@@ -54,6 +54,12 @@ const router = createRouter({
                     component: () => import('@/views/pages/public/Profession.vue')
                 },
                 {
+                    path: '/public/employments',
+                    name: 'employments-master',
+                    meta: { breadcrumbKey: 'menu.item.employments', breadcrumb: 'Jabatan', requiresAbility: 'master.view' },
+                    component: () => import('@/views/pages/public/Employments.vue')
+                },
+                {
                     path: '/public/schoolyears',
                     name: 'schoolyears',
                     meta: { breadcrumbKey: 'menu.item.schoolYears', breadcrumb: 'Tahun Ajaran', requiresAbility: 'master.view' },

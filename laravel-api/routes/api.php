@@ -482,6 +482,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         '/religions' => ReligionController::class,
         '/blood-types' => BloodTypeController::class,
         '/professions' => ProfessionController::class,
+        '/employments' => EmploymentController::class,
         '/family-status' => FamilyStatusController::class,
         '/education-schools' => EducationSchoolController::class,
         '/student-statuses' => StudentStatusController::class,
@@ -622,7 +623,6 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         ->except(['index', 'show'])->middleware('can:employees.manage');
     Route::apiResource('/employee-statuses', EmployeeStatusController::class);
     Route::apiResource('/employee-types', EmployeeTypeController::class);
-    Route::apiResource('/employments', EmploymentController::class);
     Route::apiResource('/marital-statuses', MaritalStatusController::class);
     Route::get('/school-profile-options', [SchoolProfileController::class, 'options']);
     Route::apiResource('/school-profile', SchoolProfileController::class);
